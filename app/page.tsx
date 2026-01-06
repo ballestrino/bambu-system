@@ -8,10 +8,7 @@ export default async function HomePage() {
   if (session) {
     return (
       <div className="flex flex-col gap-6 max-w-md mx-auto p-6">
-        <p>Estas logeado como <span className="font-medium">{session.user?.name}</span></p>
-        <Button asChild>
-          <Link href={"/settings"}>Ir a Configuración</Link>
-        </Button>
+        <p className="text-center">Estas logeado como <span className="font-medium">{session.user?.name}</span></p>
       </div>
     )
   }

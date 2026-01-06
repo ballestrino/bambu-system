@@ -35,7 +35,6 @@ yarn-error.log*
 # allow template
 !.env.template
 
-
 # vercel
 .vercel
 
