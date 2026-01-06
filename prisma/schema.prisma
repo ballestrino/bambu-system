@@ -23,6 +23,8 @@ model User {
   accounts      Account[]
   isTwoFactorEnabled Boolean @default(false)
   twoFactorConfirmation TwoFactorConfirmation?
+  budgets Budget[]
+  chats Chat[]
 }
 
 model Account {
@@ -80,4 +82,86 @@ model TwoFactorConfirmation {
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique ([userId])
+}
+
+model Budget { 
+  id String @id @default(cuid())
+  name String
+  description String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  budgetOptions BudgetOption[]
+
+  userId String
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+enum VisitType { 
+  days
+  week
+  month
+}
+
+model BudgetOption {
+  id                       String    @id @default(cuid())
+  // Info
+  visits                   Int
+  visit_type               VisitType
+  hours_per_visit          Int
+  nominal_hour             Int
+  nominal_salary           Int
+  employees                Int
+
+  // Contributions
+  incidence_contribution   Int
+  company_contribution     Int
+  personal_contribution    Int
+
+  // Extra costs
+  transportation_cost      Int
+  products_price           Int
+  products_iva             Int
+
+  // Revenues
+  products_revenue_percent Int
+  revenue_percent          Int
+
+  // Price
+  price                    Int
+  iva                      Int  
+
+  // Relations
+  budgetId String
+  budget   Budget @relation(fields: [budgetId], references: [id], onDelete: Cascade)
+
+  // Dates
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Chat {
+  id        String    @id @default(cuid())
+  name      String?   // Optional title for the chat
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  
+  userId    String
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  messages  Message[]
+}
+enum Role {
+  user
+  assistant
+  system
+  data // Optional: for data messages if needed
+}
+model Message {
+  id        String   @id @default(cuid())
+  role      Role // user, assistant, system
+  content   String   @db.Text // Use Text type for potentially long content
+  createdAt DateTime @default(now())
+  
+  chatId    String
+  chat      Chat     @relation(fields: [chatId], references: [id], onDelete: Cascade)
 }
