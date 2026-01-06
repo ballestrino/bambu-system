@@ -1,6 +1,7 @@
 "use server"
 
 import * as z from "zod"
+import bcrypt from "bcryptjs"
 
 import { AuthError } from "next-auth"
 import { signIn } from "@/auth"
@@ -40,6 +41,12 @@ export const login = async (values: z.infer<typeof loginFormSchema>) => {
         verificationToken.token
       )
       return { emailVerification: "Email de verificación enviado!" }
+    }
+
+    const passwordsMatch = await bcrypt.compare(password, existingUser.password)
+
+    if (!passwordsMatch) {
+      return { error: "Datos invalidos" }
     }
 
     if (existingUser.isTwoFactorEnabled && existingUser.email) {

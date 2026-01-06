@@ -37,6 +37,8 @@ export default function LoginForm() {
   const [success, setSuccess] = useState<string | null>(null)
   const [isPending, setIsPending] = useState(false)
 
+  const [lastSubmittedData, setLastSubmittedData] = useState<z.infer<typeof loginFormSchema> | null>(null)
+
   const form = useForm<z.infer<typeof loginFormSchema>>({
     resolver: zodResolver(loginFormSchema),
     defaultValues: {
@@ -49,13 +51,17 @@ export default function LoginForm() {
   const router = useRouter()
 
   const onsubmit = async (data: z.infer<typeof loginFormSchema>) => {
+    if (JSON.stringify(data) === JSON.stringify(lastSubmittedData)) {
+      return
+    }
+
     setError(null)
     setSuccess(null)
+    setLastSubmittedData(data)
 
     setIsPending(true)
     const result = await login(data)
     if (result?.error) {
-      form.reset()
       setError(result.error)
     }
 

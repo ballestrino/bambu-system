@@ -89,7 +89,7 @@ export const { auth, handlers, signIn, signOut } = NextAuth({
 
       // when the token is updated by useSession updates here the data
       token.name = existingUser.name
-      //   token.isTwoFactorEnabled = existingUser.isTwoFactorEnabled
+      token.isTwoFactorEnabled = existingUser.isTwoFactorEnabled
       token.email = existingUser.email
       token.role = existingUser.role
       token.image = existingUser.image

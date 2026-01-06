@@ -1,31 +1,28 @@
-import Link from "next/link"
-import { auth, signOut } from "@/auth"
+import { auth } from "@/auth"
 import { Button } from "@/components/ui/button"
+import Link from "next/link"
 
-export default async function page() {
+export default async function HomePage() {
   const session = await auth()
-
 
   if (session) {
     return (
-      <div>
-        <p>Ya estas autenticado</p>
-        <form
-          action={async () => {
-            "use server"
-            await signOut()
-          }}
-        >
-          <Button type='submit'>Sign out</Button>
-        </form>
+      <div className="flex flex-col gap-6 max-w-md mx-auto p-6">
+        <p>Estas logeado como <span className="font-medium">{session.user?.name}</span></p>
+        <Button asChild>
+          <Link href={"/settings"}>Ir a Configuración</Link>
+        </Button>
       </div>
     )
   }
 
   return (
-    <div>
+    <div className="flex flex-col gap-6 max-w-md mx-auto p-6">
       <Button asChild>
         <Link href={"/auth/login"}>Login</Link>
+      </Button>
+      <Button asChild>
+        <Link href={"/auth/register"}>Register</Link>
       </Button>
     </div>
   )
