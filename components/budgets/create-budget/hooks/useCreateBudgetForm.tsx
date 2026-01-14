@@ -2,10 +2,9 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import React from 'react'
 import { useForm } from 'react-hook-form';
 import { BudgetSchema, defaultBudgetValues } from '@/schemas/BudgetSchema';
-import { createBudget } from '@/actions/budgets/create-budget';
-import { toast } from 'sonner';
 import { useRouter } from 'next/navigation';
 import * as z from 'zod';
+import { useCreateBudgetMutation } from '../../hooks/useCreateBudgetMutation';
 
 export default function useCreateBudgetForm() {
     const router = useRouter();
@@ -31,25 +30,21 @@ export default function useCreateBudgetForm() {
         mode: "onChange", // Enable real-time validation/observation
     });
 
-    const [isPending, startTransition] = React.useTransition();
+    const { createBudgetAsync, isCreating } = useCreateBudgetMutation();
 
-    const onSubmit = (data: z.infer<typeof BudgetSchema>) => {
-        startTransition(() => {
-            createBudget(data).then((res) => {
-                if (res.error) {
-                    toast.error(res.error);
-                }
-                if (res.success) {
-                    toast.success(res.success);
-                    router.push("/dashboard/budgets");
-                }
-            })
-        });
+    const onSubmit = async (data: z.infer<typeof BudgetSchema>) => {
+        try {
+            await createBudgetAsync(data);
+            router.push("/dashboard/budgets");
+        } catch (error) {
+            // Error handling is already done in the hook via toast
+            console.error(error);
+        }
     };
 
     return {
         form,
-        isPending,
+        isPending: isCreating,
         onSubmit,
         handleGenerateAI,
     }

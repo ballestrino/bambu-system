@@ -78,16 +78,16 @@ export const BudgetDetails = ({ option, title }: BudgetDetailsProps) => {
                             <span>${personalVal.toFixed(2)}</span>
                         </div>
                         <div className={cn("flex justify-between", !values.company_enabled && "text-muted-foreground")}>
-                            <span className="text-muted-foreground">Empresa</span>
+                            <span className="text-muted-foreground">Patronales</span>
                             <span>${companyVal.toFixed(2)}</span>
                         </div>
                         <div className={cn("flex justify-between", !values.incidence_enabled && "text-muted-foreground")}>
-                            <span className="text-muted-foreground">Incidencias</span>
+                            <span className="text-muted-foreground">Aguinaldo y salario vacacional</span>
                             <span>${incidenceVal.toFixed(2)}</span>
                         </div>
                     </div>
                     <div className="flex justify-between text-sm font-medium pt-1 border-t">
-                        <span>Costo Contrib. Extra</span>
+                        <span>Costo de contribuciones</span>
                         <span>${totalContribsExtra.toFixed(2)}</span>
                     </div>
                 </div>

@@ -296,7 +296,7 @@ export const BudgetForm = () => {
                 summary={
                     <div className="grid grid-cols-2 gap-4 text-sm md:grid-cols-3">
                         <div>
-                            <span className="text-muted-foreground block text-xs">Incidencias</span>
+                            <span className="text-muted-foreground block text-xs">Aguinaldo y salario vacacional</span>
                             <span className="font-medium text-foreground">{values.incidence_enabled ? `${values.incidence_contribution}%` : 'No'}</span>
                         </div>
                         <div>
@@ -318,7 +318,7 @@ export const BudgetForm = () => {
                         render={({ field: enabledField }) => (
                             <Card className={cn("transition-colors", enabledField.value && "border-blue-500 bg-blue-50/10")}>
                                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                                    <CardTitle className="text-base font-medium">Incidencias</CardTitle>
+                                    <CardTitle className="text-base font-medium">Aguinaldo y salario vacacional</CardTitle>
                                     <FormControl>
                                         <Switch
                                             checked={enabledField.value}
@@ -352,7 +352,7 @@ export const BudgetForm = () => {
                         render={({ field: enabledField }) => (
                             <Card className={cn("transition-colors", enabledField.value && "border-blue-500 bg-blue-50/10")}>
                                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                                    <CardTitle className="text-base font-medium">Patronales (Empresa)</CardTitle>
+                                    <CardTitle className="text-base font-medium">Patronales</CardTitle>
                                     <FormControl>
                                         <Switch
                                             checked={enabledField.value}

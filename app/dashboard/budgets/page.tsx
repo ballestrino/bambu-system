@@ -13,7 +13,7 @@ export default function BudgetsPage() {
     const { budgets, isLoading, isError, error } = useBudgets({ query });
 
     return (
-        <div className="h-full container flex-1 flex-col space-y-8 md:flex">
+        <div className="container flex-col gap-8 flex">
             <Header />
 
             <div className="flex items-center space-x-2">

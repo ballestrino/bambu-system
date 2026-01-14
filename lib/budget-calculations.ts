@@ -45,11 +45,22 @@ export const calculateBudgetTotals = (values: Partial<BudgetFormValues>) => {
     // 2. Base Calculations
     const effectiveVisits = calculateEffectiveVisits(visits, visitType);
     
+    // If personal contributions are disabled, discount 18.1% from the rate (it's already included in the gross, but we need net for this case)
+    // The user requested: "descontar del costo hora nominal el 18.1%... si esta deshabilitado los aportes personales"
+    const personalContributionsEnabled = values.personal_enabled ?? false; // Default to false if undefined, though usually handled by form form default
+    let effectiveRate = rate;
+
+    if (!personalContributionsEnabled) {
+        effectiveRate = rate * (1 - 0.181);
+    }
+    
     const totalHours = effectiveVisits * hours * employees;
-    const laborCost = totalHours * rate;
+    const laborCost = totalHours * effectiveRate;
 
     // 3. Contributions
-    const personalPct = (Number(values.personal_contribution) || 0) / 100;
+    // When personal is NOT enabled, we don't add it back here.
+    // When personal IS enabled, we add it based on the laborCost (which uses full rate).
+    const personalPct = personalContributionsEnabled ? (Number(values.personal_contribution) || 0) / 100 : 0;
     const personalVal = laborCost * personalPct;
 
     const incidencePct = values.incidence_enabled ? (Number(values.incidence_contribution) || 0) / 100 : 0;

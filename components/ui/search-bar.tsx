@@ -5,15 +5,19 @@ import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import { Button } from "./button";
 import { Loader2, Search } from "lucide-react";
+import DeleteDialog from "./delete-dialog";
 
 export function SearchBar({ placeholder = "Search..." }: { placeholder?: string }) {
     const searchParams = useSearchParams();
     const pathname = usePathname();
     const { replace, push } = useRouter();
     const [searchTerm, setSearchTerm] = useState(searchParams.get("query")?.toString() || "");
+    const [lastSearchTerm, setLastSearchTerm] = useState(searchTerm);
     const [loading, setLoading] = useState(false);
 
     const handleSearch = (term: string) => {
+        if (lastSearchTerm === term) return
+        setLastSearchTerm(term)
         setLoading(true);
         const params = new URLSearchParams(searchParams);
         if (term) {
@@ -26,6 +30,7 @@ export function SearchBar({ placeholder = "Search..." }: { placeholder?: string 
     };
 
     const clearSearch = () => {
+        setLastSearchTerm("")
         push(pathname)
     }
 
@@ -46,7 +51,7 @@ export function SearchBar({ placeholder = "Search..." }: { placeholder?: string 
                 onChange={(e) => setSearchTerm(e.target.value)}
                 onKeyDown={(e) => e.key === "Enter" && handleSearch(searchTerm)}
             />
-            <Button variant={'outline'} className="cursor-pointer" onClick={() => handleSearch(searchTerm)} disabled={loading}>Search
+            <Button variant={'outline'} className="cursor-pointer" onClick={() => handleSearch(searchTerm)} disabled={loading}>Buscar
                 {loading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Search />}
             </Button>
         </div>
