@@ -1,8 +1,8 @@
 "use client";
 
 import { FormProvider } from "react-hook-form";
-import { BudgetForm } from "@/components/budgets/budget-form";
-import { BudgetPreview } from "@/components/budgets/budget-preview";
+import { BudgetForm } from "@/components/budgets/create-budget/CreateBudgetForm";
+import { BudgetPreview } from "@/components/budgets/create-budget/BudgetPreview";
 import Header from "@/components/budgets/create-budget/Header";
 import useCreateBudgetForm from "@/components/budgets/create-budget/hooks/useCreateBudgetForm";
 

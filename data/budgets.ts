@@ -8,7 +8,7 @@ export const getBudgets = async (query?: string) => {
         const session = await auth();
 
         if (!session?.user?.id) {
-            return [];
+            return { error: "No estas autenticado" };
         }
 
         const terms = query?.split(" ").filter(Boolean) || [];
@@ -29,9 +29,8 @@ export const getBudgets = async (query?: string) => {
                 updatedAt: 'desc'
             }
         });
-        return budgets;
+        return { budgets };
     } catch (error) {
-        console.error("Error fetching budgets:", error);
-        return [];
+        return { error: "Error al obtener los presupuestos" };
     }
 }

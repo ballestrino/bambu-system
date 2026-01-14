@@ -1,6 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { Save } from "lucide-react";
-import { AIButton } from "./ai-button";
+import { AIButton } from "@/components/budgets/create-budget/AiButton";
 
 interface HeaderProps {
     onSave: () => void;

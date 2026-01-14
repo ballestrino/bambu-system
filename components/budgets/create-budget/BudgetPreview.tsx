@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useFormContext, useWatch } from "react-hook-form";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ChevronDown, ChevronUp } from "lucide-react";
-import { BudgetFormValues } from "./schema";
+import { BudgetFormValues } from "@/schemas/BudgetSchema";
 import { cn } from "@/lib/utils";
 import { calculateBudgetTotals, PRODUCT_MARGIN_PCT } from "@/lib/budget-calculations";
 

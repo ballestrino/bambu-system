@@ -2,7 +2,7 @@
 import { getBudgetBySlug } from "@/data/budget";
 import { notFound } from "next/navigation";
 
-import { BudgetDetails } from "@/components/budgets/budget-details";
+import { BudgetDetails } from "@/components/budgets/budget-details/BudgetDetails";
 
 export default async function BudgetDetailPage({
     params,

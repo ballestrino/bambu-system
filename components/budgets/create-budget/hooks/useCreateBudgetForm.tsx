@@ -1,7 +1,7 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import React from 'react'
 import { useForm } from 'react-hook-form';
-import { BudgetSchema, defaultBudgetValues } from '../../schema';
+import { BudgetSchema, defaultBudgetValues } from '@/schemas/BudgetSchema';
 import { createBudget } from '@/actions/budgets/create-budget';
 import { toast } from 'sonner';
 import { useRouter } from 'next/navigation';

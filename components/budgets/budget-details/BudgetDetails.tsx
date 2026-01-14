@@ -3,7 +3,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 import { calculateBudgetTotals, PRODUCT_MARGIN_PCT } from "@/lib/budget-calculations";
-import { BudgetFormValues, defaultBudgetValues } from "./schema";
+import { BudgetFormValues, defaultBudgetValues } from "@/schemas/BudgetSchema";
 
 interface BudgetDetailsProps {
     option: any; // Ideally typed as BudgetOption

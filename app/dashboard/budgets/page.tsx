@@ -1,18 +1,16 @@
+"use client"
 
-import { getBudgets } from "@/data/budgets";
 import { SearchBar } from "@/components/ui/search-bar";
-import { BudgetCard } from "@/components/budgets/budget-card";
+import { BudgetCard } from "@/components/budgets/BudgetCard";
 import Header from "@/components/budgets/Header";
 import NoBudgets from "@/components/budgets/NoBudgets";
+import useBudgets from "@/components/budgets/hooks/useBudgets";
+import { useSearchParams } from "next/navigation";
 
-export default async function BudgetsPage({
-    searchParams,
-}: {
-    searchParams: Promise<{ query?: string }>;
-}) {
-    const params = await searchParams;
-    const query = params?.query || "";
-    const budgets = await getBudgets(query);
+export default function BudgetsPage() {
+    const params = useSearchParams()
+    const query = params.get("query") || "";
+    const { budgets, isLoading, isError, error } = useBudgets({ query });
 
     return (
         <div className="h-full container flex-1 flex-col space-y-8 md:flex">

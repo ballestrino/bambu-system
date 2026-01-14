@@ -2,7 +2,7 @@
 
 import { auth } from "@/auth";
 import { db } from "@/lib/db";
-import { BudgetSchema, BudgetFormValues } from "@/components/budgets/schema";
+import { BudgetSchema, BudgetFormValues } from "@/schemas/BudgetSchema";
 import { calculateBudgetTotals } from "@/lib/budget-calculations";
 import { revalidatePath } from "next/cache";
 

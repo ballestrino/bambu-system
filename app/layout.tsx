@@ -4,6 +4,7 @@ import "./globals.css";
 import { SessionProvider } from "next-auth/react";
 import Nav from "@/components/nav/Nav";
 import { Toaster } from "sonner";
+import { ReactQueryProvider } from "@/providers/ReactQueryProvider";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -32,7 +33,10 @@ export default function RootLayout({
       ><SessionProvider>
           <Nav />
           <Toaster />
-          {children}</SessionProvider>
+          <ReactQueryProvider>
+            {children}
+          </ReactQueryProvider>
+        </SessionProvider>
       </body>
     </html>
   );
