@@ -86,6 +86,7 @@ model TwoFactorConfirmation {
 
 model Budget { 
   id String @id @default(cuid())
+  slug String @unique
   name String
   description String?
   createdAt DateTime @default(now())
@@ -107,28 +108,29 @@ model BudgetOption {
   // Info
   visits                   Int
   visit_type               VisitType
-  hours_per_visit          Int
-  nominal_hour             Int
-  nominal_salary           Int
+  hours_per_visit          Float
+  nominal_hour             Float
+  nominal_salary           Float
   employees                Int
 
   // Contributions
-  incidence_contribution   Int
-  company_contribution     Int
-  personal_contribution    Int
+  incidence_contribution   Float
+  company_contribution     Float
+  personal_contribution    Float
 
   // Extra costs
-  transportation_cost      Int
-  products_price           Int
-  products_iva             Int
+  transportation_cost      Float
+  products_price           Float
+  products_iva             Float
+
 
   // Revenues
-  products_revenue_percent Int
-  revenue_percent          Int
+  products_revenue_percent Float
+  revenue_percent          Float
 
   // Price
-  price                    Int
-  iva                      Int  
+  price                    Float
+  iva                      Float  
 
   // Relations
   budgetId String
@@ -137,6 +139,8 @@ model BudgetOption {
   // Dates
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+  
+  has_products Boolean @default(true)
 }
 
 model Chat {
@@ -150,12 +154,14 @@ model Chat {
   
   messages  Message[]
 }
+
 enum Role {
   user
   assistant
   system
   data // Optional: for data messages if needed
 }
+
 model Message {
   id        String   @id @default(cuid())
   role      Role // user, assistant, system
