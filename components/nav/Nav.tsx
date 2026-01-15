@@ -1,3 +1,4 @@
+import MobileNav from "./MobileNav";
 import NavDashboard from "./NavDashboard";
 import NavTools from "./NavTools";
 import NavLogo from "./NavLogo";
@@ -10,12 +11,29 @@ export default async function Nav() {
     const admin = session?.user.role === 'ADMIN'
 
     return (
-        <div className="sticky hidden bg-white top-0 z-40 w-full md:flex items-center py-3 justify-center h-20 pr-(--removed-body-scroll-bar-size)">
+        <div className="sticky flex bg-white top-0 z-40 w-full items-center py-3 justify-center h-20 pr-(--removed-body-scroll-bar-size)">
             <div className="flex items-center container justify-between h-full">
-                <NavLogo />
+
+                {/* Mobile Nav */}
+                <div className="md:hidden">
+                    <MobileNav admin={admin} />
+                </div>
+
+                {/* Desktop Logo - shown on both but handled by layout */}
+                <div className="md:flex hidden h-14">
+                    <NavLogo />
+                </div>
+                {/* Mobile Logo centered or right if needed, but let's stick to left for now or keeping structure */}
+                <div className="md:hidden flex h-full">
+                    <NavLogo />
+                </div>
+
+
                 <div className="flex items-center gap-6">
-                    {admin && <NavDashboard />}
-                    {admin && <NavTools />}
+                    <div className="hidden md:flex items-center gap-6">
+                        {admin && <NavDashboard />}
+                        {admin && <NavTools />}
+                    </div>
                     <NavUser />
                 </div>
             </div>
