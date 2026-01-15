@@ -12,7 +12,9 @@ import { Button } from "@/components/ui/button";
 import { BudgetsFiltersMenu } from "@/components/budgets/filters/BudgetsFiltersMenu";
 import { QuickFilters } from "@/components/budgets/filters/QuickFilters";
 
-export default function BudgetsPage() {
+import { Suspense } from "react";
+
+function BudgetsPageContent() {
     const params = useSearchParams()
     const query = params.get("query") || "";
     const [page, setPage] = useState(1);
@@ -108,5 +110,13 @@ export default function BudgetsPage() {
                 </div>
             )}
         </div>
+    );
+}
+
+export default function BudgetsPage() {
+    return (
+        <Suspense fallback={<div>Cargando...</div>}>
+            <BudgetsPageContent />
+        </Suspense>
     );
 }
