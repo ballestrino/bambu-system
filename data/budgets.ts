@@ -135,7 +135,6 @@ export const getBudgets = async (
 
 
         const whereClause: any = {
-            userId: session.user.id,
         };
 
         if (budgetConditions.length > 0) {

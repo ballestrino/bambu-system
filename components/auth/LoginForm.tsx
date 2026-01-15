@@ -166,7 +166,7 @@ export default function LoginForm() {
                   ? "Confirmar"
                   : "Iniciar sesión"}
             </Button>
-            <OAuth />
+            {/* <OAuth /> */}
             <div className='flex w-full flex-col gap-2'>
               <FormError message={error || urlError} className='w-full' />
               <FormSuccess message={success} className='w-full' />
