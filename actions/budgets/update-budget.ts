@@ -45,7 +45,7 @@ export const updateBudget = async (id: string, newSlug: string, values: BudgetFo
 
     // Calculate totals to derive the price without products
     const totals = calculateBudgetTotals(validatedFields.data);
-    const { priceNoTaxService } = totals;
+    const { priceNoTaxService, revenueAmountService, revenueAmountProducts } = totals;
 
     try {
         const existingBudget = await db.budget.findUnique({
@@ -106,6 +106,7 @@ export const updateBudget = async (id: string, newSlug: string, values: BudgetFo
                         products_revenue_percent,
                         revenue_percent,
                         price,
+                        profit: revenueAmountService + revenueAmountProducts,
                         iva,
                     }] : []),
                     // Option 2: Without Products (Always created as base option)
@@ -127,6 +128,7 @@ export const updateBudget = async (id: string, newSlug: string, values: BudgetFo
                         products_revenue_percent: 0,
                         revenue_percent,
                         price: priceNoTaxService + (priceNoTaxService * (iva / 100)), // Calculated price without products
+                        profit: revenueAmountService,
                         iva,
                     }
                 ]

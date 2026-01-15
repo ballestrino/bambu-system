@@ -11,6 +11,8 @@ export interface BudgetFilters {
     // Prices
     minPrice?: number
     maxPrice?: number
+    minProfit?: number
+    maxProfit?: number
     minNominalHour?: number
     maxNominalHour?: number
 

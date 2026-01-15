@@ -48,7 +48,32 @@ export const getBudgets = async (
         const optionConditions: any[] = [];
 
         if (filters?.hasProducts !== undefined) {
-             optionConditions.push({ has_products: filters.hasProducts });
+             if (filters.hasProducts) {
+                 optionConditions.push({ has_products: true });
+             } else {
+                 // If hasProducts is false, we want budgets that DO NOT have a product option.
+                 // So we filter for matching the "service" option properties (has_products: false)
+                 optionConditions.push({ has_products: false });
+                 
+                 // AND we enforce that the budget has NO option with has_products: true
+                 budgetConditions.push({
+                     budgetOptions: {
+                         none: {
+                             has_products: true
+                         }
+                     }
+                 });
+             }
+        }
+        
+        // Profit
+        if (filters?.minProfit !== undefined || filters?.maxProfit !== undefined) {
+            optionConditions.push({
+                profit: {
+                    gte: filters.minProfit,
+                    lte: filters.maxProfit
+                }
+            });
         }
 
         // Price

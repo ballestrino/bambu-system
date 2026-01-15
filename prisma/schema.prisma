@@ -130,6 +130,7 @@ model BudgetOption {
 
   // Price
   price                    Float
+  profit                   Float?    @default(0) // Made optional with default for easier migration, though ideally should be calculated
   iva                      Float  
 
   // Relations

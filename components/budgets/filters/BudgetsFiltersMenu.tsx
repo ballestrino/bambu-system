@@ -81,6 +81,10 @@ export function BudgetsFiltersMenu() {
                                 setMinPrice={filters.setMinPrice}
                                 maxPrice={filters.maxPrice}
                                 setMaxPrice={filters.setMaxPrice}
+                                minProfit={filters.minProfit}
+                                setMinProfit={filters.setMinProfit}
+                                maxProfit={filters.maxProfit}
+                                setMaxProfit={filters.setMaxProfit}
                                 minNominalHour={filters.minNominalHour}
                                 setMinNominalHour={filters.setMinNominalHour}
                                 maxNominalHour={filters.maxNominalHour}

@@ -10,6 +10,7 @@ import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 
 import { BudgetsFiltersMenu } from "@/components/budgets/filters/BudgetsFiltersMenu";
+import { QuickFilters } from "@/components/budgets/filters/QuickFilters";
 
 export default function BudgetsPage() {
     const params = useSearchParams()
@@ -23,6 +24,8 @@ export default function BudgetsPage() {
     const hasProducts = params.get("hasProducts") === "true" ? true : params.get("hasProducts") === "false" ? false : undefined;
     const minPrice = params.get("minPrice") ? Number(params.get("minPrice")) : undefined;
     const maxPrice = params.get("maxPrice") ? Number(params.get("maxPrice")) : undefined;
+    const minProfit = params.get("minProfit") ? Number(params.get("minProfit")) : undefined;
+    const maxProfit = params.get("maxProfit") ? Number(params.get("maxProfit")) : undefined;
     const minNominalHour = params.get("minNominalHour") ? Number(params.get("minNominalHour")) : undefined;
     const maxNominalHour = params.get("maxNominalHour") ? Number(params.get("maxNominalHour")) : undefined;
     const minVisits = params.get("minVisits") ? Number(params.get("minVisits")) : undefined;
@@ -45,6 +48,8 @@ export default function BudgetsPage() {
         hasProducts,
         minPrice,
         maxPrice,
+        minProfit,
+        maxProfit,
         minNominalHour,
         maxNominalHour,
         minVisits,
@@ -59,6 +64,8 @@ export default function BudgetsPage() {
     return (
         <div className="container flex-col pb-10 px-4 gap-8 flex">
             <Header />
+
+            <QuickFilters />
 
             <div className="flex items-center space-x-2">
                 <div className="flex-1">

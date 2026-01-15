@@ -1,4 +1,4 @@
-import { BudgetFormValues } from "@/components/budgets/schema";
+import { BudgetFormValues } from "@/schemas/BudgetSchema";
 
 export const PRODUCT_MARGIN_PCT = 15;
 

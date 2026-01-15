@@ -19,6 +19,8 @@ export function useBudgetFilters() {
     // Prices
     const [minPrice, setMinPrice] = useState(searchParams.get("minPrice") || "")
     const [maxPrice, setMaxPrice] = useState(searchParams.get("maxPrice") || "")
+    const [minProfit, setMinProfit] = useState(searchParams.get("minProfit") || "")
+    const [maxProfit, setMaxProfit] = useState(searchParams.get("maxProfit") || "")
     const [minNominalHour, setMinNominalHour] = useState(searchParams.get("minNominalHour") || "")
     const [maxNominalHour, setMaxNominalHour] = useState(searchParams.get("maxNominalHour") || "")
 
@@ -49,6 +51,11 @@ export function useBudgetFilters() {
         if (maxPrice) params.set("maxPrice", maxPrice)
         else params.delete("maxPrice")
 
+        if (minProfit) params.set("minProfit", minProfit)
+        else params.delete("minProfit")
+        if (maxProfit) params.set("maxProfit", maxProfit)
+        else params.delete("maxProfit")
+
         if (minNominalHour) params.set("minNominalHour", minNominalHour)
         else params.delete("minNominalHour")
         if (maxNominalHour) params.set("maxNominalHour", maxNominalHour)
@@ -76,6 +83,8 @@ export function useBudgetFilters() {
         setHasProducts(undefined)
         setMinPrice("")
         setMaxPrice("")
+        setMinProfit("")
+        setMaxProfit("")
         setMinNominalHour("")
         setMaxNominalHour("")
         setMinVisits("")
@@ -96,6 +105,8 @@ export function useBudgetFilters() {
         hasProducts, setHasProducts,
         minPrice, setMinPrice,
         maxPrice, setMaxPrice,
+        minProfit, setMinProfit,
+        maxProfit, setMaxProfit,
         minNominalHour, setMinNominalHour,
         maxNominalHour, setMaxNominalHour,
         minVisits, setMinVisits,

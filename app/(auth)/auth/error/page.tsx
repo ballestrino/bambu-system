@@ -1,7 +1,4 @@
 import ErrorCard from '@/components/auth/ErrorCard'
-import { authPagesMetadata } from '@/data/metadata'
-
-export const metadata = authPagesMetadata.error
 
 export default function AuthErrorPage() {
   return (

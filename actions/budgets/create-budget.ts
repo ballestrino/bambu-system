@@ -45,7 +45,7 @@ export const createBudget = async (values: BudgetFormValues) => {
 
     // Calculate totals to derive the price without products
     const totals = calculateBudgetTotals(validatedFields.data);
-    const { priceNoTaxService } = totals;
+    const { priceNoTaxService, revenueAmountService, revenueAmountProducts } = totals;
 
     try {
         // Generate Slug
@@ -94,6 +94,7 @@ export const createBudget = async (values: BudgetFormValues) => {
                             products_revenue_percent,
                             revenue_percent,
                             price,
+                            profit: revenueAmountService + revenueAmountProducts,
                             iva,
                         }] : []),
                         // Option 2: Without Products (Always created as base option)
@@ -114,6 +115,7 @@ export const createBudget = async (values: BudgetFormValues) => {
                             products_revenue_percent: 0,
                             revenue_percent,
                             price: priceNoTaxService + (priceNoTaxService * (iva / 100)), // Calculated price without products
+                            profit: revenueAmountService,
                             iva,
                         }
                     ]

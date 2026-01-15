@@ -6,6 +6,10 @@ interface PricesFiltersProps {
     setMinPrice: (val: string) => void
     maxPrice: string
     setMaxPrice: (val: string) => void
+    minProfit: string
+    setMinProfit: (val: string) => void
+    maxProfit: string
+    setMaxProfit: (val: string) => void
     minNominalHour: string
     setMinNominalHour: (val: string) => void
     maxNominalHour: string
@@ -17,6 +21,10 @@ export function PricesFilters({
     setMinPrice,
     maxPrice,
     setMaxPrice,
+    minProfit,
+    setMinProfit,
+    maxProfit,
+    setMaxProfit,
     minNominalHour,
     setMinNominalHour,
     maxNominalHour,
@@ -40,6 +48,27 @@ export function PricesFilters({
                         type="number"
                         value={maxPrice}
                         onChange={(e) => setMaxPrice(e.target.value)}
+                        className="h-8"
+                    />
+                </div>
+            </div>
+
+            <div className="grid gap-2">
+                <Label>Ganancia</Label>
+                <div className="flex items-center gap-2">
+                    <Input
+                        placeholder="Min"
+                        type="number"
+                        value={minProfit}
+                        onChange={(e) => setMinProfit(e.target.value)}
+                        className="h-8"
+                    />
+                    <span className="text-muted-foreground">-</span>
+                    <Input
+                        placeholder="Max"
+                        type="number"
+                        value={maxProfit}
+                        onChange={(e) => setMaxProfit(e.target.value)}
                         className="h-8"
                     />
                 </div>

@@ -1,8 +1,8 @@
 "use client";
 
 import { useForm, FormProvider } from "react-hook-form";
-import { BudgetPreview } from "./budget-preview";
-import { BudgetFormValues, defaultBudgetValues } from "./schema";
+import { BudgetPreview } from "@/components/budgets/create-budget/BudgetPreview";
+import { BudgetFormValues, defaultBudgetValues } from "@/schemas/BudgetSchema";
 import { useEffect, useState } from "react";
 
 export const BudgetPreviewWrapper = ({ budget }: { budget: any }) => {
