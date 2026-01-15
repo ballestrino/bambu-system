@@ -4,6 +4,8 @@ import { useQuery } from "@tanstack/react-query"
 import { getBudgetsAction } from "@/components/budgets/actions/get-budgets.action"
 import { BudgetFilters } from "@/components/budgets/interfaces/budget-filters"
 
+import { Budget } from "@prisma/client"
+
 export default function useBudgets(filters: BudgetFilters) {
     const budgetsQuery = useQuery({
         queryKey: ["budgets", { filters }],

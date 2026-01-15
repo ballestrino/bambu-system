@@ -4,12 +4,21 @@ import { db } from "@/lib/db"
 import { auth } from "@/auth"
 import { BudgetFilters } from "@/components/budgets/interfaces/budget-filters"
 
+import { Budget } from "@prisma/client"
+
 export const getBudgets = async (
     query?: string, 
     page: number = 1, 
     limit: number = 9,
     filters?: Omit<BudgetFilters, 'query' | 'limit' | 'page'>
-) => {
+): Promise<{
+    budgets: Budget[];
+    totalCount: number;
+    totalPages: number;
+    currentPage: number;
+} | {
+    error: string;
+}> => {
     try {
         const session = await auth();
 
