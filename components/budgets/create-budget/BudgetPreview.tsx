@@ -52,6 +52,24 @@ export const BudgetPreview = () => {
                 {/* General Info */}
                 <div className="grid grid-cols-2 gap-4 text-sm">
                     <div>
+                        <p className="text-muted-foreground">Visitas</p>
+                        <p className="font-medium">
+                            {values.visits || 0} {
+                                values.visit_type === 'week' ? (Number(values.visits) === 1 ? 'vez por semana' : 'veces por semana') :
+                                    values.visit_type === 'month' ? (Number(values.visits) === 1 ? 'vez al mes' : 'veces al mes') :
+                                        (Number(values.visits) === 1 ? 'día' : 'días')
+                            }
+                        </p>
+                    </div>
+                    <div>
+                        <p className="text-muted-foreground">Hora Nominal</p>
+                        <p className="font-medium">${values.nominal_hour || 0}</p>
+                    </div>
+                    <div>
+                        <p className="text-muted-foreground">Horas/Visita</p>
+                        <p className="font-medium">{values.hours_per_visit || 0}</p>
+                    </div>
+                    <div>
                         <p className="text-muted-foreground">Horas Totales</p>
                         <p className="font-medium">{totalHours.toFixed(1)} hrs</p>
                     </div>

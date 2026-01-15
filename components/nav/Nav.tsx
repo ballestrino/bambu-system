@@ -1,4 +1,5 @@
 import NavDashboard from "./NavDashboard";
+import NavTools from "./NavTools";
 import NavLogo from "./NavLogo";
 import NavUser from "./NavUser";
 
@@ -9,6 +10,7 @@ export default function Nav() {
                 <NavLogo />
                 <div className="flex items-center gap-6">
                     <NavDashboard />
+                    <NavTools />
                     <NavUser />
                 </div>
             </div>

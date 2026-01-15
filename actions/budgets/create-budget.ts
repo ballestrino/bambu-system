@@ -76,8 +76,8 @@ export const createBudget = async (values: BudgetFormValues) => {
                 userId: session.user.id,
                 budgetOptions: {
                     create: [
-                        // Option 1: With Products (Default)
-                        {
+                        // Option 1: With Products (Only if products exist)
+                        ...(products_price > 0 ? [{
                             has_products: true,
                             visits,
                             visit_type,
@@ -95,8 +95,8 @@ export const createBudget = async (values: BudgetFormValues) => {
                             revenue_percent,
                             price,
                             iva,
-                        },
-                        // Option 2: Without Products
+                        }] : []),
+                        // Option 2: Without Products (Always created as base option)
                         {
                             has_products: false,
                             visits,

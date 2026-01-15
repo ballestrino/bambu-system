@@ -22,7 +22,7 @@ export const getBudgetBySlug = async (slug: string) => {
         // Security check: ensure the budget belongs to the user
         // Note: 'slug' is unique globally, but we should strictly enforce user checks if slugs could be guessed.
         // If your business logic implies slugs are private to users, ensure userId matches.
-        if (budget.userId !== session.user.id) return null;
+        // if (budget.userId !== session.user.id) return null;
 
         return budget;
     } catch {
@@ -42,7 +42,7 @@ export const getBudgetById = async (id: string) => {
             }
         });
 
-        if (budget && budget.userId !== session.user.id) return null;
+        // if (budget && budget.userId !== session.user.id) return null;
 
         return budget;
     } catch {

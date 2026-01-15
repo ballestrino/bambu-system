@@ -12,6 +12,7 @@ import { Budget } from "@prisma/client"
 import { useRef, MouseEvent } from "react"
 import DeleteDialog from "@/components/ui/delete-dialog"
 import { useDeleteBudgetMutation } from "./hooks/useDeleteBudgetMutation"
+import Link from "next/link"
 
 interface BudgetDropdownProps {
     budget: Budget
@@ -19,13 +20,7 @@ interface BudgetDropdownProps {
 
 export function BudgetDropdown({ budget }: BudgetDropdownProps) {
     const deleteTriggerRef = useRef<HTMLButtonElement>(null)
-    const { deleteBudgetAsync } = useDeleteBudgetMutation() // Note: hooks returns deleteProductAsync/deleteProduct but name is odd, let's check hook again. 
-    // Wait, I named it deleteProductAsync in the hook return for consistency with the requested pattern, 
-    // but the hook file implementation I wrote returns:
-    // deleteBudget: deleteBudgetMutation.mutate,
-    // deleteBudgetAsync: deleteBudgetMutation.mutateAsync,
-    // Let's use deleteBudgetAsync.
-
+    const { deleteBudgetAsync } = useDeleteBudgetMutation()
     const handleDelete = async () => {
         await deleteBudgetAsync(budget.id)
     }
@@ -51,8 +46,10 @@ export function BudgetDropdown({ budget }: BudgetDropdownProps) {
                             console.log("Edit clicked")
                         }}
                     >
-                        <Edit className="mr-2 h-4 w-4" />
-                        <span>Editar presupuesto</span>
+                        <Link className="flex gap-2" href={`/dashboard/budgets/edit/${budget.slug}`}>
+                            <Edit className="mr-2 h-4 w-4" />
+                            <span>Editar presupuesto</span>
+                        </Link>
                     </DropdownMenuItem>
                     <DropdownMenuItem
                         variant="destructive"

@@ -1,7 +1,7 @@
 "use client";
 
 import { FormProvider } from "react-hook-form";
-import { BudgetForm } from "@/components/budgets/create-budget/CreateBudgetForm";
+import { CreateBudgetForm } from "@/components/budgets/create-budget/CreateBudgetForm";
 import { BudgetPreview } from "@/components/budgets/create-budget/BudgetPreview";
 import Header from "@/components/budgets/create-budget/Header";
 import useCreateBudgetForm from "@/components/budgets/create-budget/hooks/useCreateBudgetForm";
@@ -26,7 +26,7 @@ export default function CreateBudgetPage() {
                     <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
                         <div className="lg:col-span-7">
                             <form onSubmit={form.handleSubmit(onSubmit)}>
-                                <BudgetForm />
+                                <CreateBudgetForm />
                             </form>
                         </div>
                         <div className="lg:col-span-5">

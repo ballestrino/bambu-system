@@ -16,9 +16,9 @@ import { cn } from "@/lib/utils";
 import { ChevronDown, ChevronUp } from "lucide-react";
 
 import { calculateBudgetTotals, calculateEstimates } from "@/lib/budget-calculations";
-import { BudgetFormValues } from "./schema";
+import { BudgetFormValues } from "@/schemas/BudgetSchema";
 
-export const BudgetForm = () => {
+export const CreateBudgetForm = () => {
     const form = useFormContext<BudgetFormValues>();
     const { setValue, control } = form;
 
@@ -85,7 +85,17 @@ export const BudgetForm = () => {
                         </div>
                         <div>
                             <span className="text-muted-foreground block text-xs">Visitas</span>
-                            <span className="font-medium text-foreground">{values.visits || 0} ({values.visit_type === 'days' ? 'Días' : values.visit_type === 'week' ? 'Semanal' : 'Mensual'})</span>
+                            <span className="font-medium text-foreground">
+                                {values.visits || 0} {
+                                    values.visit_type === 'week' ? (values.visits === 1 ? 'vez por semana' : 'veces por semana') :
+                                        values.visit_type === 'month' ? (values.visits === 1 ? 'vez al mes' : 'veces al mes') :
+                                            (values.visits === 1 ? 'día' : 'días')
+                                }
+                            </span>
+                        </div>
+                        <div>
+                            <span className="text-muted-foreground block text-xs">Hora Nominal</span>
+                            <span className="font-medium text-foreground">${values.nominal_hour || 0}</span>
                         </div>
                         <div>
                             <span className="text-muted-foreground block text-xs">Horas/Visita</span>

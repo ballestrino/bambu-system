@@ -17,14 +17,14 @@ export default async function BudgetDetailPage({
     }
 
     const budgetOptions = budget.budgetOptions || [];
-    const optionWithProducts = budgetOptions.find((o: any) => o.has_products) || budgetOptions[0];
+    const optionWithProducts = budgetOptions.find((o: any) => o.has_products && Number(o.products_price) > 0);
     const optionWithoutProducts = budgetOptions.find((o: any) => !o.has_products);
 
     return (
         <div className="flex container pb-10 flex-col space-y-6 ">
             <div className="flex items-center justify-between">
-                <div>
-                    <h1 className="text-3xl font-bold tracking-tight">{budget.name}</h1>
+                <div className="flex flex-col gap-2 w-full items-center justify-center py-10">
+                    <h1 className="text-3xl font-sans font-bold tracking-wider">{budget.name}</h1>
                     {budget.description && (
                         <p className="text-muted-foreground">{budget.description}</p>
                     )}
@@ -43,16 +43,12 @@ export default async function BudgetDetailPage({
                     )}
                 </div>
 
-                {/* Right Column: With Products */}
-                <div className="lg:col-span-1">
-                    {optionWithProducts ? (
+                {/* Right Column: With Products - Only render if option exists */}
+                {optionWithProducts && (
+                    <div className="lg:col-span-1">
                         <BudgetDetails option={optionWithProducts} title="Con Productos" />
-                    ) : (
-                        <div className="p-4 border border-dashed rounded text-muted-foreground text-center">
-                            No hay opción con productos disponible.
-                        </div>
-                    )}
-                </div>
+                    </div>
+                )}
             </div>
         </div>
     );
