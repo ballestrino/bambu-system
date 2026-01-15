@@ -25,21 +25,22 @@ export function BudgetCard({ budget }: BudgetCardProps) {
             <Link href={`/dashboard/budgets/budget/${budget.slug}`}>
                 <span className="sr-only">Ver presupuesto</span>
 
-                <CardHeader className="pb-2 flex flex-row items-start justify-between space-y-0">
-                    <div className="space-y-1 pr-4">
-                        <CardTitle className="text-lg font-bold truncate leading-tight">
+                <CardHeader className="space-y-1 pr-4 ">
+                    <div className="flex items-center justify-between">
+                        <h3 className="text-lg font-bold  leading-tight">
                             {budget.name}
-                        </CardTitle>
-                        {budget.description && (
-                            <CardDescription className="line-clamp-2 text-sm">
-                                {budget.description}
-                            </CardDescription>
-                        )}
+                        </h3>
+                        <div onClick={(e) => e.preventDefault()}>
+                            <BudgetDropdown budget={budget} />
+                        </div>
                     </div>
-                    <div onClick={(e) => e.preventDefault()}>
-                        <BudgetDropdown budget={budget} />
-                    </div>
+                    {budget.description && (
+                        <CardDescription className="line-clamp-2 text-sm">
+                            {budget.description}
+                        </CardDescription>
+                    )}
                 </CardHeader>
+
                 <CardContent>
                     <div className="flex items-center text-sm text-muted-foreground gap-4">
                         <div className="flex items-center gap-1">

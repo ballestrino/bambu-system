@@ -14,6 +14,12 @@ export const useEditBudgetForm = (budget: ExistingBudget) => {
     const router = useRouter();
     const { updateBudgetAsync, isUpdating } = useUpdateBudgetMutation();
 
+    const handleGenerateAI = () => {
+        // Mock AI generation or reuse logic if available
+        console.log("AI Generation Triggered in Edit Mode");
+        // For now just log, can implement filling/modifying logic later
+    };
+
     // Determine initial values from the existing budget
     const optionWithProducts = budget.budgetOptions.find(o => o.has_products);
     const primaryOption = optionWithProducts || budget.budgetOptions[0];
@@ -29,7 +35,11 @@ export const useEditBudgetForm = (budget: ExistingBudget) => {
         defaultValues: {
             ...primaryOption,
             name: budget.name,
-            description: budget.description || undefined
+            description: budget.description || undefined,
+            // Map booleans based on values
+            incidence_enabled: Number(primaryOption.incidence_contribution) > 0,
+            company_enabled: Number(primaryOption.company_contribution) > 0,
+            personal_enabled: Number(primaryOption.personal_contribution) > 0,
         }
     });
 
@@ -113,6 +123,7 @@ export const useEditBudgetForm = (budget: ExistingBudget) => {
         activeSection,
         toggleSection,
         onSubmit: handleSubmit(onSubmit),
-        isPending: isUpdating
+        isPending: isUpdating,
+        handleGenerateAI
     };
 };

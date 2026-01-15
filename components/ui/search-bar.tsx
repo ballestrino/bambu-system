@@ -51,7 +51,7 @@ export function SearchBar({ placeholder = "Search..." }: { placeholder?: string 
                 onChange={(e) => setSearchTerm(e.target.value)}
                 onKeyDown={(e) => e.key === "Enter" && handleSearch(searchTerm)}
             />
-            <Button variant={'outline'} className="cursor-pointer" onClick={() => handleSearch(searchTerm)} disabled={loading}>Buscar
+            <Button variant={'outline'} className="cursor-pointer" onClick={() => handleSearch(searchTerm)} disabled={loading}><span className="hidden md:inline">Buscar</span>
                 {loading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Search />}
             </Button>
         </div>

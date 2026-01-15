@@ -5,7 +5,8 @@ import { BudgetFilters } from "../interfaces/budget-filters"
 
 export const getBudgetsAction = async (filters: BudgetFilters) => {
   try {
-    const result = await getBudgets(filters.query)
+    const { query, page, limit, ...restFilters } = filters;
+    const result = await getBudgets(query, page, limit, restFilters)
 
     if (result.error) {
       throw new ValidationError(result.error)

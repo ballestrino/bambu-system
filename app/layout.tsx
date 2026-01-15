@@ -21,11 +21,15 @@ export const metadata: Metadata = {
   description: "Sistema de gestión para Bambú - Soluciones integrales para tu negocio",
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+
+
+
+
   return (
     <html lang="en">
       <body

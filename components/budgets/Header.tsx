@@ -4,7 +4,7 @@ import { Plus } from "lucide-react";
 
 export default function Header() {
     return (
-        <div className="flex items-center justify-between space-y-2">
+        <div className="flex flex-col md:flex-row md:items-center justify-between space-y-2">
             <div>
                 <h2 className="text-2xl font-bold tracking-tight">Presupuestos</h2>
                 <p className="text-muted-foreground">
