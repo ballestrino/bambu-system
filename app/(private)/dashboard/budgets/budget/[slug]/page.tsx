@@ -1,6 +1,7 @@
 
 import { getBudgetBySlug } from "@/data/budget";
 import { notFound } from "next/navigation";
+import { AIChat } from "@/components/ai/AIChat";
 
 import { BudgetDetails } from "@/components/budgets/budget-details/BudgetDetails";
 
@@ -50,6 +51,7 @@ export default async function BudgetDetailPage({
                     </div>
                 )}
             </div>
+            <AIChat contextData={budget} />
         </div>
     );
 }

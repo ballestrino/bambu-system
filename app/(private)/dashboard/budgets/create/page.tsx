@@ -5,6 +5,7 @@ import { CreateBudgetForm } from "@/components/budgets/create-budget/CreateBudge
 import { BudgetPreview } from "@/components/budgets/create-budget/BudgetPreview";
 import Header from "@/components/budgets/create-budget/Header";
 import useCreateBudgetForm from "@/components/budgets/create-budget/hooks/useCreateBudgetForm";
+import { AIChat } from "@/components/ai/AIChat";
 
 export default function CreateBudgetPage() {
     const { form, onSubmit, handleGenerateAI, isPending } = useCreateBudgetForm();
@@ -37,7 +38,7 @@ export default function CreateBudgetPage() {
                     </div>
                 </div>
             </div>
-
+            <AIChat contextData={form.watch()} />
         </FormProvider>
     );
 }
