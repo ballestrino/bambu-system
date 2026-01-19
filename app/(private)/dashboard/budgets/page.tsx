@@ -11,6 +11,7 @@ import { Button } from "@/components/ui/button";
 
 import { BudgetsFiltersMenu } from "@/components/budgets/filters/BudgetsFiltersMenu";
 import { QuickFilters } from "@/components/budgets/filters/QuickFilters";
+import { getCookie } from "@/lib/utils";
 
 import { Suspense } from "react";
 
@@ -18,7 +19,7 @@ function BudgetsPageContent() {
     const params = useSearchParams()
     const query = params.get("query") || "";
     const [page, setPage] = useState(1);
-    const limit = 9;
+    const limit = params.get("limit") ? parseInt(params.get("limit")!) : (getCookie("budget_limit") ? parseInt(getCookie("budget_limit")!) : 10);
 
     // Parse filters
     const startDate = params.get("startDate") || undefined;

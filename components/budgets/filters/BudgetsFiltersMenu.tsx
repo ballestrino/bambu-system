@@ -71,6 +71,8 @@ export function BudgetsFiltersMenu() {
                                 setEndDate={filters.setEndDate}
                                 hasProducts={filters.hasProducts}
                                 setHasProducts={filters.setHasProducts}
+                                limit={filters.limit}
+                                setLimit={filters.setLimit}
                             />
                         )}
 

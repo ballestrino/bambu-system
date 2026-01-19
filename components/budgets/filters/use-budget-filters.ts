@@ -1,5 +1,6 @@
 import { useState } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
+import { getCookie, setCookie } from "@/lib/utils"
 
 export function useBudgetFilters() {
     const router = useRouter()
@@ -31,11 +32,26 @@ export function useBudgetFilters() {
     const [maxHoursPerVisit, setMaxHoursPerVisit] = useState(searchParams.get("maxHoursPerVisit") || "")
     const [visitType, setVisitType] = useState<string>(searchParams.get("visitTypes") || "all")
 
+    // Limit
+    const [limit, setLimit] = useState<number>(() => {
+        const paramLimit = searchParams.get("limit")
+        if (paramLimit) return parseInt(paramLimit)
+        
+        const cookieLimit = getCookie("budget_limit")
+        if (cookieLimit) return parseInt(cookieLimit)
+        
+        return 10
+    })
+
     const applyFilters = () => {
         const params = new URLSearchParams(searchParams.toString())
 
         // Reset page on filter change
         params.set("page", "1")
+
+        // Limit
+        params.set("limit", limit.toString())
+        setCookie("budget_limit", limit.toString())
 
         if (startDate) params.set("startDate", startDate.toISOString())
         else params.delete("startDate")
@@ -92,9 +108,12 @@ export function useBudgetFilters() {
         setMinHoursPerVisit("")
         setMaxHoursPerVisit("")
         setVisitType("all")
+        setLimit(10)
 
         const params = new URLSearchParams()
         if (searchParams.get("query")) params.set("query", searchParams.get("query")!)
+        params.set("limit", "10")
+        setCookie("budget_limit", "10")
 
         router.push(`?${params.toString()}`)
     }
@@ -114,6 +133,7 @@ export function useBudgetFilters() {
         minHoursPerVisit, setMinHoursPerVisit,
         maxHoursPerVisit, setMaxHoursPerVisit,
         visitType, setVisitType,
+        limit, setLimit,
         applyFilters,
         clearFilters
     }
