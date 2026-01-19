@@ -17,11 +17,17 @@ import {
     DialogDescription,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
-import { Bot, Send, MessageCircle, Plus, X, LogOut, Save, History, Search } from "lucide-react";
+import { Bot, Send, MessageCircle, Plus, X, LogOut, Save, History, Search, MoreHorizontal, Pencil, Trash } from "lucide-react";
+import {
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { submitChat } from "@/actions/ai-chat";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
-import { saveChat, getChats } from "@/actions/save-chat";
+import { saveChat, getChats, renameChat, deleteChat } from "@/actions/save-chat";
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { AIButton } from "@/components/budgets/create-budget/AiButton";
@@ -57,6 +63,14 @@ export function AIChat({ contextData }: AIChatProps) {
     const [filteredChats, setFilteredChats] = useState<SavedChat[]>([]);
     const [isLoadingHistory, setIsLoadingHistory] = useState(false);
     const [searchQuery, setSearchQuery] = useState('');
+
+    // Menu Actions State
+    const [renameDialogOpen, setRenameDialogOpen] = useState(false);
+    const [renameChatId, setRenameChatId] = useState<string | null>(null);
+    const [renameName, setRenameName] = useState('');
+
+    const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+    const [deleteChatId, setDeleteChatId] = useState<string | null>(null);
 
     const scrollRef = useRef<HTMLDivElement>(null);
 
@@ -137,6 +151,41 @@ export function AIChat({ contextData }: AIChatProps) {
             scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
         }
     }, [messages]);
+
+    const handleRenameClick = (chat: SavedChat) => {
+        setRenameChatId(chat.id);
+        setRenameName(chat.name || "");
+        setRenameDialogOpen(true);
+    };
+
+    const handleDeleteClick = (chat: SavedChat) => {
+        setDeleteChatId(chat.id);
+        setDeleteDialogOpen(true);
+    };
+
+    const handleRenameSubmit = async () => {
+        if (!renameChatId) return;
+        const result = await renameChat(renameChatId, renameName);
+        if (result.success) {
+            toast.success("Chat renombrado");
+            setRenameDialogOpen(false);
+            loadHistory();
+        } else {
+            toast.error("Error al renombrar");
+        }
+    };
+
+    const handleDeleteConfirm = async () => {
+        if (!deleteChatId) return;
+        const result = await deleteChat(deleteChatId);
+        if (result.success) {
+            toast.success("Chat eliminado");
+            setDeleteDialogOpen(false);
+            loadHistory();
+        } else {
+            toast.error("Error al eliminar");
+        }
+    };
 
     const handleSave = async () => {
         if (messages.length === 0) return;
@@ -336,11 +385,47 @@ export function AIChat({ contextData }: AIChatProps) {
                             </div>
                         ) : (
                             filteredChats.map((chat) => (
-                                <button
+                                <div
                                     key={chat.id}
                                     onClick={() => loadChat(chat)}
-                                    className="w-full text-left p-4 rounded-xl border bg-card hover:bg-accent/50 hover:border-primary/50 transition-all flex flex-col gap-1 group"
+                                    role="button"
+                                    className="w-full text-left p-4 rounded-xl border bg-card hover:bg-accent/50 hover:border-primary/50 transition-all flex flex-col gap-1 group relative pr-12 cursor-pointer"
                                 >
+                                    <div className="absolute right-2 top-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                                        <DropdownMenu>
+                                            <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
+                                                <Button size="icon" variant="ghost" className="h-8 w-8">
+                                                    <MoreHorizontal className="h-4 w-4" />
+                                                </Button>
+                                            </DropdownMenuTrigger>
+                                            <DropdownMenuContent align="end" onClick={(e) => e.stopPropagation()}>
+                                                <DropdownMenuItem onClick={(e) => {
+                                                    e.stopPropagation();
+                                                    handleRenameClick(chat);
+                                                }}>
+                                                    <Pencil className="mr-2 h-4 w-4" />
+                                                    Renombrar
+                                                </DropdownMenuItem>
+                                                <DropdownMenuItem onClick={(e) => {
+                                                    e.stopPropagation();
+                                                    loadChat(chat);
+                                                }}>
+                                                    <MessageCircle className="mr-2 h-4 w-4" />
+                                                    Abrir chat
+                                                </DropdownMenuItem>
+                                                <DropdownMenuItem
+                                                    className="text-destructive focus:text-destructive"
+                                                    onClick={(e) => {
+                                                        e.stopPropagation();
+                                                        handleDeleteClick(chat);
+                                                    }}
+                                                >
+                                                    <Trash className="mr-2 h-4 w-4" />
+                                                    Eliminar
+                                                </DropdownMenuItem>
+                                            </DropdownMenuContent>
+                                        </DropdownMenu>
+                                    </div>
                                     <div className="font-medium group-hover:text-primary transition-colors truncate w-full">
                                         {chat.name || "Sin nombre"}
                                     </div>
@@ -348,9 +433,46 @@ export function AIChat({ contextData }: AIChatProps) {
                                         <span>{format(chat.createdAt, "d MMM yyyy, HH:mm", { locale: es })}</span>
                                         <span className="bg-muted px-2 py-0.5 rounded-full text-[10px]">{chat.messages.length} msjs</span>
                                     </div>
-                                </button>
+                                </div>
                             ))
                         )}
+                    </div>
+                </DialogContent>
+            </Dialog>
+
+            <Dialog open={renameDialogOpen} onOpenChange={setRenameDialogOpen}>
+                <DialogContent onClick={(e) => e.stopPropagation()}>
+                    <DialogHeader>
+                        <DialogTitle>Renombrar Chat</DialogTitle>
+                        <DialogDescription>
+                            Cambia el nombre de este chat para identificarlo mejor.
+                        </DialogDescription>
+                    </DialogHeader>
+                    <div className="py-4">
+                        <Input
+                            value={renameName}
+                            onChange={(e) => setRenameName(e.target.value)}
+                            placeholder="Nombre del chat"
+                        />
+                    </div>
+                    <div className="flex justify-end gap-2">
+                        <Button variant="outline" onClick={() => setRenameDialogOpen(false)}>Cancelar</Button>
+                        <Button onClick={handleRenameSubmit}>Guardar</Button>
+                    </div>
+                </DialogContent>
+            </Dialog>
+
+            <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+                <DialogContent onClick={(e) => e.stopPropagation()}>
+                    <DialogHeader>
+                        <DialogTitle>¿Eliminar chat?</DialogTitle>
+                        <DialogDescription>
+                            Esta acción no se puede deshacer. Se perderán todos los mensajes de este chat.
+                        </DialogDescription>
+                    </DialogHeader>
+                    <div className="flex justify-end gap-2 mt-4">
+                        <Button variant="outline" onClick={() => setDeleteDialogOpen(false)}>Cancelar</Button>
+                        <Button variant="destructive" onClick={handleDeleteConfirm}>Eliminar</Button>
                     </div>
                 </DialogContent>
             </Dialog>
