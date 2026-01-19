@@ -19,7 +19,7 @@ export async function submitChat(messages: any[], context: any) {
         const systemMessage = getSystemMessage(contextText);
 
         const response = await openai.chat.completions.create({
-            model: 'gpt-5.2',
+            model: 'gpt-5.2-chat-latest', // AI comment: gpt-5.2 exists
             messages: [systemMessage, ...messages],
         });
 

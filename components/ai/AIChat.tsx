@@ -33,6 +33,13 @@ import { es } from 'date-fns/locale';
 import { AIButton } from "@/components/budgets/create-budget/AiButton";
 import DeleteDialog from "@/components/ui/delete-dialog";
 import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
+
+const cleanContent = (content: string) => {
+    const codeBlockRegex = /^```(?:markdown)?\s*([\s\S]*?)\s*```$/i;
+    const match = content.match(codeBlockRegex);
+    return match ? match[1] : content;
+};
 
 interface AIChatProps {
     contextData: any;
@@ -304,15 +311,19 @@ export function AIChat({ contextData }: AIChatProps) {
                                         {m.role === 'assistant' ? (
                                             <div className="prose prose-sm dark:prose-invert max-w-none wrap-break-word leading-relaxed">
                                                 <ReactMarkdown
+                                                    remarkPlugins={[remarkGfm]}
                                                     components={{
                                                         p: ({ children }: any) => <p className="mb-2 last:mb-0">{children}</p>,
                                                         ul: ({ children }: any) => <ul className="list-disc ml-4 mb-2 space-y-1">{children}</ul>,
                                                         ol: ({ children }: any) => <ol className="list-decimal ml-4 mb-2 space-y-1">{children}</ol>,
                                                         li: ({ children }: any) => <li>{children}</li>,
                                                         strong: ({ children }: any) => <span className="font-bold text-primary">{children}</span>,
+                                                        h1: ({ children }: any) => <h1 className="text-xl font-bold mb-2 mt-4">{children}</h1>,
+                                                        h2: ({ children }: any) => <h2 className="text-lg font-bold mb-2 mt-3">{children}</h2>,
+                                                        h3: ({ children }: any) => <h3 className="text-base font-bold mb-1 mt-2">{children}</h3>,
                                                     }}
                                                 >
-                                                    {m.content}
+                                                    {cleanContent(m.content)}
                                                 </ReactMarkdown>
                                             </div>
                                         ) : (
