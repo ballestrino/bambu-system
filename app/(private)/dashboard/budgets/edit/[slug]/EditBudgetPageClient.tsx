@@ -27,7 +27,7 @@ export default function EditBudgetPageClient({ budget }: EditBudgetPageClientPro
 
     return (
         <FormProvider {...form}>
-            <div className="w-full pb-10 h-full items-center justify-center flex ">
+            <div className="w-full pb-10 px-4 h-full items-center justify-center flex ">
                 <div className="flex flex-col container h-full space-y-6">
                     <div className="flex items-center justify-between">
                         <EditBudgetHeader

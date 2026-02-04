@@ -27,7 +27,7 @@ export const CreateBudgetForm = () => {
     const values = useWatch({ control });
 
     // State for accordion
-    const [activeSection, setActiveSection] = useState<"details" | "costs" | "contributions">("details");
+    const [activeSection, setActiveSection] = useState<"details" | "costs" | "contributions" | "">("details");
 
     // Effect 1: Auto-calculate Estimates (Transport & Products)
     useEffect(() => {
@@ -68,7 +68,7 @@ export const CreateBudgetForm = () => {
     ]);
 
     const toggleSection = (section: "details" | "costs" | "contributions") => {
-        setActiveSection(activeSection === section ? section : section);
+        setActiveSection(activeSection === section ? "" : section);
     };
 
     return (

@@ -28,7 +28,7 @@ export const useEditBudgetForm = (budget: ExistingBudget) => {
     const [slug, setSlug] = useState(budget.slug);
 
     // State for accordion
-    const [activeSection, setActiveSection] = useState<"details" | "costs" | "contributions" | "slug">("details");
+    const [activeSection, setActiveSection] = useState<"details" | "costs" | "contributions" | "slug" | "">("details");
 
     const form = useForm<BudgetFormValues>({
         resolver: zodResolver(BudgetSchema) as any,
@@ -92,7 +92,7 @@ export const useEditBudgetForm = (budget: ExistingBudget) => {
     ]);
 
     const toggleSection = (section: "details" | "costs" | "contributions" | "slug") => {
-        setActiveSection(activeSection === section ? section : section);
+        setActiveSection(activeSection === section ? "" : section);
     };
 
     const onSubmit = async (data: BudgetFormValues) => {

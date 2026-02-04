@@ -37,7 +37,7 @@ export function BudgetsFiltersMenu() {
                     </Button>
                 </div>
             </PopoverTrigger>
-            <PopoverContent className="w-[340px] p-4" align="end">
+            <PopoverContent className="w-[280px] md:w-[340px] p-4" align="end">
                 <div className="space-y-4">
                     <div className="flex items-center justify-between">
                         <h4 className="font-medium leading-none">Filtros</h4>

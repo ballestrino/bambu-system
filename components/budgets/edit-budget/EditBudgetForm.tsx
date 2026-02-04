@@ -10,7 +10,7 @@ interface EditBudgetFormProps {
     slug: string;
     setSlug: (slug: string) => void;
     activeSection: string;
-    toggleSection: (section: "details" | "costs" | "contributions" | "slug") => void;
+    toggleSection: (section: "details" | "costs" | "contributions" | "slug" | "") => void;
     values: BudgetFormValues;
 }
 
