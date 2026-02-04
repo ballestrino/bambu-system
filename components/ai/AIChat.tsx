@@ -43,6 +43,7 @@ const cleanContent = (content: string) => {
 
 interface AIChatProps {
     contextData: any;
+    trigger?: React.ReactNode;
 }
 
 interface Message {
@@ -57,7 +58,7 @@ interface SavedChat {
     name?: string;
 }
 
-export function AIChat({ contextData }: AIChatProps) {
+export function AIChat({ contextData, trigger }: AIChatProps) {
     const [messages, setMessages] = useState<Message[]>([]);
     const [isChatSaved, setIsChatSaved] = useState(true);
     const [input, setInput] = useState('');
@@ -226,9 +227,11 @@ export function AIChat({ contextData }: AIChatProps) {
         <>
             <Sheet open={open} onOpenChange={setOpen}>
                 <SheetTrigger asChild>
-                    <div className="fixed bottom-10 left-0 right-0 mx-auto w-fit z-50">
-                        <AIButton className="rounded-full px-6 py-3 h-auto text-lg hover:scale-105 transition-transform" />
-                    </div>
+                    {trigger ? trigger : (
+                        <div className="fixed bottom-10 left-0 right-0 mx-auto w-fit z-50">
+                            <AIButton className="rounded-full px-6 py-3 h-auto text-lg hover:scale-105 transition-transform" />
+                        </div>
+                    )}
                 </SheetTrigger>
                 <SheetContent className="w-full sm:w-[600px] sm:max-w-[600px] flex flex-col h-full bg-background/95 backdrop-blur-supports-[backdrop-filter]:bg-background/60 [&>button]:hidden">
                     <SheetHeader className="flex flex-row items-center justify-between">

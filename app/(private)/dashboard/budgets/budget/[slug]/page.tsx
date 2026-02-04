@@ -22,7 +22,7 @@ export default async function BudgetDetailPage({
     const optionWithoutProducts = budgetOptions.find((o: any) => !o.has_products);
 
     return (
-        <div className="flex container pb-10 flex-col space-y-6 ">
+        <div className="flex container pb-10 px-4 flex-col space-y-6 ">
             <div className="flex items-center justify-between">
                 <div className="flex flex-col gap-2 w-full items-center justify-center py-10">
                     <h1 className="text-3xl font-sans font-bold tracking-wider">{budget.name}</h1>

@@ -41,16 +41,17 @@ export const BudgetPreview = () => {
     const ivaPct = Number(values.iva) || 0;
 
     return (
-        <Card className="h-full border-l-4 border-l-blue-500 shadow-lg overflow-y-auto max-h-[calc(100vh-100px)]">
-            <CardHeader>
+        <Card className="pt-4 mb-0 gap-2 h-full border-l-4 border-l-blue-500 shadow-lg overflow-y-auto max-h-[calc(92vh)]">
+            <CardHeader className="">
                 <CardTitle className="flex justify-between items-center text-xl">
                     <span>Vista Previa</span>
                     <span className="text-sm font-normal text-muted-foreground">Cálculo en vivo</span>
                 </CardTitle>
             </CardHeader>
-            <CardContent className="space-y-6">
+            <CardContent className="space-y-4">
                 {/* General Info */}
-                <div className="grid grid-cols-2 gap-4 text-sm">
+                <hr className="border-t" />
+                <div className="grid grid-cols-2 gap-y-2 gap-x-4 text-sm">
                     <div>
                         <p className="text-muted-foreground">Visitas</p>
                         <p className="font-medium">
@@ -79,7 +80,7 @@ export const BudgetPreview = () => {
                     </div>
                 </div>
 
-                <hr className="my-4 border-t" />
+                <hr className="my-2 border-t" />
 
                 {/* Visual Contribution Breakdown */}
                 <div className="space-y-2">
@@ -104,7 +105,7 @@ export const BudgetPreview = () => {
                     </div>
                 </div>
 
-                <hr className="my-4 border-t" />
+                <hr className="my-2 border-t" />
 
                 {/* Price Without Products (Service Only) */}
                 <div className="space-y-2 pt-2">
@@ -136,7 +137,7 @@ export const BudgetPreview = () => {
                     </div>
                 </div>
 
-                <hr className="my-4 border-t" />
+                <hr className="my-2 border-t" />
 
                 {/* Price With Products (Collapsible) - Only show if products exist or explicitly enabled */}
                 {((values.products_price || 0) > 0 || (values as any).has_products) && (

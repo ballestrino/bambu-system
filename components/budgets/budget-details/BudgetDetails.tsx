@@ -48,14 +48,15 @@ export const BudgetDetails = ({ option, title }: BudgetDetailsProps) => {
     const finalPriceWithTax = hasProducts ? totalFinalWithProducts : finalPriceService;
 
     return (
-        <Card className={cn("h-full shadow-lg overflow-y-auto", hasProducts ? "border-l-4 border-l-blue-500" : "border-l-4 border-l-gray-400")}>
+        <Card className={cn("h-full max-h-[calc(92vh)] gap-2 pt-4 shadow-lg overflow-y-auto", hasProducts ? "border-l-4 border-l-blue-500" : "border-l-4 border-l-gray-400")}>
             <CardHeader>
                 <CardTitle className="flex justify-between items-center text-xl">
                     <span>{title || (hasProducts ? "Con Productos" : "Sin Productos")}</span>
                 </CardTitle>
             </CardHeader>
-            <CardContent className="space-y-6">
+            <CardContent className="space-y-2">
                 {/* General Info */}
+                <hr className="border-t" />
                 <div className="grid grid-cols-2 gap-4 text-sm">
                     <div>
                         <p className="text-muted-foreground">Visitas</p>
@@ -85,7 +86,7 @@ export const BudgetDetails = ({ option, title }: BudgetDetailsProps) => {
                     </div>
                 </div>
 
-                <hr className="my-4 border-t" />
+                <hr className="my-2 border-t" />
 
                 {/* Visual Contribution Breakdown */}
                 <div className="space-y-2">
@@ -110,7 +111,7 @@ export const BudgetDetails = ({ option, title }: BudgetDetailsProps) => {
                     </div>
                 </div>
 
-                <hr className="my-4 border-t" />
+                <hr className="my-2 border-t" />
 
                 {/* Service Costs */}
                 <div className="space-y-2 pt-2">
@@ -173,7 +174,7 @@ export const BudgetDetails = ({ option, title }: BudgetDetailsProps) => {
                     </>
                 )}
 
-                <hr className="my-4 border-t" />
+                <hr className="my-2 border-t" />
 
                 {/* Final Price Display */}
                 <div className="flex justify-between items-end">

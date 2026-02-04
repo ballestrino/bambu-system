@@ -12,7 +12,7 @@ export default function CreateBudgetPage() {
 
     return (
         <FormProvider {...form}>
-            <div className="w-full pb-10 h-full items-center justify-center flex ">
+            <div className="w-full pb-10 h-full px-4 items-center justify-center flex ">
 
                 <div className="flex flex-col container h-full space-y-6">
                     <div className="flex items-center justify-between">
@@ -20,6 +20,7 @@ export default function CreateBudgetPage() {
                             onSave={form.handleSubmit(onSubmit)}
                             isPending={isPending}
                             onGenerateAI={handleGenerateAI}
+                            form={form}
                         />
 
                     </div>
@@ -38,7 +39,7 @@ export default function CreateBudgetPage() {
                     </div>
                 </div>
             </div>
-            <AIChat contextData={form.watch()} />
+
         </FormProvider>
     );
 }
