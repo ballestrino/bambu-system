@@ -80,7 +80,7 @@ export default function NewPasswordForm() {
                     <Input
                       type='password'
                       placeholder='******'
-                      className='w-full bg-white'
+                      className='w-full bg-background'
                       {...field}
                     />
                   </FormControl>
@@ -95,7 +95,7 @@ export default function NewPasswordForm() {
                 value={confirmPassword}
                 placeholder='******'
                 onChange={e => setConfirmPassword(e.target.value)}
-                className='w-full bg-white'
+                className='w-full bg-background'
               />
             </div>
           </div>

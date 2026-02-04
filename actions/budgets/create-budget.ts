@@ -4,7 +4,7 @@ import { auth } from "@/auth";
 import { db } from "@/lib/db";
 import { BudgetSchema, BudgetFormValues } from "@/schemas/BudgetSchema";
 import { calculateBudgetTotals } from "@/lib/budget-calculations";
-import { revalidatePath } from "next/cache";
+import { getBudgetBySlug } from "@/data/budget";
 
 export const createBudget = async (values: BudgetFormValues) => {
     const session = await auth();
@@ -57,12 +57,7 @@ export const createBudget = async (values: BudgetFormValues) => {
             .replace(/^-+|-+$/g, '');
 
         // Check uniqueness
-        const existingBudget = await db.budget.findUnique({
-             where: { slug }
-        });
-
-        console.log(slug) 
-        console.log(existingBudget)
+        const existingBudget = await getBudgetBySlug(slug)
 
         if (existingBudget) {
             return { error: "Este título ya está en uso. Por favor elige otro nombre para tu presupuesto." };
@@ -123,7 +118,6 @@ export const createBudget = async (values: BudgetFormValues) => {
             }
         });
 
-        revalidatePath("/dashboard/budgets");
         return { success: "exito", budget: budget };
     } catch (error) {
         console.error("Error creating budget:", error);

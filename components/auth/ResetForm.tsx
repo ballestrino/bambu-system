@@ -62,7 +62,7 @@ export default function ResetForm() {
                 <FormLabel>Email</FormLabel>
                 <FormControl>
                   <Input
-                    className='w-full bg-white'
+                    className='w-full bg-background'
                     placeholder='nombre@ejemplo.com'
                     {...field}
                   />

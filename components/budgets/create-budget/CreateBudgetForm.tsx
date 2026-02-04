@@ -17,6 +17,7 @@ import { ChevronDown, ChevronUp } from "lucide-react";
 
 import { calculateBudgetTotals, calculateEstimates } from "@/lib/budget-calculations";
 import { BudgetFormValues } from "@/schemas/BudgetSchema";
+import { NominalHourSelector } from "../common/NominalHourSelector";
 
 export const CreateBudgetForm = () => {
     const form = useFormContext<BudgetFormValues>();
@@ -189,13 +190,10 @@ export const CreateBudgetForm = () => {
                             control={form.control}
                             name="nominal_hour"
                             render={({ field }) => (
-                                <FormItem>
-                                    <FormLabel>Precio Hora Nominal</FormLabel>
-                                    <FormControl>
-                                        <Input type="number" {...field} />
-                                    </FormControl>
-                                    <FormMessage />
-                                </FormItem>
+                                <NominalHourSelector
+                                    value={field.value}
+                                    onChange={field.onChange}
+                                />
                             )}
                         />
 

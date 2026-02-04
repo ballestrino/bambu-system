@@ -101,7 +101,7 @@ export default function LoginForm() {
                   <FormControl>
                     <Input
                       {...field}
-                      className='w-full bg-white'
+                      className='w-full bg-background'
                       type='number'
                       placeholder='123456'
                     />
@@ -122,7 +122,7 @@ export default function LoginForm() {
                     <FormControl>
                       <Input
                         {...field}
-                        className='w-full bg-white'
+                        className='w-full bg-background'
                         type='email'
                         placeholder='nombre@ejemplo.com'
                       />
@@ -141,7 +141,7 @@ export default function LoginForm() {
                       <FormControl>
                         <Input
                           {...field}
-                          className='w-full bg-white'
+                          className='w-full bg-background'
                           type='password'
                           placeholder='******'
                         />

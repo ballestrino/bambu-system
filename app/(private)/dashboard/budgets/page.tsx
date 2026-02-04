@@ -65,7 +65,7 @@ function BudgetsPageContent() {
     const { budgets, totalPages, isLoading } = useBudgets(filters);
 
     return (
-        <div className="container flex-col pb-10 px-4 gap-8 flex">
+        <div className="h-full container flex-col pb-10 px-4 gap-8 flex">
             <Header />
 
             <QuickFilters />

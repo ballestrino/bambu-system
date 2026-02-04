@@ -11,6 +11,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { BudgetFormValues } from "@/schemas/BudgetSchema";
 import { BudgetSection } from "./BudgetSection";
+import { NominalHourSelector } from "../common/NominalHourSelector";
 
 interface BudgetDetailsSectionProps {
     isOpen: boolean;
@@ -131,13 +132,10 @@ export const BudgetDetailsSection = ({ isOpen, onToggle, values }: BudgetDetails
                         control={control}
                         name="nominal_hour"
                         render={({ field }) => (
-                            <FormItem>
-                                <FormLabel>Precio Hora Nominal</FormLabel>
-                                <FormControl>
-                                    <Input type="number" {...field} />
-                                </FormControl>
-                                <FormMessage />
-                            </FormItem>
+                            <NominalHourSelector
+                                value={field.value}
+                                onChange={field.onChange}
+                            />
                         )}
                     />
                     <FormField

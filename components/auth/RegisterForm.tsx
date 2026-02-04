@@ -71,7 +71,7 @@ export default function RegisterForm() {
                   <FormLabel>Nombre</FormLabel>
                   <FormControl>
                     <Input
-                      className='w-full bg-white'
+                      className='w-full bg-background'
                       placeholder='Juan Perez'
                       {...field}
                     />
@@ -88,7 +88,7 @@ export default function RegisterForm() {
                   <FormLabel>Correo electrónico</FormLabel>
                   <FormControl>
                     <Input
-                      className='w-full bg-white'
+                      className='w-full bg-background'
                       placeholder='nombre@ejemplo.com'
                       {...field}
                     />
@@ -106,7 +106,7 @@ export default function RegisterForm() {
                   <FormControl>
                     <Input
                       type='password'
-                      className='w-full bg-white'
+                      className='w-full bg-background'
                       placeholder='******'
                       {...field}
                     />
@@ -119,7 +119,7 @@ export default function RegisterForm() {
               <Label>Confirmar contraseña</Label>
               <Input
                 type='password'
-                className='w-full bg-white'
+                className='w-full bg-background'
                 placeholder='******'
                 value={confirmPassword}
                 onChange={e => setConfirmPassword(e.target.value)}

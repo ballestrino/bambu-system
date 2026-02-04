@@ -96,6 +96,21 @@ model Budget {
 
   userId String
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  budgetCategory BudgetCategory[]
+  
+  parentBudgetId String?
+  parentBudget Budget? @relation("BudgetHierarchy", fields: [parentBudgetId], references: [id], onDelete: Cascade)
+  childBudgets Budget[] @relation("BudgetHierarchy")
+}
+
+model BudgetCategory { 
+  id String @id @default(cuid())
+  name String
+  description String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  budgets Budget[]
 }
 
 enum VisitType { 

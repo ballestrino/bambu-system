@@ -305,7 +305,7 @@ export function AIChat({ contextData }: AIChatProps) {
                                             "rounded-2xl px-3 py-3 max-w-[90%] text-base",
                                             m.role === 'user'
                                                 ? "bg-primary text-primary-foreground ml-auto rounded-br-none"
-                                                : "bg-gray-200/60 text-foreground rounded-tl-none"
+                                                : "bg-muted text-foreground rounded-tl-none"
                                         )}
                                     >
                                         {m.role === 'assistant' ? (
