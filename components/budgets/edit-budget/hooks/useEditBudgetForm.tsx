@@ -92,7 +92,7 @@ export const useEditBudgetForm = (budget: ExistingBudget) => {
         setValue
     ]);
 
-    const toggleSection = (section: "details" | "costs" | "contributions" | "slug") => {
+    const toggleSection = (section: "" | "details" | "costs" | "contributions" | "slug") => {
         setActiveSection(activeSection === section ? "" : section);
     };
 
