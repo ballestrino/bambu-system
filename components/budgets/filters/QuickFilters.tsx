@@ -4,6 +4,7 @@ import { useSearchParams, useRouter } from "next/navigation"
 import { Badge } from "@/components/ui/badge"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
+import { X } from "lucide-react"
 
 interface FilterOption {
     label: string
@@ -135,22 +136,6 @@ export function QuickFilters() {
                     </Badge>
                 )
             })}
-            <Button
-                variant="outline"
-                className="ml-auto"
-                onClick={() => {
-                    const queryString = createQueryString((params) => {
-                        params.delete("hasProducts")
-                        params.delete("minHoursPerVisit")
-                        params.delete("maxHoursPerVisit")
-                        params.delete("minVisits")
-                        params.delete("maxVisits")
-                    })
-                    router.push(`?${queryString}`)
-                }}
-            >
-                Limpiar
-            </Button>
         </div>
     )
 }

@@ -12,7 +12,6 @@ import { Button } from "@/components/ui/button";
 import { BudgetsFiltersMenu } from "@/components/budgets/filters/BudgetsFiltersMenu";
 import { QuickFilters } from "@/components/budgets/filters/QuickFilters";
 import { CategoryFilter } from "@/components/budgets/filters/CategoryFilter";
-import { ActiveCategoryBadges } from "@/components/budgets/filters/ActiveCategoryBadges";
 import { getCookie } from "@/lib/utils";
 
 import { Suspense } from "react";
@@ -78,10 +77,14 @@ function BudgetsPageContent() {
                 <div className="flex-1">
                     <SearchBar placeholder="Buscar presupuestos..." />
                 </div>
-                <CategoryFilter />
+                <div className="hidden md:block">
+                    <CategoryFilter />
+                </div>
                 <BudgetsFiltersMenu />
             </div>
-
+            <div className="md:hidden w-full">
+                <CategoryFilter />
+            </div>
 
             {budgets.length === 0 && !isLoading ? (
                 <NoBudgets />

@@ -1,7 +1,7 @@
 "use client"
 
 import * as React from "react"
-import { Check, Plus } from "lucide-react"
+import { Check, Loader2, Plus } from "lucide-react"
 import { useSearchParams, useRouter } from "next/navigation"
 
 import { cn } from "@/lib/utils"
@@ -102,48 +102,55 @@ export function CategoryFilter() {
                 </Button>
             </PopoverTrigger>
             <PopoverContent className="w-[200px] p-0" align="start">
-                <Command>
-                    <CommandInput placeholder="Categoría..." />
-                    <CommandList>
-                        <CommandEmpty>No se encontraron resultados.</CommandEmpty>
-                        <CommandGroup>
-                            {categories.map((category) => {
-                                const isSelected = selectedValues.has(category.id)
-                                return (
-                                    <CommandItem
-                                        key={category.id}
-                                        onSelect={() => handleSelect(category.id)}
-                                    >
-                                        <div
-                                            className={cn(
-                                                "mr-2 flex h-4 w-4 items-center justify-center rounded-sm border border-primary",
-                                                isSelected
-                                                    ? "bg-primary text-primary-foreground"
-                                                    : "opacity-50 [&_svg]:invisible"
-                                            )}
+                {isLoading ? (
+                    <div className="py-5 flex-col flex items-center justify-center">
+                        <span>Cargando categorías</span>
+                        <Loader2 className="animate-spin" />
+                    </div>
+                ) : (
+                    <Command>
+                        <CommandInput placeholder="Categoría..." />
+                        <CommandList>
+                            <CommandEmpty>No se encontraron resultados.</CommandEmpty>
+                            <CommandGroup>
+                                {categories.map((category) => {
+                                    const isSelected = selectedValues.has(category.id)
+                                    return (
+                                        <CommandItem
+                                            key={category.id}
+                                            onSelect={() => handleSelect(category.id)}
                                         >
-                                            <Check className={cn("h-4 w-4")} />
-                                        </div>
-                                        <span>{category.name}</span>
-                                    </CommandItem>
-                                )
-                            })}
-                        </CommandGroup>
-                        {selectedValues.size > 0 && (
-                            <>
-                                <CommandSeparator />
-                                <CommandGroup>
-                                    <CommandItem
-                                        onSelect={handleClear}
-                                        className="justify-center text-center"
-                                    >
-                                        Limpiar filtros
-                                    </CommandItem>
-                                </CommandGroup>
-                            </>
-                        )}
-                    </CommandList>
-                </Command>
+                                            <div
+                                                className={cn(
+                                                    "mr-2 flex h-4 w-4 items-center justify-center rounded-sm border border-primary",
+                                                    isSelected
+                                                        ? "bg-primary text-primary-foreground"
+                                                        : "opacity-50 [&_svg]:invisible"
+                                                )}
+                                            >
+                                                <Check className={cn("h-4 w-4")} />
+                                            </div>
+                                            <span>{category.name}</span>
+                                        </CommandItem>
+                                    )
+                                })}
+                            </CommandGroup>
+                            {selectedValues.size > 0 && (
+                                <>
+                                    <CommandSeparator />
+                                    <CommandGroup>
+                                        <CommandItem
+                                            onSelect={handleClear}
+                                            className="justify-center text-center"
+                                        >
+                                            Limpiar filtros
+                                        </CommandItem>
+                                    </CommandGroup>
+                                </>
+                            )}
+                        </CommandList>
+                    </Command>
+                )}
             </PopoverContent>
         </Popover>
     )

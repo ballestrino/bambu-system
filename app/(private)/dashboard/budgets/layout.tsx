@@ -5,18 +5,15 @@ import { useRouter } from "next/navigation";
 import { ArrowLeft } from "lucide-react";
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/budgets/app-sidebar";
-import { useState } from "react";
 
-export default function layout({ children }: { children: React.ReactNode }) {
-    const [open, setOpen] = useState(true)
-
+export default function Layout({ children }: { children: React.ReactNode }) {
     const router = useRouter()
 
     return (
-        <SidebarProvider open={open} onOpenChange={() => setOpen(!open)}>
+        <SidebarProvider>
             <AppSidebar />
             <div className="absolute top-[90px] z-10 left-0">
-                <SidebarTrigger onClick={() => setOpen(!open)} />
+                <SidebarTrigger />
             </div>
 
             <main className="w-full">

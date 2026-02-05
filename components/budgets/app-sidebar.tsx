@@ -11,6 +11,7 @@ import {
     SidebarMenuButton,
     SidebarMenuItem,
     SidebarTrigger,
+    useSidebar,
 } from "@/components/ui/sidebar"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
@@ -30,6 +31,7 @@ const items = [
 
 export function AppSidebar() {
     const pathname = usePathname()
+    const { setOpenMobile, isMobile } = useSidebar()
 
     return (
         <Sidebar className="z-20">
@@ -42,7 +44,7 @@ export function AppSidebar() {
                     <SidebarGroupContent>
                         <SidebarMenu>
                             {items.map((item) => (
-                                <SidebarMenuItem key={item.title}>
+                                <SidebarMenuItem onClick={() => isMobile && setOpenMobile(false)} key={item.title}>
                                     <SidebarMenuButton asChild isActive={pathname === item.url}>
                                         <Link href={item.url}>
                                             <item.icon />
