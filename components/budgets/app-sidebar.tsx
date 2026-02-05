@@ -32,7 +32,7 @@ export function AppSidebar() {
     const pathname = usePathname()
 
     return (
-        <Sidebar>
+        <Sidebar className="z-20">
             <SidebarContent className="pt-20">
                 <SidebarGroup>
                     <div className="flex justify-between items-center gap-2">

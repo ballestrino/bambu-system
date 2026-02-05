@@ -1,4 +1,7 @@
+import { BudgetCategory } from "@prisma/client"
+
 export interface BudgetFilters { 
+    catIds?: string[]
     query?: string
     limit: number
     page?: number

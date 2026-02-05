@@ -5,7 +5,6 @@ import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import { Button } from "./button";
 import { Loader2, Search } from "lucide-react";
-import DeleteDialog from "./delete-dialog";
 
 export function SearchBar({ placeholder = "Search..." }: { placeholder?: string }) {
     const searchParams = useSearchParams();
@@ -29,17 +28,21 @@ export function SearchBar({ placeholder = "Search..." }: { placeholder?: string 
         setTimeout(() => setLoading(false), 500);
     };
 
-    const clearSearch = () => {
-        setLastSearchTerm("")
-        push(pathname)
-    }
+    // const clearSearch = () => {
+    //     setLastSearchTerm("")
+    //     const params = new URLSearchParams(searchParams.toString());
+    //     params.delete("query");
+    //     replace(`${pathname}?${params.toString()}`);
+    // }
 
+    // Debounced search effect
     useEffect(() => {
-        if (searchTerm.trim() === "") {
-            clearSearch()
-        }
-
-
+        const timeoutId = setTimeout(() => {
+            if (searchTerm !== searchParams.get("query")) { // Only trigger if changed
+                handleSearch(searchTerm)
+            }
+        }, 500);
+        return () => clearTimeout(timeoutId);
     }, [searchTerm])
 
     return (

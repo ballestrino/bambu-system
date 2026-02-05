@@ -134,6 +134,16 @@ export const getBudgets = async (
         }
 
 
+
+        // Categories
+        if (filters?.catIds && filters.catIds.length > 0) {
+             budgetConditions.push({
+                budgetCategory: {
+                    id: { in: filters.catIds }
+                }
+             });
+        }
+
         const whereClause: any = {
         };
 
@@ -154,6 +164,9 @@ export const getBudgets = async (
                 where: whereClause,
                 orderBy: {
                     updatedAt: 'desc'
+                },
+                include: { 
+                    budgetCategory: true
                 },
                 skip: (page - 1) * limit,
                 take: limit,

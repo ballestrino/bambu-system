@@ -20,7 +20,7 @@ export const getBudgetCategoryById = async (id: string) => {
             }
         })
 
-        return result
+        return {category : result}
     } catch (error) {
         return { error : "Error al obtener la categoría" }
     }

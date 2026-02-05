@@ -11,6 +11,8 @@ import { Button } from "@/components/ui/button";
 
 import { BudgetsFiltersMenu } from "@/components/budgets/filters/BudgetsFiltersMenu";
 import { QuickFilters } from "@/components/budgets/filters/QuickFilters";
+import { CategoryFilter } from "@/components/budgets/filters/CategoryFilter";
+import { ActiveCategoryBadges } from "@/components/budgets/filters/ActiveCategoryBadges";
 import { getCookie } from "@/lib/utils";
 
 import { Suspense } from "react";
@@ -37,12 +39,14 @@ function BudgetsPageContent() {
     const maxHoursPerVisit = params.get("maxHoursPerVisit") ? Number(params.get("maxHoursPerVisit")) : undefined;
     const visitTypes = params.get("visitTypes") ? [params.get("visitTypes")!] : undefined;
 
+    const catIds = params.get('categories')?.split(',')
 
     useEffect(() => {
         setPage(1);
     }, [query]);
 
     const filters = {
+        catIds,
         query,
         page,
         limit,
@@ -74,8 +78,10 @@ function BudgetsPageContent() {
                 <div className="flex-1">
                     <SearchBar placeholder="Buscar presupuestos..." />
                 </div>
+                <CategoryFilter />
                 <BudgetsFiltersMenu />
             </div>
+
 
             {budgets.length === 0 && !isLoading ? (
                 <NoBudgets />
