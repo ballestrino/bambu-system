@@ -17,6 +17,7 @@ export default function useBudgetCategories() {
     return {
         categories,
         isLoading: query.isLoading,
+        isRefetching: query.isRefetching,
         isError,
         error: error,
         refetch: query.refetch

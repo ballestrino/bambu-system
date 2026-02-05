@@ -41,6 +41,7 @@ export const updateBudget = async (id: string, newSlug: string, values: BudgetFo
         revenue_percent,
         price,
         iva,
+        categoryIds,
     } = validatedFields.data;
 
     // Calculate totals to derive the price without products
@@ -76,6 +77,11 @@ export const updateBudget = async (id: string, newSlug: string, values: BudgetFo
                     description,
                     slug: newSlug,
                     // userId: existingBudget.userId, // Keep original owner
+                    budgetCategory: categoryIds ? {
+                        set: categoryIds.map((id) => ({ id }))
+                    } : {
+                        set: []
+                    }
                 },
             });
 

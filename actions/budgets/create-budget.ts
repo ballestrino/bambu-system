@@ -41,6 +41,7 @@ export const createBudget = async (values: BudgetFormValues) => {
         revenue_percent,
         price,
         iva,
+        categoryIds,
     } = validatedFields.data;
 
     // Calculate totals to derive the price without products
@@ -63,12 +64,17 @@ export const createBudget = async (values: BudgetFormValues) => {
             return { error: "Este título ya está en uso. Por favor elige otro nombre para tu presupuesto." };
         }
 
+        console.log(categoryIds)
+
         const budget = await db.budget.create({
             data: {
                 name,
                 description,
                 slug,
                 userId: session.user.id,
+                budgetCategory: categoryIds && categoryIds.length > 0 ? {
+                    connect: categoryIds.map((id) => ({ id }))
+                } : undefined,
                 budgetOptions: {
                     create: [
                         // Option 1: With Products (Only if products exist)

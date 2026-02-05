@@ -13,7 +13,11 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Switch } from "@/components/ui/switch";
 import { cn } from "@/lib/utils";
-import { ChevronDown, ChevronUp } from "lucide-react";
+import { ChevronDown, ChevronUp, RefreshCw, Plus } from "lucide-react";
+import useBudgetCategories from "../categories/hooks/useBudgetCategories";
+import { CreateBudgetCategoryDialog } from "../categories/CreateBudgetCategoryDialog";
+import { Button } from "@/components/ui/button";
+import { MultiSelect } from "@/components/ui/multi-select";
 
 import { calculateBudgetTotals, calculateEstimates } from "@/lib/budget-calculations";
 import { BudgetFormValues } from "@/schemas/BudgetSchema";
@@ -28,6 +32,8 @@ export const CreateBudgetForm = () => {
 
     // State for accordion
     const [activeSection, setActiveSection] = useState<"details" | "costs" | "contributions" | "">("details");
+
+    const { categories, isRefetching, refetch } = useBudgetCategories();
 
     // Effect 1: Auto-calculate Estimates (Transport & Products)
     useEffect(() => {
@@ -124,6 +130,40 @@ export const CreateBudgetForm = () => {
                                 </FormItem>
                             )}
                         />
+
+                        <div className="space-y-2">
+                            <FormLabel>Categoría</FormLabel>
+                            <div className="flex gap-2 items-center">
+                                <Button type="button" variant="outline" size="sm" onClick={() => refetch()} className="gap-2">
+                                    <RefreshCw className={cn("h-4 w-4", isRefetching && "animate-spin")} />
+                                    Refrescar
+                                </Button>
+                                <CreateBudgetCategoryDialog trigger={
+                                    <Button variant="outline" size="sm">
+                                        <Plus />
+                                        Crear categoría
+                                    </Button>
+                                }
+                                />
+                            </div>
+                            <FormField
+                                control={form.control}
+                                name="categoryIds"
+                                render={({ field }) => (
+                                    <FormItem>
+                                        <FormControl>
+                                            <MultiSelect
+                                                options={categories?.map((c: any) => ({ label: c.name, value: c.id })) || []}
+                                                selected={field.value || []}
+                                                onChange={field.onChange}
+                                                placeholder="Seleccionar categorías..."
+                                            />
+                                        </FormControl>
+                                        <FormMessage />
+                                    </FormItem>
+                                )}
+                            />
+                        </div>
                         <FormField
                             control={form.control}
                             name="description"

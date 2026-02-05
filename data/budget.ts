@@ -13,7 +13,8 @@ export const getBudgetBySlug = async (slug: string) => {
                 slug,
             },
             include: {
-                budgetOptions: true // Include details
+                budgetOptions: true, // Include details
+                budgetCategory: true
             }
         });
 

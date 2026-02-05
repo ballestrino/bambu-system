@@ -24,4 +24,5 @@ export interface ExistingBudget {
     name: string;
     description: string | null;
     budgetOptions: BudgetOption[];
+    budgetCategory: { id: string; name: string }[];
 }

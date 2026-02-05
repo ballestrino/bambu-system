@@ -6,6 +6,7 @@ export const BudgetSchema = z.object({
   // Info
   name: z.string().min(1, "Name is required"),
   description: z.string().optional(),
+  categoryIds: z.array(z.string()).optional(),
   visits: z.coerce.number().min(0, "Must be positive"),
   visit_type: VisitTypeEnum,
   hours_per_visit: z.coerce.number().min(0),
@@ -60,4 +61,5 @@ export const defaultBudgetValues: BudgetFormValues = {
   revenue_percent: 45,
   price: 7273.46,
   iva: 22, // Default IVA
+  categoryIds: [],
 };

@@ -36,6 +36,7 @@ export const useEditBudgetForm = (budget: ExistingBudget) => {
             ...primaryOption,
             name: budget.name,
             description: budget.description || undefined,
+            categoryIds: budget.budgetCategory?.map(c => c.id) || [],
             // Map booleans based on values
             incidence_enabled: Number(primaryOption.incidence_contribution) > 0,
             company_enabled: Number(primaryOption.company_contribution) > 0,

@@ -31,7 +31,11 @@ const formSchema = z.object({
     description: z.string(),
 })
 
-export function CreateBudgetCategoryDialog() {
+interface Props {
+    trigger?: React.ReactNode
+}
+
+export function CreateBudgetCategoryDialog({ trigger }: Props) {
     const [open, setOpen] = useState(false)
     const { mutateAsync: createCategory, isPending } = useCreateBudgetCategoryMutation()
 
@@ -56,7 +60,7 @@ export function CreateBudgetCategoryDialog() {
     return (
         <Dialog open={open} onOpenChange={setOpen}>
             <DialogTrigger asChild>
-                <Button>Crear Categoría</Button>
+                {trigger ? trigger : <Button type="button">Crear Categoría</Button>}
             </DialogTrigger>
             <DialogContent className="sm:max-w-[425px]">
                 <DialogHeader>

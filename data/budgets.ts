@@ -138,9 +138,13 @@ export const getBudgets = async (
         // Categories
         if (filters?.catIds && filters.catIds.length > 0) {
              budgetConditions.push({
-                budgetCategory: {
-                    id: { in: filters.catIds }
-                }
+                budgetCategory: { 
+                        some: { 
+                            id: { 
+                                in: filters?.catIds
+                            }
+                        }
+                    }
              });
         }
 

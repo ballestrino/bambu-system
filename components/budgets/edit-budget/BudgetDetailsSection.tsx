@@ -12,6 +12,12 @@ import { Input } from "@/components/ui/input";
 import { BudgetFormValues } from "@/schemas/BudgetSchema";
 import { BudgetSection } from "./BudgetSection";
 import { NominalHourSelector } from "../common/NominalHourSelector";
+import useBudgetCategories from "../categories/hooks/useBudgetCategories";
+import { CreateBudgetCategoryDialog } from "../categories/CreateBudgetCategoryDialog";
+import { Button } from "@/components/ui/button";
+import { MultiSelect } from "@/components/ui/multi-select";
+import { RefreshCw } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 interface BudgetDetailsSectionProps {
     isOpen: boolean;
@@ -21,6 +27,7 @@ interface BudgetDetailsSectionProps {
 
 export const BudgetDetailsSection = ({ isOpen, onToggle, values }: BudgetDetailsSectionProps) => {
     const { control } = useFormContext<BudgetFormValues>();
+    const { categories, isLoading, refetch } = useBudgetCategories();
 
     return (
         <BudgetSection
@@ -82,6 +89,34 @@ export const BudgetDetailsSection = ({ isOpen, onToggle, values }: BudgetDetails
                             </FormItem>
                         )}
                     />
+
+                    <div className="space-y-2">
+                        <FormLabel>Categoría</FormLabel>
+                        <div className="flex gap-2 items-center">
+                            <Button type="button" variant="outline" size="sm" onClick={() => refetch()} className="gap-2">
+                                <RefreshCw className={cn("h-4 w-4", isLoading && "animate-spin")} />
+                                Refrescar
+                            </Button>
+                            <CreateBudgetCategoryDialog />
+                        </div>
+                        <FormField
+                            control={control}
+                            name="categoryIds"
+                            render={({ field }) => (
+                                <FormItem>
+                                    <FormControl>
+                                        <MultiSelect
+                                            options={categories?.map((c: any) => ({ label: c.name, value: c.id })) || []}
+                                            selected={field.value || []}
+                                            onChange={field.onChange}
+                                            placeholder="Seleccionar categorías..."
+                                        />
+                                    </FormControl>
+                                    <FormMessage />
+                                </FormItem>
+                            )}
+                        />
+                    </div>
                 </div>
                 <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                     <FormField
