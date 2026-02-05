@@ -2,7 +2,7 @@
 
 import { db } from "@/lib/db"
 
-export default async function updateNameBudgetCategory(id: string, name: string, description: string) {
+export default async function updateNameBudgetCategory(id: string, name: string, description: string, color: string, isActive: boolean) {
     try {
         const result = await db.budgetCategory.update({
             where: {
@@ -10,7 +10,9 @@ export default async function updateNameBudgetCategory(id: string, name: string,
             },
             data: {
                 name,
-                description
+                description,
+                color,
+                isActive
             }
         })
 

@@ -8,13 +8,15 @@ import { BudgetCategory } from "@prisma/client"
 interface CreateBudgetCategoryValues {
     name: string
     description: string
+    color: string
+    isActive: boolean
 }
 
 export const useCreateBudgetCategoryMutation = () => {
     const queryClient = useQueryClient()
 
     const mutation = useMutation({
-        mutationFn: (values: CreateBudgetCategoryValues) => createBudgetCategory(values.name, values.description),
+        mutationFn: (values: CreateBudgetCategoryValues) => createBudgetCategory(values.name, values.description, values.color, values.isActive),
         onSuccess: (newCategory) => {
             if (!newCategory || "error" in newCategory) {
                 toast.error("Error al crear la categoría")
