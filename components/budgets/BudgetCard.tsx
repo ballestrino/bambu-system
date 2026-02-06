@@ -1,10 +1,12 @@
 "use client";
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
 import Link from "next/link";
 import { CalendarIcon } from "lucide-react";
 import { Budget } from "@prisma/client";
 import { BudgetDropdown } from "./BudgetDropdown";
+import { hexToRgba } from "@/lib/utils";
 
 // If date-fns is not available, I'll use a helper.
 const formatDate = (date: Date) => {
@@ -16,7 +18,13 @@ const formatDate = (date: Date) => {
 };
 
 interface BudgetCardProps {
-    budget: Budget;
+    budget: Budget & {
+        budgetCategory?: Array<{
+            id: string;
+            name: string;
+            color?: string | null;
+        }>;
+    };
 }
 
 export function BudgetCard({ budget }: BudgetCardProps) {
@@ -42,11 +50,32 @@ export function BudgetCard({ budget }: BudgetCardProps) {
                 </CardHeader>
 
                 <CardContent>
-                    <div className="flex items-center text-sm text-muted-foreground gap-4">
-                        <div className="flex items-center gap-1">
-                            <CalendarIcon className="w-4 h-4" />
-                            <span>{formatDate(budget.updatedAt)}</span>
+                    <div className="space-y-2">
+                        <div className="flex items-center text-sm text-muted-foreground gap-4">
+                            <div className="flex items-center gap-1">
+                                <CalendarIcon className="w-4 h-4" />
+                                <span>{formatDate(budget.updatedAt)}</span>
+                            </div>
                         </div>
+
+                        {budget.budgetCategory && budget.budgetCategory.length > 0 && (
+                            <div className="flex flex-wrap gap-1">
+                                {budget.budgetCategory.map((category) => (
+                                    <Badge
+                                        key={category.id}
+                                        variant="secondary"
+                                        className="text-xs"
+                                        style={
+                                            category.color
+                                                ? { backgroundColor: hexToRgba(category.color, 0.2) }
+                                                : {}
+                                        }
+                                    >
+                                        {category.name}
+                                    </Badge>
+                                ))}
+                            </div>
+                        )}
                     </div>
                 </CardContent>
             </Link>
