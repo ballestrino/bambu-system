@@ -113,6 +113,10 @@ model BudgetCategory {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
   budgets Budget[]
+
+  parentCategoryId String?
+  parentCategory BudgetCategory? @relation("CategoryHierarchy", fields: [parentCategoryId], references: [id], onDelete: Cascade)
+  childCategories BudgetCategory[] @relation("CategoryHierarchy")
 }
 
 enum VisitType { 
