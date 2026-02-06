@@ -12,7 +12,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
     return (
         <SidebarProvider>
             <AppSidebar />
-            <div className="absolute top-[90px] z-10 left-0">
+            <div className="fixed top-[90px] z-10 left-0">
                 <SidebarTrigger />
             </div>
 

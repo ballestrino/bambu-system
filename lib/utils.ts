@@ -24,3 +24,25 @@ export function getCookie(name: string): string | null {
   }
   return null;
 }
+
+export function hexToRgba(hex: string, alpha: number) {
+  if (!hex) return hex;
+  
+  // Remove # if present
+  let cleanHex = hex.startsWith('#') ? hex.substring(1) : hex;
+  
+  // Handle 3 char hex
+  if (cleanHex.length === 3) {
+      cleanHex = cleanHex.split('').map(char => char + char).join('');
+  }
+  
+  if (cleanHex.length !== 6) return hex;
+  
+  const r = parseInt(cleanHex.substring(0, 2), 16);
+  const g = parseInt(cleanHex.substring(2, 4), 16);
+  const b = parseInt(cleanHex.substring(4, 6), 16);
+
+  if (isNaN(r) || isNaN(g) || isNaN(b)) return hex;
+
+  return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+}

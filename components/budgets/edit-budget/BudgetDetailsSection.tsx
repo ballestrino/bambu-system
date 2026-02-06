@@ -70,7 +70,7 @@ export const BudgetDetailsSection = ({ isOpen, onToggle, values }: BudgetDetails
                             <FormItem>
                                 <FormLabel>Nombre del Presupuesto</FormLabel>
                                 <FormControl>
-                                    <Input placeholder="Ej: Proyecto Marzo 2024" {...field} />
+                                    <Input placeholder="Ej: Proyecto Marzo 2026" {...field} />
                                 </FormControl>
                                 <FormMessage />
                             </FormItem>
@@ -91,7 +91,7 @@ export const BudgetDetailsSection = ({ isOpen, onToggle, values }: BudgetDetails
                     />
 
                     <div className="space-y-2">
-                        <FormLabel>Categoría</FormLabel>
+                        <FormLabel>Categorías</FormLabel>
                         <div className="flex gap-2 items-center">
                             <Button type="button" variant="outline" size="sm" onClick={() => refetch()} className="gap-2">
                                 <RefreshCw className={cn("h-4 w-4", isLoading && "animate-spin")} />
@@ -106,7 +106,7 @@ export const BudgetDetailsSection = ({ isOpen, onToggle, values }: BudgetDetails
                                 <FormItem>
                                     <FormControl>
                                         <MultiSelect
-                                            options={categories?.map((c: any) => ({ label: c.name, value: c.id })) || []}
+                                            options={categories?.map((c: any) => ({ label: c.name, value: c.id, color: c.color })) || []}
                                             selected={field.value || []}
                                             onChange={field.onChange}
                                             placeholder="Seleccionar categorías..."

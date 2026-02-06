@@ -4,7 +4,7 @@ import * as React from "react"
 import { Check, Loader2, Plus } from "lucide-react"
 import { useSearchParams, useRouter } from "next/navigation"
 
-import { cn } from "@/lib/utils"
+import { cn, hexToRgba } from "@/lib/utils"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import {
@@ -76,7 +76,7 @@ export function CategoryFilter() {
                                 {selectedValues.size}
                             </Badge>
                             <div className="hidden space-x-1 lg:flex">
-                                {selectedValues.size > 2 ? (
+                                {selectedValues.size > 3 ? (
                                     <Badge
                                         variant="secondary"
                                         className="rounded-sm px-1 font-normal"
@@ -88,9 +88,12 @@ export function CategoryFilter() {
                                         .filter((cat) => selectedValues.has(cat.id))
                                         .map((cat) => (
                                             <Badge
-                                                variant="secondary"
                                                 key={cat.id}
-                                                className="rounded-sm px-1 font-normal"
+                                                className={cn(
+                                                    "rounded-sm px-2 font-normal border-transparent text-secondary-foreground",
+                                                    cat.color ? "" : "bg-secondary"
+                                                )}
+                                                style={cat.color ? { backgroundColor: hexToRgba(cat.color, 0.2) } : {}}
                                             >
                                                 {cat.name}
                                             </Badge>

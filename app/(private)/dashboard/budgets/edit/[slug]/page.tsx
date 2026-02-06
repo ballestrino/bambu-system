@@ -8,11 +8,13 @@ export default async function EditBudgetPage({
     params: Promise<{ slug: string }>;
 }) {
     const { slug } = await params;
-    const budget = await getBudgetBySlug(slug);
+    const response = await getBudgetBySlug(slug);
 
-    if (!budget) {
+    if ("error" in response || !response.budget) {
         notFound();
     }
+
+    const budget = response.budget;
 
     return (
         <EditBudgetPageClient budget={budget as any} />

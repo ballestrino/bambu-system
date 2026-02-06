@@ -3,7 +3,7 @@
 import * as React from "react"
 import { Check, ChevronsUpDown, List, Plus } from "lucide-react"
 
-import { cn } from "@/lib/utils"
+import { cn, hexToRgba } from "@/lib/utils"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import {
@@ -25,6 +25,7 @@ import { Separator } from "@/components/ui/separator"
 interface Option {
     label: string
     value: string
+    color?: string | null
 }
 
 interface MultiSelectProps {
@@ -80,9 +81,12 @@ export function MultiSelect({ options, selected = [], onChange, placeholder = "S
                                         .filter((opt) => selectedValues.has(opt.value))
                                         .map((opt) => (
                                             <Badge
-                                                variant="secondary"
                                                 key={opt.value}
-                                                className="rounded-sm px-1 font-normal"
+                                                className={cn(
+                                                    "rounded-sm px-1 font-normal border-transparent text-secondary-foreground",
+                                                    opt.color ? `` : "bg-secondary"
+                                                )}
+                                                style={opt.color ? { backgroundColor: hexToRgba(opt.color, 0.2) } : {}}
                                             >
                                                 {opt.label}
                                             </Badge>
@@ -105,18 +109,23 @@ export function MultiSelect({ options, selected = [], onChange, placeholder = "S
                                     <CommandItem
                                         key={option.value}
                                         onSelect={() => handleSelect(option.value)}
+                                        className="flex justify-between"
                                     >
-                                        <div
-                                            className={cn(
-                                                "mr-2 flex h-4 w-4 items-center justify-center rounded-sm border border-primary",
-                                                isSelected
-                                                    ? "bg-primary text-primary-foreground"
-                                                    : "opacity-50 [&_svg]:invisible"
-                                            )}
-                                        >
-                                            <Check className={cn("h-4 w-4")} />
+                                        <div className="flex w-full">
+                                            <div
+                                                className={cn(
+                                                    "mr-2 flex h-4 w-4 items-center justify-center rounded-sm border border-primary",
+                                                    isSelected
+                                                        ? "bg-primary text-primary-foreground"
+                                                        : "opacity-50 [&_svg]:invisible"
+                                                )}
+                                            >
+                                                <Check className={cn("h-4 w-4")} />
+                                            </div>
+                                            <span>{option.label}</span>
+
                                         </div>
-                                        <span>{option.label}</span>
+                                        <div className={`h-3 w-3 items-center flex rounded-full`} style={option.color ? { backgroundColor: hexToRgba(option.color, 0.2) } : {}}></div>
                                     </CommandItem>
                                 )
                             })}
