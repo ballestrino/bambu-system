@@ -4,7 +4,18 @@ import { db } from "@/lib/db"
 
 export const getBudgetCategories = async () => { 
     try {
-        const result = await db.budgetCategory.findMany()
+        const result = await db.budgetCategory.findMany({
+            where: {
+                parentCategoryId: null
+            },
+            include: {
+                _count: {
+                    select: {
+                        childCategories: true
+                    }
+                }
+            }
+        })
 
         return result
     } catch (error) {
@@ -23,5 +34,25 @@ export const getBudgetCategoryById = async (id: string) => {
         return {category : result}
     } catch (error) {
         return { error : "Error al obtener la categoría" }
+    }
+}
+
+export const getBudgetSubCategories = async (parentId: string) => {
+    try {
+        const result = await db.budgetCategory.findMany({
+            where: {
+                parentCategoryId: parentId
+            }, 
+            include : { 
+                _count: { 
+                    select: { 
+                        childCategories: true
+                    }
+                }
+            }
+        })
+        return result
+    } catch (error) {
+        return { error: "Error al obtener las subcategorías" }
     }
 }

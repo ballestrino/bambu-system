@@ -43,9 +43,10 @@ interface Props {
     category?: BudgetCategory
     open?: boolean
     onOpenChange?: (open: boolean) => void
+    parentCategoryId?: string
 }
 
-export function CreateBudgetCategoryDialog({ trigger, category, open: controlledOpen, onOpenChange }: Props) {
+export function CreateBudgetCategoryDialog({ trigger, category, open: controlledOpen, onOpenChange, parentCategoryId }: Props) {
     const [internalOpen, setInternalOpen] = useState(false)
     const isControlled = controlledOpen !== undefined
     const open = isControlled ? controlledOpen : internalOpen
@@ -92,7 +93,10 @@ export function CreateBudgetCategoryDialog({ trigger, category, open: controlled
                     ...values
                 })
             } else {
-                await createCategory(values)
+                await createCategory({
+                    ...values,
+                    parentCategoryId
+                })
             }
             setOpen(false)
             if (!category) form.reset()

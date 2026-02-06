@@ -3,7 +3,7 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query"
 import updateNameBudgetCategory from "@/actions/budgetCategories/update-budget-category"
 import { toast } from "sonner"
-import { BudgetCategory } from "@prisma/client"
+import { BudgetCategoryWithCount } from "../../interfaces/category"
 
 interface UpdateBudgetCategoryValues {
     id: string
@@ -24,10 +24,17 @@ export const useUpdateBudgetCategoryMutation = () => {
                 return
             }
 
-            queryClient.setQueryData<BudgetCategory[]>(["budget-categories"], (old) => {
-                if (!old) return [updatedCategory]
-                return old.map((cat) => (cat.id === updatedCategory.id ? updatedCategory : cat))
-            })
+            if (updatedCategory.parentCategoryId) {
+                queryClient.setQueryData<BudgetCategoryWithCount[]>(["sub-categories", updatedCategory.parentCategoryId], (old) => {
+                    if (!old) return [updatedCategory]
+                    return old.map((cat) => (cat.id === updatedCategory.id ? updatedCategory : cat))
+                })
+            } else {
+                queryClient.setQueryData<BudgetCategoryWithCount[]>(["budget-categories"], (old) => {
+                    if (!old) return [updatedCategory]
+                    return old.map((cat) => (cat.id === updatedCategory.id ? updatedCategory : cat))
+                })
+            }
 
             toast.success("Categoría actualizada exitosamente")
         },

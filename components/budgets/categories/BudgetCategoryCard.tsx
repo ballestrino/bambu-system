@@ -1,14 +1,15 @@
 "use client"
 
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card"
-import { BudgetCategory } from "@prisma/client"
 import { BudgetCategoryDropdown } from "./BudgetCategoryDropdown"
 import Link from "next/link"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 
+import { BudgetCategoryWithCount } from "../interfaces/category"
+
 interface BudgetCategoryCardProps {
-    category: BudgetCategory
+    category: BudgetCategoryWithCount
 }
 
 export function BudgetCategoryCard({ category }: BudgetCategoryCardProps) {
@@ -32,6 +33,16 @@ export function BudgetCategoryCard({ category }: BudgetCategoryCardProps) {
                         <CardDescription>
                             {category.description || "Sin descripción"}
                         </CardDescription>
+
+                    </div>
+                    {category._count && category._count.childCategories > 0 && (
+                        <div className="mt-2">
+                            <Badge variant="outline" className="text-muted-foreground w-fit">
+                                {category._count.childCategories} {category._count.childCategories === 1 ? 'Subcategoría' : 'Subcategorías'}
+                            </Badge>
+                        </div>
+                    )}
+                    <div className="flex justify-end mt-2">
                         {!category.isActive && <Badge variant="secondary">Inactiva</Badge>}
                     </div>
                 </CardContent>

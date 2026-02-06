@@ -35,23 +35,27 @@ export function SearchBar({ placeholder = "Search..." }: { placeholder?: string 
     //     replace(`${pathname}?${params.toString()}`);
     // }
 
-    // Debounced search effect
+    // Automatically sync query param to internal state if URL changes externally (e.g. back button)
     useEffect(() => {
-        const timeoutId = setTimeout(() => {
-            if (searchTerm !== searchParams.get("query")) { // Only trigger if changed
-                handleSearch(searchTerm)
-            }
-        }, 500);
-        return () => clearTimeout(timeoutId);
-    }, [searchTerm])
+        const query = searchParams.get("query")?.toString() || ""
+        if (query !== searchTerm) {
+            setSearchTerm(query)
+        }
+    }, [searchParams])
 
     return (
         <div className="relative flex flex-1 gap-2 shrink-0">
             <Input
                 className="w-full max-w-xs bg-background"
                 placeholder={placeholder}
-                defaultValue={searchParams.get("query")?.toString()}
-                onChange={(e) => setSearchTerm(e.target.value)}
+                value={searchTerm}
+                onChange={(e) => {
+                    const value = e.target.value
+                    setSearchTerm(value)
+                    if (value === "") {
+                        handleSearch("")
+                    }
+                }}
                 onKeyDown={(e) => e.key === "Enter" && handleSearch(searchTerm)}
             />
             <Button variant={'outline'} className="cursor-pointer" onClick={() => handleSearch(searchTerm)} disabled={loading}><span className="hidden md:inline">Buscar</span>

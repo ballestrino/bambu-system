@@ -2,14 +2,15 @@
 
 import { db } from "@/lib/db"
 
-export default async function createBudgetCategory(name: string, description: string, color: string, isActive: boolean) {
+export default async function createBudgetCategory(name: string, description: string, color: string, isActive: boolean, parentCategoryId?: string) {
     try {
         const result = await db.budgetCategory.create({
             data: {
                 name,
                 description,
                 color,
-                isActive
+                isActive,
+                parentCategoryId
             }
         })
 

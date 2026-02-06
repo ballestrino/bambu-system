@@ -1,7 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { getBudgetCategoryAction } from "../actions/get-budget-category.action";
 
-export default function useBudgetCategory(id: string) {
+export default function useBudgetCategory(id: string | null) {
 
     const budgetCategoryQuery = useQuery({
         queryKey: ["categories", id],
@@ -14,6 +14,7 @@ export default function useBudgetCategory(id: string) {
         error: budgetCategoryQuery.error,
         isLoading: budgetCategoryQuery.isLoading,
         isFetching: budgetCategoryQuery.isFetching,
-        isRefetching: budgetCategoryQuery.isRefetching
+        isRefetching: budgetCategoryQuery.isRefetching,
+
     }
 }

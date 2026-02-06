@@ -6,10 +6,12 @@ import Link from "next/link"
 import { ChevronLeft } from "lucide-react"
 import { BudgetCategoryDropdown } from "@/components/budgets/categories/BudgetCategoryDropdown"
 import useBudgetCategory from "./hooks/useBudgetCategory"
+import { SubCategoriesSection } from "./SubCategoriesSection"
 
 export default function CategoryView({ id }: { id: string }) {
 
     const { category, isLoading } = useBudgetCategory(id)
+    const { category: parentCategory } = useBudgetCategory(category ? category.parentCategoryId : null)
 
     if (isLoading) {
         return <div className="h-full">
@@ -24,15 +26,27 @@ export default function CategoryView({ id }: { id: string }) {
             </div>
         )
     }
+
+
     return (
         <div className="h-full container flex-col pb-10 px-4 gap-8 flex pt-6 ">
             <div className="flex flex-col w-full gap-4">
-                <Button variant="outline" size="sm" className="w-fit" asChild>
-                    <Link href="/dashboard/budgets/categories">
-                        <ChevronLeft className="h-4 w-4" />
-                        Todas las categorías
-                    </Link>
-                </Button>
+                <div className="flex gap-2">
+                    {category.parentCategoryId && (
+                        <Button variant="outline" size="sm" className="w-fit" asChild>
+                            <Link href={`/dashboard/budgets/categories/${category.parentCategoryId}`}>
+                                <ChevronLeft className="h-4 w-4" />
+                                {parentCategory?.name}
+                            </Link>
+                        </Button>
+                    )}
+                    <Button variant="outline" size="sm" className="w-fit" asChild>
+                        <Link href="/dashboard/budgets/categories">
+                            <ChevronLeft className="h-4 w-4" />
+                            Todas las categorías
+                        </Link>
+                    </Button>
+                </div>
                 <div className="flex items-center gap-4">
                     <div className="flex items-center gap-3">
                         <div
@@ -52,6 +66,8 @@ export default function CategoryView({ id }: { id: string }) {
                 <h2 className="text-lg font-semibold">Descripción</h2>
                 <p className="text-muted-foreground">{category.description || "Sin descripción"}</p>
             </div>
+
+            <SubCategoriesSection parentId={category.id} />
 
             {/* <div className="space-y-4">
                 <h2 className="text-lg font-semibold">Presupuestos Asociados ({category.budgets.length})</h2>
