@@ -19,6 +19,8 @@ export const createBudget = async (values: BudgetFormValues) => {
         return { error: "Campos inválidos" };
     }
 
+    console.log(validatedFields)
+
     const {
         name,
         description,
@@ -60,7 +62,7 @@ export const createBudget = async (values: BudgetFormValues) => {
         // Check uniqueness
         const existingBudget = await getBudgetBySlug(slug)
 
-        if (existingBudget) {
+        if (existingBudget.budget) {
             return { error: "Este título ya está en uso. Por favor elige otro nombre para tu presupuesto." };
         }
 

@@ -39,7 +39,7 @@ export const BudgetSchema = z.object({
 export type BudgetFormValues = z.infer<typeof BudgetSchema>;
 
 export const defaultBudgetValues: BudgetFormValues = {
-  name: "Doméstica 1xSem 4hs",
+  name: "",
   visits: 1,
   visit_type: "week",
   hours_per_visit: 4,
