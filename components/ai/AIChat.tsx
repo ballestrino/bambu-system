@@ -17,7 +17,7 @@ import {
     DialogDescription,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
-import { Bot, Send, MessageCircle, Plus, X, LogOut, Save, History, Search, MoreHorizontal, Pencil, Trash } from "lucide-react";
+import { Bot, Send, MessageCircle, Plus, X, LogOut, Save, History, Search, MoreHorizontal, Pencil, Trash, Copy, Check } from "lucide-react";
 import {
     DropdownMenu,
     DropdownMenuContent,
@@ -56,6 +56,33 @@ interface SavedChat {
     createdAt: Date;
     messages: { role: string; content: string }[];
     name?: string;
+}
+
+function CopyButton({ content }: { content: string }) {
+    const [isCopied, setIsCopied] = useState(false);
+
+    const copyToClipboard = async () => {
+        try {
+            await navigator.clipboard.writeText(content);
+            setIsCopied(true);
+            toast.success("Copiado al portapapeles");
+            setTimeout(() => setIsCopied(false), 2000);
+        } catch (err) {
+            toast.error("Error al copiar");
+        }
+    };
+
+    return (
+        <Button
+            variant="ghost"
+            size="icon"
+            className="absolute top-2 right-2 h-6 w-6 bg-background/50 backdrop-blur-sm hover:bg-background/80"
+            onClick={copyToClipboard}
+            title="Copiar mensaje"
+        >
+            {isCopied ? <Check className="h-3 w-3" /> : <Copy className="h-3 w-3" />}
+        </Button>
+    );
 }
 
 export function AIChat({ contextData, trigger }: AIChatProps) {
@@ -305,30 +332,33 @@ export function AIChat({ contextData, trigger }: AIChatProps) {
                                     )}
                                     <div
                                         className={cn(
-                                            "rounded-2xl px-3 py-3 max-w-[90%] text-base",
+                                            "rounded-2xl px-3 py-3 max-w-[90%] text-base group relative",
                                             m.role === 'user'
                                                 ? "bg-primary text-primary-foreground ml-auto rounded-br-none"
                                                 : "bg-muted text-foreground rounded-tl-none"
                                         )}
                                     >
                                         {m.role === 'assistant' ? (
-                                            <div className="prose prose-sm dark:prose-invert max-w-none wrap-break-word leading-relaxed">
-                                                <ReactMarkdown
-                                                    remarkPlugins={[remarkGfm]}
-                                                    components={{
-                                                        p: ({ children }: any) => <p className="mb-2 last:mb-0">{children}</p>,
-                                                        ul: ({ children }: any) => <ul className="list-disc ml-4 mb-2 space-y-1">{children}</ul>,
-                                                        ol: ({ children }: any) => <ol className="list-decimal ml-4 mb-2 space-y-1">{children}</ol>,
-                                                        li: ({ children }: any) => <li>{children}</li>,
-                                                        strong: ({ children }: any) => <span className="font-bold text-primary">{children}</span>,
-                                                        h1: ({ children }: any) => <h1 className="text-xl font-bold mb-2 mt-4">{children}</h1>,
-                                                        h2: ({ children }: any) => <h2 className="text-lg font-bold mb-2 mt-3">{children}</h2>,
-                                                        h3: ({ children }: any) => <h3 className="text-base font-bold mb-1 mt-2">{children}</h3>,
-                                                    }}
-                                                >
-                                                    {cleanContent(m.content)}
-                                                </ReactMarkdown>
-                                            </div>
+                                            <>
+                                                <div className="prose prose-sm dark:prose-invert max-w-none wrap-break-word leading-relaxed">
+                                                    <ReactMarkdown
+                                                        remarkPlugins={[remarkGfm]}
+                                                        components={{
+                                                            p: ({ children }: any) => <p className="mb-2 last:mb-0">{children}</p>,
+                                                            ul: ({ children }: any) => <ul className="list-disc ml-4 mb-2 space-y-1">{children}</ul>,
+                                                            ol: ({ children }: any) => <ol className="list-decimal ml-4 mb-2 space-y-1">{children}</ol>,
+                                                            li: ({ children }: any) => <li>{children}</li>,
+                                                            strong: ({ children }: any) => <span className="font-bold text-primary">{children}</span>,
+                                                            h1: ({ children }: any) => <h1 className="text-xl font-bold mb-2 mt-4">{children}</h1>,
+                                                            h2: ({ children }: any) => <h2 className="text-lg font-bold mb-2 mt-3">{children}</h2>,
+                                                            h3: ({ children }: any) => <h3 className="text-base font-bold mb-1 mt-2">{children}</h3>,
+                                                        }}
+                                                    >
+                                                        {cleanContent(m.content)}
+                                                    </ReactMarkdown>
+                                                </div>
+                                                <CopyButton content={cleanContent(m.content)} />
+                                            </>
                                         ) : (
                                             <p className="whitespace-pre-wrap leading-relaxed">{m.content}</p>
                                         )}
