@@ -138,7 +138,9 @@ export const CreateBudgetForm = () => {
                                     <RefreshCw className={cn("h-4 w-4", isRefetching && "animate-spin")} />
                                     Refrescar
                                 </Button>
-                                <CreateBudgetCategoryDialog trigger={
+                                <CreateBudgetCategoryDialog onCreated={(newCategory) => {
+                                    form.setValue("categoryIds", [...(values.categoryIds || []), newCategory.id])
+                                }} trigger={
                                     <Button variant="outline" size="sm">
                                         <Plus />
                                         Crear categoría

@@ -17,10 +17,11 @@ export const useCreateBudgetCategoryMutation = () => {
     const queryClient = useQueryClient()
 
     const mutation = useMutation({
-        mutationFn: (values: CreateBudgetCategoryValues) => createBudgetCategory(values.name, values.description, values.color, values.isActive, values.parentCategoryId),
-        onSuccess: (newCategory) => {
+        mutationFn: (data: CreateBudgetCategoryValues) => createBudgetCategory(data),
+        onSuccess: (data) => {
+            const newCategory = data?.category
             if (!newCategory || "error" in newCategory) {
-                toast.error("Error al crear la categoría")
+                toast.error(data?.error || "Error al crear la categoría")
                 return
             }
 
@@ -60,8 +61,8 @@ export const useCreateBudgetCategoryMutation = () => {
 
             toast.success("Categoría creada exitosamente")
         },
-        onError: () => {
-            toast.error("Error al crear la categoría")
+        onError: (error) => {
+            toast.error(error?.message || "Error al crear la categoría")
         }
     })
 

@@ -43,16 +43,17 @@ interface Props {
     category?: BudgetCategory
     open?: boolean
     onOpenChange?: (open: boolean) => void
-    parentCategoryId?: string
+    parentCategoryId?: string,
+    onCreated?: (category: BudgetCategory) => void
 }
 
-export function CreateBudgetCategoryDialog({ trigger, category, open: controlledOpen, onOpenChange, parentCategoryId }: Props) {
+export function CreateBudgetCategoryDialog({ trigger, category, open: controlledOpen, onOpenChange, parentCategoryId, onCreated }: Props) {
     const [internalOpen, setInternalOpen] = useState(false)
     const isControlled = controlledOpen !== undefined
     const open = isControlled ? controlledOpen : internalOpen
     const setOpen = isControlled ? onOpenChange! : setInternalOpen
 
-    const { mutateAsync: createCategory, isPending: isCreating } = useCreateBudgetCategoryMutation()
+    const { data, mutateAsync: createCategory, isPending: isCreating, } = useCreateBudgetCategoryMutation()
     const { mutateAsync: updateCategory, isPending: isUpdating } = useUpdateBudgetCategoryMutation()
 
     const isPending = isCreating || isUpdating
@@ -97,6 +98,9 @@ export function CreateBudgetCategoryDialog({ trigger, category, open: controlled
                     ...values,
                     parentCategoryId
                 })
+                if (data?.category) {
+                    onCreated?.(data.category)
+                }
             }
             setOpen(false)
             if (!category) form.reset()
@@ -129,7 +133,7 @@ export function CreateBudgetCategoryDialog({ trigger, category, open: controlled
                         {description}
                     </DialogDescription>
                 </DialogHeader>
-                <Form {...form}>
+                <Form  {...form}>
                     <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
                         <FormField
                             control={form.control}
@@ -194,7 +198,7 @@ export function CreateBudgetCategoryDialog({ trigger, category, open: controlled
                             )}
                         />
                         <DialogFooter>
-                            <Button type="submit" disabled={isPending}>
+                            <Button type="button" onClick={form.handleSubmit(onSubmit)} disabled={isPending}>
                                 {isPending ? loadingLabel : actionLabel}
                             </Button>
                         </DialogFooter>
