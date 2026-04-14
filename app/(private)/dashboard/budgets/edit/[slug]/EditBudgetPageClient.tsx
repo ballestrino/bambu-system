@@ -22,7 +22,9 @@ export default function EditBudgetPageClient({ budget }: EditBudgetPageClientPro
         toggleSection,
         onSubmit,
         isPending,
-        handleGenerateAI
+        handleGenerateAI,
+        autoCalculateTransport,
+        autoCalculateProducts
     } = useEditBudgetForm(budget);
 
     return (
@@ -46,6 +48,8 @@ export default function EditBudgetPageClient({ budget }: EditBudgetPageClientPro
                                     activeSection={activeSection}
                                     toggleSection={toggleSection}
                                     values={values as BudgetFormValues}
+                                    onAutoCalculateTransport={autoCalculateTransport}
+                                    onAutoCalculateProducts={autoCalculateProducts}
                                 />
                             </form>
                         </div>

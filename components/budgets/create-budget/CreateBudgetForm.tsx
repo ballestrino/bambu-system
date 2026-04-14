@@ -22,6 +22,7 @@ import { MultiSelect } from "@/components/ui/multi-select";
 import { calculateBudgetTotals, calculateEstimates } from "@/lib/budget-calculations";
 import { BudgetFormValues } from "@/schemas/BudgetSchema";
 import { NominalHourSelector } from "../common/NominalHourSelector";
+import { AutoCalculateButton } from "../common/AutoCalculateButton";
 
 export const CreateBudgetForm = () => {
     const form = useFormContext<BudgetFormValues>();
@@ -35,20 +36,21 @@ export const CreateBudgetForm = () => {
 
     const { categories, isRefetching, refetch } = useBudgetCategories();
 
-    // Effect 1: Auto-calculate Estimates (Transport & Products)
-    useEffect(() => {
+    const autoCalculateTransport = () => {
         const estimates = calculateEstimates(values);
+        setValue("transportation_cost", estimates.transportation_cost, {
+            shouldDirty: true,
+            shouldValidate: true
+        });
+    };
 
-        setValue("transportation_cost", estimates.transportation_cost);
-        setValue("products_price", estimates.products_price);
-
-    }, [
-        values.visits,
-        values.visit_type,
-        values.hours_per_visit,
-        values.employees,
-        setValue
-    ]);
+    const autoCalculateProducts = () => {
+        const estimates = calculateEstimates(values);
+        setValue("products_price", estimates.products_price, {
+            shouldDirty: true,
+            shouldValidate: true
+        });
+    };
 
     // Effect 2: Sync Price
     useEffect(() => {
@@ -289,9 +291,12 @@ export const CreateBudgetForm = () => {
                         render={({ field }) => (
                             <FormItem>
                                 <FormLabel>Costo Transporte</FormLabel>
-                                <FormControl>
-                                    <Input type="number" {...field} />
-                                </FormControl>
+                                <div className="flex gap-2 items-start">
+                                    <FormControl>
+                                        <Input type="number" {...field} />
+                                    </FormControl>
+                                    <AutoCalculateButton onAutoCalculate={autoCalculateTransport} />
+                                </div>
                                 <FormMessage />
                             </FormItem>
                         )}
@@ -302,9 +307,12 @@ export const CreateBudgetForm = () => {
                         render={({ field }) => (
                             <FormItem>
                                 <FormLabel>Costo de Productos</FormLabel>
-                                <FormControl>
-                                    <Input type="number" {...field} />
-                                </FormControl>
+                                <div className="flex gap-2 items-start">
+                                    <FormControl>
+                                        <Input type="number" {...field} />
+                                    </FormControl>
+                                    <AutoCalculateButton onAutoCalculate={autoCalculateProducts} />
+                                </div>
                                 <FormMessage />
                             </FormItem>
                         )}

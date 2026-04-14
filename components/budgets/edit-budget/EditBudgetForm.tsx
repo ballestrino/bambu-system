@@ -12,6 +12,8 @@ interface EditBudgetFormProps {
     activeSection: string;
     toggleSection: (section: "details" | "costs" | "contributions" | "slug" | "") => void;
     values: BudgetFormValues;
+    onAutoCalculateTransport: () => void;
+    onAutoCalculateProducts: () => void;
 }
 
 export const EditBudgetForm = ({
@@ -19,7 +21,9 @@ export const EditBudgetForm = ({
     setSlug,
     activeSection,
     toggleSection,
-    values
+    values,
+    onAutoCalculateTransport,
+    onAutoCalculateProducts
 }: EditBudgetFormProps) => {
 
     return (
@@ -42,6 +46,8 @@ export const EditBudgetForm = ({
                 isOpen={activeSection === "costs"}
                 onToggle={() => toggleSection("costs")}
                 values={values as BudgetFormValues}
+                onAutoCalculateTransport={onAutoCalculateTransport}
+                onAutoCalculateProducts={onAutoCalculateProducts}
             />
 
             <BudgetContributionsSection

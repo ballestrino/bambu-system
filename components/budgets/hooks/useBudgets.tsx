@@ -22,6 +22,8 @@ export default function useBudgets(filters: BudgetFilters) {
         totalCount: budgetsQuery.data?.totalCount || 0,
         totalPages: budgetsQuery.data?.totalPages || 0,
         isLoading: budgetsQuery.isLoading,
+        isFetching: budgetsQuery.isFetching,
+        isRefetching: budgetsQuery.isRefetching,
         isError: budgetsQuery.isError,
         error: budgetsQuery.error,
         refetch: budgetsQuery.refetch

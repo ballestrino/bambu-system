@@ -7,11 +7,12 @@ import {
     DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { Button } from "@/components/ui/button"
-import { MoreHorizontal, Edit, Trash2 } from "lucide-react"
+import { MoreHorizontal, Edit, Trash2, Copy } from "lucide-react"
 import { Budget } from "@prisma/client"
 import { useRef, MouseEvent } from "react"
 import DeleteDialog from "@/components/ui/delete-dialog"
 import { useDeleteBudgetMutation } from "./hooks/useDeleteBudgetMutation"
+import { useDuplicateBudgetMutation } from "./hooks/useDuplicateBudgetMutation"
 import Link from "next/link"
 
 interface BudgetDropdownProps {
@@ -21,6 +22,7 @@ interface BudgetDropdownProps {
 export function BudgetDropdown({ budget }: BudgetDropdownProps) {
     const deleteTriggerRef = useRef<HTMLButtonElement>(null)
     const { deleteBudgetAsync } = useDeleteBudgetMutation()
+    const { duplicateBudget, isDuplicating } = useDuplicateBudgetMutation()
     const handleDelete = async () => {
         await deleteBudgetAsync(budget.id)
     }
@@ -50,6 +52,16 @@ export function BudgetDropdown({ budget }: BudgetDropdownProps) {
                             <Edit className="mr-2 h-4 w-4" />
                             <span>Editar presupuesto</span>
                         </Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem
+                        disabled={isDuplicating}
+                        onClick={(e: MouseEvent) => {
+                            e.stopPropagation()
+                            duplicateBudget(budget.id)
+                        }}
+                    >
+                        <Copy className="mr-2 h-4 w-4" />
+                        <span>Duplicar presupuesto</span>
                     </DropdownMenuItem>
                     <DropdownMenuItem
                         variant="destructive"

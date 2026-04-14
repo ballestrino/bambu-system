@@ -49,18 +49,21 @@ export const useEditBudgetForm = (budget: ExistingBudget) => {
     // Watch relevant fields
     const values = useWatch({ control });
 
-    // Recalculate estimates
-    useEffect(() => {
+    const autoCalculateTransport = () => {
         const estimates = calculateEstimates(values as BudgetFormValues);
-        setValue("transportation_cost", estimates.transportation_cost);
-        setValue("products_price", estimates.products_price);
-    }, [
-        values.visits,
-        values.visit_type,
-        values.hours_per_visit,
-        values.employees,
-        setValue
-    ]);
+        setValue("transportation_cost", estimates.transportation_cost, {
+            shouldDirty: true,
+            shouldValidate: true
+        });
+    };
+
+    const autoCalculateProducts = () => {
+        const estimates = calculateEstimates(values as BudgetFormValues);
+        setValue("products_price", estimates.products_price, {
+            shouldDirty: true,
+            shouldValidate: true
+        });
+    };
 
     // Recalculate Totals
     useEffect(() => {
@@ -125,6 +128,8 @@ export const useEditBudgetForm = (budget: ExistingBudget) => {
         toggleSection,
         onSubmit: handleSubmit(onSubmit),
         isPending: isUpdating,
-        handleGenerateAI
+        handleGenerateAI,
+        autoCalculateTransport,
+        autoCalculateProducts
     };
 };

@@ -6,13 +6,14 @@ import Header from "@/components/budgets/Header";
 import NoBudgets from "@/components/budgets/NoBudgets";
 import useBudgets from "@/components/budgets/hooks/useBudgets";
 import { useSearchParams } from "next/navigation";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
+import { RefreshCw } from "lucide-react";
 
 import { BudgetsFiltersMenu } from "@/components/budgets/filters/BudgetsFiltersMenu";
 import { QuickFilters } from "@/components/budgets/filters/QuickFilters";
 import { CategoryFilter } from "@/components/budgets/filters/CategoryFilter";
-import { getCookie } from "@/lib/utils";
+import { cn, getCookie } from "@/lib/utils";
 
 import { Suspense } from "react";
 
@@ -40,9 +41,13 @@ function BudgetsPageContent() {
 
     const catIds = params.get('categories')?.split(',')
 
-    useEffect(() => {
+    // Reset page to 1 when query changes — adjust state during render
+    // instead of in an effect to avoid cascading renders.
+    const [prevQuery, setPrevQuery] = useState(query);
+    if (query !== prevQuery) {
+        setPrevQuery(query);
         setPage(1);
-    }, [query]);
+    }
 
     const filters = {
         catIds,
@@ -65,7 +70,8 @@ function BudgetsPageContent() {
         visitTypes
     };
 
-    const { budgets, totalPages, isLoading } = useBudgets(filters);
+    const { budgets, totalPages, isLoading, isFetching, isRefetching, refetch } = useBudgets(filters);
+    const isBusy = isFetching || isRefetching || isLoading;
 
     return (
         <div className="h-full container flex-col pb-10 px-4 gap-8 flex">
@@ -77,6 +83,17 @@ function BudgetsPageContent() {
                 <div className="flex-1">
                     <SearchBar placeholder="Buscar presupuestos..." />
                 </div>
+                <Button
+                    type="button"
+                    variant="outline"
+                    size="icon"
+                    onClick={() => refetch()}
+                    disabled={isBusy}
+                    title="Refrescar"
+                >
+                    <RefreshCw className={cn("h-4 w-4", isBusy && "animate-spin")} />
+                    <span className="sr-only">Refrescar</span>
+                </Button>
                 <div className="hidden md:block">
                     <CategoryFilter />
                 </div>

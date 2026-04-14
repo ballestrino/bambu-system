@@ -11,14 +11,23 @@ import {
 import { Input } from "@/components/ui/input";
 import { BudgetFormValues } from "@/schemas/BudgetSchema";
 import { BudgetSection } from "./BudgetSection";
+import { AutoCalculateButton } from "../common/AutoCalculateButton";
 
 interface BudgetCostsSectionProps {
     isOpen: boolean;
     onToggle: () => void;
     values: BudgetFormValues;
+    onAutoCalculateTransport: () => void;
+    onAutoCalculateProducts: () => void;
 }
 
-export const BudgetCostsSection = ({ isOpen, onToggle, values }: BudgetCostsSectionProps) => {
+export const BudgetCostsSection = ({
+    isOpen,
+    onToggle,
+    values,
+    onAutoCalculateTransport,
+    onAutoCalculateProducts
+}: BudgetCostsSectionProps) => {
     const { control } = useFormContext<BudgetFormValues>();
 
     return (
@@ -54,9 +63,12 @@ export const BudgetCostsSection = ({ isOpen, onToggle, values }: BudgetCostsSect
                     render={({ field }) => (
                         <FormItem>
                             <FormLabel>Costo Transporte</FormLabel>
-                            <FormControl>
-                                <Input type="number" {...field} />
-                            </FormControl>
+                            <div className="flex gap-2 items-start">
+                                <FormControl>
+                                    <Input type="number" {...field} />
+                                </FormControl>
+                                <AutoCalculateButton onAutoCalculate={onAutoCalculateTransport} />
+                            </div>
                             <FormMessage />
                         </FormItem>
                     )}
@@ -67,9 +79,12 @@ export const BudgetCostsSection = ({ isOpen, onToggle, values }: BudgetCostsSect
                     render={({ field }) => (
                         <FormItem>
                             <FormLabel>Costo de Productos</FormLabel>
-                            <FormControl>
-                                <Input type="number" {...field} />
-                            </FormControl>
+                            <div className="flex gap-2 items-start">
+                                <FormControl>
+                                    <Input type="number" {...field} />
+                                </FormControl>
+                                <AutoCalculateButton onAutoCalculate={onAutoCalculateProducts} />
+                            </div>
                             <FormMessage />
                         </FormItem>
                     )}

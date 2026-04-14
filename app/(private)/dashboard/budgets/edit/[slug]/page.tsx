@@ -17,6 +17,6 @@ export default async function EditBudgetPage({
     const budget = response.budget;
 
     return (
-        <EditBudgetPageClient budget={budget as any} />
+        <EditBudgetPageClient budget={budget} />
     );
 }
