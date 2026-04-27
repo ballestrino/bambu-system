@@ -17,14 +17,14 @@ import {
     DialogDescription,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
-import { Bot, Send, MessageCircle, Plus, X, LogOut, Save, History, Search, MoreHorizontal, Pencil, Trash, Copy, Check } from "lucide-react";
+import { Bot, Send, MessageCircle, Plus, X, LogOut, Save, History, Search, MoreHorizontal, Pencil, Trash, Copy, Check, Paperclip, Square } from "lucide-react";
 import {
     DropdownMenu,
     DropdownMenuContent,
     DropdownMenuItem,
     DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { submitChat } from "@/actions/ai-chat";
+import { uploadChatImage } from "@/actions/upload-chat-image";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import { saveChat, getChats, renameChat, deleteChat } from "@/actions/save-chat";
@@ -34,6 +34,7 @@ import { AIButton } from "@/components/budgets/create-budget/AiButton";
 import DeleteDialog from "@/components/ui/delete-dialog";
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
+import Image from 'next/image';
 
 const cleanContent = (content: string) => {
     const codeBlockRegex = /^```(?:markdown)?\s*([\s\S]*?)\s*```$/i;
@@ -42,19 +43,24 @@ const cleanContent = (content: string) => {
 };
 
 interface AIChatProps {
-    contextData: any;
+    contextData: {
+        id?: string;
+        slug?: string;
+        name?: string;
+    };
     trigger?: React.ReactNode;
 }
 
 interface Message {
     role: 'user' | 'assistant';
     content: string;
+    imageUrl?: string | null;
 }
 
 interface SavedChat {
     id: string;
     createdAt: Date;
-    messages: { role: string; content: string }[];
+    messages: { role: string; content: string; imageUrl?: string | null }[];
     name?: string;
 }
 
@@ -67,7 +73,7 @@ function CopyButton({ content }: { content: string }) {
             setIsCopied(true);
             toast.success("Copiado al portapapeles");
             setTimeout(() => setIsCopied(false), 2000);
-        } catch (err) {
+        } catch {
             toast.error("Error al copiar");
         }
     };
@@ -91,6 +97,10 @@ export function AIChat({ contextData, trigger }: AIChatProps) {
     const [input, setInput] = useState('');
     const [isLoading, setIsLoading] = useState(false);
     const [open, setOpen] = useState(false);
+    const [attachedImage, setAttachedImage] = useState<string | null>(null);
+    const [isUploading, setIsUploading] = useState(false);
+    const fileInputRef = useRef<HTMLInputElement>(null);
+    const abortControllerRef = useRef<AbortController | null>(null);
 
     // History State
     const [historyOpen, setHistoryOpen] = useState(false);
@@ -115,11 +125,11 @@ export function AIChat({ contextData, trigger }: AIChatProps) {
         const budgetId = contextData?.slug || contextData?.id ? (contextData.id || undefined) : undefined;
         const result = await getChats(budgetId);
         if (result.success && result.chats) {
-            const mappedChats = result.chats.map((c: any) => ({
+            const mappedChats = result.chats.map((c) => ({
                 id: c.id,
                 createdAt: new Date(c.createdAt),
                 messages: c.messages,
-                name: c.name
+                name: c.name || undefined
             }));
             setSavedChats(mappedChats);
             setFilteredChats(mappedChats);
@@ -148,37 +158,113 @@ export function AIChat({ contextData, trigger }: AIChatProps) {
         toast.success("Chat cargado");
     };
 
+    const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+
+        if (!file.type.startsWith("image/")) {
+            toast.error("Solo se permiten imágenes");
+            return;
+        }
+        if (file.size > 5 * 1024 * 1024) {
+            toast.error("La imagen es demasiado grande. Máximo 5MB.");
+            return;
+        }
+
+        const reader = new FileReader();
+        reader.onload = () => {
+            setAttachedImage(reader.result as string);
+        };
+        reader.onerror = () => {
+            toast.error("Error al leer la imagen");
+        };
+        reader.readAsDataURL(file);
+        e.target.value = "";
+    };
+
     const handleSubmit = async (e?: React.FormEvent) => {
         e?.preventDefault();
-        if (!input.trim() || isLoading) return;
+        if ((!input.trim() && !attachedImage) || isLoading || isUploading) return;
 
-        const userMessage: Message = { role: 'user', content: input };
-        setMessages(prev => [...prev, userMessage]);
+        let uploadedUrl: string | null = null;
+
+        if (attachedImage) {
+            setIsUploading(true);
+            const result = await uploadChatImage(attachedImage);
+            setIsUploading(false);
+            if (result.error || !result.url) {
+                toast.error(result.error || "Error al subir la imagen");
+                return;
+            }
+            uploadedUrl = result.url;
+        }
+
+        const userMessage: Message = {
+            role: 'user',
+            content: input,
+            imageUrl: uploadedUrl,
+        };
+
+        const baseMessages = [...messages, userMessage];
+        const assistantIndex = baseMessages.length;
+
+        setMessages([...baseMessages, { role: 'assistant', content: '' }]);
         setIsChatSaved(false);
         setInput('');
+        setAttachedImage(null);
         setIsLoading(true);
 
+        const controller = new AbortController();
+        abortControllerRef.current = controller;
+
         try {
-            // Prepare messages for API (exclude local-only props if any)
-            const apiMessages = [...messages, userMessage].map(m => ({ role: m.role, content: m.content }));
+            const res = await fetch('/api/ai-chat/stream', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                signal: controller.signal,
+                body: JSON.stringify({
+                    messages: baseMessages.map(m => ({
+                        role: m.role,
+                        content: m.content,
+                        imageUrl: m.imageUrl ?? null,
+                    })),
+                    context: contextData,
+                }),
+            });
 
-            const response = await submitChat(apiMessages, contextData);
+            if (!res.ok || !res.body) {
+                toast.error("Error al generar respuesta");
+                setMessages(prev => prev.slice(0, -1));
+                return;
+            }
 
-            if (response.message) {
-                const assistantMessage: Message = {
-                    role: 'assistant',
-                    content: response.message.content || "No pude generar una respuesta."
-                };
-                setMessages(prev => [...prev, assistantMessage]);
-            } else if (response.error) {
-                console.error(response.error);
-                // Optionally show error toast
+            const reader = res.body.getReader();
+            const decoder = new TextDecoder();
+            let acc = '';
+            while (true) {
+                const { value, done } = await reader.read();
+                if (done) break;
+                acc += decoder.decode(value, { stream: true });
+                setMessages(prev => {
+                    const next = [...prev];
+                    next[assistantIndex] = { role: 'assistant', content: acc };
+                    return next;
+                });
             }
         } catch (error) {
-            console.error("Failed to send message", error);
+            const name = (error as { name?: string })?.name;
+            if (name !== 'AbortError') {
+                console.error("Stream error", error);
+                toast.error("Error en el streaming");
+            }
         } finally {
+            abortControllerRef.current = null;
             setIsLoading(false);
         }
+    };
+
+    const handleStop = () => {
+        abortControllerRef.current?.abort();
     };
 
     useEffect(() => {
@@ -186,6 +272,12 @@ export function AIChat({ contextData, trigger }: AIChatProps) {
             scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
         }
     }, [messages]);
+
+    useEffect(() => {
+        return () => {
+            abortControllerRef.current?.abort();
+        };
+    }, []);
 
     const handleRenameClick = (chat: SavedChat) => {
         setRenameChatId(chat.id);
@@ -245,7 +337,7 @@ export function AIChat({ contextData, trigger }: AIChatProps) {
             } else {
                 toast.error("Error al guardar el chat", { id: toastId });
             }
-        } catch (error) {
+        } catch {
             toast.error("Error inesperado", { id: toastId });
         }
     };
@@ -344,14 +436,14 @@ export function AIChat({ contextData, trigger }: AIChatProps) {
                                                     <ReactMarkdown
                                                         remarkPlugins={[remarkGfm]}
                                                         components={{
-                                                            p: ({ children }: any) => <p className="mb-2 last:mb-0">{children}</p>,
-                                                            ul: ({ children }: any) => <ul className="list-disc ml-4 mb-2 space-y-1">{children}</ul>,
-                                                            ol: ({ children }: any) => <ol className="list-decimal ml-4 mb-2 space-y-1">{children}</ol>,
-                                                            li: ({ children }: any) => <li>{children}</li>,
-                                                            strong: ({ children }: any) => <span className="font-bold text-primary">{children}</span>,
-                                                            h1: ({ children }: any) => <h1 className="text-xl font-bold mb-2 mt-4">{children}</h1>,
-                                                            h2: ({ children }: any) => <h2 className="text-lg font-bold mb-2 mt-3">{children}</h2>,
-                                                            h3: ({ children }: any) => <h3 className="text-base font-bold mb-1 mt-2">{children}</h3>,
+                                                            p: ({ children }) => <p className="mb-2 last:mb-0">{children}</p>,
+                                                            ul: ({ children }) => <ul className="list-disc ml-4 mb-2 space-y-1">{children}</ul>,
+                                                            ol: ({ children }) => <ol className="list-decimal ml-4 mb-2 space-y-1">{children}</ol>,
+                                                            li: ({ children }) => <li>{children}</li>,
+                                                            strong: ({ children }) => <span className="font-bold text-primary">{children}</span>,
+                                                            h1: ({ children }) => <h1 className="text-xl font-bold mb-2 mt-4">{children}</h1>,
+                                                            h2: ({ children }) => <h2 className="text-lg font-bold mb-2 mt-3">{children}</h2>,
+                                                            h3: ({ children }) => <h3 className="text-base font-bold mb-1 mt-2">{children}</h3>,
                                                         }}
                                                     >
                                                         {cleanContent(m.content)}
@@ -360,12 +452,30 @@ export function AIChat({ contextData, trigger }: AIChatProps) {
                                                 <CopyButton content={cleanContent(m.content)} />
                                             </>
                                         ) : (
-                                            <p className="whitespace-pre-wrap leading-relaxed">{m.content}</p>
+                                            <>
+                                                {m.imageUrl && (
+                                                    <a href={m.imageUrl} target="_blank" rel="noopener noreferrer">
+                                                        <Image
+                                                            src={m.imageUrl}
+                                                            width={240}
+                                                            height={240}
+                                                            alt="Adjunto"
+                                                            className={cn(
+                                                                "max-w-[240px] max-h-[240px] rounded-lg object-cover",
+                                                                m.content && "mb-2"
+                                                            )}
+                                                        />
+                                                    </a>
+                                                )}
+                                                {m.content && (
+                                                    <p className="whitespace-pre-wrap leading-relaxed">{m.content}</p>
+                                                )}
+                                            </>
                                         )}
                                     </div>
                                 </div>
                             ))}
-                            {isLoading && (
+                            {isLoading && messages[messages.length - 1]?.role === 'assistant' && !messages[messages.length - 1]?.content && (
                                 <div className="flex items-center gap-2 text-muted-foreground p-2 text-xs ml-12">
                                     <Bot className="h-4 w-4 animate-bounce" />
                                     Escribiendo...
@@ -375,22 +485,74 @@ export function AIChat({ contextData, trigger }: AIChatProps) {
                     </div>
 
                     <div className="mt-4 pb-4 px-2 md:px-4">
+                        {attachedImage && (
+                            <div className="mb-2 relative inline-block">
+                                <Image
+                                    src={attachedImage}
+                                    width={80}
+                                    height={80}
+                                    alt="Preview"
+                                    className="h-20 w-20 rounded-lg object-cover border border-input"
+                                />
+                                <Button
+                                    type="button"
+                                    variant="secondary"
+                                    size="icon"
+                                    onClick={() => setAttachedImage(null)}
+                                    disabled={isUploading}
+                                    className="absolute -top-2 -right-2 h-6 w-6 rounded-full shadow"
+                                    title="Quitar imagen"
+                                >
+                                    <X className="h-3 w-3" />
+                                </Button>
+                            </div>
+                        )}
                         <form onSubmit={handleSubmit} className="flex gap-2 relative items-center bg-muted/30 border border-input rounded-3xl px-2 py-2 focus-within:ring-2 focus-within:ring-ring/20 transition-all hover:bg-muted/50">
-                            <Input
-                                placeholder="Escribe un mensaje a la IA..."
-                                value={input}
-                                onChange={(e) => setInput(e.target.value)}
-                                disabled={isLoading}
-                                className="flex-1 border-none shadow-none focus-visible:ring-0 bg-transparent px-4 h-10"
+                            <input
+                                type="file"
+                                accept="image/*"
+                                ref={fileInputRef}
+                                onChange={handleFileSelect}
+                                className="hidden"
                             />
                             <Button
-                                type="submit"
+                                type="button"
+                                variant="ghost"
                                 size="icon"
-                                disabled={isLoading || !input.trim()}
-                                className="h-10 w-10 rounded-full shrink-0 transition-transform active:scale-95"
+                                onClick={() => fileInputRef.current?.click()}
+                                disabled={isLoading || isUploading || !!attachedImage}
+                                className="h-10 w-10 rounded-full shrink-0"
+                                title="Adjuntar imagen"
                             >
-                                <Send className="h-4 w-4" />
+                                <Paperclip className="h-4 w-4" />
                             </Button>
+                            <Input
+                                placeholder={isUploading ? "Subiendo imagen..." : "Escribe un mensaje a la IA..."}
+                                value={input}
+                                onChange={(e) => setInput(e.target.value)}
+                                disabled={isLoading || isUploading}
+                                className="flex-1 border-none shadow-none focus-visible:ring-0 bg-transparent px-4 h-10"
+                            />
+                            {isLoading ? (
+                                <Button
+                                    type="button"
+                                    size="icon"
+                                    onClick={handleStop}
+                                    className="h-10 w-10 rounded-full shrink-0 transition-transform active:scale-95 animate-in fade-in"
+                                    title="Detener generación"
+                                >
+                                    <Square className="h-4 w-4 fill-current" />
+                                </Button>
+                            ) : (
+                                <Button
+                                    type="submit"
+                                    size="icon"
+                                    disabled={isUploading || (!input.trim() && !attachedImage)}
+                                    className="h-10 w-10 rounded-full shrink-0 transition-transform active:scale-95"
+                                >
+                                    <Send className="h-4 w-4" />
+                                </Button>
+                            )}
                         </form>
                     </div>
                 </SheetContent>

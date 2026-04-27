@@ -192,8 +192,9 @@ model Message {
   id        String   @id @default(cuid())
   role      Role // user, assistant, system
   content   String   @db.Text // Use Text type for potentially long content
+  imageUrl  String?
   createdAt DateTime @default(now())
-  
+
   chatId    String
   chat      Chat     @relation(fields: [chatId], references: [id], onDelete: Cascade)
 }

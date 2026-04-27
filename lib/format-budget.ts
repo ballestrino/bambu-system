@@ -9,7 +9,7 @@ interface BudgetOption {
     hours_per_visit?: number;
 }
 
-interface BudgetContext {
+export interface BudgetContext {
     name?: string;
     description?: string;
     budgetOptions?: BudgetOption[];

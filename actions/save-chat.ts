@@ -4,7 +4,7 @@ import { auth } from "@/auth";
 import { db } from "@/lib/db";
 import { Role } from "@prisma/client";
 
-export async function saveChat(messages: { role: string; content: string }[], budgetId?: string, name?: string, chatId?: string) {
+export async function saveChat(messages: { role: string; content: string; imageUrl?: string | null }[], budgetId?: string, name?: string, chatId?: string) {
     const session = await auth();
 
     if (!session || !session.user || !session.user.id) {
@@ -45,6 +45,7 @@ export async function saveChat(messages: { role: string; content: string }[], bu
                         chatId: chatId,
                         role: m.role as Role,
                         content: m.content,
+                        imageUrl: m.imageUrl ?? null,
                     }))
                 });
             });
@@ -61,6 +62,7 @@ export async function saveChat(messages: { role: string; content: string }[], bu
                         create: messages.map(m => ({
                             role: m.role as Role,
                             content: m.content,
+                            imageUrl: m.imageUrl ?? null,
                         }))
                     }
                 }
