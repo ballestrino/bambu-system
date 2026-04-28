@@ -20,7 +20,7 @@ export async function uploadChatImage(base64: string) {
     return { error: 'La imagen es demasiado grande. Máximo 5MB.' }
   }
 
-  const url = await uploadBase64Image(base64, 'bambu/chat')
+  const url = await uploadBase64Image(base64)
 
   if (!url) {
     return { error: 'Error al subir la imagen. Intenta nuevamente.' }

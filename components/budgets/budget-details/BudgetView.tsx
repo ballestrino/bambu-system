@@ -5,7 +5,7 @@ import { AIChat } from "@/components/ai/AIChat";
 import { BudgetDetails } from "@/components/budgets/budget-details/BudgetDetails";
 import useBudget from "../hooks/useBudget";
 
-export default async function BudgetDetailView({
+export default function BudgetDetailView({
     slug,
 }: {
     slug: string

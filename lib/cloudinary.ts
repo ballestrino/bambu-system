@@ -9,7 +9,7 @@ cloudinary.config({
 
 export async function uploadBase64Image(
   base64: string,
-  folder = "bambu/chat"
+  folder = process.env.CLOUDINARY_FOLDER ?? "bambu/chat"
 ): Promise<string | null> {
   try {
     const result = await cloudinary.uploader.upload(base64, {
