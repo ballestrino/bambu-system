@@ -4,7 +4,7 @@ import { db } from "@/lib/db"
 import { auth } from "@/auth"
 import { BudgetFilters } from "@/components/budgets/interfaces/budget-filters"
 
-import { Budget } from "@prisma/client"
+import { Budget, Prisma, VisitType } from "@prisma/client"
 
 export const getBudgets = async (
     query?: string, 
@@ -29,7 +29,7 @@ export const getBudgets = async (
         const terms = query?.split(" ").filter(Boolean) || [];
         
         // Construct filter conditions for Budget (top level)
-        const budgetConditions: any[] = [];
+        const budgetConditions: Prisma.BudgetWhereInput[] = [];
         
         // Date Range
         if (filters?.startDate || filters?.endDate) {
@@ -54,7 +54,7 @@ export const getBudgets = async (
         }
 
         // Construct filter conditions for BudgetOptions (nested)
-        const optionConditions: any[] = [];
+        const optionConditions: Prisma.BudgetOptionWhereInput[] = [];
 
         if (filters?.hasProducts !== undefined) {
              if (filters.hasProducts) {
@@ -127,13 +127,17 @@ export const getBudgets = async (
 
         // Visit Types
         if (filters?.visitTypes && filters.visitTypes.length > 0) {
-             // Cast to any to avoid strict enum issues if passed as string
-             optionConditions.push({
-                visit_type: { in: filters.visitTypes as any }
-             });
+            const validVisitTypes = filters.visitTypes.filter(
+                (visitType): visitType is VisitType =>
+                    visitType === "days" || visitType === "week" || visitType === "month"
+            );
+
+            if (validVisitTypes.length > 0) {
+                optionConditions.push({
+                    visit_type: { in: validVisitTypes }
+                });
+            }
         }
-
-
 
         // Categories
         if (filters?.catIds && filters.catIds.length > 0) {
@@ -148,8 +152,7 @@ export const getBudgets = async (
              });
         }
 
-        const whereClause: any = {
-        };
+        const whereClause: Prisma.BudgetWhereInput = {};
 
         if (budgetConditions.length > 0) {
             whereClause.AND = budgetConditions; // Use AND for top level budget conditions

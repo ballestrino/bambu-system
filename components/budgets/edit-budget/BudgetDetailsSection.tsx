@@ -106,7 +106,7 @@ export const BudgetDetailsSection = ({ isOpen, onToggle, values }: BudgetDetails
                                 <FormItem>
                                     <FormControl>
                                         <MultiSelect
-                                            options={categories?.map((c: any) => ({ label: c.name, value: c.id, color: c.color })) || []}
+                                            options={categories?.map((c) => ({ label: c.name, value: c.id, color: c.color })) || []}
                                             selected={field.value || []}
                                             onChange={field.onChange}
                                             placeholder="Seleccionar categorías..."

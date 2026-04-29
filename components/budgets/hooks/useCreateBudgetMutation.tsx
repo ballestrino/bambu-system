@@ -4,6 +4,10 @@ import { toast } from "sonner"
 import { BudgetFormValues } from "@/schemas/BudgetSchema"
 import { Budget } from "@prisma/client"
 
+type BudgetQueryFilters = {
+    query?: string
+}
+
 export const useCreateBudgetMutation = () => {
     const queryClient = useQueryClient()
 
@@ -18,7 +22,7 @@ export const useCreateBudgetMutation = () => {
                 {
                     queryKey: ["budgets"],
                     predicate: (query) => {
-                        const filters = query.queryKey[1] as any
+                        const filters = query.queryKey[1] as BudgetQueryFilters | undefined
                         return !filters?.query || filters.query === ""
                     }
                 },
@@ -35,7 +39,7 @@ export const useCreateBudgetMutation = () => {
             queryClient.invalidateQueries({
                 queryKey: ["budgets"],
                 predicate: (query) => {
-                    const filters = query.queryKey[1] as any
+                    const filters = query.queryKey[1] as BudgetQueryFilters | undefined
                     return !!filters?.query && filters.query !== ""
                 }
             })

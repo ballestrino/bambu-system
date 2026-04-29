@@ -1,9 +1,7 @@
 import { zodResolver } from '@hookform/resolvers/zod';
-import React from 'react'
-import { useForm } from 'react-hook-form';
-import { BudgetSchema, defaultBudgetValues } from '@/schemas/BudgetSchema';
+import { useForm, type Resolver } from 'react-hook-form';
+import { BudgetSchema, defaultBudgetValues, type BudgetFormValues } from '@/schemas/BudgetSchema';
 import { useRouter } from 'next/navigation';
-import * as z from 'zod';
 import { useCreateBudgetMutation } from '../../hooks/useCreateBudgetMutation';
 
 export default function useCreateBudgetForm() {
@@ -24,15 +22,15 @@ export default function useCreateBudgetForm() {
         })
     };
 
-    const form = useForm({
-        resolver: zodResolver(BudgetSchema),
+    const form = useForm<BudgetFormValues>({
+        resolver: zodResolver(BudgetSchema) as unknown as Resolver<BudgetFormValues>,
         defaultValues: defaultBudgetValues,
         mode: "onChange", // Enable real-time validation/observation
     });
 
     const { createBudgetAsync, isCreating } = useCreateBudgetMutation();
 
-    const onSubmit = async (data: z.infer<typeof BudgetSchema>) => {
+    const onSubmit = async (data: BudgetFormValues) => {
         console.log("Submitting budget data:", data);
         try {
             await createBudgetAsync(data);

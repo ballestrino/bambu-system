@@ -157,7 +157,7 @@ export const CreateBudgetForm = () => {
                                     <FormItem>
                                         <FormControl>
                                             <MultiSelect
-                                                options={categories?.map((c: any) => ({ label: c.name, value: c.id })) || []}
+                                                options={categories?.map((c) => ({ label: c.name, value: c.id })) || []}
                                                 selected={field.value || []}
                                                 onChange={field.onChange}
                                                 placeholder="Seleccionar categorías..."

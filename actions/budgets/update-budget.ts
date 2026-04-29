@@ -68,7 +68,7 @@ export const updateBudget = async (id: string, newSlug: string, values: BudgetFo
         }
 
         // Transaction: update budget and recreate options
-        const updatedBudget = await db.$transaction(async (tx : any) => {
+        const updatedBudget = await db.$transaction(async (tx) => {
             // 1. Update core Budget details
             const budget = await tx.budget.update({
                 where: { id },

@@ -8,11 +8,15 @@ import { BudgetFormValues } from "@/schemas/BudgetSchema";
 import { cn } from "@/lib/utils";
 import { calculateBudgetTotals, PRODUCT_MARGIN_PCT } from "@/lib/budget-calculations";
 
+type BudgetPreviewValues = BudgetFormValues & {
+    has_products?: boolean;
+};
+
 
 
 export const BudgetPreview = () => {
     const { control } = useFormContext<BudgetFormValues>();
-    const values = useWatch({ control });
+    const values = useWatch({ control }) as BudgetPreviewValues;
     const [isProductsOpen, setIsProductsOpen] = useState(false);
 
     const totals = calculateBudgetTotals(values);
@@ -110,7 +114,7 @@ export const BudgetPreview = () => {
                 {/* Price Without Products (Service Only) */}
                 <div className="space-y-2 pt-2">
                     <h4 className="font-semibold text-sm uppercase text-muted-foreground tracking-wider mb-2">
-                        {(values as any).has_products ? "Sin Productos" : "Detalle del Servicio"}
+                        {values.has_products ? "Sin Productos" : "Detalle del Servicio"}
                     </h4>
                     <div className="flex justify-between text-sm">
                         <span>Subtotal (Costos)</span>
@@ -140,7 +144,7 @@ export const BudgetPreview = () => {
                 <hr className="my-2 border-t" />
 
                 {/* Price With Products (Collapsible) - Only show if products exist or explicitly enabled */}
-                {((values.products_price || 0) > 0 || (values as any).has_products) && (
+                {((values.products_price || 0) > 0 || values.has_products) && (
                     <div className="space-y-2">
                         <button
                             onClick={() => setIsProductsOpen(!isProductsOpen)}

@@ -2,21 +2,21 @@
 
 import { Input } from "@/components/ui/input";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useRef, useState } from "react";
 import { Button } from "./button";
 import { Loader2, Search } from "lucide-react";
 
 export function SearchBar({ placeholder = "Search..." }: { placeholder?: string }) {
     const searchParams = useSearchParams();
     const pathname = usePathname();
-    const { replace, push } = useRouter();
-    const [searchTerm, setSearchTerm] = useState(searchParams.get("query")?.toString() || "");
-    const [lastSearchTerm, setLastSearchTerm] = useState(searchTerm);
+    const { replace } = useRouter();
+    const searchInputRef = useRef<HTMLInputElement>(null);
     const [loading, setLoading] = useState(false);
 
     const handleSearch = (term: string) => {
-        if (lastSearchTerm === term) return
-        setLastSearchTerm(term)
+        const currentQuery = searchParams.get("query")?.toString() || "";
+        if (currentQuery === term) return
+
         setLoading(true);
         const params = new URLSearchParams(searchParams);
         if (term) {
@@ -28,37 +28,35 @@ export function SearchBar({ placeholder = "Search..." }: { placeholder?: string 
         setTimeout(() => setLoading(false), 500);
     };
 
-    // const clearSearch = () => {
-    //     setLastSearchTerm("")
-    //     const params = new URLSearchParams(searchParams.toString());
-    //     params.delete("query");
-    //     replace(`${pathname}?${params.toString()}`);
-    // }
-
-    // Automatically sync query param to internal state if URL changes externally (e.g. back button)
-    useEffect(() => {
-        const query = searchParams.get("query")?.toString() || ""
-        if (query !== searchTerm) {
-            setSearchTerm(query)
-        }
-    }, [searchParams])
+    const currentQuery = searchParams.get("query")?.toString() || "";
 
     return (
         <div className="relative flex flex-1 gap-2 shrink-0">
             <Input
+                key={currentQuery}
+                ref={searchInputRef}
                 className="w-full max-w-xs bg-background"
                 placeholder={placeholder}
-                value={searchTerm}
+                defaultValue={currentQuery}
                 onChange={(e) => {
                     const value = e.target.value
-                    setSearchTerm(value)
                     if (value === "") {
                         handleSearch("")
                     }
                 }}
-                onKeyDown={(e) => e.key === "Enter" && handleSearch(searchTerm)}
+                onKeyDown={(e) => {
+                    if (e.key === "Enter") {
+                        handleSearch(e.currentTarget.value)
+                    }
+                }}
             />
-            <Button variant={'outline'} className="cursor-pointer" onClick={() => handleSearch(searchTerm)} disabled={loading}><span className="hidden md:inline">Buscar</span>
+            <Button
+                variant={'outline'}
+                className="cursor-pointer"
+                onClick={() => handleSearch(searchInputRef.current?.value || "")}
+                disabled={loading}
+            >
+                <span className="hidden md:inline">Buscar</span>
                 {loading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Search />}
             </Button>
         </div>

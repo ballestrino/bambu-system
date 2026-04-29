@@ -16,9 +16,11 @@ import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog"
 import { NominalRateConverter } from "@/components/tools/NominalRateConverter"
 import { CalculatorTool } from "@/components/tools/Calculator"
 import { ThemeToggle } from "@/components/ui/theme-toggle"
+import type { ExtendedUser } from "@/next-auth"
+
 interface MobileNavProps {
     admin: boolean
-    user: any
+    user?: ExtendedUser
 }
 
 export default function MobileNav({ admin, user }: MobileNavProps) {

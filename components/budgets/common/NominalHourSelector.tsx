@@ -34,6 +34,30 @@ interface SavedOption {
 const COOKIE_KEY = "nominal-hours-saved-options";
 const MAX_SAVED = 5;
 
+const normalizeSavedOption = (item: unknown): SavedOption | null => {
+    if (typeof item === "number") {
+        return { name: `Opción ($${item})`, value: item };
+    }
+
+    if (typeof item === "object" && item !== null) {
+        const candidate = item as { name?: unknown; value?: unknown };
+
+        if (typeof candidate.name === "string" && typeof candidate.value === "number") {
+            return { name: candidate.name, value: candidate.value };
+        }
+    }
+
+    return null;
+};
+
+const setSavedOptionsCookie = (value: string) => {
+    if (typeof document === "undefined") return;
+
+    const date = new Date();
+    date.setFullYear(date.getFullYear() + 1);
+    document.cookie = `${COOKIE_KEY}=${encodeURIComponent(value)}; path=/; expires=${date.toUTCString()}`;
+};
+
 export const NominalHourSelector = ({
     value,
     onChange,
@@ -55,12 +79,9 @@ export const NominalHourSelector = ({
                     const parsed = JSON.parse(decodeURIComponent(match[2]));
                     if (Array.isArray(parsed)) {
                         // Handle backward compatibility or new format
-                        const normalized: SavedOption[] = parsed.map((item: any) => {
-                            if (typeof item === 'number') {
-                                return { name: `Opción ($${item})`, value: item };
-                            }
-                            return item;
-                        });
+                        const normalized = parsed
+                            .map(normalizeSavedOption)
+                            .filter((item): item is SavedOption => item !== null);
                         setSavedOptions(normalized);
                     }
                 } catch (e) {
@@ -74,10 +95,7 @@ export const NominalHourSelector = ({
 
     const saveToCookie = (options: SavedOption[]) => {
         const stringified = JSON.stringify(options);
-        // Set cookie to expire in 1 year
-        const date = new Date();
-        date.setFullYear(date.getFullYear() + 1);
-        document.cookie = `${COOKIE_KEY}=${encodeURIComponent(stringified)}; path=/; expires=${date.toUTCString()}`;
+        setSavedOptionsCookie(stringified);
         setSavedOptions(options);
     };
 

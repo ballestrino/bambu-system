@@ -8,6 +8,7 @@ import { calculateBudgetTotals, calculateEstimates } from "@/lib/budget-calculat
 import { BudgetFormValues, BudgetSchema } from "@/schemas/BudgetSchema";
 import { useUpdateBudgetMutation } from "@/components/budgets/hooks/useUpdateBudgetMutation";
 import { ExistingBudget } from "../../interfaces/edit-buget";
+import type { Resolver } from "react-hook-form";
 
 
 export const useEditBudgetForm = (budget: ExistingBudget) => {
@@ -31,7 +32,7 @@ export const useEditBudgetForm = (budget: ExistingBudget) => {
     const [activeSection, setActiveSection] = useState<"details" | "costs" | "contributions" | "slug" | "">("details");
 
     const form = useForm<BudgetFormValues>({
-        resolver: zodResolver(BudgetSchema) as any,
+        resolver: zodResolver(BudgetSchema) as Resolver<BudgetFormValues>,
         defaultValues: {
             ...primaryOption,
             name: budget.name,

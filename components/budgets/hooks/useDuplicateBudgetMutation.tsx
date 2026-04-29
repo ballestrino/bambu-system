@@ -3,6 +3,10 @@ import { duplicateBudgetAction } from "../actions/duplicate-budget.action"
 import { toast } from "sonner"
 import { Budget } from "@prisma/client"
 
+type BudgetQueryFilters = {
+    query?: string
+}
+
 export const useDuplicateBudgetMutation = () => {
     const queryClient = useQueryClient()
 
@@ -16,7 +20,7 @@ export const useDuplicateBudgetMutation = () => {
                 {
                     queryKey: ["budgets"],
                     predicate: (query) => {
-                        const filters = query.queryKey[1] as any
+                        const filters = query.queryKey[1] as BudgetQueryFilters | undefined
                         return !filters?.query || filters.query === ""
                     }
                 },

@@ -4,6 +4,7 @@ import { AIChat } from "@/components/ai/AIChat";
 
 import { BudgetDetails } from "@/components/budgets/budget-details/BudgetDetails";
 import useBudget from "../hooks/useBudget";
+import type { BudgetOption } from "@prisma/client";
 
 export default function BudgetDetailView({
     slug,
@@ -28,9 +29,9 @@ export default function BudgetDetailView({
         )
     }
 
-    const budgetOptions = budget.budgetOptions || [];
-    const optionWithProducts = budgetOptions.find((o: any) => o.has_products && Number(o.products_price) > 0);
-    const optionWithoutProducts = budgetOptions.find((o: any) => !o.has_products);
+    const budgetOptions: BudgetOption[] = Array.isArray(budget.budgetOptions) ? budget.budgetOptions : [];
+    const optionWithProducts = budgetOptions.find((option) => option.has_products && Number(option.products_price) > 0);
+    const optionWithoutProducts = budgetOptions.find((option) => !option.has_products);
 
     return (
         <div className="flex container pb-10 px-4 flex-col space-y-6 ">

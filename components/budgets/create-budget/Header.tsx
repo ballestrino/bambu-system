@@ -2,12 +2,14 @@ import { Button } from "@/components/ui/button";
 import { Save } from "lucide-react";
 import { AIButton } from "@/components/budgets/create-budget/AiButton";
 import { AIChat } from "@/components/ai/AIChat";
+import type { UseFormReturn } from "react-hook-form";
+import type { BudgetFormValues } from "@/schemas/BudgetSchema";
 
 interface HeaderProps {
     onSave: () => void;
     isPending: boolean;
     onGenerateAI: () => void;
-    form: any
+    form: UseFormReturn<BudgetFormValues>
 }
 
 export default function Header({ onSave, isPending, onGenerateAI, form }: HeaderProps) {

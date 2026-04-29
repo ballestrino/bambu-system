@@ -20,7 +20,7 @@ export interface BudgetContext {
     visits?: number;
     visit_type?: string;
     hours_per_visit?: number;
-    [key: string]: any;
+    [key: string]: unknown;
 }
 
 function formatScope(visits?: number, visitType?: string, hours?: number): string {

@@ -3,30 +3,32 @@
 import { useForm, FormProvider } from "react-hook-form";
 import { BudgetPreview } from "@/components/budgets/create-budget/BudgetPreview";
 import { BudgetFormValues, defaultBudgetValues } from "@/schemas/BudgetSchema";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import type { BudgetOption } from "@prisma/client";
 
-export const BudgetPreviewWrapper = ({ budget }: { budget: any }) => {
+interface BudgetPreviewWrapperProps {
+    budget: {
+        budgetOptions?: BudgetOption[];
+    };
+}
+
+export const BudgetPreviewWrapper = ({ budget }: BudgetPreviewWrapperProps) => {
     // Determine the options to load.
     // If we have options, we try to find the one with products first, or default to the first one.
     const [selectedOptionId, setSelectedOptionId] = useState<string | null>(null);
 
-    const optionsList = budget.budgetOptions || [];
-
-    // Initialize selection
-    useEffect(() => {
-        if (optionsList.length > 0 && !selectedOptionId) {
-            // Default to "with products" (has_products = true) if available, else first
-            const defaultOption = optionsList.find((o: any) => o.has_products) || optionsList[0];
-            setSelectedOptionId(defaultOption.id);
-        }
-    }, [optionsList, selectedOptionId]);
-
-    const activeOption = optionsList.find((o: any) => o.id === selectedOptionId) || optionsList[0] || {};
+    const optionsList = useMemo(() => budget.budgetOptions || [], [budget.budgetOptions]);
+    const defaultOption = useMemo(
+        () => optionsList.find((option) => option.has_products) || optionsList[0],
+        [optionsList]
+    );
+    const selectedOption = optionsList.find((option) => option.id === selectedOptionId);
+    const activeOption = selectedOption || defaultOption;
 
     // Map DB values to Form Values
     const defaultValues: BudgetFormValues = {
         ...defaultBudgetValues,
-        ...activeOption,
+        ...(activeOption || {}),
         // Ensure enums and types match exactly if needed
     };
 
@@ -53,7 +55,7 @@ export const BudgetPreviewWrapper = ({ budget }: { budget: any }) => {
             {optionsList.length > 1 && (
                 <div className="flex justify-center">
                     <div className="bg-muted p-1 rounded-lg inline-flex">
-                        {optionsList.map((option: any) => (
+                        {optionsList.map((option) => (
                             <button
                                 key={option.id}
                                 onClick={() => setSelectedOptionId(option.id)}

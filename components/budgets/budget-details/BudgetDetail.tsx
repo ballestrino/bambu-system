@@ -3,18 +3,34 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { calculateBudgetTotals } from "@/lib/budget-calculations";
 import { cn } from "@/lib/utils";
+import { defaultBudgetValues, type BudgetFormValues } from "@/schemas/BudgetSchema";
+import type { Prisma } from "@prisma/client";
+
+type BudgetWithOptions = Prisma.BudgetGetPayload<{
+    include: {
+        budgetOptions: true;
+    };
+}>;
 
 interface BudgetDetailProps {
-    budget: any; // Using any for now to handle inclusion of budgetOptions
+    budget: BudgetWithOptions;
 }
 
 export function BudgetDetail({ budget }: BudgetDetailProps) {
-    const options = budget.budgetOptions?.[0] || {};
+    const option = budget.budgetOptions?.[0];
+    const options: BudgetFormValues = option
+        ? {
+            ...defaultBudgetValues,
+            ...option,
+            incidence_enabled: Number(option.incidence_contribution) > 0,
+            company_enabled: Number(option.company_contribution) > 0,
+            personal_enabled: Number(option.personal_contribution) > 0,
+        }
+        : defaultBudgetValues;
     const totals = calculateBudgetTotals(options);
 
     const {
         totalHours,
-        laborCost,
         transport,
         products,
         personalVal,
