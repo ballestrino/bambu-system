@@ -32,7 +32,7 @@ export const useEditBudgetForm = (budget: ExistingBudget) => {
     const [activeSection, setActiveSection] = useState<"details" | "costs" | "contributions" | "slug" | "">("details");
 
     const form = useForm<BudgetFormValues>({
-        resolver: zodResolver(BudgetSchema) as Resolver<BudgetFormValues>,
+        resolver: zodResolver(BudgetSchema) as unknown as Resolver<BudgetFormValues>,
         defaultValues: {
             ...primaryOption,
             name: budget.name,
@@ -78,21 +78,7 @@ export const useEditBudgetForm = (budget: ExistingBudget) => {
             });
         }
     }, [
-        values.visits,
-        values.visit_type,
-        values.hours_per_visit,
-        values.nominal_hour,
-        values.employees,
-        values.transportation_cost,
-        values.products_price,
-        values.revenue_percent,
-        values.iva,
-        values.personal_enabled,
-        values.personal_contribution,
-        values.incidence_enabled,
-        values.incidence_contribution,
-        values.company_enabled,
-        values.company_contribution,
+        values,
         setValue
     ]);
 

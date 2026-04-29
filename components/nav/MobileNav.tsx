@@ -4,8 +4,6 @@ import { Button } from "@/components/ui/button"
 import {
     Sheet,
     SheetContent,
-    SheetHeader,
-    SheetTitle,
     SheetTrigger,
 } from "@/components/ui/sheet"
 import { Calculator, CircleDollarSign, Menu, LayoutDashboard, Settings } from "lucide-react"

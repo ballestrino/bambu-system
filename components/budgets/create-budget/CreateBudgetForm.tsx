@@ -55,23 +55,16 @@ export const CreateBudgetForm = () => {
     // Effect 2: Sync Price
     useEffect(() => {
         const totals = calculateBudgetTotals(values);
-        setValue("price", Number(totals.totalFinalWithProducts.toFixed(2)));
+        const newPrice = Number(totals.totalFinalWithProducts.toFixed(2));
+
+        if (values.price !== newPrice) {
+            setValue("price", newPrice, {
+                shouldValidate: true,
+                shouldDirty: true,
+            });
+        }
     }, [
-        values.visits,
-        values.visit_type,
-        values.hours_per_visit,
-        values.employees,
-        values.nominal_hour,
-        values.revenue_percent,
-        values.iva,
-        values.incidence_enabled,
-        values.incidence_contribution,
-        values.company_enabled,
-        values.company_contribution,
-        values.personal_enabled,
-        values.personal_contribution,
-        values.transportation_cost,
-        values.products_price,
+        values,
         setValue
     ]);
 

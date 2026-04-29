@@ -49,7 +49,6 @@ export const BudgetDetails = ({ option, title }: BudgetDetailsProps) => {
 
     // Determine what to show as the final price at the bottom
     const finalPricePreTax = hasProducts ? totalPreTaxWithProducts : priceNoTaxService;
-    // const finalPriceWithTax = hasProducts ? totalFinalWithProducts : finalPriceService;
 
     return (
         <Card className={cn("h-full max-h-[calc(92vh)] gap-2 pt-4 shadow-lg overflow-y-auto", hasProducts ? "border-l-4 border-l-blue-500" : "border-l-4 border-l-gray-400")}>
