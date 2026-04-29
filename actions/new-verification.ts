@@ -38,7 +38,7 @@ export const newVerification = async (token: string) => {
       await db.verificationToken.delete({
         where: { id: existingToken.id }
       })
-    } catch (error) {
+    } catch {
       return { error: "Hubo un error al actualizar el email" }
     }
     if (session) session.user.email = existingToken.email

@@ -9,7 +9,7 @@ export default async function deleteBudget(budgetId: string) {
         });
 
         return { success: "Presupuesto eliminado exitosamente" }
-    } catch (error) {
+    } catch {
         return { error: "Error elminando el presupuesto" };
     }
 }

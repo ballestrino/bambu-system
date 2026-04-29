@@ -17,7 +17,7 @@ export default async function updateNameBudgetCategory(id: string, name: string,
         })
 
         return result
-    } catch (error) {
+    } catch {
         return { error : "Error al actualizar la categoría" }
     }
 }

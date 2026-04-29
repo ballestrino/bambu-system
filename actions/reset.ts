@@ -31,7 +31,7 @@ export const reset = async (values: z.infer<typeof ResetSchema>) => {
     )
 
     return { success: "Email enviado" }
-  } catch (error) {
+  } catch  {
     return { error: "Error enviando email" }
   }
 }

@@ -18,7 +18,7 @@ export const getBudgetCategories = async () => {
         })
 
         return result
-    } catch (error) {
+    } catch {
         return { error : "Error al obtener las categorías" }
     }
 }
@@ -32,7 +32,7 @@ export const getBudgetCategoryById = async (id: string) => {
         })
 
         return {category : result}
-    } catch (error) {
+    } catch {
         return { error : "Error al obtener la categoría" }
     }
 }
@@ -52,7 +52,7 @@ export const getBudgetSubCategories = async (parentId: string) => {
             }
         })
         return result
-    } catch (error) {
+    } catch {
         return { error: "Error al obtener las subcategorías" }
     }
 }

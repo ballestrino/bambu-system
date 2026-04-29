@@ -30,7 +30,7 @@ export const updateName = async (id: string, name: string) => {
     })
 
     return { success: "Nombre actualizado" }
-  } catch (error) {
+  } catch {
     return { error: "Algo salió mal" }
   }
 }
@@ -81,7 +81,7 @@ export const updateEmail = async (
     )
 
     return { success: "Email de verificación enviado" }
-  } catch (error) {
+  } catch {
     return { error: "Algo salió mal" }
   }
 }
@@ -132,7 +132,7 @@ export const updatePassword = async (
     })
 
     return { success: "Contraseña actualizada" }
-  } catch (error) {
+  } catch {
     return { error: "Algo salió mal" }
   }
 }
@@ -163,7 +163,7 @@ export const enable2FA = async (id: string) => {
     })
 
     return { success: "2FA Habilitado" }
-  } catch (error) {
+  } catch {
     return { error: "Algo salió mal" }
   }
 }
@@ -190,7 +190,7 @@ export const disable2FA = async (id: string) => {
     })
 
     return { success: "2FA Deshabilitado" }
-  } catch (error) {
+  } catch {
     return { error: "Algo salió mal" }
   }
 }
@@ -215,26 +215,8 @@ export const updateProfileImage = async (id: string, imageBase64: string) => {
       return { error: "La imagen es demasiado grande. Máximo 5MB." }
     }
 
-    // Cloudinary implementation commented out
-    /*
-    const cloudinaryUrl = await uploadBase64Image(imageBase64)
-
-    if (!cloudinaryUrl) {
-      return { error: "Error al subir la imagen. Intenta nuevamente." }
-    }
-
-    await db.user.update({
-      where: {
-        id: id
-      },
-      data: {
-        image: cloudinaryUrl
-      }
-    })
-    */
-
     return { success: "Actualización de imagen desactivada" }
-  } catch (error) {
+  } catch {
     return { error: "Algo salió mal" }
   }
 }

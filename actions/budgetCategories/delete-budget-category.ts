@@ -11,7 +11,7 @@ export default async function deleteBudgetCategory(id: string) {
         })
 
         return result
-    } catch (error) {
+    } catch {
         return { error : "Error al eliminar la categoría" }
     }
 }

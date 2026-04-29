@@ -1,5 +1,3 @@
-import { BudgetCategory } from "@prisma/client"
-
 export interface BudgetFilters { 
     catIds?: string[]
     query?: string

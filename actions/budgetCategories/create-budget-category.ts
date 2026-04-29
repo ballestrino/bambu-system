@@ -39,7 +39,7 @@ export default async function createBudgetCategory(data: CreateBudgetCategoryVal
         })
 
         return { category }
-    } catch (error) {
+    } catch {
         return { error : "Error al crear la categoría" }
     }
 }

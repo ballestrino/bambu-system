@@ -1,6 +1,6 @@
 "use client"
 
-import { UpdateSession, useSession } from "next-auth/react"
+import { UpdateSession } from "next-auth/react"
 import { useState } from "react"
 import {
   Dialog,

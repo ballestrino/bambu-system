@@ -1,7 +1,6 @@
 "use client"
 
-import * as React from "react"
-import { Check, ChevronsUpDown, List, Plus } from "lucide-react"
+import { Check, List } from "lucide-react"
 
 import { cn, hexToRgba } from "@/lib/utils"
 import { Badge } from "@/components/ui/badge"

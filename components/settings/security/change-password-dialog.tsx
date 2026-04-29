@@ -7,7 +7,6 @@ import {
   DialogTrigger,
 } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
-import { Plus } from 'lucide-react'
 import ChangePasswordForm from '@/components/settings/security/change-password-form'
 import ResetPasswordDialog from './reset-password-dialog'
 import { User } from 'next-auth'

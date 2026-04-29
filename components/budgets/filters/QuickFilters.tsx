@@ -3,8 +3,6 @@
 import { useSearchParams, useRouter } from "next/navigation"
 import { Badge } from "@/components/ui/badge"
 import { cn } from "@/lib/utils"
-import { Button } from "@/components/ui/button"
-import { X } from "lucide-react"
 
 interface FilterOption {
     label: string

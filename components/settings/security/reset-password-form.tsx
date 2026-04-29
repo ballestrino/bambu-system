@@ -7,7 +7,7 @@ import {
   FormItem,
   FormMessage,
 } from '@/components/ui/form'
-import { useForm } from 'react-hook-form'
+import { useForm, useWatch } from 'react-hook-form'
 import { z } from 'zod'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useState } from 'react'
@@ -39,6 +39,11 @@ export default function ResetPasswordForm({
     defaultValues: {
       confirm: false,
     },
+  })
+
+  const formWatch = useWatch({
+    control: form.control,
+    name: 'confirm'
   })
 
   const onSubmit = async () => {
@@ -114,7 +119,7 @@ export default function ResetPasswordForm({
           )}
         />
 
-        <Button disabled={loading || !form.watch('confirm')} type='submit'>
+        <Button disabled={loading || !formWatch} type='submit'>
           {loading ? 'Enviando email...' : 'Enviar email de restablecimiento'}
         </Button>
 
