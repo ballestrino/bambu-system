@@ -2,11 +2,14 @@
 
 import { AlertCircle } from "lucide-react";
 
+import { JobAssignmentsPanel } from "@/components/ops/jobs/job-assignments-panel";
 import { JobFormDialog } from "@/components/ops/jobs/job-form-dialog";
 import { JobOccurrencesPanel } from "@/components/ops/jobs/job-occurrences-panel";
 import { JobScheduleRulesPanel } from "@/components/ops/jobs/job-schedule-rules-panel";
 import { JobSummaryCard } from "@/components/ops/jobs/job-summary-card";
 import { useJob } from "@/components/ops/hooks/useJob";
+import { useJobEmployeeAssignmentMutations } from "@/components/ops/hooks/useJobEmployeeAssignmentMutations";
+import { useJobEmployeeAssignments } from "@/components/ops/hooks/useJobEmployeeAssignments";
 import { useJobOccurrenceMutations } from "@/components/ops/hooks/useJobOccurrenceMutations";
 import { useJobOccurrences } from "@/components/ops/hooks/useJobOccurrences";
 import { useJobScheduleRuleMutations } from "@/components/ops/hooks/useJobScheduleRuleMutations";
@@ -17,8 +20,10 @@ export const JobDetailPage = ({ jobId }: { jobId: string }) => {
   const { job, isLoading, error } = useJob(jobId);
   const { scheduleRules } = useJobScheduleRules({ jobId });
   const { occurrences } = useJobOccurrences({ jobId }, jobId);
+  const { assignments } = useJobEmployeeAssignments({ jobId }, jobId);
   const { archiveScheduleRuleAsync } = useJobScheduleRuleMutations(jobId);
   const { archiveOccurrenceAsync, detachOccurrenceAsync } = useJobOccurrenceMutations(jobId);
+  const { archiveAssignmentAsync } = useJobEmployeeAssignmentMutations(jobId);
 
   if (isLoading) {
     return <div className="container w-full animate-pulse rounded-lg bg-muted/40 p-20" />;
@@ -45,6 +50,13 @@ export const JobDetailPage = ({ jobId }: { jobId: string }) => {
         <JobFormDialog job={job} triggerLabel="Editar trabajo" />
       </div>
       <JobSummaryCard job={job} />
+      <JobAssignmentsPanel
+        jobId={jobId}
+        assignments={assignments}
+        onArchive={async (assignmentId) => {
+          await archiveAssignmentAsync(assignmentId);
+        }}
+      />
       <div className="grid gap-6 xl:grid-cols-2">
         <JobScheduleRulesPanel
           jobId={jobId}
