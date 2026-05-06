@@ -6,7 +6,7 @@ import {
     SheetContent,
     SheetTrigger,
 } from "@/components/ui/sheet"
-import { Calculator, CircleDollarSign, Menu, LayoutDashboard, Settings, BriefcaseBusiness, CalendarDays } from "lucide-react"
+import { Calculator, CircleDollarSign, Menu, LayoutDashboard, Settings, BriefcaseBusiness, CalendarDays, UsersRound } from "lucide-react"
 import NavLogo from "./NavLogo"
 import Link from "next/link"
 import { useState } from "react"
@@ -66,6 +66,14 @@ export default function MobileNav({ admin, user }: MobileNavProps) {
                                 >
                                     <CalendarDays className="h-4 w-4" />
                                     Calendario
+                                </Link>
+                                <Link
+                                    href="/dashboard/employees"
+                                    className="flex items-center gap-2 text-sm font-medium p-2 rounded-md hover:bg-accent hover:text-accent-foreground transition-colors"
+                                    onClick={() => setOpen(false)}
+                                >
+                                    <UsersRound className="h-4 w-4" />
+                                    Empleados
                                 </Link>
                             </div>
                         </div>

@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { CalendarDays, BriefcaseBusiness } from "lucide-react";
+import { CalendarDays, BriefcaseBusiness, UsersRound } from "lucide-react";
 import { usePathname } from "next/navigation";
 
 import {
@@ -27,6 +27,11 @@ const items = [
     title: "Calendario",
     url: "/dashboard/calendar",
     icon: CalendarDays,
+  },
+  {
+    title: "Empleados",
+    url: "/dashboard/employees",
+    icon: UsersRound,
   },
 ];
 
