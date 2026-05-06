@@ -3,8 +3,8 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql"
-  url = env("DATABASE_URL")
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
   directUrl = env("DIRECT_URL")
 }
 
@@ -14,18 +14,35 @@ enum UserRole {
 }
 
 model User {
-  id            String          @id @default(cuid())
-  name          String?
-  email         String          @unique
-  emailVerified DateTime?
-  image         String?
-  password      String?
-  role          UserRole        @default(USER)
-  accounts      Account[]
-  isTwoFactorEnabled Boolean @default(false)
-  twoFactorConfirmation TwoFactorConfirmation?
-  budgets Budget[]
-  chats Chat[]
+  id                            String                  @id @default(cuid())
+  name                          String?
+  email                         String                  @unique
+  emailVerified                 DateTime?
+  image                         String?
+  password                      String?
+  role                          UserRole                @default(USER)
+  accounts                      Account[]
+  isTwoFactorEnabled            Boolean                 @default(false)
+  twoFactorConfirmation         TwoFactorConfirmation?
+  budgets                       Budget[]
+  chats                         Chat[]
+  createdJobs                   Job[]                   @relation("JobCreatedBy")
+  updatedJobs                   Job[]                   @relation("JobUpdatedBy")
+  createdJobScheduleRules       JobScheduleRule[]       @relation("JobScheduleRuleCreatedBy")
+  updatedJobScheduleRules       JobScheduleRule[]       @relation("JobScheduleRuleUpdatedBy")
+  createdJobOccurrences         JobOccurrence[]         @relation("JobOccurrenceCreatedBy")
+  updatedJobOccurrences         JobOccurrence[]         @relation("JobOccurrenceUpdatedBy")
+  createdEmployees              Employee[]              @relation("EmployeeCreatedBy")
+  updatedEmployees              Employee[]              @relation("EmployeeUpdatedBy")
+  createdJobEmployeeAssignments JobEmployeeAssignment[] @relation("JobEmployeeAssignmentCreatedBy")
+  updatedJobEmployeeAssignments JobEmployeeAssignment[] @relation("JobEmployeeAssignmentUpdatedBy")
+  createdTimeEntries            TimeEntry[]             @relation("TimeEntryCreatedBy")
+  updatedTimeEntries            TimeEntry[]             @relation("TimeEntryUpdatedBy")
+  approvedTimeEntries           TimeEntry[]             @relation("TimeEntryApprovedBy")
+  createdJobClientPayments      JobClientPayment[]      @relation("JobClientPaymentCreatedBy")
+  updatedJobClientPayments      JobClientPayment[]      @relation("JobClientPaymentUpdatedBy")
+  createdEmployeePayments       EmployeePayment[]       @relation("EmployeePaymentCreatedBy")
+  updatedEmployeePayments       EmployeePayment[]       @relation("EmployeePaymentUpdatedBy")
 }
 
 model Account {
@@ -40,35 +57,35 @@ model Account {
   scope             String?
   id_token          String?
   session_state     String?
- 
+
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
- 
+
   @@unique([provider, providerAccountId])
 }
 
-model VerificationToken { 
-  id String @id @default(cuid())
-  email String
-  token String @unique
-  expires DateTime
+model VerificationToken {
+  id       String   @id @default(cuid())
+  email    String
+  token    String   @unique
+  expires  DateTime
   oldemail String? //if( oldEmail) update the user with this email to email and set emailVerified
 
   @@unique([email, token])
 }
 
 model PasswordResetToken {
-  id String @id @default(cuid())
-  email String 
-  token String @unique
+  id      String   @id @default(cuid())
+  email   String
+  token   String   @unique
   expires DateTime
 
   @@unique([email, token])
 }
 
 model TwoFactorToken {
-  id String @id @default(cuid())
-  email String 
-  token String @unique
+  id      String   @id @default(cuid())
+  email   String
+  token   String   @unique
   expires DateTime
 
   @@unique([email, token])
@@ -78,108 +95,355 @@ model TwoFactorConfirmation {
   id String @id @default(cuid())
 
   // optional expires, now the token is delete and every time you sign in you need to confirm
- 
-  userId String
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  @@unique ([userId])
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId])
 }
 
-model Budget { 
-  id String @id @default(cuid())
-  slug String @unique
-  name String
-  description String?
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+model Budget {
+  id            String         @id @default(cuid())
+  slug          String         @unique
+  name          String
+  description   String?
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
   budgetOptions BudgetOption[]
-  chats Chat[]
+  chats         Chat[]
 
   userId String
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   budgetCategory BudgetCategory[]
-  
+  sourcedJobs    Job[]            @relation("JobSourceBudget")
+
   parentBudgetId String?
-  parentBudget Budget? @relation("BudgetHierarchy", fields: [parentBudgetId], references: [id], onDelete: Cascade)
-  childBudgets Budget[] @relation("BudgetHierarchy")
+  parentBudget   Budget?  @relation("BudgetHierarchy", fields: [parentBudgetId], references: [id], onDelete: Cascade)
+  childBudgets   Budget[] @relation("BudgetHierarchy")
 }
 
-model BudgetCategory { 
-  id String @id @default(cuid())
-  name String
+model BudgetCategory {
+  id          String   @id @default(cuid())
+  name        String
   description String?
-  color String?
-  isActive Boolean @default(true)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  budgets Budget[]
+  color       String?
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  budgets     Budget[]
 
   parentCategoryId String?
-  parentCategory BudgetCategory? @relation("CategoryHierarchy", fields: [parentCategoryId], references: [id], onDelete: Cascade)
-  childCategories BudgetCategory[] @relation("CategoryHierarchy")
+  parentCategory   BudgetCategory?  @relation("CategoryHierarchy", fields: [parentCategoryId], references: [id], onDelete: Cascade)
+  childCategories  BudgetCategory[] @relation("CategoryHierarchy")
 }
 
-enum VisitType { 
+enum VisitType {
   days
   week
   month
 }
 
 model BudgetOption {
-  id                       String    @id @default(cuid())
+  id              String    @id @default(cuid())
   // Info
-  visits                   Int
-  visit_type               VisitType
-  hours_per_visit          Float
-  nominal_hour             Float
-  nominal_salary           Float
-  employees                Int
+  visits          Int
+  visit_type      VisitType
+  hours_per_visit Float
+  nominal_hour    Float
+  nominal_salary  Float
+  employees       Int
 
   // Contributions
-  incidence_contribution   Float
-  company_contribution     Float
-  personal_contribution    Float
+  incidence_contribution Float
+  company_contribution   Float
+  personal_contribution  Float
 
   // Extra costs
-  transportation_cost      Float
-  products_price           Float
-  products_iva             Float
-
+  transportation_cost Float
+  products_price      Float
+  products_iva        Float
 
   // Revenues
   products_revenue_percent Float
   revenue_percent          Float
 
   // Price
-  price                    Float
-  profit                   Float?    @default(0) // Made optional with default for easier migration, though ideally should be calculated
-  iva                      Float  
+  price  Float
+  profit Float? @default(0) // Made optional with default for easier migration, though ideally should be calculated
+  iva    Float
 
   // Relations
-  budgetId String
-  budget   Budget @relation(fields: [budgetId], references: [id], onDelete: Cascade)
+  budgetId    String
+  budget      Budget @relation(fields: [budgetId], references: [id], onDelete: Cascade)
+  sourcedJobs Job[]  @relation("JobSourceBudgetOption")
 
   // Dates
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-  
+
   has_products Boolean @default(true)
 }
 
-model Chat {
-  id        String    @id @default(cuid())
-  name      String?   // Optional title for the chat
-  createdAt DateTime  @default(now())
-  updatedAt DateTime  @updatedAt
-  
-  userId    String
-  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
-  
-  budgetId  String?
-  budget    Budget?   @relation(fields: [budgetId], references: [id], onDelete: Cascade)
+enum JobStatus {
+  DRAFT
+  ACTIVE
+  PAUSED
+  COMPLETED
+  ARCHIVED
+}
 
-  messages  Message[]
+enum RecurrenceFrequency {
+  DAILY
+  WEEKLY
+  MONTHLY
+}
+
+enum OccurrenceStatus {
+  SCHEDULED
+  DONE
+  SKIPPED
+  CANCELED
+}
+
+enum TimeEntryStatus {
+  DRAFT
+  APPROVED
+  REJECTED
+}
+
+enum PaymentStatus {
+  RECORDED
+  VOIDED
+}
+
+model Job {
+  id                   String                  @id @default(cuid())
+  name                 String
+  description          String?
+  serviceAddress       String?
+  serviceLocation      String?
+  operationalNotes     String?                 @db.Text
+  status               JobStatus               @default(DRAFT)
+  sourceBudgetId       String?
+  sourceBudget         Budget?                 @relation("JobSourceBudget", fields: [sourceBudgetId], references: [id], onDelete: SetNull)
+  sourceBudgetOptionId String?
+  sourceBudgetOption   BudgetOption?           @relation("JobSourceBudgetOption", fields: [sourceBudgetOptionId], references: [id], onDelete: SetNull)
+  budgetSnapshot       Json?
+  archivedAt           DateTime?
+  createdById          String
+  createdBy            User                    @relation("JobCreatedBy", fields: [createdById], references: [id], onDelete: Restrict)
+  updatedById          String?
+  updatedBy            User?                   @relation("JobUpdatedBy", fields: [updatedById], references: [id], onDelete: Restrict)
+  scheduleRules        JobScheduleRule[]
+  occurrences          JobOccurrence[]
+  assignments          JobEmployeeAssignment[]
+  timeEntries          TimeEntry[]
+  clientPayments       JobClientPayment[]
+  createdAt            DateTime                @default(now())
+  updatedAt            DateTime                @updatedAt
+
+  @@index([status, archivedAt])
+  @@index([sourceBudgetId])
+  @@index([sourceBudgetOptionId])
+  @@index([createdById])
+  @@index([updatedById])
+}
+
+model JobScheduleRule {
+  id               String              @id @default(cuid())
+  jobId            String
+  job              Job                 @relation(fields: [jobId], references: [id], onDelete: Restrict)
+  isActive         Boolean             @default(true)
+  frequency        RecurrenceFrequency
+  interval         Int                 @default(1)
+  weekdays         Int[]               @default([])
+  dayOfMonth       Int?
+  startDate        DateTime
+  endDate          DateTime?
+  startTimeMinutes Int
+  durationMinutes  Int
+  timezone         String              @default("America/Montevideo")
+  createdById      String
+  createdBy        User                @relation("JobScheduleRuleCreatedBy", fields: [createdById], references: [id], onDelete: Restrict)
+  updatedById      String?
+  updatedBy        User?               @relation("JobScheduleRuleUpdatedBy", fields: [updatedById], references: [id], onDelete: Restrict)
+  occurrences      JobOccurrence[]
+  createdAt        DateTime            @default(now())
+  updatedAt        DateTime            @updatedAt
+
+  @@index([jobId, isActive])
+  @@index([createdById])
+  @@index([updatedById])
+}
+
+model JobOccurrence {
+  id               String           @id @default(cuid())
+  jobId            String
+  job              Job              @relation(fields: [jobId], references: [id], onDelete: Restrict)
+  scheduleRuleId   String?
+  scheduleRule     JobScheduleRule? @relation(fields: [scheduleRuleId], references: [id], onDelete: SetNull)
+  scheduledStartAt DateTime
+  scheduledEndAt   DateTime
+  actualStartAt    DateTime?
+  actualEndAt      DateTime?
+  status           OccurrenceStatus @default(SCHEDULED)
+  isDetached       Boolean          @default(false)
+  notes            String?          @db.Text
+  archivedAt       DateTime?
+  createdById      String
+  createdBy        User             @relation("JobOccurrenceCreatedBy", fields: [createdById], references: [id], onDelete: Restrict)
+  updatedById      String?
+  updatedBy        User?            @relation("JobOccurrenceUpdatedBy", fields: [updatedById], references: [id], onDelete: Restrict)
+  timeEntries      TimeEntry[]
+  createdAt        DateTime         @default(now())
+  updatedAt        DateTime         @updatedAt
+
+  @@unique([scheduleRuleId, scheduledStartAt])
+  @@index([jobId, scheduledStartAt])
+  @@index([status, archivedAt])
+  @@index([createdById])
+  @@index([updatedById])
+}
+
+model Employee {
+  id          String                  @id @default(cuid())
+  name        String
+  email       String?
+  phone       String?
+  notes       String?                 @db.Text
+  isActive    Boolean                 @default(true)
+  archivedAt  DateTime?
+  createdById String
+  createdBy   User                    @relation("EmployeeCreatedBy", fields: [createdById], references: [id], onDelete: Restrict)
+  updatedById String?
+  updatedBy   User?                   @relation("EmployeeUpdatedBy", fields: [updatedById], references: [id], onDelete: Restrict)
+  assignments JobEmployeeAssignment[]
+  timeEntries TimeEntry[]
+  payments    EmployeePayment[]
+  createdAt   DateTime                @default(now())
+  updatedAt   DateTime                @updatedAt
+
+  @@index([isActive, archivedAt])
+  @@index([email])
+  @@index([createdById])
+  @@index([updatedById])
+}
+
+model JobEmployeeAssignment {
+  id           String    @id @default(cuid())
+  jobId        String
+  job          Job       @relation(fields: [jobId], references: [id], onDelete: Restrict)
+  employeeId   String
+  employee     Employee  @relation(fields: [employeeId], references: [id], onDelete: Restrict)
+  roleLabel    String?
+  assignedFrom DateTime
+  assignedTo   DateTime?
+  archivedAt   DateTime?
+  createdById  String
+  createdBy    User      @relation("JobEmployeeAssignmentCreatedBy", fields: [createdById], references: [id], onDelete: Restrict)
+  updatedById  String?
+  updatedBy    User?     @relation("JobEmployeeAssignmentUpdatedBy", fields: [updatedById], references: [id], onDelete: Restrict)
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  @@index([jobId, assignedFrom])
+  @@index([employeeId, assignedFrom])
+  @@index([createdById])
+  @@index([updatedById])
+}
+
+model TimeEntry {
+  id              String          @id @default(cuid())
+  employeeId      String
+  employee        Employee        @relation(fields: [employeeId], references: [id], onDelete: Restrict)
+  jobId           String
+  job             Job             @relation(fields: [jobId], references: [id], onDelete: Restrict)
+  jobOccurrenceId String?
+  jobOccurrence   JobOccurrence?  @relation(fields: [jobOccurrenceId], references: [id], onDelete: SetNull)
+  workDate        DateTime
+  startedAt       DateTime?
+  endedAt         DateTime?
+  hours           Decimal         @db.Decimal(10, 2)
+  status          TimeEntryStatus @default(DRAFT)
+  notes           String?         @db.Text
+  approvedAt      DateTime?
+  approvedById    String?
+  approvedBy      User?           @relation("TimeEntryApprovedBy", fields: [approvedById], references: [id], onDelete: Restrict)
+  createdById     String
+  createdBy       User            @relation("TimeEntryCreatedBy", fields: [createdById], references: [id], onDelete: Restrict)
+  updatedById     String?
+  updatedBy       User?           @relation("TimeEntryUpdatedBy", fields: [updatedById], references: [id], onDelete: Restrict)
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
+
+  @@index([employeeId, workDate])
+  @@index([jobId, workDate])
+  @@index([jobOccurrenceId])
+  @@index([status, approvedAt])
+  @@index([createdById])
+  @@index([updatedById])
+}
+
+model JobClientPayment {
+  id          String        @id @default(cuid())
+  jobId       String
+  job         Job           @relation(fields: [jobId], references: [id], onDelete: Restrict)
+  paymentDate DateTime
+  amount      Decimal       @db.Decimal(12, 2)
+  reference   String?
+  notes       String?       @db.Text
+  status      PaymentStatus @default(RECORDED)
+  createdById String
+  createdBy   User          @relation("JobClientPaymentCreatedBy", fields: [createdById], references: [id], onDelete: Restrict)
+  updatedById String?
+  updatedBy   User?         @relation("JobClientPaymentUpdatedBy", fields: [updatedById], references: [id], onDelete: Restrict)
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+
+  @@index([jobId, paymentDate])
+  @@index([status, paymentDate])
+  @@index([createdById])
+  @@index([updatedById])
+}
+
+model EmployeePayment {
+  id          String        @id @default(cuid())
+  employeeId  String
+  employee    Employee      @relation(fields: [employeeId], references: [id], onDelete: Restrict)
+  periodStart DateTime
+  periodEnd   DateTime
+  paymentDate DateTime
+  amount      Decimal       @db.Decimal(12, 2)
+  reference   String?
+  notes       String?       @db.Text
+  status      PaymentStatus @default(RECORDED)
+  createdById String
+  createdBy   User          @relation("EmployeePaymentCreatedBy", fields: [createdById], references: [id], onDelete: Restrict)
+  updatedById String?
+  updatedBy   User?         @relation("EmployeePaymentUpdatedBy", fields: [updatedById], references: [id], onDelete: Restrict)
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+
+  @@index([employeeId, paymentDate])
+  @@index([status, paymentDate])
+  @@index([createdById])
+  @@index([updatedById])
+}
+
+model Chat {
+  id        String   @id @default(cuid())
+  name      String? // Optional title for the chat
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  budgetId String?
+  budget   Budget? @relation(fields: [budgetId], references: [id], onDelete: Cascade)
+
+  messages Message[]
 }
 
 enum Role {
@@ -196,6 +460,6 @@ model Message {
   imageUrl  String?
   createdAt DateTime @default(now())
 
-  chatId    String
-  chat      Chat     @relation(fields: [chatId], references: [id], onDelete: Cascade)
+  chatId String
+  chat   Chat   @relation(fields: [chatId], references: [id], onDelete: Cascade)
 }

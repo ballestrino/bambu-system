@@ -12,6 +12,14 @@ pnpm lint         # ESLint
 
 No test suite is configured.
 
+## File Size And Boundaries
+
+- Keep authored files at 200 lines or less by default.
+- If a file approaches 200 lines, split by responsibility before adding more features.
+- Files with 300, 500, or 700 lines are not acceptable unless exceeding 200 is clearly necessary.
+- Allowed exceptions: generated Prisma migrations, `prisma/schema.prisma`, vendor-style wrappers such as shadcn/ui primitives, or cases where splitting would make the code harder to understand.
+- Prefer separating `actions/`, `data/`, `schemas/`, and `lib/` responsibilities instead of growing a single file.
+
 ## Architecture
 
 **Bambú System** is a budget management platform for service businesses. Built with Next.js 15 App Router, PostgreSQL/Prisma, NextAuth v5, and TanStack Query.
