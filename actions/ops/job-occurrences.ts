@@ -3,6 +3,7 @@
 import { db } from "@/lib/db";
 import { getActionErrorMessage } from "@/lib/ops/action-error";
 import {
+  assertEmployeeExists,
   assertJobExists,
   assertOccurrenceExists,
   assertOccurrenceRuleBelongsToJob,
@@ -27,11 +28,14 @@ export const createJobOccurrence = async (values: unknown) => {
       return { error: "Datos invalidos para crear la ocurrencia" };
     }
 
-    await assertJobExists(parsedValues.data.jobId);
-    await assertOccurrenceRuleBelongsToJob(
-      parsedValues.data.scheduleRuleId,
-      parsedValues.data.jobId
-    );
+    await Promise.all([
+      assertJobExists(parsedValues.data.jobId),
+      assertEmployeeExists(parsedValues.data.employeeId),
+      assertOccurrenceRuleBelongsToJob(
+        parsedValues.data.scheduleRuleId,
+        parsedValues.data.jobId
+      ),
+    ]);
 
     const occurrence = await db.jobOccurrence.create({
       data: {
@@ -71,11 +75,14 @@ export const updateJobOccurrence = async (
       return { error: "La ocurrencia resultante es invalida" };
     }
 
+    await assertEmployeeExists(validatedValues.data.employeeId);
+
     const occurrence = await db.jobOccurrence.update({
       where: {
         id: occurrenceId,
       },
       data: {
+        employeeId: validatedValues.data.employeeId,
         scheduledStartAt: validatedValues.data.scheduledStartAt,
         scheduledEndAt: validatedValues.data.scheduledEndAt,
         actualStartAt: mergedValues.actualStartAt,
@@ -118,11 +125,14 @@ export const detachJobOccurrence = async (
       return { error: "La ocurrencia despejada es invalida" };
     }
 
+    await assertEmployeeExists(validatedValues.data.employeeId);
+
     const occurrence = await db.jobOccurrence.update({
       where: {
         id: occurrenceId,
       },
       data: {
+        employeeId: validatedValues.data.employeeId,
         scheduledStartAt: validatedValues.data.scheduledStartAt,
         scheduledEndAt: validatedValues.data.scheduledEndAt,
         actualStartAt: mergedValues.actualStartAt,

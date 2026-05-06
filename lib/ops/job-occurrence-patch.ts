@@ -19,6 +19,11 @@ export const buildResolvedJobOccurrence = (
   >
 ) => ({
   jobId: existingOccurrence.jobId,
+  employeeId: getPatchedValue(
+    patch,
+    "employeeId",
+    existingOccurrence.employeeId ?? ""
+  ),
   scheduleRuleId:
     overrides?.scheduleRuleId ?? existingOccurrence.scheduleRuleId ?? undefined,
   scheduledStartAt: getPatchedValue(

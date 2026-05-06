@@ -84,7 +84,11 @@ export const getJobById = async (id: string) => {
         sourceBudget: true,
         sourceBudgetOption: true,
         scheduleRules: true,
-        occurrences: true,
+        occurrences: {
+          include: {
+            employee: true,
+          },
+        },
         assignments: {
           include: {
             employee: true,
@@ -167,6 +171,7 @@ export const getJobOccurrences = async (filters?: unknown) => {
 
     const {
       jobId,
+      employeeId,
       scheduleRuleId,
       statuses,
       includeArchived,
@@ -178,6 +183,7 @@ export const getJobOccurrences = async (filters?: unknown) => {
     const occurrences = await db.jobOccurrence.findMany({
       where: {
         jobId,
+        employeeId,
         scheduleRuleId,
         status: statuses?.length ? { in: statuses } : undefined,
         archivedAt: includeArchived ? undefined : null,
@@ -192,6 +198,7 @@ export const getJobOccurrences = async (filters?: unknown) => {
             status: true,
           },
         },
+        employee: true,
         scheduleRule: true,
         createdBy: {
           select: opsAuditUserSelect,

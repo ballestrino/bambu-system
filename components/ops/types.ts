@@ -32,7 +32,11 @@ export type OpsJobDetail = Prisma.JobGetPayload<{
     sourceBudget: true;
     sourceBudgetOption: true;
     scheduleRules: true;
-    occurrences: true;
+    occurrences: {
+      include: {
+        employee: true;
+      };
+    };
     assignments: {
       include: {
         employee: true;
@@ -92,6 +96,7 @@ export type OpsOccurrence = Prisma.JobOccurrenceGetPayload<{
         status: true;
       };
     };
+    employee: true;
     scheduleRule: true;
     createdBy: {
       select: {
