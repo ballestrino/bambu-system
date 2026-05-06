@@ -29,6 +29,16 @@ export default function NavDashboard() {
                                     </Link>
                                 </NavigationMenuLink>
                             </li>
+                            <li>
+                                <NavigationMenuLink asChild>
+                                    <Link href="/dashboard/jobs">
+                                        <div className="font-medium">Operaciones</div>
+                                        <div className="text-muted-foreground text-sm">
+                                            Trabajos y calendario operativo
+                                        </div>
+                                    </Link>
+                                </NavigationMenuLink>
+                            </li>
                         </ul>
                     </NavigationMenuContent>
                 </NavigationMenuItem>
