@@ -4,6 +4,7 @@ import { AlertCircle } from "lucide-react";
 
 import { EmployeeAssignmentsPanel } from "@/components/ops/employees/employee-assignments-panel";
 import { EmployeeSummaryCard } from "@/components/ops/employees/employee-summary-card";
+import { EmployeeVisitsPanel } from "@/components/ops/employees/employee-visits-panel";
 import { useEmployee } from "@/components/ops/hooks/useEmployee";
 import { useJobEmployeeAssignments } from "@/components/ops/hooks/useJobEmployeeAssignments";
 import { Card, CardContent } from "@/components/ui/card";
@@ -34,9 +35,10 @@ export const EmployeeDetailPage = ({ employeeId }: { employeeId: string }) => {
     <div className="container flex w-full flex-col gap-6">
       <div className="space-y-1">
         <h1 className="text-3xl font-bold tracking-tight">{employee.name}</h1>
-        <p className="text-muted-foreground">Ficha operativa y trabajos vinculados.</p>
+        <p className="text-muted-foreground">Ficha operativa, visitas y horas para pago.</p>
       </div>
       <EmployeeSummaryCard employee={employee} />
+      <EmployeeVisitsPanel employeeId={employeeId} />
       <EmployeeAssignmentsPanel assignments={assignments} />
     </div>
   );

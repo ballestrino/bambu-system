@@ -35,7 +35,15 @@ export const JobOccurrencesPanel = ({
                   <OccurrenceStatusBadge status={occurrence.status} />
                   {occurrence.isDetached ? <span className="text-xs text-muted-foreground">Separada</span> : null}
                 </div>
+                <p className="font-medium">
+                  {occurrence.employee?.name ?? "Sin empleada asignada"}
+                </p>
                 <p>{formatDateTime(occurrence.scheduledStartAt)} → {formatDateTime(occurrence.scheduledEndAt)}</p>
+                {occurrence.actualStartAt || occurrence.actualEndAt ? (
+                  <p className="text-muted-foreground">
+                    Real {formatDateTime(occurrence.actualStartAt)} → {formatDateTime(occurrence.actualEndAt)}
+                  </p>
+                ) : null}
                 <p className="text-muted-foreground">{occurrence.notes || "Sin notas"}</p>
               </div>
               <div className="flex flex-wrap gap-2">

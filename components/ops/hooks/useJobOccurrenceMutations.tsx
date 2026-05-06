@@ -14,13 +14,16 @@ import type {
   UpdateJobOccurrenceInput,
 } from "@/schemas/ops";
 
-export const useJobOccurrenceMutations = (jobId: string) => {
+export const useJobOccurrenceMutations = (jobId?: string) => {
   const queryClient = useQueryClient();
 
   const invalidateQueries = async () => {
     await Promise.all([
-      queryClient.invalidateQueries({ queryKey: opsQueryKeys.job(jobId) }),
-      queryClient.invalidateQueries({ queryKey: opsQueryKeys.occurrences(jobId) }),
+      jobId ? queryClient.invalidateQueries({ queryKey: opsQueryKeys.job(jobId) }) : Promise.resolve(),
+      jobId
+        ? queryClient.invalidateQueries({ queryKey: opsQueryKeys.occurrences(jobId) })
+        : Promise.resolve(),
+      queryClient.invalidateQueries({ queryKey: ["ops", "occurrences"] }),
       queryClient.invalidateQueries({ queryKey: ["ops", "calendar"] }),
     ]);
   };

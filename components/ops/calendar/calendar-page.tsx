@@ -3,6 +3,7 @@
 import { useState } from "react";
 
 import { useJobOccurrences } from "@/components/ops/hooks/useJobOccurrences";
+import { JobOccurrenceDialog } from "@/components/ops/jobs/job-occurrence-dialog";
 import { OccurrenceStatusBadge } from "@/components/ops/jobs/status-badges";
 import { formatDate, formatTime, getMonthKey, getMonthRange } from "@/components/ops/utils";
 import { Calendar } from "@/components/ui/calendar";
@@ -34,8 +35,9 @@ export const CalendarPage = () => {
   return (
     <div className="container grid w-full gap-6 xl:grid-cols-[minmax(0,420px)_1fr]">
       <Card className="border-0 bg-white/80 shadow-sm ring-1 ring-black/5">
-        <CardHeader>
+        <CardHeader className="flex flex-row items-center justify-between">
           <CardTitle>Calendario operativo</CardTitle>
+          <JobOccurrenceDialog />
         </CardHeader>
         <CardContent>
           <Calendar
@@ -64,19 +66,30 @@ export const CalendarPage = () => {
           ) : selectedDayOccurrences.length ? (
             selectedDayOccurrences.map((occurrence) => (
               <div key={occurrence.id} className="space-y-2 rounded-lg border p-4">
-                <div className="flex items-center justify-between gap-3">
+                <div className="flex items-start justify-between gap-3">
                   <div>
                     <p className="font-medium">{occurrence.job.name}</p>
                     <p className="text-sm text-muted-foreground">
-                      {formatTime(occurrence.scheduledStartAt)} - {formatTime(occurrence.scheduledEndAt)}
+                      {occurrence.employee?.name ?? "Sin empleada asignada"}
                     </p>
+                    <p className="text-sm text-muted-foreground">
+                      Plan {formatTime(occurrence.scheduledStartAt)} - {formatTime(occurrence.scheduledEndAt)}
+                    </p>
+                    {occurrence.actualStartAt || occurrence.actualEndAt ? (
+                      <p className="text-sm text-muted-foreground">
+                        Real {formatTime(occurrence.actualStartAt)} - {formatTime(occurrence.actualEndAt)}
+                      </p>
+                    ) : null}
                   </div>
                   <OccurrenceStatusBadge status={occurrence.status} />
                 </div>
-                <p className="text-sm text-muted-foreground">
-                  {occurrence.isDetached ? "Separada de regla" : "Ligada a regla"} ·{" "}
-                  {occurrence.notes || "Sin notas"}
-                </p>
+                <div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
+                  <p className="text-sm text-muted-foreground">
+                    {occurrence.isDetached ? "Separada de regla" : "Ligada a regla"} ·{" "}
+                    {occurrence.notes || "Sin notas"}
+                  </p>
+                  <JobOccurrenceDialog occurrence={occurrence} />
+                </div>
               </div>
             ))
           ) : (
