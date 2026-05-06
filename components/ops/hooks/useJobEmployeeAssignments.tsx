@@ -12,7 +12,9 @@ export const useJobEmployeeAssignments = (
 ) => {
   const assignmentsQuery = useQuery({
     queryKey: [
-      ...opsQueryKeys.assignments(queryKeyScope ?? filters?.jobId ?? filters?.employeeId),
+      ...opsQueryKeys.assignmentScope(
+        queryKeyScope ?? filters?.jobId ?? filters?.employeeId
+      ),
       filters ?? {},
     ],
     queryFn: () => getJobEmployeeAssignmentsAction(filters),

@@ -15,7 +15,7 @@ export const useEmployeeMutations = () => {
   const invalidateEmployeeQueries = async (employeeId?: string) => {
     await Promise.all([
       queryClient.invalidateQueries({ queryKey: opsQueryKeys.employees }),
-      queryClient.invalidateQueries({ queryKey: opsQueryKeys.assignments() }),
+      queryClient.invalidateQueries({ queryKey: opsQueryKeys.assignments }),
       employeeId
         ? queryClient.invalidateQueries({ queryKey: opsQueryKeys.employee(employeeId) })
         : Promise.resolve(),

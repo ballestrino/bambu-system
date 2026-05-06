@@ -9,6 +9,7 @@ export const opsQueryKeys = {
   budgetSources: ["ops", "budget-sources"] as const,
   employees: ["ops", "employees"] as const,
   employee: (employeeId: string) => ["ops", "employee", employeeId] as const,
-  assignments: (scope?: string) =>
+  assignments: ["ops", "assignments"] as const,
+  assignmentScope: (scope?: string) =>
     ["ops", "assignments", scope ?? "all"] as const,
 };
