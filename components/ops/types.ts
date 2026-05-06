@@ -122,3 +122,69 @@ export type OpsBudgetSource = Prisma.BudgetGetPayload<{
     };
   };
 }>;
+
+export type OpsEmployee = Prisma.EmployeeGetPayload<{
+  include: {
+    createdBy: {
+      select: {
+        id: true;
+        name: true;
+        email: true;
+      };
+    };
+    updatedBy: {
+      select: {
+        id: true;
+        name: true;
+        email: true;
+      };
+    };
+  };
+}>;
+
+export type OpsEmployeeDetail = Prisma.EmployeeGetPayload<{
+  include: {
+    assignments: {
+      include: {
+        job: true;
+      };
+    };
+    payments: true;
+    timeEntries: true;
+    createdBy: {
+      select: {
+        id: true;
+        name: true;
+        email: true;
+      };
+    };
+    updatedBy: {
+      select: {
+        id: true;
+        name: true;
+        email: true;
+      };
+    };
+  };
+}>;
+
+export type OpsJobEmployeeAssignment = Prisma.JobEmployeeAssignmentGetPayload<{
+  include: {
+    job: true;
+    employee: true;
+    createdBy: {
+      select: {
+        id: true;
+        name: true;
+        email: true;
+      };
+    };
+    updatedBy: {
+      select: {
+        id: true;
+        name: true;
+        email: true;
+      };
+    };
+  };
+}>;
