@@ -50,6 +50,7 @@ export const updateEmployee = async (employeeId: string, values: unknown) => {
         name: parsedValues.data.name,
         email: getPatchedDbValue(parsedValues.data, "email"),
         phone: getPatchedDbValue(parsedValues.data, "phone"),
+        hourlyRate: getPatchedDbValue(parsedValues.data, "hourlyRate"),
         notes: getPatchedDbValue(parsedValues.data, "notes"),
         isActive: parsedValues.data.isActive,
         updatedById: session.user.id,

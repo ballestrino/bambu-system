@@ -38,7 +38,7 @@ export const EmployeeDetailPage = ({ employeeId }: { employeeId: string }) => {
         <p className="text-muted-foreground">Ficha operativa, visitas y horas para pago.</p>
       </div>
       <EmployeeSummaryCard employee={employee} />
-      <EmployeeVisitsPanel employeeId={employeeId} />
+      <EmployeeVisitsPanel employeeId={employeeId} hourlyRate={employee.hourlyRate} />
       <EmployeeAssignmentsPanel assignments={assignments} />
     </div>
   );

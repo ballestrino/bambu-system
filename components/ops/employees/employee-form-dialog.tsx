@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { LoaderCircle, Pencil, Plus } from "lucide-react";
 
+import { getHourlyRateNumber } from "@/components/ops/employees/employee-payroll";
 import type { OpsEmployee, OpsEmployeeDetail } from "@/components/ops/types";
 import { useEmployeeMutations } from "@/components/ops/hooks/useEmployeeMutations";
 import { Button } from "@/components/ui/button";
@@ -14,13 +15,17 @@ import { Textarea } from "@/components/ui/textarea";
 
 type EditableEmployee = Pick<
   OpsEmployee | OpsEmployeeDetail,
-  "id" | "name" | "email" | "phone" | "notes" | "isActive"
+  "id" | "name" | "email" | "phone" | "hourlyRate" | "notes" | "isActive"
 >;
 
 const getInitialState = (employee?: EditableEmployee) => ({
   name: employee?.name ?? "",
   email: employee?.email ?? "",
   phone: employee?.phone ?? "",
+  hourlyRate:
+    employee?.hourlyRate === null || employee?.hourlyRate === undefined
+      ? ""
+      : String(getHourlyRateNumber(employee.hourlyRate) ?? ""),
   notes: employee?.notes ?? "",
   isActive: employee?.isActive ?? true,
 });
@@ -35,8 +40,15 @@ export const EmployeeFormDialog = ({
   const { createEmployeeAsync, updateEmployeeAsync, isCreating, isUpdating } =
     useEmployeeMutations();
   const isPending = isCreating || isUpdating;
+  const hourlyRate = getHourlyRateNumber(formState.hourlyRate);
+  const hasHourlyRate = formState.hourlyRate.trim() !== "";
+  const isHourlyRateInvalid = hasHourlyRate && hourlyRate === null;
 
   const handleSubmit = async () => {
+    if (isHourlyRateInvalid) {
+      return;
+    }
+
     const payload = {
       name: formState.name.trim(),
       email: formState.email,
@@ -46,9 +58,18 @@ export const EmployeeFormDialog = ({
     };
 
     if (employee) {
-      await updateEmployeeAsync({ employeeId: employee.id, values: payload });
+      await updateEmployeeAsync({
+        employeeId: employee.id,
+        values: {
+          ...payload,
+          hourlyRate: hasHourlyRate ? hourlyRate ?? undefined : null,
+        },
+      });
     } else {
-      await createEmployeeAsync(payload);
+      await createEmployeeAsync({
+        ...payload,
+        hourlyRate: hasHourlyRate ? hourlyRate ?? undefined : undefined,
+      });
     }
 
     setOpen(false);
@@ -95,6 +116,16 @@ export const EmployeeFormDialog = ({
             </div>
           </div>
           <div className="space-y-2">
+            <Label>Tarifa horaria</Label>
+            <Input
+              min="0"
+              step="0.01"
+              type="number"
+              value={formState.hourlyRate}
+              onChange={(event) => setFormState((current) => ({ ...current, hourlyRate: event.target.value }))}
+            />
+          </div>
+          <div className="space-y-2">
             <Label>Notas</Label>
             <Textarea value={formState.notes} onChange={(event) => setFormState((current) => ({ ...current, notes: event.target.value }))} />
           </div>
@@ -105,7 +136,7 @@ export const EmployeeFormDialog = ({
         </div>
         <DialogFooter>
           <Button variant="outline" onClick={() => setOpen(false)}>Cancelar</Button>
-          <Button disabled={isPending || !formState.name.trim()} onClick={handleSubmit}>
+          <Button disabled={isPending || !formState.name.trim() || isHourlyRateInvalid} onClick={handleSubmit}>
             {isPending ? <LoaderCircle className="h-4 w-4 animate-spin" /> : null}
             {employee ? "Guardar cambios" : "Crear empleado"}
           </Button>
