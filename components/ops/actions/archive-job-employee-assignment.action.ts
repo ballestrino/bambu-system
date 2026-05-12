@@ -2,6 +2,7 @@
 
 import { archiveJobEmployeeAssignment } from "@/actions/ops";
 import ValidationError from "@/instances/validation-error";
+import { serializeActionResult } from "@/components/ops/actions/serialize-action-result";
 
 export const archiveJobEmployeeAssignmentAction = async (
   assignmentId: string
@@ -13,7 +14,7 @@ export const archiveJobEmployeeAssignmentAction = async (
       throw new ValidationError(result.error);
     }
 
-    return result.assignment;
+    return serializeActionResult(result.assignment);
   } catch (error) {
     if (error instanceof ValidationError) {
       throw error;

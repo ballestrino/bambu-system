@@ -1,0 +1,6 @@
+import "server-only";
+
+export const serializeActionResult = <T>(value: T): T => {
+  const serialized = JSON.stringify(value);
+  return serialized === undefined ? value : JSON.parse(serialized);
+};

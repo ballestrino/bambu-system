@@ -2,6 +2,7 @@
 
 import { createJobEmployeeAssignment } from "@/actions/ops";
 import ValidationError from "@/instances/validation-error";
+import { serializeActionResult } from "@/components/ops/actions/serialize-action-result";
 import type { CreateJobEmployeeAssignmentInput } from "@/schemas/ops";
 
 export const createJobEmployeeAssignmentAction = async (
@@ -14,7 +15,7 @@ export const createJobEmployeeAssignmentAction = async (
       throw new ValidationError(result.error);
     }
 
-    return result.assignment;
+    return serializeActionResult(result.assignment);
   } catch (error) {
     if (error instanceof ValidationError) {
       throw error;

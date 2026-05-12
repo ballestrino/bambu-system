@@ -2,6 +2,7 @@
 
 import { getEmployees } from "@/data/ops";
 import ValidationError from "@/instances/validation-error";
+import { serializeActionResult } from "@/components/ops/actions/serialize-action-result";
 import type { EmployeeFilters } from "@/schemas/ops";
 
 export const getEmployeesAction = async (filters?: EmployeeFilters) => {
@@ -12,7 +13,7 @@ export const getEmployeesAction = async (filters?: EmployeeFilters) => {
       throw new ValidationError(result.error);
     }
 
-    return result.employees;
+    return serializeActionResult(result.employees);
   } catch (error) {
     if (error instanceof ValidationError) {
       throw error;

@@ -2,6 +2,7 @@
 
 import { createJobScheduleRule } from "@/actions/ops";
 import ValidationError from "@/instances/validation-error";
+import { serializeActionResult } from "@/components/ops/actions/serialize-action-result";
 import type { CreateJobScheduleRuleInput } from "@/schemas/ops";
 
 export const createJobScheduleRuleAction = async (
@@ -14,7 +15,7 @@ export const createJobScheduleRuleAction = async (
       throw new ValidationError(result.error);
     }
 
-    return result.scheduleRule;
+    return serializeActionResult(result.scheduleRule);
   } catch (error) {
     if (error instanceof ValidationError) {
       throw error;

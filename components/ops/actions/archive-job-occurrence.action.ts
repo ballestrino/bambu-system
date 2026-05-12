@@ -2,6 +2,7 @@
 
 import { archiveJobOccurrence } from "@/actions/ops";
 import ValidationError from "@/instances/validation-error";
+import { serializeActionResult } from "@/components/ops/actions/serialize-action-result";
 
 export const archiveJobOccurrenceAction = async (occurrenceId: string) => {
   try {
@@ -11,7 +12,7 @@ export const archiveJobOccurrenceAction = async (occurrenceId: string) => {
       throw new ValidationError(result.error);
     }
 
-    return result.occurrence;
+    return serializeActionResult(result.occurrence);
   } catch (error) {
     if (error instanceof ValidationError) {
       throw error;

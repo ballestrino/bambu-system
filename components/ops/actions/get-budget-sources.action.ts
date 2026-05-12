@@ -2,6 +2,7 @@
 
 import { getBudgetSources } from "@/data/ops/budget-sources";
 import ValidationError from "@/instances/validation-error";
+import { serializeActionResult } from "@/components/ops/actions/serialize-action-result";
 
 export const getBudgetSourcesAction = async () => {
   try {
@@ -11,7 +12,7 @@ export const getBudgetSourcesAction = async () => {
       throw new ValidationError(result.error);
     }
 
-    return result.budgets;
+    return serializeActionResult(result.budgets);
   } catch (error) {
     if (error instanceof ValidationError) {
       throw error;

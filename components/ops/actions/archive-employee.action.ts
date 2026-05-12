@@ -2,6 +2,7 @@
 
 import { archiveEmployee } from "@/actions/ops";
 import ValidationError from "@/instances/validation-error";
+import { serializeActionResult } from "@/components/ops/actions/serialize-action-result";
 
 export const archiveEmployeeAction = async (employeeId: string) => {
   try {
@@ -11,7 +12,7 @@ export const archiveEmployeeAction = async (employeeId: string) => {
       throw new ValidationError(result.error);
     }
 
-    return result.employee;
+    return serializeActionResult(result.employee);
   } catch (error) {
     if (error instanceof ValidationError) {
       throw error;

@@ -2,6 +2,7 @@
 
 import { createJobClientPayment } from "@/actions/ops";
 import ValidationError from "@/instances/validation-error";
+import { serializeActionResult } from "@/components/ops/actions/serialize-action-result";
 import type { CreateJobClientPaymentInput } from "@/schemas/ops";
 
 export const createJobClientPaymentAction = async (
@@ -14,7 +15,7 @@ export const createJobClientPaymentAction = async (
       throw new ValidationError(result.error);
     }
 
-    return result.clientPayment;
+    return serializeActionResult(result.clientPayment);
   } catch (error) {
     if (error instanceof ValidationError) {
       throw error;

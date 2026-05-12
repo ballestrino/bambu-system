@@ -2,6 +2,7 @@
 
 import { getJobById } from "@/data/ops";
 import ValidationError from "@/instances/validation-error";
+import { serializeActionResult } from "@/components/ops/actions/serialize-action-result";
 
 export const getJobAction = async (jobId: string) => {
   try {
@@ -11,7 +12,7 @@ export const getJobAction = async (jobId: string) => {
       throw new ValidationError(result.error);
     }
 
-    return result.job;
+    return serializeActionResult(result.job);
   } catch (error) {
     if (error instanceof ValidationError) {
       throw error;
