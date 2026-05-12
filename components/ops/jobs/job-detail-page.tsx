@@ -7,6 +7,7 @@ import { JobFormDialog } from "@/components/ops/jobs/job-form-dialog";
 import { JobOccurrencesPanel } from "@/components/ops/jobs/job-occurrences-panel";
 import { JobScheduleRulesPanel } from "@/components/ops/jobs/job-schedule-rules-panel";
 import { JobSummaryCard } from "@/components/ops/jobs/job-summary-card";
+import { JobClientPaymentsPanel } from "@/components/ops/payments/job-client-payments-panel";
 import { useJob } from "@/components/ops/hooks/useJob";
 import { useJobEmployeeAssignmentMutations } from "@/components/ops/hooks/useJobEmployeeAssignmentMutations";
 import { useJobEmployeeAssignments } from "@/components/ops/hooks/useJobEmployeeAssignments";
@@ -14,10 +15,12 @@ import { useJobOccurrenceMutations } from "@/components/ops/hooks/useJobOccurren
 import { useJobOccurrences } from "@/components/ops/hooks/useJobOccurrences";
 import { useJobScheduleRuleMutations } from "@/components/ops/hooks/useJobScheduleRuleMutations";
 import { useJobScheduleRules } from "@/components/ops/hooks/useJobScheduleRules";
+import { useJobs } from "@/components/ops/hooks/useJobs";
 import { Card, CardContent } from "@/components/ui/card";
 
 export const JobDetailPage = ({ jobId }: { jobId: string }) => {
   const { job, isLoading, error } = useJob(jobId);
+  const { jobs } = useJobs({ includeArchived: false });
   const { scheduleRules } = useJobScheduleRules({ jobId });
   const { occurrences } = useJobOccurrences({ jobId }, jobId);
   const { assignments } = useJobEmployeeAssignments({ jobId }, jobId);
@@ -77,6 +80,7 @@ export const JobDetailPage = ({ jobId }: { jobId: string }) => {
           }}
         />
       </div>
+      <JobClientPaymentsPanel job={job} jobs={jobs} />
     </div>
   );
 };

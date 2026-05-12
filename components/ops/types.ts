@@ -1,5 +1,13 @@
 import type { Prisma } from "@prisma/client";
 
+type OpsAuditUserSelect = {
+  select: {
+    id: true;
+    name: true;
+    email: true;
+  };
+};
+
 export type OpsJobListItem = Prisma.JobGetPayload<{
   include: {
     sourceBudget: {
@@ -10,20 +18,8 @@ export type OpsJobListItem = Prisma.JobGetPayload<{
       };
     };
     sourceBudgetOption: true;
-    createdBy: {
-      select: {
-        id: true;
-        name: true;
-        email: true;
-      };
-    };
-    updatedBy: {
-      select: {
-        id: true;
-        name: true;
-        email: true;
-      };
-    };
+    createdBy: OpsAuditUserSelect;
+    updatedBy: OpsAuditUserSelect;
   };
 }>;
 
@@ -44,20 +40,8 @@ export type OpsJobDetail = Prisma.JobGetPayload<{
     };
     clientPayments: true;
     timeEntries: true;
-    createdBy: {
-      select: {
-        id: true;
-        name: true;
-        email: true;
-      };
-    };
-    updatedBy: {
-      select: {
-        id: true;
-        name: true;
-        email: true;
-      };
-    };
+    createdBy: OpsAuditUserSelect;
+    updatedBy: OpsAuditUserSelect;
   };
 }>;
 
@@ -70,20 +54,8 @@ export type OpsScheduleRule = Prisma.JobScheduleRuleGetPayload<{
         status: true;
       };
     };
-    createdBy: {
-      select: {
-        id: true;
-        name: true;
-        email: true;
-      };
-    };
-    updatedBy: {
-      select: {
-        id: true;
-        name: true;
-        email: true;
-      };
-    };
+    createdBy: OpsAuditUserSelect;
+    updatedBy: OpsAuditUserSelect;
   };
 }>;
 
@@ -98,20 +70,8 @@ export type OpsOccurrence = Prisma.JobOccurrenceGetPayload<{
     };
     employee: true;
     scheduleRule: true;
-    createdBy: {
-      select: {
-        id: true;
-        name: true;
-        email: true;
-      };
-    };
-    updatedBy: {
-      select: {
-        id: true;
-        name: true;
-        email: true;
-      };
-    };
+    createdBy: OpsAuditUserSelect;
+    updatedBy: OpsAuditUserSelect;
   };
 }>;
 
@@ -130,20 +90,8 @@ export type OpsBudgetSource = Prisma.BudgetGetPayload<{
 
 export type OpsEmployee = Prisma.EmployeeGetPayload<{
   include: {
-    createdBy: {
-      select: {
-        id: true;
-        name: true;
-        email: true;
-      };
-    };
-    updatedBy: {
-      select: {
-        id: true;
-        name: true;
-        email: true;
-      };
-    };
+    createdBy: OpsAuditUserSelect;
+    updatedBy: OpsAuditUserSelect;
   };
 }>;
 
@@ -156,20 +104,8 @@ export type OpsEmployeeDetail = Prisma.EmployeeGetPayload<{
     };
     payments: true;
     timeEntries: true;
-    createdBy: {
-      select: {
-        id: true;
-        name: true;
-        email: true;
-      };
-    };
-    updatedBy: {
-      select: {
-        id: true;
-        name: true;
-        email: true;
-      };
-    };
+    createdBy: OpsAuditUserSelect;
+    updatedBy: OpsAuditUserSelect;
   };
 }>;
 
@@ -177,19 +113,15 @@ export type OpsJobEmployeeAssignment = Prisma.JobEmployeeAssignmentGetPayload<{
   include: {
     job: true;
     employee: true;
-    createdBy: {
-      select: {
-        id: true;
-        name: true;
-        email: true;
-      };
-    };
-    updatedBy: {
-      select: {
-        id: true;
-        name: true;
-        email: true;
-      };
-    };
+    createdBy: OpsAuditUserSelect;
+    updatedBy: OpsAuditUserSelect;
+  };
+}>;
+
+export type OpsJobClientPayment = Prisma.JobClientPaymentGetPayload<{
+  include: {
+    job: true;
+    createdBy: OpsAuditUserSelect;
+    updatedBy: OpsAuditUserSelect;
   };
 }>;

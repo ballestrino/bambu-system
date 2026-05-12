@@ -12,4 +12,7 @@ export const opsQueryKeys = {
   assignments: ["ops", "assignments"] as const,
   assignmentScope: (scope?: string) =>
     ["ops", "assignments", scope ?? "all"] as const,
+  clientPayments: ["ops", "client-payments"] as const,
+  clientPaymentScope: (scope?: string) =>
+    ["ops", "client-payments", scope ?? "all"] as const,
 };
