@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { LoaderCircle, Pencil, Plus } from "lucide-react";
 
+import { dashboardPrimaryActionClass } from "@/components/dashboard/dashboard-styles";
 import { getHourlyRateNumber } from "@/components/ops/employees/employee-payroll";
 import type { OpsEmployee, OpsEmployeeDetail } from "@/components/ops/types";
 import { useEmployeeMutations } from "@/components/ops/hooks/useEmployeeMutations";
@@ -90,7 +91,7 @@ export const EmployeeFormDialog = ({
             Editar
           </Button>
         ) : (
-          <Button>
+          <Button className={dashboardPrimaryActionClass}>
             <Plus className="h-4 w-4" />
             Nuevo empleado
           </Button>

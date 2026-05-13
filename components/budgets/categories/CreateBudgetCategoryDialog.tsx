@@ -1,5 +1,6 @@
 "use client"
 
+import { dashboardPrimaryActionClass } from "@/components/dashboard/dashboard-styles"
 import { Button } from "@/components/ui/button"
 import {
     Dialog,
@@ -120,7 +121,11 @@ export function CreateBudgetCategoryDialog({ trigger, category, open: controlled
         <Dialog open={open} onOpenChange={setOpen}>
             {trigger !== null && (
                 <DialogTrigger asChild>
-                    {trigger === undefined ? <Button type="button">Crear Categoría</Button> : trigger}
+                    {trigger === undefined ? (
+                        <Button type="button" className={dashboardPrimaryActionClass}>
+                            Crear Categoría
+                        </Button>
+                    ) : trigger}
                 </DialogTrigger>
             )}
             <DialogContent

@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { BriefcaseBusiness, CalendarClock, DollarSign, MapPin } from "lucide-react";
 
+import { dashboardSecondaryActionClass } from "@/components/dashboard/dashboard-styles";
 import DeleteDialog from "@/components/ui/delete-dialog";
 import { Button } from "@/components/ui/button";
 import { JobStatusBadge } from "@/components/ops/jobs/status-badges";
@@ -52,7 +53,7 @@ export const JobCard = ({
       }
       actions={
         <>
-          <Button asChild size="sm">
+          <Button asChild size="sm" variant="outline" className={dashboardSecondaryActionClass}>
             <Link href={`/dashboard/jobs/${job.id}`}>Detalle</Link>
           </Button>
           <JobFormDialog job={job} />

@@ -1,5 +1,6 @@
 import Link from "next/link";
 
+import { dashboardSecondaryActionClass } from "@/components/dashboard/dashboard-styles";
 import { PayrollDialog } from "@/components/ops/payroll/payroll-dialog";
 import { formatPayrollMoney } from "@/components/ops/payroll/payroll-utils";
 import type { OpsEmployee } from "@/components/ops/types";
@@ -43,7 +44,7 @@ export const PayrollRowsPanel = ({
               <p>Saldo: {row.balance === null ? "-" : formatPayrollMoney(row.balance)}</p>
             </div>
             <div className="flex flex-wrap gap-2">
-              <Button asChild size="sm" variant="outline">
+              <Button asChild size="sm" variant="outline" className={dashboardSecondaryActionClass}>
                 <Link href={`/dashboard/employees/${row.employeeId}`}>Detalle</Link>
               </Button>
               <PayrollDialog

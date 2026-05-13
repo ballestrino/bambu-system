@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Plus } from "lucide-react";
+import { dashboardPrimaryActionClass } from "@/components/dashboard/dashboard-styles";
 
 export default function Header() {
     return (
@@ -13,7 +14,7 @@ export default function Header() {
             </div>
             <div className="flex items-center space-x-2">
                 <Link href="/dashboard/budgets/create">
-                    <Button>
+                    <Button className={dashboardPrimaryActionClass}>
                         <Plus className="mr-2 h-4 w-4" /> Crear Presupuesto
                     </Button>
                 </Link>

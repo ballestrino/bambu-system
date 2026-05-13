@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { dashboardPrimaryActionClass } from "@/components/dashboard/dashboard-styles";
 import { Button } from "@/components/ui/button";
 
 export default function NoBudgets() {
@@ -6,7 +7,9 @@ export default function NoBudgets() {
         <div className="flex flex-col items-center justify-center h-64 text-center border rounded-lg border-dashed">
             <p className="text-muted-foreground mb-4">No se encontraron presupuestos.</p>
             <Link href="/dashboard/budgets/create">
-                <Button variant="outline">Crear presupuesto</Button>
+                <Button className={dashboardPrimaryActionClass}>
+                    Crear presupuesto
+                </Button>
             </Link>
         </div>
     )

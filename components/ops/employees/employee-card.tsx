@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { CircleDollarSign, Mail, Phone, UserRound } from "lucide-react";
 
+import { dashboardSecondaryActionClass } from "@/components/dashboard/dashboard-styles";
 import { formatMoney, getHourlyRateNumber } from "@/components/ops/employees/employee-payroll";
 import { EmployeeFormDialog } from "@/components/ops/employees/employee-form-dialog";
 import type { OpsEmployee } from "@/components/ops/types";
@@ -65,7 +66,7 @@ export const EmployeeCard = ({
       }
       actions={
         <>
-          <Button asChild size="sm">
+          <Button asChild size="sm" variant="outline" className={dashboardSecondaryActionClass}>
             <Link href={`/dashboard/employees/${employee.id}`}>Detalle</Link>
           </Button>
           <EmployeeFormDialog employee={employee} />

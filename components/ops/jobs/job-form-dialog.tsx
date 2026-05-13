@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { LoaderCircle, Pencil, Plus } from "lucide-react";
 
+import { dashboardPrimaryActionClass } from "@/components/dashboard/dashboard-styles";
 import type { OpsJobDetail, OpsJobListItem } from "@/components/ops/types";
 import { BudgetSourceSelector } from "@/components/ops/jobs/budget-source-selector";
 import { useJobMutations } from "@/components/ops/hooks/useJobMutations";
@@ -89,7 +90,7 @@ export const JobFormDialog = ({
             {triggerLabel ?? "Editar"}
           </Button>
         ) : (
-          <Button>
+          <Button className={dashboardPrimaryActionClass}>
             <Plus className="h-4 w-4" />
             {triggerLabel ?? "Nuevo trabajo"}
           </Button>
