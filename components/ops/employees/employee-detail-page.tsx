@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import {
   AlertCircle,
@@ -19,11 +20,52 @@ import { EmployeePayrollPanel } from "@/components/ops/payroll/employee-payroll-
 import { PayrollDialog } from "@/components/ops/payroll/payroll-dialog";
 import { useEmployee } from "@/components/ops/hooks/useEmployee";
 import { useJobEmployeeAssignments } from "@/components/ops/hooks/useJobEmployeeAssignments";
+import { cn } from "@/lib/utils";
 import { dashboardSecondaryActionClass } from "@/components/dashboard/dashboard-styles";
 import { OpsDetailHero, OpsDetailStat, OpsNextAction, OpsPageShell } from "@/components/ops/shared";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+
+const EmployeeStickySummaryBar = ({
+  activeAssignments,
+  employee,
+  hourlyRate,
+  isVisible,
+}: {
+  activeAssignments: number;
+  employee: {
+    email?: string | null;
+    isActive: boolean;
+    name: string;
+    phone?: string | null;
+  };
+  hourlyRate: number | null;
+  isVisible: boolean;
+}) => (
+  <div
+    className={cn(
+      "sticky top-23 ml-8 md:ml-0 z-40 rounded-md md:rounded-full border border-black/10 bg-white/95 md:px-3 py-2 shadow-md shadow-black/5 backdrop-blur transition-all dark:bg-background/95",
+      isVisible ? "opacity-100" : "pointer-events-none -translate-y-2 opacity-0"
+    )}
+  >
+    <div className="flex flex-wrap items-center justify-center gap-x-3 gap-y-1 text-[13px] text-[#244C2D] md:justify-between">
+      <div className="flex min-w-0 items-center gap-2">
+        <p className="truncate text-sm font-semibold text-[#18251D] dark:text-[#EAF5EC]">
+          {employee.name}
+        </p>
+        <Badge variant={employee.isActive ? "default" : "secondary"} className="h-6 hidden sm:block rounded-full text-[11px]">
+          {employee.isActive ? "Activo" : "Inactivo"}
+        </Badge>
+      </div>
+      <div className="flex flex-wrap items-center justify-center gap-x-3 gap-y-1 text-muted-foreground md:justify-end">
+        <span className="hidden sm:block">{employee.email || employee.phone || "Sin contacto"}</span>
+        <span>Trabajos: {activeAssignments}</span>
+        <span>Tarifa: {hourlyRate === null ? "Pendiente" : `${formatMoney(hourlyRate)} / h`}</span>
+      </div>
+    </div>
+  </div>
+);
 
 export const EmployeeDetailPage = ({ employeeId }: { employeeId: string }) => {
   const { employee, isLoading, error } = useEmployee(employeeId);
@@ -31,6 +73,21 @@ export const EmployeeDetailPage = ({ employeeId }: { employeeId: string }) => {
     { employeeId, includeArchived: true },
     employeeId
   );
+  const heroRef = useRef<HTMLDivElement>(null);
+  const [showStickySummary, setShowStickySummary] = useState(false);
+
+  useEffect(() => {
+    const hero = heroRef.current;
+    if (!hero) return;
+
+    const observer = new IntersectionObserver(
+      ([entry]) => setShowStickySummary(!entry.isIntersecting),
+      { threshold: 0.15, rootMargin: "-20px 0px 0px 0px" }
+    );
+
+    observer.observe(hero);
+    return () => observer.disconnect();
+  }, []);
 
   if (isLoading) {
     return <div className="container w-full animate-pulse rounded-lg bg-muted/40 p-20" />;
@@ -52,20 +109,29 @@ export const EmployeeDetailPage = ({ employeeId }: { employeeId: string }) => {
 
   return (
     <OpsPageShell>
-      <OpsDetailHero
-        actions={<EmployeeFormDialog employee={employee} />}
-        backHref="/dashboard/employees"
-        backLabel="Empleados"
-        description="Ficha operativa para revisar contacto, visitas, pagos y trabajos vinculados."
-        icon={UserRound}
-        meta={<Badge variant={employee.isActive ? "default" : "secondary"}>{employee.isActive ? "Activo" : "Inactivo"}</Badge>}
-        title={employee.name}
-      >
-        <OpsDetailStat icon={BriefcaseBusiness} label="Trabajos activos" value={activeAssignments.length} helper={`${assignments.length} asignacion(es) totales`} />
-        <OpsDetailStat icon={BadgeDollarSign} label="Tarifa" value={hourlyRate === null ? "Pendiente" : `${formatMoney(hourlyRate)} / h`} helper="base para pagos" />
-        <OpsDetailStat icon={Clock3} label="Visitas" value="Mes actual" helper="filtradas por periodo" />
-        <OpsDetailStat icon={WalletCards} label="Pagos" value="Control" helper="saldo y registros" />
-      </OpsDetailHero>
+      <div ref={heroRef}>
+        <OpsDetailHero
+          actions={<EmployeeFormDialog employee={employee} />}
+          backHref="/dashboard/employees"
+          backLabel="Empleados"
+          description="Ficha operativa para revisar contacto, visitas, pagos y trabajos vinculados."
+          icon={UserRound}
+          meta={<Badge variant={employee.isActive ? "default" : "secondary"}>{employee.isActive ? "Activo" : "Inactivo"}</Badge>}
+          title={employee.name}
+        >
+          <OpsDetailStat icon={BriefcaseBusiness} label="Trabajos activos" value={activeAssignments.length} helper={`${assignments.length} asignacion(es) totales`} />
+          <OpsDetailStat icon={BadgeDollarSign} label="Tarifa" value={hourlyRate === null ? "Pendiente" : `${formatMoney(hourlyRate)} / h`} helper="base para pagos" />
+          <OpsDetailStat icon={Clock3} label="Visitas" value="Mes actual" helper="filtradas por periodo" />
+          <OpsDetailStat icon={WalletCards} label="Pagos" value="Control" helper="saldo y registros" />
+        </OpsDetailHero>
+      </div>
+
+      <EmployeeStickySummaryBar
+        activeAssignments={activeAssignments.length}
+        employee={employee}
+        hourlyRate={hourlyRate}
+        isVisible={showStickySummary}
+      />
 
       {hourlyRate === null ? (
         <OpsNextAction

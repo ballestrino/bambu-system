@@ -9,11 +9,14 @@ import { EmployeePaymentList } from "@/components/ops/payroll/employee-payment-l
 import { PayrollDialog } from "@/components/ops/payroll/payroll-dialog";
 import { PayrollSummary } from "@/components/ops/payroll/payroll-summary";
 import { buildPayrollRows, getPayrollSummary } from "@/components/ops/payroll/payroll-utils";
+import {
+  OpsDateFilterInput,
+  OpsDetailInset,
+  OpsFilterField,
+  OpsSection,
+} from "@/components/ops/shared";
 import type { OpsEmployeeDetail } from "@/components/ops/types";
 import { getMonthRange, toDateInputValue } from "@/components/ops/utils";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 
 export const EmployeePayrollPanel = ({
   employee,
@@ -51,9 +54,8 @@ export const EmployeePayrollPanel = ({
 
   return (
     <div className="space-y-4">
-      <Card className="border-0 bg-white/80 shadow-sm ring-1 ring-black/5">
-        <CardHeader className="flex flex-row items-center justify-between">
-          <CardTitle>Pagos a empleada</CardTitle>
+      <OpsSection
+        actions={
           <PayrollDialog
             employeeId={employee.id}
             employees={[employee]}
@@ -61,18 +63,19 @@ export const EmployeePayrollPanel = ({
             periodStart={startDate}
             suggestedAmount={row?.balance && row.balance > 0 ? row.balance : row?.suggestedAmount}
           />
-        </CardHeader>
-        <CardContent className="grid gap-3 md:grid-cols-2">
-          <div className="space-y-2">
-            <Label>Periodo desde</Label>
-            <Input type="date" value={startDate} onChange={(event) => setStartDate(event.target.value)} />
-          </div>
-          <div className="space-y-2">
-            <Label>Periodo hasta</Label>
-            <Input type="date" value={endDate} onChange={(event) => setEndDate(event.target.value)} />
-          </div>
-        </CardContent>
-      </Card>
+        }
+        description="Mismo periodo visual que visitas, para liquidar y revisar historial sin cambiar de contexto."
+        title="Pagos a empleada"
+      >
+        <OpsDetailInset className="grid gap-3 md:grid-cols-2">
+          <OpsFilterField label="Periodo desde">
+            <OpsDateFilterInput value={startDate} onChange={(event) => setStartDate(event.target.value)} />
+          </OpsFilterField>
+          <OpsFilterField label="Periodo hasta">
+            <OpsDateFilterInput value={endDate} onChange={(event) => setEndDate(event.target.value)} />
+          </OpsFilterField>
+        </OpsDetailInset>
+      </OpsSection>
       <PayrollSummary {...summary} />
       <EmployeePaymentList
         employees={[employee]}

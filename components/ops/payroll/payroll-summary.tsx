@@ -1,5 +1,7 @@
+import { BadgeDollarSign, CircleDollarSign, ReceiptText, Undo2 } from "lucide-react";
+
+import { OpsMetricsGrid } from "@/components/ops/shared";
 import { formatPayrollMoney } from "@/components/ops/payroll/payroll-utils";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 export const PayrollSummary = ({
   balanceTotal,
@@ -12,22 +14,36 @@ export const PayrollSummary = ({
   suggestedTotal: number;
   voidedTotal: number;
 }) => (
-  <div className="grid gap-4 md:grid-cols-4">
-    <Card className="border-0 bg-white/80 shadow-sm ring-1 ring-black/5">
-      <CardHeader><CardTitle className="text-sm">Sugerido</CardTitle></CardHeader>
-      <CardContent className="text-2xl font-bold">{formatPayrollMoney(suggestedTotal)}</CardContent>
-    </Card>
-    <Card className="border-0 bg-white/80 shadow-sm ring-1 ring-black/5">
-      <CardHeader><CardTitle className="text-sm">Pagado</CardTitle></CardHeader>
-      <CardContent className="text-2xl font-bold">{formatPayrollMoney(recordedTotal)}</CardContent>
-    </Card>
-    <Card className="border-0 bg-white/80 shadow-sm ring-1 ring-black/5">
-      <CardHeader><CardTitle className="text-sm">Saldo</CardTitle></CardHeader>
-      <CardContent className="text-2xl font-bold">{formatPayrollMoney(balanceTotal)}</CardContent>
-    </Card>
-    <Card className="border-0 bg-white/80 shadow-sm ring-1 ring-black/5">
-      <CardHeader><CardTitle className="text-sm">Anulado</CardTitle></CardHeader>
-      <CardContent className="text-2xl font-bold">{formatPayrollMoney(voidedTotal)}</CardContent>
-    </Card>
-  </div>
+  <OpsMetricsGrid
+    metrics={[
+      {
+        helper: "pago estimado del periodo",
+        icon: BadgeDollarSign,
+        label: "Sugerido",
+        tone: "money",
+        value: formatPayrollMoney(suggestedTotal),
+      },
+      {
+        helper: "pagos confirmados",
+        icon: ReceiptText,
+        label: "Pagado",
+        tone: "success",
+        value: formatPayrollMoney(recordedTotal),
+      },
+      {
+        helper: "pendiente por cubrir",
+        icon: CircleDollarSign,
+        label: "Saldo",
+        tone: "warning",
+        value: formatPayrollMoney(balanceTotal),
+      },
+      {
+        helper: "historial sin impacto",
+        icon: Undo2,
+        label: "Anulado",
+        tone: "archived",
+        value: formatPayrollMoney(voidedTotal),
+      },
+    ]}
+  />
 );

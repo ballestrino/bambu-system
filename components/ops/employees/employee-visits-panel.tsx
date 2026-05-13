@@ -2,6 +2,14 @@
 
 import { useMemo, useState } from "react";
 import Link from "next/link";
+import {
+  BadgeDollarSign,
+  CalendarDays,
+  CheckCircle2,
+  Clock3,
+  TimerReset,
+  XCircle,
+} from "lucide-react";
 
 import { dashboardSecondaryActionClass } from "@/components/dashboard/dashboard-styles";
 import {
@@ -14,13 +22,17 @@ import {
 } from "@/components/ops/employees/employee-payroll";
 import { useJobOccurrences } from "@/components/ops/hooks/useJobOccurrences";
 import { OccurrenceStatusBadge } from "@/components/ops/jobs/status-badges";
+import {
+  OpsDateFilterInput,
+  OpsDetailInset,
+  OpsDetailRow,
+  OpsFilterField,
+  OpsMetricsGrid,
+  OpsSection, opsFilterControlClass,
+} from "@/components/ops/shared";
 import type { OpsOccurrence } from "@/components/ops/types";
 import { formatDate, formatTime, getMonthRange, toDateInputValue } from "@/components/ops/utils";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { occurrenceStatusValues } from "@/schemas/ops";
 
@@ -64,88 +76,111 @@ export const EmployeeVisitsPanel = ({
   const estimatedPay = getEstimatedPay(stats.hours, hourlyRate);
 
   return (
-    <Card className="border-0 bg-white/80 shadow-sm ring-1 ring-black/5">
-      <CardHeader>
-        <CardTitle>Visitas y horas para pago</CardTitle>
-      </CardHeader>
-      <CardContent className="space-y-5">
-        <div className="grid gap-3 md:grid-cols-5">
-          <div className="space-y-2">
-            <Label>Desde</Label>
-            <Input type="date" value={startDate} onChange={(event) => setStartDate(event.target.value)} />
-          </div>
-          <div className="space-y-2">
-            <Label>Hasta</Label>
-            <Input type="date" value={endDate} onChange={(event) => setEndDate(event.target.value)} />
-          </div>
-          <div className="space-y-2">
-            <Label>Estado</Label>
+    <OpsSection
+      className="bg-white dark:bg-background/95"
+      description="Filtra las visitas realizadas para revisar horas reales y estimar el pago del periodo."
+      title="Visitas y horas para pago"
+    >
+      <div className="space-y-5">
+        <OpsDetailInset className="grid gap-3 xl:grid-cols-5">
+          <OpsFilterField label="Desde"><OpsDateFilterInput value={startDate} onChange={(event) => setStartDate(event.target.value)} /></OpsFilterField>
+          <OpsFilterField label="Hasta"><OpsDateFilterInput value={endDate} onChange={(event) => setEndDate(event.target.value)} /></OpsFilterField>
+          <OpsFilterField label="Estado">
             <Select value={status} onValueChange={setStatus}>
-              <SelectTrigger className="w-full"><SelectValue /></SelectTrigger>
+              <SelectTrigger className={opsFilterControlClass}>
+                <SelectValue />
+              </SelectTrigger>
               <SelectContent>
                 <SelectItem value="ALL">Todos</SelectItem>
                 {occurrenceStatusValues.map((value) => <SelectItem key={value} value={value}>{value}</SelectItem>)}
               </SelectContent>
             </Select>
-          </div>
-          <div className="space-y-2">
-            <Label>Trabajo</Label>
+          </OpsFilterField>
+          <OpsFilterField label="Trabajo">
             <Select value={jobId} onValueChange={setJobId}>
-              <SelectTrigger className="w-full"><SelectValue /></SelectTrigger>
+              <SelectTrigger className={opsFilterControlClass}>
+                <SelectValue />
+              </SelectTrigger>
               <SelectContent>
                 <SelectItem value="ALL">Todos</SelectItem>
                 {jobOptions.map((job) => <SelectItem key={job.id} value={job.id}>{job.name}</SelectItem>)}
               </SelectContent>
             </Select>
-          </div>
-          <div className="space-y-2">
-            <Label>Horario real</Label>
+          </OpsFilterField>
+          <OpsFilterField label="Horario real">
             <Select value={realTiming} onValueChange={setRealTiming}>
-              <SelectTrigger className="w-full"><SelectValue /></SelectTrigger>
+              <SelectTrigger className={opsFilterControlClass}>
+                <SelectValue />
+              </SelectTrigger>
               <SelectContent>
                 <SelectItem value="ALL">Todos</SelectItem>
                 <SelectItem value="WITH_REAL">Con horario</SelectItem>
                 <SelectItem value="WITHOUT_REAL">Sin horario</SelectItem>
               </SelectContent>
             </Select>
-          </div>
-        </div>
-        <div className="grid gap-3 md:grid-cols-6">
-          <Badge variant="outline">Horas: {formatHours(stats.hours)}</Badge>
-          <Badge variant="outline">Visitas: {stats.total}</Badge>
-          <Badge variant="outline">Completadas: {stats.done}</Badge>
-          <Badge variant="outline">Pendientes: {stats.pending}</Badge>
-          <Badge variant="outline">Canceladas: {stats.canceled}</Badge>
-          {estimatedPay === null ? (
-            <Badge variant="secondary">Pago: sin tarifa</Badge>
-          ) : (
-            <Badge variant="outline">Pago: {formatMoney(estimatedPay)}</Badge>
-          )}
-        </div>
-        <div className="rounded-lg border">
+          </OpsFilterField>
+        </OpsDetailInset>
+
+        <OpsMetricsGrid
+          className="grid-cols-2 xl:grid-cols-3"
+          metrics={[
+            { className: "border-black/5 bg-white dark:bg-background/80", helper: "real acumulado", icon: Clock3, label: "Horas", size: "compact", tone: "active", value: formatHours(stats.hours) },
+            { className: "border-black/5 bg-white dark:bg-background/80", helper: "ocurrencias visibles", icon: CalendarDays, label: "Visitas", size: "compact", tone: "neutral", value: stats.total },
+            { className: "border-black/5 bg-white dark:bg-background/80", helper: "quedaron realizadas", icon: CheckCircle2, label: "Completadas", size: "compact", tone: "success", value: stats.done },
+            { className: "border-black/5 bg-white dark:bg-background/80", helper: "aun pendientes", icon: TimerReset, label: "Pendientes", size: "compact", tone: "warning", value: stats.pending },
+            { className: "border-black/5 bg-white dark:bg-background/80", helper: "no ejecutadas", icon: XCircle, label: "Canceladas", size: "compact", tone: "danger", value: stats.canceled },
+            {
+              className: "border-black/5 bg-white dark:bg-background/80",
+              helper: estimatedPay === null ? "falta tarifa horaria" : "estimado del periodo",
+              icon: BadgeDollarSign,
+              label: "Pago",
+              size: "compact",
+              tone: estimatedPay === null ? "archived" : "money",
+              value: estimatedPay === null ? "Sin tarifa" : formatMoney(estimatedPay),
+            },
+          ]}
+        />
+
+        <div className="space-y-3">
           {isLoading ? (
-            <div className="min-h-40 animate-pulse rounded-lg bg-muted/40" />
+            <div className="min-h-40 animate-pulse rounded-2xl bg-muted/40" />
           ) : filteredOccurrences.length ? (
             filteredOccurrences.map((occurrence) => (
-              <div key={occurrence.id} className="grid gap-3 border-b p-4 last:border-b-0 lg:grid-cols-[1fr_1fr_1fr_1fr_auto]">
-                <div>
-                  <p className="font-medium">{formatDate(occurrence.scheduledStartAt)}</p>
-                  <p className="text-sm text-muted-foreground">{occurrence.job.name}</p>
+              <OpsDetailRow key={occurrence.id} className="border-black/5 bg-white dark:bg-background/80" actions={<Button asChild size="sm" variant="outline" className={dashboardSecondaryActionClass}><Link href={`/dashboard/jobs/${occurrence.jobId}`}>Trabajo</Link></Button>}>
+                <div className="grid gap-4 text-center md:grid-cols-2 xl:grid-cols-[1.15fr_1fr_1fr_1fr] xl:text-left">
+                  <div className="space-y-1">
+                    <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Fecha</p>
+                    <p className="font-semibold">{formatDate(occurrence.scheduledStartAt)}</p>
+                    <p className="text-sm text-muted-foreground">{occurrence.job.name}</p>
+                  </div>
+                  <div className="space-y-1 xl:border-l xl:border-black/5 xl:pl-4">
+                    <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Plan</p>
+                    <p className="font-semibold">
+                      {formatTime(occurrence.scheduledStartAt)} - {formatTime(occurrence.scheduledEndAt)}
+                    </p>
+                    <p className="text-sm text-muted-foreground">agenda base</p>
+                  </div>
+                  <div className="space-y-1 xl:border-l xl:border-black/5 xl:pl-4">
+                    <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Real</p>
+                    <p className="font-semibold">
+                      {formatTime(occurrence.actualStartAt)} - {formatTime(occurrence.actualEndAt)}
+                    </p>
+                    <p className="text-sm text-muted-foreground">{occurrence.employee?.name ?? "Sin empleada asignada"}</p>
+                  </div>
+                  <div className="space-y-2 xl:border-l xl:border-black/5 xl:pl-4">
+                    <div className="flex justify-center xl:justify-start">
+                      <OccurrenceStatusBadge status={occurrence.status} />
+                    </div>
+                    <p className="font-semibold">{formatHours(getWorkedHours(occurrence))} hs</p>
+                    <p className="text-sm text-muted-foreground">{occurrence.notes || "Sin notas"}</p>
+                  </div>
                 </div>
-                <p className="text-sm">Plan {formatTime(occurrence.scheduledStartAt)} - {formatTime(occurrence.scheduledEndAt)}</p>
-                <p className="text-sm">Real {formatTime(occurrence.actualStartAt)} - {formatTime(occurrence.actualEndAt)}</p>
-                <div className="space-y-1 text-sm">
-                  <OccurrenceStatusBadge status={occurrence.status} />
-                  <p>{formatHours(getWorkedHours(occurrence))} hs</p>
-                  <p className="text-muted-foreground">{occurrence.notes || "Sin notas"}</p>
-                </div>
-                <Button asChild size="sm" variant="outline" className={dashboardSecondaryActionClass}>
-                  <Link href={`/dashboard/jobs/${occurrence.jobId}`}>Trabajo</Link>
-                </Button>
-              </div>
+              </OpsDetailRow>
             ))
           ) : (
-            <p className="p-4 text-sm text-muted-foreground">No hay visitas para estos filtros.</p>
+            <p className="rounded-2xl border border-dashed border-black/10 bg-white p-5 text-sm text-muted-foreground dark:bg-background/80">
+              No hay visitas para estos filtros.
+            </p>
           )}
         </div>
         {estimatedPay === null ? (
@@ -153,7 +188,7 @@ export const EmployeeVisitsPanel = ({
             El pago estimado queda pendiente hasta configurar una tarifa por empleada.
           </p>
         ) : null}
-      </CardContent>
-    </Card>
+      </div>
+    </OpsSection>
   );
 };

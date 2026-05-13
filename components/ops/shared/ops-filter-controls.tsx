@@ -1,11 +1,12 @@
 "use client";
 
-import type { ReactNode } from "react";
+import type { ComponentProps, ReactNode } from "react";
 import { Search, SlidersHorizontal, X } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import {
   Sheet,
   SheetContent,
@@ -25,11 +26,38 @@ export type OpsFilterChip = {
 export const opsFilterControlClass =
   "h-12! min-h-12 w-full rounded-full border-[#53985E]/15 bg-white px-4 py-0 text-[#244C2D] shadow-sm shadow-[#244C2D]/5 transition-colors hover:bg-[#F7FBF7] focus:ring-[#53985E]/15 data-[size=default]:h-12! dark:bg-[#132016] dark:text-[#A7D8AE]";
 
+export const opsFilterInputClass =
+  "h-12 min-h-12 w-full rounded-full border-[#53985E]/15 bg-white px-4 py-0 text-sm text-[#244C2D] shadow-sm shadow-[#244C2D]/5 transition-colors hover:bg-[#F7FBF7] focus-visible:ring-[#53985E]/15 dark:bg-[#132016] dark:text-[#A7D8AE]";
+
 export const opsFilterToggleClass =
   "flex h-12 min-h-12 w-full items-center justify-between gap-3 rounded-full border border-[#53985E]/15 bg-white px-4 py-0 text-sm text-[#244C2D] shadow-sm shadow-[#244C2D]/5 md:w-56 dark:bg-[#132016] dark:text-[#A7D8AE]";
 
 export const opsSwitchClass =
   "data-[state=checked]:bg-[#53985E] data-[state=unchecked]:bg-[#E2EADF] dark:data-[state=unchecked]:bg-[#2A3A2D]";
+
+export const OpsFilterField = ({
+  children,
+  className,
+  label,
+}: {
+  children: ReactNode;
+  className?: string;
+  label: string;
+}) => (
+  <div className={cn("space-y-2", className)}>
+    <Label className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+      {label}
+    </Label>
+    {children}
+  </div>
+);
+
+export const OpsDateFilterInput = ({
+  className,
+  ...props
+}: ComponentProps<typeof Input>) => (
+  <Input {...props} type="date" className={cn(opsFilterInputClass, className)} />
+);
 
 export const OpsSearchInput = ({
   className,
