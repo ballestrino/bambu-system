@@ -1,6 +1,6 @@
-import { OpsSidebar } from "@/components/ops/sidebar";
+import { OpsSidebar, OpsSidebarFloatingTrigger } from "@/components/ops/sidebar";
 import { opsSurface } from "@/components/ops/shared/ops-theme";
-import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
+import { SidebarProvider } from "@/components/ui/sidebar";
 import { cn } from "@/lib/utils";
 
 export default function OpsLayout({
@@ -11,9 +11,7 @@ export default function OpsLayout({
   return (
     <SidebarProvider>
       <OpsSidebar />
-      <div className="fixed left-3 top-24 z-30 md:left-4">
-        <SidebarTrigger className="border border-[#53985E]/20 bg-background/90 text-[#244C2D] shadow-sm hover:bg-[#EAF5EC] dark:text-[#A7D8AE]" />
-      </div>
+      <OpsSidebarFloatingTrigger />
 
       <main className="w-full min-w-0">
         <div

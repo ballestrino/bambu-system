@@ -61,3 +61,18 @@ export function OpsSidebar() {
     </Sidebar>
   );
 }
+
+export function OpsSidebarFloatingTrigger() {
+  const { isMobile, openMobile, state } = useSidebar();
+  const shouldHide = isMobile ? openMobile : state === "expanded";
+
+  if (shouldHide) {
+    return null;
+  }
+
+  return (
+    <div className="fixed left-3 top-24 z-30 md:left-4">
+      <SidebarTrigger className="border border-[#53985E]/20 bg-background/90 text-[#244C2D] shadow-sm hover:bg-[#EAF5EC] dark:text-[#A7D8AE]" />
+    </div>
+  );
+}
