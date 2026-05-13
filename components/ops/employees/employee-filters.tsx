@@ -1,15 +1,30 @@
 "use client";
 
-import { Search } from "lucide-react";
-
-import { Input } from "@/components/ui/input";
+import {
+  OpsFilterChips,
+  OpsFilterSheet,
+  OpsSearchInput,
+  OpsToolbar,
+  opsFilterControlClass,
+  opsFilterToggleClass,
+  opsSwitchClass,
+  type OpsFilterChip,
+} from "@/components/ops/shared";
+import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
+
+const activeFilterLabels: Record<string, string> = {
+  active: "Activos",
+  all: "Todos",
+  inactive: "Inactivos",
+};
 
 export const EmployeeFilters = ({
   query,
   activeFilter,
   includeArchived,
+  onClear,
   onQueryChange,
   onActiveFilterChange,
   onIncludeArchivedChange,
@@ -17,33 +32,86 @@ export const EmployeeFilters = ({
   query: string;
   activeFilter: string;
   includeArchived: boolean;
+  onClear: () => void;
   onQueryChange: (value: string) => void;
   onActiveFilterChange: (value: string) => void;
   onIncludeArchivedChange: (value: boolean) => void;
-}) => (
-  <div className="grid gap-3 rounded-lg border bg-background/80 p-4 md:grid-cols-[1fr_170px_auto]">
-    <div className="relative">
-      <Search className="absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-      <Input
-        value={query}
-        onChange={(event) => onQueryChange(event.target.value)}
-        placeholder="Buscar por nombre, email, teléfono o notas"
-        className="pl-9"
-      />
+}) => {
+  const chips = [
+    query.trim()
+      ? { label: `Busca "${query.trim()}"`, onRemove: () => onQueryChange("") }
+      : null,
+    activeFilter !== "active"
+      ? {
+          label: `Estado: ${activeFilterLabels[activeFilter] ?? activeFilter}`,
+          onRemove: () => onActiveFilterChange("active"),
+        }
+      : null,
+    includeArchived
+      ? { label: "Incluye archivados", onRemove: () => onIncludeArchivedChange(false) }
+      : null,
+  ].filter(Boolean) as OpsFilterChip[];
+
+  const searchField = (
+    <OpsSearchInput
+      value={query}
+      onChange={onQueryChange}
+      placeholder="Buscar por nombre, email, teléfono o notas"
+    />
+  );
+
+  const activeField = (
+    <div className="space-y-2 md:w-56 md:space-y-0">
+      <Label className="md:hidden">Estado</Label>
+      <Select value={activeFilter} onValueChange={onActiveFilterChange}>
+        <SelectTrigger className={opsFilterControlClass}>
+          <SelectValue />
+        </SelectTrigger>
+        <SelectContent>
+          <SelectItem value="all">Todos</SelectItem>
+          <SelectItem value="active">Activos</SelectItem>
+          <SelectItem value="inactive">Inactivos</SelectItem>
+        </SelectContent>
+      </Select>
     </div>
-    <Select value={activeFilter} onValueChange={onActiveFilterChange}>
-      <SelectTrigger className="w-full">
-        <SelectValue />
-      </SelectTrigger>
-      <SelectContent>
-        <SelectItem value="all">Todos</SelectItem>
-        <SelectItem value="active">Activos</SelectItem>
-        <SelectItem value="inactive">Inactivos</SelectItem>
-      </SelectContent>
-    </Select>
-    <label className="flex items-center gap-3 rounded-md border px-3 py-2 text-sm">
-      <Switch checked={includeArchived} onCheckedChange={onIncludeArchivedChange} />
+  );
+
+  const archivedField = (
+    <label className={opsFilterToggleClass}>
       Incluir archivados
+      <Switch
+        checked={includeArchived}
+        className={opsSwitchClass}
+        onCheckedChange={onIncludeArchivedChange}
+      />
     </label>
-  </div>
-);
+  );
+
+  return (
+    <div className="space-y-3">
+      <div className="space-y-3 md:hidden">
+        <div className="flex gap-2">
+          {searchField}
+          <OpsFilterSheet
+            activeCount={chips.length}
+            description="Filtra por estado, archivo o contacto."
+            onClear={onClear}
+          >
+            {activeField}
+            {archivedField}
+          </OpsFilterSheet>
+        </div>
+        <OpsFilterChips chips={chips} onClear={onClear} />
+      </div>
+
+      <div className="hidden space-y-3 md:block">
+        <OpsToolbar summary={`${chips.length} filtro(s) activo(s)`}>
+          {searchField}
+          {activeField}
+          {archivedField}
+        </OpsToolbar>
+        <OpsFilterChips chips={chips} onClear={onClear} />
+      </div>
+    </div>
+  );
+};

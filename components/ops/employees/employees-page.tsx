@@ -1,49 +1,73 @@
 "use client";
 
-import { useDeferredValue, useState } from "react";
+import { UsersRound } from "lucide-react";
 
 import { EmployeeCard } from "@/components/ops/employees/employee-card";
 import { EmployeeFilters } from "@/components/ops/employees/employee-filters";
 import { EmployeesHeader } from "@/components/ops/employees/employees-header";
 import { useEmployeeMutations } from "@/components/ops/hooks/useEmployeeMutations";
 import { useEmployees } from "@/components/ops/hooks/useEmployees";
-import { Card, CardContent } from "@/components/ui/card";
+import {
+  OpsEmptyState,
+  OpsPageShell,
+  OpsRecordList,
+  OpsRecordSkeleton,
+  useOpsDebouncedValue,
+  useOpsPersistedState,
+} from "@/components/ops/shared";
+
+type EmployeeFilterState = {
+  query: string;
+  activeFilter: string;
+  includeArchived: boolean;
+};
+
+const defaultEmployeeFilters: EmployeeFilterState = {
+  query: "",
+  activeFilter: "active",
+  includeArchived: false,
+};
 
 export const EmployeesPage = () => {
-  const [query, setQuery] = useState("");
-  const [activeFilter, setActiveFilter] = useState("active");
-  const [includeArchived, setIncludeArchived] = useState(false);
-  const deferredQuery = useDeferredValue(query);
+  const [filterState, setFilterState] = useOpsPersistedState(
+    "bambu:ops:employees:filters",
+    defaultEmployeeFilters
+  );
+  const debouncedQuery = useOpsDebouncedValue(filterState.query, 1500);
 
   const filters = {
-    query: deferredQuery || undefined,
+    query: debouncedQuery || undefined,
     isActive:
-      activeFilter === "all" ? undefined : activeFilter === "active",
-    includeArchived,
+      filterState.activeFilter === "all"
+        ? undefined
+        : filterState.activeFilter === "active",
+    includeArchived: filterState.includeArchived,
   };
 
   const { employees, isLoading } = useEmployees(filters);
   const { archiveEmployeeAsync } = useEmployeeMutations();
+  const updateFilters = (values: Partial<EmployeeFilterState>) => {
+    setFilterState((current) => ({ ...current, ...values }));
+  };
 
   return (
-    <div className="container flex w-full flex-col gap-6">
+    <OpsPageShell>
       <EmployeesHeader count={employees.length} />
       <EmployeeFilters
-        query={query}
-        activeFilter={activeFilter}
-        includeArchived={includeArchived}
-        onQueryChange={setQuery}
-        onActiveFilterChange={setActiveFilter}
-        onIncludeArchivedChange={setIncludeArchived}
+        query={filterState.query}
+        activeFilter={filterState.activeFilter}
+        includeArchived={filterState.includeArchived}
+        onQueryChange={(query) => updateFilters({ query })}
+        onActiveFilterChange={(activeFilter) => updateFilters({ activeFilter })}
+        onIncludeArchivedChange={(includeArchived) =>
+          updateFilters({ includeArchived })
+        }
+        onClear={() => setFilterState(defaultEmployeeFilters)}
       />
       {isLoading ? (
-        <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-          {Array.from({ length: 6 }).map((_, index) => (
-            <Card key={index} className="h-44 animate-pulse bg-muted/40" />
-          ))}
-        </div>
+        <OpsRecordSkeleton count={6} />
       ) : employees.length ? (
-        <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+        <OpsRecordList>
           {employees.map((employee) => (
             <EmployeeCard
               key={employee.id}
@@ -53,17 +77,14 @@ export const EmployeesPage = () => {
               }}
             />
           ))}
-        </div>
+        </OpsRecordList>
       ) : (
-        <Card className="border-dashed">
-          <CardContent className="flex min-h-48 flex-col items-center justify-center gap-2 text-center">
-            <h2 className="text-lg font-semibold">No hay empleados para este filtro</h2>
-            <p className="max-w-md text-sm text-muted-foreground">
-              Creá un empleado o ajustá la búsqueda para revisar activos, inactivos o archivados.
-            </p>
-          </CardContent>
-        </Card>
+        <OpsEmptyState
+          icon={UsersRound}
+          title="No hay empleados para este filtro"
+          description="Crea un empleado nuevo o limpia los filtros para revisar activos, inactivos y archivados."
+        />
       )}
-    </div>
+    </OpsPageShell>
   );
 };

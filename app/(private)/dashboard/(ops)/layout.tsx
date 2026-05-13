@@ -16,7 +16,7 @@ export default function OpsLayout({
       <main className="w-full min-w-0">
         <div
           className={cn(
-            "relative flex min-h-[calc(100vh-5rem)] w-full flex-col items-center px-4 py-6 md:px-6 md:py-8",
+            "relative flex min-h-[calc(100vh-5rem)] w-full flex-col items-center px-4 pb-6 pt-12 md:px-6 md:py-8",
             opsSurface.shell
           )}
         >

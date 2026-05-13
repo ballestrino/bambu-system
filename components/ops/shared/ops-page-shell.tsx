@@ -77,11 +77,11 @@ export const OpsPageHeader = ({
 export const OpsToolbar = ({ children, className, summary }: OpsToolbarProps) => (
   <div className={cn(opsSurface.toolbar, className)}>
     <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
-      <div className="grid flex-1 gap-3 md:grid-cols-[minmax(0,1fr)_auto] lg:flex lg:flex-wrap">
+      <div className="grid flex-1 items-center gap-3 md:grid-cols-[minmax(0,1fr)_auto] lg:flex lg:flex-wrap">
         {children}
       </div>
       {summary ? (
-        <div className="flex shrink-0 flex-wrap items-center gap-2 text-sm text-muted-foreground">
+        <div className="flex min-h-12 shrink-0 flex-wrap items-center gap-2 text-sm text-muted-foreground">
           {summary}
         </div>
       ) : null}

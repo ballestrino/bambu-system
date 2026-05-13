@@ -17,7 +17,7 @@ export const opsSurface = {
   headerAccent:
     "before:absolute before:left-0 before:top-1 before:h-10 before:w-1 before:rounded-full before:bg-[#53985E]",
   toolbar:
-    "rounded-md border border-[#53985E]/15 bg-background/90 p-3 shadow-sm shadow-[#244C2D]/5",
+    "rounded-md bg-background/70 p-3 shadow-sm shadow-[#244C2D]/5",
 } as const;
 
 export const opsToneClasses = {

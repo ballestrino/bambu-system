@@ -1,13 +1,16 @@
 "use client";
 
 import Link from "next/link";
+import { CircleDollarSign, Mail, Phone, UserRound } from "lucide-react";
 
+import { formatMoney, getHourlyRateNumber } from "@/components/ops/employees/employee-payroll";
 import { EmployeeFormDialog } from "@/components/ops/employees/employee-form-dialog";
 import type { OpsEmployee } from "@/components/ops/types";
+import { OpsRecordItem, opsToneClasses } from "@/components/ops/shared";
 import DeleteDialog from "@/components/ui/delete-dialog";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { cn } from "@/lib/utils";
 
 export const EmployeeCard = ({
   employee,
@@ -15,43 +18,73 @@ export const EmployeeCard = ({
 }: {
   employee: OpsEmployee;
   onArchive: (employeeId: string) => Promise<void>;
-}) => (
-  <Card className="h-full border-0 bg-white/80 shadow-sm ring-1 ring-black/5">
-    <CardHeader className="space-y-3">
-      <div className="flex items-start justify-between gap-3">
-        <div className="space-y-1">
-          <CardTitle className="text-lg">{employee.name}</CardTitle>
-          <p className="text-sm text-muted-foreground">
-            {employee.phone || employee.email || "Sin contacto cargado"}
-          </p>
+}) => {
+  const contact = employee.phone || employee.email || "Sin contacto cargado";
+  const hourlyRate = getHourlyRateNumber(employee.hourlyRate);
+
+  return (
+    <OpsRecordItem
+      leading={
+        <div className="hidden rounded-md border border-[#53985E]/20 bg-[#EAF5EC] p-2 text-[#244C2D] md:flex">
+          <UserRound className="h-5 w-5" />
         </div>
-        <Badge variant={employee.isActive ? "default" : "secondary"}>
+      }
+      title={employee.name}
+      subtitle={contact}
+      status={
+        <Badge
+          variant="outline"
+          className={cn(
+            "border",
+            employee.isActive ? opsToneClasses.active : opsToneClasses.neutral
+          )}
+        >
           {employee.isActive ? "Activo" : "Inactivo"}
         </Badge>
-      </div>
-      {employee.notes ? (
-        <p className="line-clamp-2 text-sm text-muted-foreground">{employee.notes}</p>
-      ) : null}
-    </CardHeader>
-    <CardContent className="flex flex-wrap gap-2">
-      <Button asChild size="sm">
-        <Link href={`/dashboard/employees/${employee.id}`}>Ver detalle</Link>
-      </Button>
-      <EmployeeFormDialog employee={employee} />
-      <DeleteDialog
-        title="Archivar empleado"
-        description="El empleado dejará de aparecer como opción normal para nuevas asignaciones."
-        deleteButtonText="Archivar"
-        deleteButtonVariant="default"
-        onConfirm={async () => {
-          await onArchive(employee.id);
-        }}
-        trigger={
-          <Button variant="outline" size="sm">
-            Archivar
+      }
+      description={employee.notes}
+      meta={
+        <>
+          {employee.phone ? (
+            <span className="inline-flex items-center gap-1">
+              <Phone className="h-3.5 w-3.5" />
+              {employee.phone}
+            </span>
+          ) : null}
+          {employee.email ? (
+            <span className="inline-flex items-center gap-1">
+              <Mail className="h-3.5 w-3.5" />
+              {employee.email}
+            </span>
+          ) : null}
+          <span className="inline-flex items-center gap-1">
+            <CircleDollarSign className="h-3.5 w-3.5" />
+            {hourlyRate === null ? "Sin tarifa" : `${formatMoney(hourlyRate)}/h`}
+          </span>
+        </>
+      }
+      actions={
+        <>
+          <Button asChild size="sm">
+            <Link href={`/dashboard/employees/${employee.id}`}>Detalle</Link>
           </Button>
-        }
-      />
-    </CardContent>
-  </Card>
-);
+          <EmployeeFormDialog employee={employee} />
+          <DeleteDialog
+            title="Archivar empleado"
+            description="El empleado dejará de aparecer como opción normal para nuevas asignaciones."
+            deleteButtonText="Archivar"
+            deleteButtonVariant="default"
+            onConfirm={async () => {
+              await onArchive(employee.id);
+            }}
+            trigger={
+              <Button variant="outline" size="sm">
+                Archivar
+              </Button>
+            }
+          />
+        </>
+      }
+    />
+  );
+};

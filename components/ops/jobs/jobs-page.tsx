@@ -1,51 +1,76 @@
 "use client";
 
-import { useDeferredValue, useState } from "react";
+import { BriefcaseBusiness } from "lucide-react";
 
 import { JobCard } from "@/components/ops/jobs/job-card";
 import { JobFilters } from "@/components/ops/jobs/job-filters";
 import { JobsHeader } from "@/components/ops/jobs/jobs-header";
 import { useJobMutations } from "@/components/ops/hooks/useJobMutations";
 import { useJobs } from "@/components/ops/hooks/useJobs";
-import { Card, CardContent } from "@/components/ui/card";
+import {
+  OpsEmptyState,
+  OpsPageShell,
+  OpsRecordList,
+  OpsRecordSkeleton,
+  useOpsDebouncedValue,
+  useOpsPersistedState,
+} from "@/components/ops/shared";
 import { jobStatusValues } from "@/schemas/ops";
 
 type JobStatusFilter = (typeof jobStatusValues)[number] | "all";
 
+type JobFilterState = {
+  query: string;
+  status: JobStatusFilter;
+  includeArchived: boolean;
+};
+
+const defaultJobFilters: JobFilterState = {
+  query: "",
+  status: "all",
+  includeArchived: false,
+};
+
 export const JobsPage = () => {
-  const [query, setQuery] = useState("");
-  const [status, setStatus] = useState<JobStatusFilter>("all");
-  const [includeArchived, setIncludeArchived] = useState(false);
-  const deferredQuery = useDeferredValue(query);
+  const [filterState, setFilterState] = useOpsPersistedState(
+    "bambu:ops:jobs:filters",
+    defaultJobFilters
+  );
+  const debouncedQuery = useOpsDebouncedValue(filterState.query, 1500);
 
   const filters = {
-    query: deferredQuery || undefined,
-    statuses: status !== "all" ? [status] : undefined,
-    includeArchived,
+    query: debouncedQuery || undefined,
+    statuses:
+      filterState.status !== "all" ? [filterState.status] : undefined,
+    includeArchived: filterState.includeArchived,
   };
 
   const { jobs, isLoading } = useJobs(filters);
   const { archiveJobAsync } = useJobMutations();
+  const updateFilters = (values: Partial<JobFilterState>) => {
+    setFilterState((current) => ({ ...current, ...values }));
+  };
 
   return (
-    <div className="container flex w-full flex-col gap-6">
+    <OpsPageShell>
       <JobsHeader count={jobs.length} />
       <JobFilters
-        query={query}
-        status={status}
-        includeArchived={includeArchived}
-        onQueryChange={setQuery}
-        onStatusChange={(value) => setStatus(value as JobStatusFilter)}
-        onIncludeArchivedChange={setIncludeArchived}
+        query={filterState.query}
+        status={filterState.status}
+        includeArchived={filterState.includeArchived}
+        onQueryChange={(query) => updateFilters({ query })}
+        onStatusChange={(status) =>
+          updateFilters({ status: status as JobStatusFilter })
+        }
+        onIncludeArchivedChange={(includeArchived) =>
+          updateFilters({ includeArchived })
+        }
+        onClear={() => setFilterState(defaultJobFilters)}
       />
       {isLoading ? (
-        <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-          {Array.from({ length: 6 }).map((_, index) => (
-            <Card key={index} className="h-52 animate-pulse bg-muted/40" />
-          ))}
-        </div>
+        <OpsRecordSkeleton count={6} />
       ) : jobs.length ? (
-        <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+        <OpsRecordList>
           {jobs.map((job) => (
             <JobCard
               key={job.id}
@@ -55,17 +80,14 @@ export const JobsPage = () => {
               }}
             />
           ))}
-        </div>
+        </OpsRecordList>
       ) : (
-        <Card className="border-dashed">
-          <CardContent className="flex min-h-48 flex-col items-center justify-center gap-2 text-center">
-            <h2 className="text-lg font-semibold">Todavía no hay trabajos en este filtro</h2>
-            <p className="max-w-md text-sm text-muted-foreground">
-              Probá crear un trabajo nuevo o afinar la búsqueda por nombre, estado o archivo.
-            </p>
-          </CardContent>
-        </Card>
+        <OpsEmptyState
+          icon={BriefcaseBusiness}
+          title="Todavía no hay trabajos en este filtro"
+          description="Crea un trabajo nuevo o limpia los filtros para volver a ver la operación completa."
+        />
       )}
-    </div>
+    </OpsPageShell>
   );
 };
