@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { CalendarDays, CircleDollarSign, BriefcaseBusiness, UsersRound } from "lucide-react";
+import { CalendarDays, CircleDollarSign, BriefcaseBusiness, HandCoins, UsersRound } from "lucide-react";
 import { usePathname } from "next/navigation";
 
 import {
@@ -37,6 +37,11 @@ const items = [
     title: "Cobros",
     url: "/dashboard/payments",
     icon: CircleDollarSign,
+  },
+  {
+    title: "Pagos",
+    url: "/dashboard/payroll",
+    icon: HandCoins,
   },
 ];
 

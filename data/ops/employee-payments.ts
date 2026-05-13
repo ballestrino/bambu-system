@@ -3,7 +3,7 @@ import "server-only";
 import { db } from "@/lib/db";
 import { requireAdminSession } from "@/lib/require-admin-session";
 import { EmployeePaymentFiltersSchema } from "@/schemas/ops";
-import { buildDateTimeRange, opsAuditUserSelect } from "@/data/ops/shared";
+import { opsAuditUserSelect } from "@/data/ops/shared";
 
 export const getEmployeePayments = async (filters?: unknown) => {
   try {
@@ -20,7 +20,13 @@ export const getEmployeePayments = async (filters?: unknown) => {
       where: {
         employeeId,
         status: statuses?.length ? { in: statuses } : undefined,
-        paymentDate: buildDateTimeRange(startDate, endDate),
+        AND:
+          startDate || endDate
+            ? [
+                endDate ? { periodStart: { lte: endDate } } : {},
+                startDate ? { periodEnd: { gte: startDate } } : {},
+              ]
+            : undefined,
       },
       include: {
         employee: true,

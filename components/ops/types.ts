@@ -125,3 +125,11 @@ export type OpsJobClientPayment = Prisma.JobClientPaymentGetPayload<{
     updatedBy: OpsAuditUserSelect;
   };
 }>;
+
+export type OpsEmployeePayment = Prisma.EmployeePaymentGetPayload<{
+  include: {
+    employee: true;
+    createdBy: OpsAuditUserSelect;
+    updatedBy: OpsAuditUserSelect;
+  };
+}>;

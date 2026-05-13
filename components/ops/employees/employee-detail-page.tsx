@@ -5,6 +5,7 @@ import { AlertCircle } from "lucide-react";
 import { EmployeeAssignmentsPanel } from "@/components/ops/employees/employee-assignments-panel";
 import { EmployeeSummaryCard } from "@/components/ops/employees/employee-summary-card";
 import { EmployeeVisitsPanel } from "@/components/ops/employees/employee-visits-panel";
+import { EmployeePayrollPanel } from "@/components/ops/payroll/employee-payroll-panel";
 import { useEmployee } from "@/components/ops/hooks/useEmployee";
 import { useJobEmployeeAssignments } from "@/components/ops/hooks/useJobEmployeeAssignments";
 import { Card, CardContent } from "@/components/ui/card";
@@ -39,6 +40,7 @@ export const EmployeeDetailPage = ({ employeeId }: { employeeId: string }) => {
       </div>
       <EmployeeSummaryCard employee={employee} />
       <EmployeeVisitsPanel employeeId={employeeId} hourlyRate={employee.hourlyRate} />
+      <EmployeePayrollPanel employee={employee} />
       <EmployeeAssignmentsPanel assignments={assignments} />
     </div>
   );

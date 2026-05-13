@@ -15,4 +15,7 @@ export const opsQueryKeys = {
   clientPayments: ["ops", "client-payments"] as const,
   clientPaymentScope: (scope?: string) =>
     ["ops", "client-payments", scope ?? "all"] as const,
+  employeePayments: ["ops", "employee-payments"] as const,
+  employeePaymentScope: (scope?: string) =>
+    ["ops", "employee-payments", scope ?? "all"] as const,
 };

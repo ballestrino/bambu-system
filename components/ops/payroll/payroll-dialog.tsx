@@ -1,0 +1,139 @@
+"use client";
+
+import { useState } from "react";
+import { LoaderCircle, Pencil, Plus } from "lucide-react";
+
+import { useEmployeePaymentMutations } from "@/components/ops/hooks/useEmployeePaymentMutations";
+import { formatPayrollMoney, toPayrollNumber } from "@/components/ops/payroll/payroll-utils";
+import type { OpsEmployee, OpsEmployeePayment } from "@/components/ops/types";
+import { toDateInputValue } from "@/components/ops/utils";
+import { Button } from "@/components/ui/button";
+import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Textarea } from "@/components/ui/textarea";
+
+const getInitialState = (
+  payment?: OpsEmployeePayment,
+  defaults?: { employeeId?: string; periodEnd?: string; periodStart?: string; suggestedAmount?: number | null }
+) => ({
+  amount: payment ? String(toPayrollNumber(payment.amount)) : defaults?.suggestedAmount ? String(defaults.suggestedAmount) : "",
+  employeeId: payment?.employeeId ?? defaults?.employeeId ?? "",
+  notes: payment?.notes ?? "",
+  paymentDate: toDateInputValue(payment?.paymentDate ?? new Date()),
+  periodEnd: toDateInputValue(payment?.periodEnd ?? defaults?.periodEnd),
+  periodStart: toDateInputValue(payment?.periodStart ?? defaults?.periodStart),
+  reference: payment?.reference ?? "",
+});
+
+export const PayrollDialog = ({
+  employeeId,
+  employees,
+  payment,
+  periodEnd,
+  periodStart,
+  suggestedAmount,
+}: {
+  employeeId?: string;
+  employees: OpsEmployee[];
+  payment?: OpsEmployeePayment;
+  periodEnd?: string;
+  periodStart?: string;
+  suggestedAmount?: number | null;
+}) => {
+  const defaults = { employeeId, periodEnd, periodStart, suggestedAmount };
+  const [open, setOpen] = useState(false);
+  const [formState, setFormState] = useState(getInitialState(payment, defaults));
+  const { createPaymentAsync, updatePaymentAsync, isCreating, isUpdating } =
+    useEmployeePaymentMutations(employeeId ?? payment?.employeeId);
+  const isPending = isCreating || isUpdating;
+  const amount = toPayrollNumber(formState.amount);
+
+  const handleSubmit = async () => {
+    if (payment) {
+      await updatePaymentAsync({
+        paymentId: payment.id,
+        values: {
+          amount,
+          notes: formState.notes,
+          paymentDate: new Date(`${formState.paymentDate}T00:00:00`),
+          periodEnd: new Date(`${formState.periodEnd}T23:59:59`),
+          periodStart: new Date(`${formState.periodStart}T00:00:00`),
+          reference: formState.reference,
+        },
+      });
+    } else {
+      await createPaymentAsync({
+        amount,
+        employeeId: formState.employeeId,
+        notes: formState.notes || undefined,
+        paymentDate: new Date(`${formState.paymentDate}T00:00:00`),
+        periodEnd: new Date(`${formState.periodEnd}T23:59:59`),
+        periodStart: new Date(`${formState.periodStart}T00:00:00`),
+        reference: formState.reference || undefined,
+        status: "RECORDED",
+      });
+    }
+
+    setOpen(false);
+  };
+
+  return (
+    <Dialog
+      open={open}
+      onOpenChange={(nextOpen) => {
+        if (nextOpen) setFormState(getInitialState(payment, defaults));
+        setOpen(nextOpen);
+      }}
+    >
+      <DialogTrigger asChild>
+        {payment ? (
+          <Button variant="outline" size="sm"><Pencil className="h-4 w-4" />Editar</Button>
+        ) : (
+          <Button size="sm"><Plus className="h-4 w-4" />Registrar pago</Button>
+        )}
+      </DialogTrigger>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>{payment ? "Editar pago" : "Registrar pago"}</DialogTitle>
+        </DialogHeader>
+        <div className="grid gap-4">
+          {!employeeId && !payment ? (
+            <div className="space-y-2">
+              <Label>Empleado</Label>
+              <Select value={formState.employeeId} onValueChange={(nextEmployeeId) => setFormState((current) => ({ ...current, employeeId: nextEmployeeId }))}>
+                <SelectTrigger className="w-full"><SelectValue placeholder="Seleccionar empleado" /></SelectTrigger>
+                <SelectContent>
+                  {employees.map((employee) => <SelectItem key={employee.id} value={employee.id}>{employee.name}</SelectItem>)}
+                </SelectContent>
+              </Select>
+            </div>
+          ) : null}
+          {suggestedAmount ? (
+            <p className="rounded-md bg-muted px-3 py-2 text-sm">
+              Sugerido para el periodo: {formatPayrollMoney(suggestedAmount)}
+            </p>
+          ) : null}
+          <div className="grid gap-4 md:grid-cols-2">
+            <div className="space-y-2"><Label>Periodo desde</Label><Input type="date" value={formState.periodStart} onChange={(event) => setFormState((current) => ({ ...current, periodStart: event.target.value }))} /></div>
+            <div className="space-y-2"><Label>Periodo hasta</Label><Input type="date" value={formState.periodEnd} onChange={(event) => setFormState((current) => ({ ...current, periodEnd: event.target.value }))} /></div>
+          </div>
+          <div className="grid gap-4 md:grid-cols-2">
+            <div className="space-y-2"><Label>Fecha de pago</Label><Input type="date" value={formState.paymentDate} onChange={(event) => setFormState((current) => ({ ...current, paymentDate: event.target.value }))} /></div>
+            <div className="space-y-2"><Label>Monto</Label><Input min="0.01" step="0.01" type="number" value={formState.amount} onChange={(event) => setFormState((current) => ({ ...current, amount: event.target.value }))} /></div>
+          </div>
+          <div className="space-y-2"><Label>Referencia</Label><Input value={formState.reference} onChange={(event) => setFormState((current) => ({ ...current, reference: event.target.value }))} /></div>
+          <div className="space-y-2"><Label>Notas</Label><Textarea value={formState.notes} onChange={(event) => setFormState((current) => ({ ...current, notes: event.target.value }))} /></div>
+        </div>
+        <DialogFooter>
+          <Button variant="outline" onClick={() => setOpen(false)}>Cancelar</Button>
+          <Button disabled={isPending || amount <= 0 || !formState.employeeId || !formState.paymentDate || !formState.periodStart || !formState.periodEnd} onClick={handleSubmit}>
+            {isPending ? <LoaderCircle className="h-4 w-4 animate-spin" /> : null}
+            Guardar pago
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+};
