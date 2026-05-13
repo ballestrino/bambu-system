@@ -1,12 +1,17 @@
 "use client";
 
+import { CalendarRange, Clock3 } from "lucide-react";
+
+import { dashboardSecondaryActionClass } from "@/components/dashboard/dashboard-styles";
+import { OpsDetailRow, OpsSection, opsFrequencyLabels } from "@/components/ops/shared";
 import DeleteDialog from "@/components/ui/delete-dialog";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { JobScheduleRuleDialog } from "@/components/ops/jobs/job-schedule-rule-dialog";
 import { formatDate } from "@/components/ops/utils";
 import type { OpsScheduleRule } from "@/components/ops/types";
 
 const weekdayLabels = ["Lun", "Mar", "Mie", "Jue", "Vie", "Sab", "Dom"];
+const toClockLabel = (minutes: number) =>
+  `${String(Math.floor(minutes / 60)).padStart(2, "0")}:${String(minutes % 60).padStart(2, "0")}`;
 
 const describeRule = (rule: OpsScheduleRule) => {
   if (rule.frequency === "WEEKLY") {
@@ -29,22 +34,18 @@ export const JobScheduleRulesPanel = ({
   rules: OpsScheduleRule[];
   onArchive: (scheduleRuleId: string) => Promise<void>;
 }) => (
-  <Card className="border-0 bg-white/80 shadow-sm ring-1 ring-black/5">
-    <CardHeader className="flex flex-row items-center justify-between">
-      <CardTitle>Reglas de calendario</CardTitle>
-      <JobScheduleRuleDialog jobId={jobId} />
-    </CardHeader>
-    <CardContent className="space-y-3">
+  <OpsSection
+    actions={<JobScheduleRuleDialog jobId={jobId} />}
+    description="Recurrencias base para poblar la agenda del trabajo."
+    title="Reglas de calendario"
+  >
+    <div className="space-y-3">
       {rules.length ? (
         rules.map((rule) => (
-          <div key={rule.id} className="space-y-3 rounded-lg border p-4">
-            <div className="flex items-start justify-between gap-3">
-              <div className="space-y-1 text-sm">
-                <p className="font-medium">{rule.frequency} · {describeRule(rule)}</p>
-                <p className="text-muted-foreground">Desde {formatDate(rule.startDate)} hasta {formatDate(rule.endDate)}</p>
-                <p className="text-muted-foreground">{rule.startTimeMinutes} min desde medianoche · duración {rule.durationMinutes} min</p>
-              </div>
-              <div className="flex gap-2">
+          <OpsDetailRow
+            key={rule.id}
+            actions={
+              <>
                 <JobScheduleRuleDialog jobId={jobId} rule={rule} />
                 <DeleteDialog
                   title="Archivar regla"
@@ -54,14 +55,38 @@ export const JobScheduleRulesPanel = ({
                   onConfirm={async () => {
                     await onArchive(rule.id);
                   }}
+                  trigger={<button className={dashboardSecondaryActionClass} type="button">Archivar</button>}
                 />
+              </>
+            }
+          >
+            <div className="space-y-2 text-sm">
+              <div className="flex flex-wrap items-center gap-2">
+                <span className="rounded-full bg-[#EAF5EC] px-3 py-1 text-xs font-medium text-[#244C2D] ring-1 ring-[#53985E]/15">
+                  {opsFrequencyLabels[rule.frequency]}
+                </span>
+                <span className="rounded-full border border-[#53985E]/12 bg-white px-3 py-1 text-xs text-muted-foreground dark:bg-background/40">
+                  {describeRule(rule)}
+                </span>
+              </div>
+              <div className="flex flex-wrap items-center gap-2 text-muted-foreground">
+                <CalendarRange className="h-4 w-4 text-[#53985E]" />
+                <span>
+                  Desde {formatDate(rule.startDate)} hasta {formatDate(rule.endDate)}
+                </span>
+              </div>
+              <div className="flex flex-wrap items-center gap-2 text-muted-foreground">
+                <Clock3 className="h-4 w-4 text-[#53985E]" />
+                <span>
+                  {toClockLabel(rule.startTimeMinutes)} · duracion {rule.durationMinutes} min
+                </span>
               </div>
             </div>
-          </div>
+          </OpsDetailRow>
         ))
       ) : (
         <p className="text-sm text-muted-foreground">Todavía no hay reglas para este trabajo.</p>
       )}
-    </CardContent>
-  </Card>
+    </div>
+  </OpsSection>
 );

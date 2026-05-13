@@ -1,5 +1,7 @@
+import { BanknoteArrowDown, CircleDollarSign, ReceiptText, Undo2 } from "lucide-react";
+
 import { formatMoney } from "@/components/ops/payments/payment-utils";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { OpsMetricsGrid } from "@/components/ops/shared";
 
 export const PaymentsSummary = ({
   recordedCount,
@@ -12,22 +14,36 @@ export const PaymentsSummary = ({
   voidedCount: number;
   voidedTotal: number;
 }) => (
-  <div className="grid gap-4 md:grid-cols-4">
-    <Card className="border-0 bg-white/80 shadow-sm ring-1 ring-black/5">
-      <CardHeader><CardTitle className="text-sm">Cobrado registrado</CardTitle></CardHeader>
-      <CardContent className="text-2xl font-bold">{formatMoney(recordedTotal)}</CardContent>
-    </Card>
-    <Card className="border-0 bg-white/80 shadow-sm ring-1 ring-black/5">
-      <CardHeader><CardTitle className="text-sm">Cobros registrados</CardTitle></CardHeader>
-      <CardContent className="text-2xl font-bold">{recordedCount}</CardContent>
-    </Card>
-    <Card className="border-0 bg-white/80 shadow-sm ring-1 ring-black/5">
-      <CardHeader><CardTitle className="text-sm">Anulado</CardTitle></CardHeader>
-      <CardContent className="text-2xl font-bold">{formatMoney(voidedTotal)}</CardContent>
-    </Card>
-    <Card className="border-0 bg-white/80 shadow-sm ring-1 ring-black/5">
-      <CardHeader><CardTitle className="text-sm">Cobros anulados</CardTitle></CardHeader>
-      <CardContent className="text-2xl font-bold">{voidedCount}</CardContent>
-    </Card>
-  </div>
+  <OpsMetricsGrid
+    metrics={[
+      {
+        helper: "monto cobrado valido",
+        icon: CircleDollarSign,
+        label: "Cobrado registrado",
+        tone: "money",
+        value: formatMoney(recordedTotal),
+      },
+      {
+        helper: "ingresos asentados",
+        icon: ReceiptText,
+        label: "Cobros registrados",
+        tone: "active",
+        value: recordedCount,
+      },
+      {
+        helper: "historial sin impacto",
+        icon: Undo2,
+        label: "Anulado",
+        tone: "archived",
+        value: formatMoney(voidedTotal),
+      },
+      {
+        helper: "cobros revertidos",
+        icon: BanknoteArrowDown,
+        label: "Cobros anulados",
+        tone: "neutral",
+        value: voidedCount,
+      },
+    ]}
+  />
 );
