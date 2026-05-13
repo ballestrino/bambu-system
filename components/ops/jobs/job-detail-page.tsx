@@ -1,13 +1,26 @@
 "use client";
 
-import Link from "next/link";
-import { AlertCircle, ChevronLeft } from "lucide-react";
+import {
+  AlertCircle,
+  BriefcaseBusiness,
+  CalendarCheck2,
+  CalendarClock,
+  CircleDollarSign,
+  MapPin,
+  UsersRound,
+} from "lucide-react";
 
+import { dashboardSecondaryActionClass } from "@/components/dashboard/dashboard-styles";
 import { JobAssignmentsPanel } from "@/components/ops/jobs/job-assignments-panel";
+import { JobAssignmentDialog } from "@/components/ops/jobs/job-assignment-dialog";
 import { JobFormDialog } from "@/components/ops/jobs/job-form-dialog";
+import { JobOccurrenceDialog } from "@/components/ops/jobs/job-occurrence-dialog";
 import { JobOccurrencesPanel } from "@/components/ops/jobs/job-occurrences-panel";
 import { JobScheduleRulesPanel } from "@/components/ops/jobs/job-schedule-rules-panel";
+import { JobScheduleRuleDialog } from "@/components/ops/jobs/job-schedule-rule-dialog";
 import { JobSummaryCard } from "@/components/ops/jobs/job-summary-card";
+import { JobStatusBadge } from "@/components/ops/jobs/status-badges";
+import { PaymentDialog } from "@/components/ops/payments/payment-dialog";
 import { JobClientPaymentsPanel } from "@/components/ops/payments/job-client-payments-panel";
 import { useJob } from "@/components/ops/hooks/useJob";
 import { useJobEmployeeAssignmentMutations } from "@/components/ops/hooks/useJobEmployeeAssignmentMutations";
@@ -17,7 +30,7 @@ import { useJobOccurrences } from "@/components/ops/hooks/useJobOccurrences";
 import { useJobScheduleRuleMutations } from "@/components/ops/hooks/useJobScheduleRuleMutations";
 import { useJobScheduleRules } from "@/components/ops/hooks/useJobScheduleRules";
 import { useJobs } from "@/components/ops/hooks/useJobs";
-import { Button } from "@/components/ui/button";
+import { OpsDetailHero, OpsDetailStat, OpsNextAction, OpsPageShell } from "@/components/ops/shared";
 import { Card, CardContent } from "@/components/ui/card";
 
 export const JobDetailPage = ({ jobId }: { jobId: string }) => {
@@ -45,37 +58,77 @@ export const JobDetailPage = ({ jobId }: { jobId: string }) => {
     );
   }
 
+  const activeAssignments = assignments.filter((assignment) => !assignment.archivedAt);
+  const pendingOccurrences = occurrences.filter(
+    (occurrence) => occurrence.status === "SCHEDULED"
+  );
+  const completedOccurrences = occurrences.filter((occurrence) => occurrence.status === "DONE");
+  const nextOccurrenceToComplete = pendingOccurrences.find(
+    (occurrence) => !occurrence.actualStartAt || !occurrence.actualEndAt
+  );
+  const location = job.serviceLocation || job.serviceAddress || "Sin ubicacion cargada";
+
   return (
-    <div className="container flex w-full flex-col gap-6">
-      <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-        <div className="space-y-1">
-          <Button asChild variant="ghost" size="sm" className="-ml-2 w-fit text-[#244C2D] hover:bg-[#EAF5EC] hover:text-[#244C2D]">
-            <Link href="/dashboard/jobs">
-              <ChevronLeft className="h-4 w-4" />
-              Trabajos
-            </Link>
-          </Button>
-          <h1 className="text-3xl font-bold tracking-tight">{job.name}</h1>
-          <p className="text-muted-foreground">Detalle operativo, snapshot y calendario manual.</p>
-        </div>
-        <JobFormDialog job={job} triggerLabel="Editar trabajo" />
-      </div>
-      <JobSummaryCard job={job} />
-      <JobAssignmentsPanel
-        jobId={jobId}
-        assignments={assignments}
-        onArchive={async (assignmentId) => {
-          await archiveAssignmentAsync(assignmentId);
-        }}
-      />
-      <div className="grid gap-6 xl:grid-cols-2">
-        <JobScheduleRulesPanel
-          jobId={jobId}
-          rules={scheduleRules}
-          onArchive={async (scheduleRuleId) => {
-            await archiveScheduleRuleAsync(scheduleRuleId);
-          }}
+    <OpsPageShell>
+      <OpsDetailHero
+        actions={<JobFormDialog job={job} triggerLabel="Editar trabajo" />}
+        backHref="/dashboard/jobs"
+        backLabel="Trabajos"
+        description="Centro operativo del servicio: equipo, agenda, snapshot del presupuesto y cobros."
+        icon={BriefcaseBusiness}
+        meta={<JobStatusBadge status={job.status} />}
+        title={job.name}
+      >
+        <OpsDetailStat icon={UsersRound} label="Equipo activo" value={activeAssignments.length} helper="asignaciones vigentes" />
+        <OpsDetailStat icon={CalendarClock} label="Agenda pendiente" value={pendingOccurrences.length} helper={`${scheduleRules.length} regla(s)`} />
+        <OpsDetailStat icon={CalendarCheck2} label="Visitas hechas" value={completedOccurrences.length} helper="con estado realizado" />
+        <OpsDetailStat icon={MapPin} label="Ubicacion" value={location === "Sin ubicacion cargada" ? "Pendiente" : "Cargada"} helper={location} />
+      </OpsDetailHero>
+
+      {!activeAssignments.length ? (
+        <OpsNextAction
+          action={<JobAssignmentDialog jobId={jobId} />}
+          description="Primero dejá definido el equipo base para que el resto de la agenda tenga responsables claros."
+          icon={UsersRound}
+          title="Asignar equipo al trabajo"
         />
+      ) : !scheduleRules.length && !occurrences.length ? (
+        <OpsNextAction
+          action={<JobScheduleRuleDialog jobId={jobId} />}
+          description="Con el equipo listo, el siguiente paso natural es crear la recurrencia o cargar la primera visita manual."
+          icon={CalendarClock}
+          title="Planificar las visitas"
+        />
+      ) : nextOccurrenceToComplete ? (
+        <OpsNextAction
+          action={
+            <JobOccurrenceDialog
+              jobId={jobId}
+              occurrence={nextOccurrenceToComplete}
+              scheduleRules={scheduleRules}
+              triggerClassName={dashboardSecondaryActionClass}
+              triggerLabel="Completar visita"
+              triggerVariant="outline"
+            />
+          }
+          description="Hay una visita pendiente. Revisá responsable, horario real y notas para dejarla lista para pagos."
+          icon={CalendarCheck2}
+          title="Completar la proxima visita"
+          tone="warning"
+        />
+      ) : (
+        <OpsNextAction
+          action={<PaymentDialog jobId={job.id} jobs={jobs} />}
+          description="La operación ya tiene base operativa. Revisá saldo esperado y registrá el cobro cuando corresponda."
+          icon={CircleDollarSign}
+          title="Revisar cobros del trabajo"
+          tone="money"
+        />
+      )}
+
+      <JobSummaryCard job={job} />
+
+      <div className="grid gap-6 xl:grid-cols-2">
         <JobOccurrencesPanel
           jobId={jobId}
           scheduleRules={scheduleRules}
@@ -87,8 +140,23 @@ export const JobDetailPage = ({ jobId }: { jobId: string }) => {
             await detachOccurrenceAsync(args);
           }}
         />
+        <JobScheduleRulesPanel
+          jobId={jobId}
+          rules={scheduleRules}
+          onArchive={async (scheduleRuleId) => {
+            await archiveScheduleRuleAsync(scheduleRuleId);
+          }}
+        />
       </div>
+
+      <JobAssignmentsPanel
+        jobId={jobId}
+        assignments={assignments}
+        onArchive={async (assignmentId) => {
+          await archiveAssignmentAsync(assignmentId);
+        }}
+      />
       <JobClientPaymentsPanel job={job} jobs={jobs} />
-    </div>
+    </OpsPageShell>
   );
 };

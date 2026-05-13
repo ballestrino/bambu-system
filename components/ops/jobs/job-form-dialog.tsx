@@ -3,7 +3,10 @@
 import { useState } from "react";
 import { LoaderCircle, Pencil, Plus } from "lucide-react";
 
-import { dashboardPrimaryActionClass } from "@/components/dashboard/dashboard-styles";
+import {
+  dashboardPrimaryActionClass,
+  dashboardSecondaryActionClass,
+} from "@/components/dashboard/dashboard-styles";
 import type { OpsJobDetail, OpsJobListItem } from "@/components/ops/types";
 import { BudgetSourceSelector } from "@/components/ops/jobs/budget-source-selector";
 import { useJobMutations } from "@/components/ops/hooks/useJobMutations";
@@ -85,7 +88,7 @@ export const JobFormDialog = ({
     >
       <DialogTrigger asChild>
         {job ? (
-          <Button variant="outline" size="sm">
+          <Button variant="outline" size="sm" className={dashboardSecondaryActionClass}>
             <Pencil className="h-4 w-4" />
             {triggerLabel ?? "Editar"}
           </Button>

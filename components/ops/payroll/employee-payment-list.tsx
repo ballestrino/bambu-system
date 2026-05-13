@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 
+import { dashboardSecondaryActionClass } from "@/components/dashboard/dashboard-styles";
 import DeleteDialog from "@/components/ui/delete-dialog";
 import { PaymentStatusBadge } from "@/components/ops/payments/payment-status-badge";
 import { PayrollDialog } from "@/components/ops/payroll/payroll-dialog";
@@ -48,7 +49,7 @@ export const EmployeePaymentList = ({
             </div>
             <div className="flex flex-wrap gap-2">
               {showEmployeeLink ? (
-                <Button asChild size="sm" variant="outline">
+                <Button asChild size="sm" variant="outline" className={dashboardSecondaryActionClass}>
                   <Link href={`/dashboard/employees/${payment.employeeId}`}>Empleado</Link>
                 </Button>
               ) : null}
@@ -62,7 +63,7 @@ export const EmployeePaymentList = ({
                   onConfirm={async () => {
                     await onVoid(payment.id);
                   }}
-                  trigger={<Button size="sm" variant="outline">Anular</Button>}
+                  trigger={<Button size="sm" variant="outline" className={dashboardSecondaryActionClass}>Anular</Button>}
                 />
               ) : null}
             </div>

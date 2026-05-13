@@ -3,6 +3,10 @@
 import { useState } from "react";
 import { LoaderCircle, Pencil, Plus } from "lucide-react";
 
+import {
+  dashboardPrimaryActionClass,
+  dashboardSecondaryActionClass,
+} from "@/components/dashboard/dashboard-styles";
 import { useEmployees } from "@/components/ops/hooks/useEmployees";
 import { useJobEmployeeAssignmentMutations } from "@/components/ops/hooks/useJobEmployeeAssignmentMutations";
 import type { OpsJobEmployeeAssignment } from "@/components/ops/types";
@@ -67,12 +71,12 @@ export const JobAssignmentDialog = ({
     >
       <DialogTrigger asChild>
         {assignment ? (
-          <Button variant="outline" size="sm">
+          <Button variant="outline" size="sm" className={dashboardSecondaryActionClass}>
             <Pencil className="h-4 w-4" />
             Editar
           </Button>
         ) : (
-          <Button size="sm">
+          <Button size="sm" className={dashboardPrimaryActionClass}>
             <Plus className="h-4 w-4" />
             Asignar empleado
           </Button>

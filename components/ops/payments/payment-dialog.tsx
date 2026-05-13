@@ -3,6 +3,10 @@
 import { useState } from "react";
 import { LoaderCircle, Pencil, Plus } from "lucide-react";
 
+import {
+  dashboardPrimaryActionClass,
+  dashboardSecondaryActionClass,
+} from "@/components/dashboard/dashboard-styles";
 import { useJobClientPaymentMutations } from "@/components/ops/hooks/useJobClientPaymentMutations";
 import type { OpsJobClientPayment, OpsJobListItem } from "@/components/ops/types";
 import { toDateInputValue } from "@/components/ops/utils";
@@ -73,12 +77,12 @@ export const PaymentDialog = ({
     >
       <DialogTrigger asChild>
         {payment ? (
-          <Button variant="outline" size="sm">
+          <Button variant="outline" size="sm" className={dashboardSecondaryActionClass}>
             <Pencil className="h-4 w-4" />
             Editar
           </Button>
         ) : (
-          <Button size="sm">
+          <Button size="sm" className={dashboardPrimaryActionClass}>
             <Plus className="h-4 w-4" />
             Registrar cobro
           </Button>

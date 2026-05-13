@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 
+import { dashboardSecondaryActionClass } from "@/components/dashboard/dashboard-styles";
 import type { OpsJobEmployeeAssignment } from "@/components/ops/types";
 import { formatDateTime } from "@/components/ops/utils";
 import { Badge } from "@/components/ui/badge";
@@ -37,7 +38,7 @@ export const EmployeeAssignmentsPanel = ({
                   {assignment.assignedTo ? ` hasta ${formatDateTime(assignment.assignedTo)}` : ""}
                 </p>
               </div>
-              <Button asChild size="sm" variant="outline">
+              <Button asChild size="sm" variant="outline" className={dashboardSecondaryActionClass}>
                 <Link href={`/dashboard/jobs/${assignment.jobId}`}>Ver trabajo</Link>
               </Button>
             </div>

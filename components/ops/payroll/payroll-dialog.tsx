@@ -3,6 +3,10 @@
 import { useState } from "react";
 import { LoaderCircle, Pencil, Plus } from "lucide-react";
 
+import {
+  dashboardPrimaryActionClass,
+  dashboardSecondaryActionClass,
+} from "@/components/dashboard/dashboard-styles";
 import { useEmployeePaymentMutations } from "@/components/ops/hooks/useEmployeePaymentMutations";
 import { formatPayrollMoney, toPayrollNumber } from "@/components/ops/payroll/payroll-utils";
 import type { OpsEmployee, OpsEmployeePayment } from "@/components/ops/types";
@@ -89,9 +93,9 @@ export const PayrollDialog = ({
     >
       <DialogTrigger asChild>
         {payment ? (
-          <Button variant="outline" size="sm"><Pencil className="h-4 w-4" />Editar</Button>
+          <Button variant="outline" size="sm" className={dashboardSecondaryActionClass}><Pencil className="h-4 w-4" />Editar</Button>
         ) : (
-          <Button size="sm"><Plus className="h-4 w-4" />Registrar pago</Button>
+          <Button size="sm" className={dashboardPrimaryActionClass}><Plus className="h-4 w-4" />Registrar pago</Button>
         )}
       </DialogTrigger>
       <DialogContent>

@@ -1,14 +1,27 @@
 "use client";
 
 import Link from "next/link";
-import { AlertCircle, ChevronLeft } from "lucide-react";
+import {
+  AlertCircle,
+  BadgeDollarSign,
+  BriefcaseBusiness,
+  Clock3,
+  UserRound,
+  WalletCards,
+} from "lucide-react";
 
 import { EmployeeAssignmentsPanel } from "@/components/ops/employees/employee-assignments-panel";
+import { EmployeeFormDialog } from "@/components/ops/employees/employee-form-dialog";
+import { formatMoney, getHourlyRateNumber } from "@/components/ops/employees/employee-payroll";
 import { EmployeeSummaryCard } from "@/components/ops/employees/employee-summary-card";
 import { EmployeeVisitsPanel } from "@/components/ops/employees/employee-visits-panel";
 import { EmployeePayrollPanel } from "@/components/ops/payroll/employee-payroll-panel";
+import { PayrollDialog } from "@/components/ops/payroll/payroll-dialog";
 import { useEmployee } from "@/components/ops/hooks/useEmployee";
 import { useJobEmployeeAssignments } from "@/components/ops/hooks/useJobEmployeeAssignments";
+import { dashboardSecondaryActionClass } from "@/components/dashboard/dashboard-styles";
+import { OpsDetailHero, OpsDetailStat, OpsNextAction, OpsPageShell } from "@/components/ops/shared";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 
@@ -34,22 +47,59 @@ export const EmployeeDetailPage = ({ employeeId }: { employeeId: string }) => {
     );
   }
 
+  const activeAssignments = assignments.filter((assignment) => !assignment.archivedAt);
+  const hourlyRate = getHourlyRateNumber(employee.hourlyRate);
+
   return (
-    <div className="container flex w-full flex-col gap-6">
-      <div className="space-y-1">
-        <Button asChild variant="ghost" size="sm" className="-ml-2 w-fit text-[#244C2D] hover:bg-[#EAF5EC] hover:text-[#244C2D]">
-          <Link href="/dashboard/employees">
-            <ChevronLeft className="h-4 w-4" />
-            Empleados
-          </Link>
-        </Button>
-        <h1 className="text-3xl font-bold tracking-tight">{employee.name}</h1>
-        <p className="text-muted-foreground">Ficha operativa, visitas y horas para pago.</p>
-      </div>
+    <OpsPageShell>
+      <OpsDetailHero
+        actions={<EmployeeFormDialog employee={employee} />}
+        backHref="/dashboard/employees"
+        backLabel="Empleados"
+        description="Ficha operativa para revisar contacto, visitas, pagos y trabajos vinculados."
+        icon={UserRound}
+        meta={<Badge variant={employee.isActive ? "default" : "secondary"}>{employee.isActive ? "Activo" : "Inactivo"}</Badge>}
+        title={employee.name}
+      >
+        <OpsDetailStat icon={BriefcaseBusiness} label="Trabajos activos" value={activeAssignments.length} helper={`${assignments.length} asignacion(es) totales`} />
+        <OpsDetailStat icon={BadgeDollarSign} label="Tarifa" value={hourlyRate === null ? "Pendiente" : `${formatMoney(hourlyRate)} / h`} helper="base para pagos" />
+        <OpsDetailStat icon={Clock3} label="Visitas" value="Mes actual" helper="filtradas por periodo" />
+        <OpsDetailStat icon={WalletCards} label="Pagos" value="Control" helper="saldo y registros" />
+      </OpsDetailHero>
+
+      {hourlyRate === null ? (
+        <OpsNextAction
+          action={<EmployeeFormDialog employee={employee} />}
+          description="Sin tarifa horaria el pago estimado queda incompleto. Conviene cargarla antes de revisar liquidaciones."
+          icon={BadgeDollarSign}
+          title="Configurar tarifa horaria"
+          tone="warning"
+        />
+      ) : !activeAssignments.length ? (
+        <OpsNextAction
+          action={
+            <Button asChild size="sm" variant="outline" className={dashboardSecondaryActionClass}>
+              <Link href="/dashboard/jobs">Ver trabajos</Link>
+            </Button>
+          }
+          description="La empleada ya tiene datos base. Ahora asignala desde el trabajo donde participa."
+          icon={BriefcaseBusiness}
+          title="Asignar a un trabajo"
+        />
+      ) : (
+        <OpsNextAction
+          action={<PayrollDialog employeeId={employee.id} employees={[employee]} />}
+          description="Con trabajos y tarifa configurados, el flujo natural es revisar visitas realizadas y registrar pagos."
+          icon={WalletCards}
+          title="Revisar pago del periodo"
+          tone="money"
+        />
+      )}
+
       <EmployeeSummaryCard employee={employee} />
       <EmployeeVisitsPanel employeeId={employeeId} hourlyRate={employee.hourlyRate} />
       <EmployeePayrollPanel employee={employee} />
       <EmployeeAssignmentsPanel assignments={assignments} />
-    </div>
+    </OpsPageShell>
   );
 };

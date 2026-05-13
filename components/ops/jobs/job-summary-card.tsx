@@ -1,9 +1,25 @@
 "use client";
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { JobStatusBadge } from "@/components/ops/jobs/status-badges";
 import { formatDate, formatDateTime } from "@/components/ops/utils";
 import type { OpsJobDetail } from "@/components/ops/types";
+
+const SummaryItem = ({
+  label,
+  value,
+}: {
+  label: string;
+  value: string;
+}) => (
+  <div className="rounded-xl border border-[#53985E]/10 bg-[#F8FBF8] p-3 text-sm dark:bg-[#132016]">
+    <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+      {label}
+    </p>
+    <p className="mt-1 break-words font-medium text-[#18251D] dark:text-[#EAF5EC]">
+      {value || "-"}
+    </p>
+  </div>
+);
 
 const readSnapshot = (snapshot: OpsJobDetail["budgetSnapshot"]) => {
   if (!snapshot || typeof snapshot !== "object" || Array.isArray(snapshot)) {
@@ -19,47 +35,44 @@ export const JobSummaryCard = ({ job }: { job: OpsJobDetail }) => {
     snapshot?.option && typeof snapshot.option === "object" && !Array.isArray(snapshot.option)
       ? (snapshot.option as Record<string, unknown>)
       : null;
+  const priceAndVisits = snapshotOption
+    ? `$${snapshotOption.price ?? "-"} / ${snapshotOption.visits ?? "-"} visitas`
+    : "Sin opcion";
+  const teamAndHours = snapshotOption
+    ? `${snapshotOption.hoursPerVisit ?? "-"} hs por visita / ${snapshotOption.employees ?? "-"} persona(s)`
+    : "-";
 
   return (
-    <Card className="border-0 bg-white/80 shadow-sm ring-1 ring-black/5">
-      <CardHeader className="flex flex-row items-start justify-between gap-4">
+    <Card className="rounded-2xl border-0 bg-white/90 shadow-sm ring-1 ring-black/5 dark:bg-background/70">
+      <CardHeader>
         <div className="space-y-1">
-          <CardTitle className="text-2xl">{job.name}</CardTitle>
+          <CardTitle>Snapshot operativo</CardTitle>
           <p className="text-sm text-muted-foreground">
-            {job.serviceLocation || job.serviceAddress || "Sin ubicación de referencia"}
+            Datos administrativos y referencia del presupuesto que alimenta esta operacion.
           </p>
         </div>
-        <JobStatusBadge status={job.status} />
       </CardHeader>
-      <CardContent className="grid gap-6 md:grid-cols-2">
-        <div className="space-y-3 text-sm">
-          <p><strong>Descripción:</strong> {job.description || "-"}</p>
-          <p><strong>Notas:</strong> {job.operationalNotes || "-"}</p>
-          <p><strong>Creado:</strong> {formatDateTime(job.createdAt)}</p>
-          <p><strong>Actualizado:</strong> {formatDateTime(job.updatedAt)}</p>
-          <p><strong>Archivado:</strong> {formatDate(job.archivedAt)}</p>
+      <CardContent className="grid gap-3 lg:grid-cols-[minmax(0,1.1fr)_minmax(280px,0.9fr)]">
+        <div className="grid gap-3 sm:grid-cols-2">
+          <SummaryItem label="Descripcion" value={job.description || "Sin descripcion"} />
+          <SummaryItem label="Notas operativas" value={job.operationalNotes || "Sin notas"} />
+          <SummaryItem label="Direccion" value={job.serviceAddress || "Sin direccion"} />
+          <SummaryItem label="Referencia" value={job.serviceLocation || "Sin referencia"} />
         </div>
-        <div className="space-y-3 rounded-lg border bg-muted/40 p-4 text-sm">
-          <p><strong>Presupuesto base:</strong> {job.sourceBudget?.name || "Sin vínculo"}</p>
-          <p><strong>Slug fuente:</strong> {job.sourceBudget?.slug || "-"}</p>
-          <p>
-            <strong>Snapshot:</strong>{" "}
-            {typeof snapshot?.capturedAt === "string"
-              ? formatDateTime(snapshot.capturedAt)
-              : "Sin snapshot"}
-          </p>
-          <p>
-            <strong>Precio/visitas:</strong>{" "}
-            {snapshotOption
-              ? `$${snapshotOption.price ?? "-"} · ${snapshotOption.visits ?? "-"} visitas`
-              : "Sin opción"}
-          </p>
-          <p>
-            <strong>Horas y equipo:</strong>{" "}
-            {snapshotOption
-              ? `${snapshotOption.hoursPerVisit ?? "-"} hs/visita · ${snapshotOption.employees ?? "-"} persona(s)`
-              : "-"}
-          </p>
+        <div className="space-y-3 rounded-xl border border-[#C58A2A]/20 bg-[#FFF8EA] p-4 text-sm dark:bg-[#C58A2A]/10">
+          <SummaryItem label="Presupuesto base" value={job.sourceBudget?.name || "Sin vinculo"} />
+          <SummaryItem label="Slug fuente" value={job.sourceBudget?.slug || "-"} />
+          <SummaryItem
+            label="Snapshot"
+            value={typeof snapshot?.capturedAt === "string" ? formatDateTime(snapshot.capturedAt) : "Sin snapshot"}
+          />
+          <SummaryItem label="Precio y visitas" value={priceAndVisits} />
+          <SummaryItem label="Horas y equipo" value={teamAndHours} />
+          <div className="grid gap-3 sm:grid-cols-3">
+            <SummaryItem label="Creado" value={formatDateTime(job.createdAt)} />
+            <SummaryItem label="Actualizado" value={formatDateTime(job.updatedAt)} />
+            <SummaryItem label="Archivado" value={formatDate(job.archivedAt)} />
+          </div>
         </div>
       </CardContent>
     </Card>

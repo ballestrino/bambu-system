@@ -3,7 +3,10 @@
 import { useState } from "react";
 import { LoaderCircle, Pencil, Plus } from "lucide-react";
 
-import { dashboardPrimaryActionClass } from "@/components/dashboard/dashboard-styles";
+import {
+  dashboardPrimaryActionClass,
+  dashboardSecondaryActionClass,
+} from "@/components/dashboard/dashboard-styles";
 import { getHourlyRateNumber } from "@/components/ops/employees/employee-payroll";
 import type { OpsEmployee, OpsEmployeeDetail } from "@/components/ops/types";
 import { useEmployeeMutations } from "@/components/ops/hooks/useEmployeeMutations";
@@ -86,7 +89,7 @@ export const EmployeeFormDialog = ({
     >
       <DialogTrigger asChild>
         {employee ? (
-          <Button variant="outline" size="sm">
+          <Button variant="outline" size="sm" className={dashboardSecondaryActionClass}>
             <Pencil className="h-4 w-4" />
             Editar
           </Button>

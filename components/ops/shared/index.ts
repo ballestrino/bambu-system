@@ -1,4 +1,5 @@
 export * from "@/components/ops/shared/ops-action-menu";
+export * from "@/components/ops/shared/ops-detail-hero";
 export * from "@/components/ops/shared/ops-empty-state";
 export * from "@/components/ops/shared/ops-filter-controls";
 export * from "@/components/ops/shared/ops-metric-card";

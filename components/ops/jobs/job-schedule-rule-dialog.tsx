@@ -3,6 +3,10 @@
 import { useState } from "react";
 import { LoaderCircle, Pencil, Plus } from "lucide-react";
 
+import {
+  dashboardPrimaryActionClass,
+  dashboardSecondaryActionClass,
+} from "@/components/dashboard/dashboard-styles";
 import { useJobScheduleRuleMutations } from "@/components/ops/hooks/useJobScheduleRuleMutations";
 import type { OpsScheduleRule } from "@/components/ops/types";
 import { minutesToTimeInput, timeInputToMinutes, toDateInputValue } from "@/components/ops/utils";
@@ -113,12 +117,12 @@ export const JobScheduleRuleDialog = ({
     >
       <DialogTrigger asChild>
         {rule ? (
-          <Button variant="outline" size="sm">
+          <Button variant="outline" size="sm" className={dashboardSecondaryActionClass}>
             <Pencil className="h-4 w-4" />
             Editar
           </Button>
         ) : (
-          <Button size="sm">
+          <Button size="sm" className={dashboardPrimaryActionClass}>
             <Plus className="h-4 w-4" />
             Nueva regla
           </Button>

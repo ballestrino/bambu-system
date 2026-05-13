@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 
+import { dashboardSecondaryActionClass } from "@/components/dashboard/dashboard-styles";
 import { JobAssignmentDialog } from "@/components/ops/jobs/job-assignment-dialog";
 import type { OpsJobEmployeeAssignment } from "@/components/ops/types";
 import { formatDateTime } from "@/components/ops/utils";
@@ -44,7 +45,7 @@ export const JobAssignmentsPanel = ({
               </p>
             </div>
             <div className="flex flex-wrap gap-2">
-              <Button asChild size="sm" variant="outline">
+              <Button asChild size="sm" variant="outline" className={dashboardSecondaryActionClass}>
                 <Link href={`/dashboard/employees/${assignment.employeeId}`}>Ver empleado</Link>
               </Button>
               <JobAssignmentDialog jobId={jobId} assignment={assignment} />

@@ -1,49 +1,48 @@
 "use client";
 
-import { BadgeDollarSign, Mail, Phone, UserRound } from "lucide-react";
+import { BadgeDollarSign, Mail, Phone, StickyNote } from "lucide-react";
+import type { LucideIcon } from "lucide-react";
 
 import { formatMoney, getHourlyRateNumber } from "@/components/ops/employees/employee-payroll";
-import { EmployeeFormDialog } from "@/components/ops/employees/employee-form-dialog";
 import type { OpsEmployeeDetail } from "@/components/ops/types";
-import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+
+const EmployeeSummaryItem = ({
+  icon: Icon,
+  label,
+  value,
+}: {
+  icon: LucideIcon;
+  label: string;
+  value: string;
+}) => (
+  <div className="rounded-xl border border-[#53985E]/10 bg-[#F8FBF8] p-3 text-sm dark:bg-[#132016]">
+    <p className="flex items-center gap-2 font-medium text-[#244C2D] dark:text-[#A7D8AE]">
+      <Icon className="h-4 w-4" />
+      {label}
+    </p>
+    <p className="mt-2 break-words text-muted-foreground">{value}</p>
+  </div>
+);
 
 export const EmployeeSummaryCard = ({ employee }: { employee: OpsEmployeeDetail }) => {
   const hourlyRate = getHourlyRateNumber(employee.hourlyRate);
 
   return (
-    <Card className="border-0 bg-white/80 shadow-sm ring-1 ring-black/5">
-      <CardHeader className="flex flex-row items-start justify-between gap-4">
+    <Card className="rounded-2xl border-0 bg-white/90 shadow-sm ring-1 ring-black/5 dark:bg-background/70">
+      <CardHeader>
         <div className="space-y-2">
-          <CardTitle className="flex items-center gap-2">
-            <UserRound className="h-5 w-5 text-emerald-700" />
-            {employee.name}
-          </CardTitle>
-          <Badge variant={employee.isActive ? "default" : "secondary"}>
-            {employee.isActive ? "Activo" : "Inactivo"}
-          </Badge>
-        </div>
-        <EmployeeFormDialog employee={employee} />
-      </CardHeader>
-      <CardContent className="grid gap-4 md:grid-cols-4">
-        <div className="space-y-1 text-sm">
-          <p className="flex items-center gap-2 font-medium"><Mail className="h-4 w-4" />Email</p>
-          <p className="text-muted-foreground">{employee.email || "Sin email"}</p>
-        </div>
-        <div className="space-y-1 text-sm">
-          <p className="flex items-center gap-2 font-medium"><Phone className="h-4 w-4" />Teléfono</p>
-          <p className="text-muted-foreground">{employee.phone || "Sin teléfono"}</p>
-        </div>
-        <div className="space-y-1 text-sm">
-          <p className="flex items-center gap-2 font-medium"><BadgeDollarSign className="h-4 w-4" />Tarifa</p>
-          <p className="text-muted-foreground">
-            {hourlyRate === null ? "Sin tarifa" : `${formatMoney(hourlyRate)} / h`}
+          <CardTitle>Contacto y tarifa</CardTitle>
+          <p className="text-sm text-muted-foreground">
+            Datos base que impactan coordinacion, agenda y liquidacion.
           </p>
         </div>
-        <div className="space-y-1 text-sm">
-          <p className="font-medium">Notas</p>
-          <p className="text-muted-foreground">{employee.notes || "Sin notas"}</p>
-        </div>
+      </CardHeader>
+      <CardContent className="grid gap-4 md:grid-cols-4">
+        <EmployeeSummaryItem icon={Mail} label="Email" value={employee.email || "Sin email"} />
+        <EmployeeSummaryItem icon={Phone} label="Telefono" value={employee.phone || "Sin telefono"} />
+        <EmployeeSummaryItem icon={BadgeDollarSign} label="Tarifa" value={hourlyRate === null ? "Sin tarifa" : `${formatMoney(hourlyRate)} / h`} />
+        <EmployeeSummaryItem icon={StickyNote} label="Notas" value={employee.notes || "Sin notas"} />
       </CardContent>
     </Card>
   );

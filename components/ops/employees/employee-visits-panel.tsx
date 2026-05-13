@@ -3,6 +3,7 @@
 import { useMemo, useState } from "react";
 import Link from "next/link";
 
+import { dashboardSecondaryActionClass } from "@/components/dashboard/dashboard-styles";
 import {
   formatHours,
   formatMoney,
@@ -138,7 +139,7 @@ export const EmployeeVisitsPanel = ({
                   <p>{formatHours(getWorkedHours(occurrence))} hs</p>
                   <p className="text-muted-foreground">{occurrence.notes || "Sin notas"}</p>
                 </div>
-                <Button asChild size="sm" variant="outline">
+                <Button asChild size="sm" variant="outline" className={dashboardSecondaryActionClass}>
                   <Link href={`/dashboard/jobs/${occurrence.jobId}`}>Trabajo</Link>
                 </Button>
               </div>
