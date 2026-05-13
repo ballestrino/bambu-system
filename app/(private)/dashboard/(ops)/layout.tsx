@@ -1,9 +1,7 @@
-import Link from "next/link";
-import { ChevronLeft } from "lucide-react";
-
 import { OpsSidebar } from "@/components/ops/sidebar";
-import { Button } from "@/components/ui/button";
+import { opsSurface } from "@/components/ops/shared/ops-theme";
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
+import { cn } from "@/lib/utils";
 
 export default function OpsLayout({
   children,
@@ -13,20 +11,17 @@ export default function OpsLayout({
   return (
     <SidebarProvider>
       <OpsSidebar />
-      <div className="fixed top-[90px] left-0 z-10">
-        <SidebarTrigger />
+      <div className="fixed left-3 top-24 z-30 md:left-4">
+        <SidebarTrigger className="border border-[#53985E]/20 bg-background/90 text-[#244C2D] shadow-sm hover:bg-[#EAF5EC] dark:text-[#A7D8AE]" />
       </div>
 
-      <main className="w-full">
-        <div className="relative flex h-full w-full flex-col items-center gap-4 px-4 pt-10 pb-10">
-          <div className="container flex w-full items-center gap-2">
-            <Button asChild variant="outline" size="sm" className="w-fit">
-              <Link href="/dashboard/jobs">
-                <ChevronLeft className="h-4 w-4" />
-                Volver
-              </Link>
-            </Button>
-          </div>
+      <main className="w-full min-w-0">
+        <div
+          className={cn(
+            "relative flex min-h-[calc(100vh-5rem)] w-full flex-col items-center px-4 py-6 md:px-6 md:py-8",
+            opsSurface.shell
+          )}
+        >
           {children}
         </div>
       </main>

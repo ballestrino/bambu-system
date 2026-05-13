@@ -1,15 +1,17 @@
 "use client"
 
 import { Button } from "@/components/ui/button"
+import { opsNavItems } from "@/components/ops/nav-items"
 import {
     Sheet,
     SheetContent,
     SheetTrigger,
 } from "@/components/ui/sheet"
-import { Calculator, CircleDollarSign, Menu, LayoutDashboard, Settings, BriefcaseBusiness, CalendarDays, UsersRound } from "lucide-react"
+import { Calculator, CircleDollarSign, Menu, LayoutDashboard, Settings } from "lucide-react"
 import NavLogo from "./NavLogo"
 import Link from "next/link"
 import { useState } from "react"
+import { usePathname } from "next/navigation"
 import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog"
 import { NominalRateConverter } from "@/components/tools/NominalRateConverter"
 import { CalculatorTool } from "@/components/tools/Calculator"
@@ -23,6 +25,12 @@ interface MobileNavProps {
 
 export default function MobileNav({ admin, user }: MobileNavProps) {
     const [open, setOpen] = useState(false)
+    const pathname = usePathname()
+    const getLinkClass = (active: boolean) =>
+        `flex items-center gap-2 rounded-md p-2 text-sm font-medium transition-colors ${active
+            ? "bg-[#244C2D] text-white"
+            : "hover:bg-accent hover:text-accent-foreground"
+        }`
 
     return (
         <Sheet open={open} onOpenChange={setOpen}>
@@ -45,36 +53,23 @@ export default function MobileNav({ admin, user }: MobileNavProps) {
                             <div className="flex flex-col gap-2">
                                 <Link
                                     href="/dashboard/budgets"
-                                    className="flex items-center gap-2 text-sm font-medium p-2 rounded-md hover:bg-accent hover:text-accent-foreground transition-colors"
+                                    className={getLinkClass(pathname.startsWith("/dashboard/budgets"))}
                                     onClick={() => setOpen(false)}
                                 >
                                     <LayoutDashboard className="h-4 w-4" />
                                     Presupuestos
                                 </Link>
-                                <Link
-                                    href="/dashboard/jobs"
-                                    className="flex items-center gap-2 text-sm font-medium p-2 rounded-md hover:bg-accent hover:text-accent-foreground transition-colors"
-                                    onClick={() => setOpen(false)}
-                                >
-                                    <BriefcaseBusiness className="h-4 w-4" />
-                                    Trabajos
-                                </Link>
-                                <Link
-                                    href="/dashboard/calendar"
-                                    className="flex items-center gap-2 text-sm font-medium p-2 rounded-md hover:bg-accent hover:text-accent-foreground transition-colors"
-                                    onClick={() => setOpen(false)}
-                                >
-                                    <CalendarDays className="h-4 w-4" />
-                                    Calendario
-                                </Link>
-                                <Link
-                                    href="/dashboard/employees"
-                                    className="flex items-center gap-2 text-sm font-medium p-2 rounded-md hover:bg-accent hover:text-accent-foreground transition-colors"
-                                    onClick={() => setOpen(false)}
-                                >
-                                    <UsersRound className="h-4 w-4" />
-                                    Empleados
-                                </Link>
+                                {opsNavItems.map((item) => (
+                                    <Link
+                                        key={item.url}
+                                        href={item.url}
+                                        className={getLinkClass(pathname.startsWith(item.url))}
+                                        onClick={() => setOpen(false)}
+                                    >
+                                        <item.icon className="h-4 w-4" />
+                                        {item.title}
+                                    </Link>
+                                ))}
                             </div>
                         </div>
                     )}

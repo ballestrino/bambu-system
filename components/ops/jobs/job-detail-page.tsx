@@ -1,6 +1,7 @@
 "use client";
 
-import { AlertCircle } from "lucide-react";
+import Link from "next/link";
+import { AlertCircle, ChevronLeft } from "lucide-react";
 
 import { JobAssignmentsPanel } from "@/components/ops/jobs/job-assignments-panel";
 import { JobFormDialog } from "@/components/ops/jobs/job-form-dialog";
@@ -16,6 +17,7 @@ import { useJobOccurrences } from "@/components/ops/hooks/useJobOccurrences";
 import { useJobScheduleRuleMutations } from "@/components/ops/hooks/useJobScheduleRuleMutations";
 import { useJobScheduleRules } from "@/components/ops/hooks/useJobScheduleRules";
 import { useJobs } from "@/components/ops/hooks/useJobs";
+import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 
 export const JobDetailPage = ({ jobId }: { jobId: string }) => {
@@ -47,6 +49,12 @@ export const JobDetailPage = ({ jobId }: { jobId: string }) => {
     <div className="container flex w-full flex-col gap-6">
       <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
         <div className="space-y-1">
+          <Button asChild variant="ghost" size="sm" className="-ml-2 w-fit text-[#244C2D] hover:bg-[#EAF5EC] hover:text-[#244C2D]">
+            <Link href="/dashboard/jobs">
+              <ChevronLeft className="h-4 w-4" />
+              Trabajos
+            </Link>
+          </Button>
           <h1 className="text-3xl font-bold tracking-tight">{job.name}</h1>
           <p className="text-muted-foreground">Detalle operativo, snapshot y calendario manual.</p>
         </div>

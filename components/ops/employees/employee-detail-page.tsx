@@ -1,6 +1,7 @@
 "use client";
 
-import { AlertCircle } from "lucide-react";
+import Link from "next/link";
+import { AlertCircle, ChevronLeft } from "lucide-react";
 
 import { EmployeeAssignmentsPanel } from "@/components/ops/employees/employee-assignments-panel";
 import { EmployeeSummaryCard } from "@/components/ops/employees/employee-summary-card";
@@ -8,6 +9,7 @@ import { EmployeeVisitsPanel } from "@/components/ops/employees/employee-visits-
 import { EmployeePayrollPanel } from "@/components/ops/payroll/employee-payroll-panel";
 import { useEmployee } from "@/components/ops/hooks/useEmployee";
 import { useJobEmployeeAssignments } from "@/components/ops/hooks/useJobEmployeeAssignments";
+import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 
 export const EmployeeDetailPage = ({ employeeId }: { employeeId: string }) => {
@@ -35,6 +37,12 @@ export const EmployeeDetailPage = ({ employeeId }: { employeeId: string }) => {
   return (
     <div className="container flex w-full flex-col gap-6">
       <div className="space-y-1">
+        <Button asChild variant="ghost" size="sm" className="-ml-2 w-fit text-[#244C2D] hover:bg-[#EAF5EC] hover:text-[#244C2D]">
+          <Link href="/dashboard/employees">
+            <ChevronLeft className="h-4 w-4" />
+            Empleados
+          </Link>
+        </Button>
         <h1 className="text-3xl font-bold tracking-tight">{employee.name}</h1>
         <p className="text-muted-foreground">Ficha operativa, visitas y horas para pago.</p>
       </div>
