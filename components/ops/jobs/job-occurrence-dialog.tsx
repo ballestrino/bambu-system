@@ -1,11 +1,12 @@
 "use client";
 
-import { useState } from "react";
-import { LoaderCircle, Pencil, Plus } from "lucide-react";
+import { useState, type ComponentProps } from "react";
+import { LoaderCircle } from "lucide-react";
 
 import { useEmployees } from "@/components/ops/hooks/useEmployees";
 import { useJobs } from "@/components/ops/hooks/useJobs";
 import { useJobOccurrenceMutations } from "@/components/ops/hooks/useJobOccurrenceMutations";
+import { JobOccurrenceTrigger } from "@/components/ops/jobs/job-occurrence-trigger";
 import type { OpsOccurrence, OpsScheduleRule } from "@/components/ops/types";
 import { toDateTimeLocalValue } from "@/components/ops/utils";
 import { Button } from "@/components/ui/button";
@@ -34,10 +35,16 @@ export const JobOccurrenceDialog = ({
   jobId,
   scheduleRules = [],
   occurrence,
+  triggerClassName,
+  triggerLabel,
+  triggerVariant,
 }: {
   jobId?: string;
   scheduleRules?: OpsScheduleRule[];
   occurrence?: OpsOccurrence;
+  triggerClassName?: string;
+  triggerLabel?: string;
+  triggerVariant?: ComponentProps<typeof Button>["variant"];
 }) => {
   const [open, setOpen] = useState(false);
   const [formState, setFormState] = useState(getInitialState(occurrence));
@@ -99,11 +106,12 @@ export const JobOccurrenceDialog = ({
       }}
     >
       <DialogTrigger asChild>
-        {occurrence ? (
-          <Button variant="outline" size="sm"><Pencil className="h-4 w-4" />Editar</Button>
-        ) : (
-          <Button size="sm"><Plus className="h-4 w-4" />Nueva visita</Button>
-        )}
+        <JobOccurrenceTrigger
+          isEditing={Boolean(occurrence)}
+          triggerClassName={triggerClassName}
+          triggerLabel={triggerLabel}
+          triggerVariant={triggerVariant}
+        />
       </DialogTrigger>
       <DialogContent>
         <DialogHeader>

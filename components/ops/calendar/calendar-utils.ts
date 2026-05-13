@@ -1,0 +1,45 @@
+import type { OpsOccurrence } from "@/components/ops/types";
+
+export const byScheduledStart = (a: OpsOccurrence, b: OpsOccurrence) =>
+  new Date(a.scheduledStartAt).getTime() - new Date(b.scheduledStartAt).getTime();
+
+export const sameDay = (date: Date | string, selectedDate?: Date) =>
+  selectedDate
+    ? new Date(date).toDateString() === selectedDate.toDateString()
+    : false;
+
+export const getVisitActionLabel = (occurrence: OpsOccurrence) => {
+  if (!occurrence.employeeId) {
+    return "Asignar";
+  }
+
+  if (!occurrence.actualStartAt || !occurrence.actualEndAt) {
+    return "Registrar horario";
+  }
+
+  return "Editar";
+};
+
+export const getCalendarStats = (occurrences: OpsOccurrence[]) => {
+  const done = occurrences.filter((occurrence) => occurrence.status === "DONE");
+  const scheduled = occurrences.filter(
+    (occurrence) => occurrence.status === "SCHEDULED"
+  );
+  const attention = occurrences.filter((occurrence) =>
+    ["CANCELED", "SKIPPED"].includes(occurrence.status)
+  );
+
+  return {
+    attentionDates: attention.map((occurrence) => new Date(occurrence.scheduledStartAt)),
+    doneCount: done.length,
+    doneDates: done.map((occurrence) => new Date(occurrence.scheduledStartAt)),
+    needsAttentionCount: occurrences.filter(
+      (occurrence) => !occurrence.employeeId || attention.includes(occurrence)
+    ).length,
+    pendingCount: scheduled.length,
+    scheduledDates: scheduled.map(
+      (occurrence) => new Date(occurrence.scheduledStartAt)
+    ),
+    total: occurrences.length,
+  };
+};
