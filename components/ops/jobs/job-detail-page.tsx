@@ -14,8 +14,8 @@ import { dashboardSecondaryActionClass } from "@/components/dashboard/dashboard-
 import { JobAssignmentsPanel } from "@/components/ops/jobs/job-assignments-panel";
 import { JobAssignmentDialog } from "@/components/ops/jobs/job-assignment-dialog";
 import { JobFormDialog } from "@/components/ops/jobs/job-form-dialog";
+import { JobLatestOccurrencePanel } from "@/components/ops/jobs/job-latest-occurrence-panel";
 import { JobOccurrenceDialog } from "@/components/ops/jobs/job-occurrence-dialog";
-import { JobOccurrencesPanel } from "@/components/ops/jobs/job-occurrences-panel";
 import { JobScheduleRulesPanel } from "@/components/ops/jobs/job-schedule-rules-panel";
 import { JobScheduleRuleDialog } from "@/components/ops/jobs/job-schedule-rule-dialog";
 import { JobSummaryCard } from "@/components/ops/jobs/job-summary-card";
@@ -25,7 +25,6 @@ import { JobClientPaymentsPanel } from "@/components/ops/payments/job-client-pay
 import { useJob } from "@/components/ops/hooks/useJob";
 import { useJobEmployeeAssignmentMutations } from "@/components/ops/hooks/useJobEmployeeAssignmentMutations";
 import { useJobEmployeeAssignments } from "@/components/ops/hooks/useJobEmployeeAssignments";
-import { useJobOccurrenceMutations } from "@/components/ops/hooks/useJobOccurrenceMutations";
 import { useJobOccurrences } from "@/components/ops/hooks/useJobOccurrences";
 import { useJobScheduleRuleMutations } from "@/components/ops/hooks/useJobScheduleRuleMutations";
 import { useJobScheduleRules } from "@/components/ops/hooks/useJobScheduleRules";
@@ -40,7 +39,6 @@ export const JobDetailPage = ({ jobId }: { jobId: string }) => {
   const { occurrences } = useJobOccurrences({ jobId }, jobId);
   const { assignments } = useJobEmployeeAssignments({ jobId }, jobId);
   const { archiveScheduleRuleAsync } = useJobScheduleRuleMutations(jobId);
-  const { archiveOccurrenceAsync, detachOccurrenceAsync } = useJobOccurrenceMutations(jobId);
   const { archiveAssignmentAsync } = useJobEmployeeAssignmentMutations(jobId);
 
   if (isLoading) {
@@ -129,17 +127,7 @@ export const JobDetailPage = ({ jobId }: { jobId: string }) => {
       <JobSummaryCard job={job} />
 
       <div className="grid gap-6 xl:grid-cols-2">
-        <JobOccurrencesPanel
-          jobId={jobId}
-          scheduleRules={scheduleRules}
-          occurrences={occurrences}
-          onArchive={async (occurrenceId) => {
-            await archiveOccurrenceAsync(occurrenceId);
-          }}
-          onDetach={async (args) => {
-            await detachOccurrenceAsync(args);
-          }}
-        />
+        <JobLatestOccurrencePanel jobId={jobId} occurrences={occurrences} />
         <JobScheduleRulesPanel
           jobId={jobId}
           rules={scheduleRules}
