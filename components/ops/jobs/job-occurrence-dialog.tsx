@@ -7,6 +7,7 @@ import { useEmployees } from "@/components/ops/hooks/useEmployees";
 import { useJobs } from "@/components/ops/hooks/useJobs";
 import { useJobOccurrenceMutations } from "@/components/ops/hooks/useJobOccurrenceMutations";
 import { JobOccurrenceTrigger } from "@/components/ops/jobs/job-occurrence-trigger";
+import { getOpsStatusConfig, opsOccurrenceStatus } from "@/components/ops/shared";
 import type { OpsOccurrence, OpsScheduleRule } from "@/components/ops/types";
 import { toDateTimeLocalValue } from "@/components/ops/utils";
 import { Button } from "@/components/ui/button";
@@ -176,7 +177,11 @@ export const JobOccurrenceDialog = ({
             >
               <SelectTrigger className="w-full"><SelectValue /></SelectTrigger>
               <SelectContent>
-                {occurrenceStatusValues.map((status) => <SelectItem key={status} value={status}>{status}</SelectItem>)}
+                {occurrenceStatusValues.map((status) => (
+                  <SelectItem key={status} value={status}>
+                    {getOpsStatusConfig(opsOccurrenceStatus, status).label}
+                  </SelectItem>
+                ))}
               </SelectContent>
             </Select>
           </div>

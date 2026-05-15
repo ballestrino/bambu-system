@@ -8,6 +8,7 @@ import {
   dashboardSecondaryActionClass,
 } from "@/components/dashboard/dashboard-styles";
 import { useJobScheduleRuleMutations } from "@/components/ops/hooks/useJobScheduleRuleMutations";
+import { opsFrequencyLabels } from "@/components/ops/shared";
 import type { OpsScheduleRule } from "@/components/ops/types";
 import { minutesToTimeInput, timeInputToMinutes, toDateInputValue } from "@/components/ops/utils";
 import { Button } from "@/components/ui/button";
@@ -139,7 +140,7 @@ export const JobScheduleRuleDialog = ({
             <Switch checked={formState.isActive} onCheckedChange={(checked) => setFormState((current) => ({ ...current, isActive: checked }))} />
           </label>
           <div className="grid gap-4 md:grid-cols-2">
-            <div className="space-y-2"><Label>Frecuencia</Label><Select value={formState.frequency} onValueChange={(value) => setFormState((current) => ({ ...current, frequency: value as RecurrenceFrequency }))}><SelectTrigger className="w-full"><SelectValue /></SelectTrigger><SelectContent>{recurrenceFrequencyValues.map((value) => <SelectItem key={value} value={value}>{value}</SelectItem>)}</SelectContent></Select></div>
+            <div className="space-y-2"><Label>Frecuencia</Label><Select value={formState.frequency} onValueChange={(value) => setFormState((current) => ({ ...current, frequency: value as RecurrenceFrequency }))}><SelectTrigger className="w-full"><SelectValue /></SelectTrigger><SelectContent>{recurrenceFrequencyValues.map((value) => <SelectItem key={value} value={value}>{opsFrequencyLabels[value]}</SelectItem>)}</SelectContent></Select></div>
             <div className="space-y-2"><Label>Intervalo</Label><Input type="number" min="1" value={formState.interval} onChange={(event) => setFormState((current) => ({ ...current, interval: event.target.value }))} /></div>
           </div>
           {formState.frequency === "WEEKLY" ? (

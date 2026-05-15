@@ -28,7 +28,9 @@ import {
   OpsDetailRow,
   OpsFilterField,
   OpsMetricsGrid,
-  OpsSection, opsFilterControlClass,
+  OpsSection, getOpsStatusConfig,
+  opsFilterControlClass,
+  opsOccurrenceStatus,
 } from "@/components/ops/shared";
 import type { OpsOccurrence } from "@/components/ops/types";
 import { formatDate, formatTime, getMonthRange, toDateInputValue } from "@/components/ops/utils";
@@ -92,7 +94,11 @@ export const EmployeeVisitsPanel = ({
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="ALL">Todos</SelectItem>
-                {occurrenceStatusValues.map((value) => <SelectItem key={value} value={value}>{value}</SelectItem>)}
+                {occurrenceStatusValues.map((value) => (
+                  <SelectItem key={value} value={value}>
+                    {getOpsStatusConfig(opsOccurrenceStatus, value).label}
+                  </SelectItem>
+                ))}
               </SelectContent>
             </Select>
           </OpsFilterField>

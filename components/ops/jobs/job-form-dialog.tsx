@@ -7,6 +7,7 @@ import {
   dashboardPrimaryActionClass,
   dashboardSecondaryActionClass,
 } from "@/components/dashboard/dashboard-styles";
+import { getOpsStatusConfig, opsJobStatus } from "@/components/ops/shared";
 import type { OpsJobDetail, OpsJobListItem } from "@/components/ops/types";
 import { JobBudgetTaxModeToggle } from "@/components/ops/jobs/job-budget-tax-mode-toggle";
 import { BudgetSourceSelector } from "@/components/ops/jobs/budget-source-selector";
@@ -125,7 +126,7 @@ export const JobFormDialog = ({
                 <SelectContent>
                   {jobStatusValues.map((status) => (
                     <SelectItem key={status} value={status}>
-                      {status}
+                      {getOpsStatusConfig(opsJobStatus, status).label}
                     </SelectItem>
                   ))}
                 </SelectContent>
