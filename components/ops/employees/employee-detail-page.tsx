@@ -13,13 +13,14 @@ import {
 
 import { EmployeeAssignmentsPanel } from "@/components/ops/employees/employee-assignments-panel";
 import { EmployeeFormDialog } from "@/components/ops/employees/employee-form-dialog";
+import { EmployeeLatestVisitPanel } from "@/components/ops/employees/employee-latest-visit-panel";
 import { formatMoney, getHourlyRateNumber } from "@/components/ops/employees/employee-payroll";
 import { EmployeeSummaryCard } from "@/components/ops/employees/employee-summary-card";
-import { EmployeeVisitsPanel } from "@/components/ops/employees/employee-visits-panel";
 import { EmployeePayrollPanel } from "@/components/ops/payroll/employee-payroll-panel";
 import { PayrollDialog } from "@/components/ops/payroll/payroll-dialog";
 import { useEmployee } from "@/components/ops/hooks/useEmployee";
 import { useJobEmployeeAssignments } from "@/components/ops/hooks/useJobEmployeeAssignments";
+import { useJobOccurrences } from "@/components/ops/hooks/useJobOccurrences";
 import { cn } from "@/lib/utils";
 import { dashboardSecondaryActionClass } from "@/components/dashboard/dashboard-styles";
 import { OpsDetailHero, OpsDetailStat, OpsNextAction, OpsPageShell } from "@/components/ops/shared";
@@ -69,6 +70,10 @@ const EmployeeStickySummaryBar = ({
 
 export const EmployeeDetailPage = ({ employeeId }: { employeeId: string }) => {
   const { employee, isLoading, error } = useEmployee(employeeId);
+  const {
+    occurrences,
+    isLoading: areOccurrencesLoading,
+  } = useJobOccurrences({ employeeId, includeArchived: false }, employeeId);
   const { assignments } = useJobEmployeeAssignments(
     { employeeId, includeArchived: true },
     employeeId
@@ -121,7 +126,7 @@ export const EmployeeDetailPage = ({ employeeId }: { employeeId: string }) => {
         >
           <OpsDetailStat icon={BriefcaseBusiness} label="Trabajos activos" value={activeAssignments.length} helper={`${assignments.length} asignacion(es) totales`} />
           <OpsDetailStat icon={BadgeDollarSign} label="Tarifa" value={hourlyRate === null ? "Pendiente" : `${formatMoney(hourlyRate)} / h`} helper="base para pagos" />
-          <OpsDetailStat icon={Clock3} label="Visitas" value="Mes actual" helper="filtradas por periodo" />
+          <OpsDetailStat icon={Clock3} label="Visitas" value={areOccurrencesLoading ? "-" : occurrences.length} helper="historial operativo" />
           <OpsDetailStat icon={WalletCards} label="Pagos" value="Control" helper="saldo y registros" />
         </OpsDetailHero>
       </div>
@@ -163,7 +168,7 @@ export const EmployeeDetailPage = ({ employeeId }: { employeeId: string }) => {
       )}
 
       <EmployeeSummaryCard employee={employee} />
-      <EmployeeVisitsPanel employeeId={employeeId} hourlyRate={employee.hourlyRate} />
+      <EmployeeLatestVisitPanel employeeId={employeeId} isLoading={areOccurrencesLoading} occurrences={occurrences} />
       <EmployeePayrollPanel employee={employee} />
       <EmployeeAssignmentsPanel assignments={assignments} />
     </OpsPageShell>
