@@ -1,8 +1,10 @@
 "use client";
 
+import { useMemo, useState } from "react";
 import Link from "next/link";
 import { AlertCircle } from "lucide-react";
 
+import { JobOccurrenceFilters } from "@/components/ops/jobs/job-occurrence-filters";
 import { JobOccurrenceDialog } from "@/components/ops/jobs/job-occurrence-dialog";
 import { JobOccurrencesPanel } from "@/components/ops/jobs/job-occurrences-panel";
 import { useJob } from "@/components/ops/hooks/useJob";
@@ -10,14 +12,111 @@ import { useJobOccurrenceMutations } from "@/components/ops/hooks/useJobOccurren
 import { useJobOccurrences } from "@/components/ops/hooks/useJobOccurrences";
 import { useJobScheduleRules } from "@/components/ops/hooks/useJobScheduleRules";
 import { OpsPageHeader, OpsPageShell } from "@/components/ops/shared";
+import { getMonthRange, toDateInputValue } from "@/components/ops/utils";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 
+const getLastWeekRange = () => {
+  const end = new Date();
+  const start = new Date();
+  start.setDate(end.getDate() - 6);
+  return { start, end };
+};
+
+const getMonthRangeValues = (month: Date) => {
+  const { start, end } = getMonthRange(month);
+  return {
+    endDate: toDateInputValue(end),
+    startDate: toDateInputValue(start),
+  };
+};
+
 export const JobOccurrencesPage = ({ jobId }: { jobId: string }) => {
+  const currentMonth = getMonthRangeValues(new Date());
+  const [startDate, setStartDate] = useState(currentMonth.startDate);
+  const [endDate, setEndDate] = useState(currentMonth.endDate);
+  const [employeeId, setEmployeeId] = useState("ALL");
   const { job, isLoading, error } = useJob(jobId);
-  const { occurrences } = useJobOccurrences({ jobId }, `job-occurrences-${jobId}`);
   const { scheduleRules } = useJobScheduleRules({ jobId });
   const { archiveOccurrenceAsync, detachOccurrenceAsync } = useJobOccurrenceMutations(jobId);
+  const { occurrences: allOccurrences } = useJobOccurrences(
+    { includeArchived: false, jobId },
+    `job-occurrence-employees-${jobId}`
+  );
+  const employeeOptions = useMemo(
+    () =>
+      Array.from(
+        new Map(
+          allOccurrences
+            .filter((occurrence) => occurrence.employee)
+            .map((occurrence) => [occurrence.employeeId, occurrence.employee])
+        ).values()
+      ).sort((left, right) => left.name.localeCompare(right.name, "es")),
+    [allOccurrences]
+  );
+  const resolvedEmployeeId = employeeOptions.some((employee) => employee.id === employeeId)
+    ? employeeId
+    : "ALL";
+  const filters = {
+    employeeId: resolvedEmployeeId === "ALL" ? undefined : resolvedEmployeeId,
+    endDate: endDate ? new Date(`${endDate}T23:59:59`) : undefined,
+    includeArchived: false,
+    jobId,
+    startDate: startDate ? new Date(`${startDate}T00:00:00`) : undefined,
+  };
+  const {
+    occurrences,
+    isLoading: areOccurrencesLoading,
+  } = useJobOccurrences(
+    filters,
+    `job-occurrences-${jobId}-${resolvedEmployeeId}-${startDate}-${endDate}`
+  );
+
+  const activePreset = useMemo(() => {
+    const previousMonth = new Date();
+    previousMonth.setMonth(previousMonth.getMonth() - 1);
+    const lastWeek = getLastWeekRange();
+    const previousMonthRange = getMonthRangeValues(previousMonth);
+    const lastWeekRange = {
+      endDate: toDateInputValue(lastWeek.end),
+      startDate: toDateInputValue(lastWeek.start),
+    };
+
+    if (
+      startDate === currentMonth.startDate &&
+      endDate === currentMonth.endDate
+    ) {
+      return "current-month";
+    }
+
+    if (
+      startDate === previousMonthRange.startDate &&
+      endDate === previousMonthRange.endDate
+    ) {
+      return "previous-month";
+    }
+
+    if (startDate === lastWeekRange.startDate && endDate === lastWeekRange.endDate) {
+      return "last-week";
+    }
+
+    return null;
+  }, [currentMonth.endDate, currentMonth.startDate, endDate, startDate]);
+
+  const monthReference = startDate ? new Date(`${startDate}T00:00:00`) : new Date();
+  const monthLabel = monthReference.toLocaleDateString("es-UY", {
+    month: "long",
+    year: "numeric",
+  });
+  const emptyMessage = allOccurrences.length
+    ? "No hay ocurrencias para estos filtros."
+    : "Todavía no hay ocurrencias para este trabajo.";
+
+  const setMonthDates = (month: Date) => {
+    const nextRange = getMonthRangeValues(month);
+    setStartDate(nextRange.startDate);
+    setEndDate(nextRange.endDate);
+  };
 
   if (isLoading) {
     return <div className="container w-full animate-pulse rounded-lg bg-muted/40 p-20" />;
@@ -50,7 +149,49 @@ export const JobOccurrencesPage = ({ jobId }: { jobId: string }) => {
         }
       />
 
+      <JobOccurrenceFilters
+        activePreset={activePreset}
+        employeeId={resolvedEmployeeId}
+        employeeOptions={employeeOptions}
+        endDate={endDate}
+        monthLabel={monthLabel}
+        onClear={() => {
+          setEmployeeId("ALL");
+          setMonthDates(new Date());
+        }}
+        onEmployeeIdChange={setEmployeeId}
+        onEndDateChange={setEndDate}
+        onNextMonth={() => {
+          setMonthDates(
+            new Date(monthReference.getFullYear(), monthReference.getMonth() + 1, 1)
+          );
+        }}
+        onPresetCurrentMonth={() => {
+          setMonthDates(new Date());
+        }}
+        onPresetLastWeek={() => {
+          const lastWeek = getLastWeekRange();
+          setStartDate(toDateInputValue(lastWeek.start));
+          setEndDate(toDateInputValue(lastWeek.end));
+        }}
+        onPresetPreviousMonth={() => {
+          setMonthDates(
+            new Date(monthReference.getFullYear(), monthReference.getMonth() - 1, 1)
+          );
+        }}
+        onPreviousMonth={() => {
+          setMonthDates(
+            new Date(monthReference.getFullYear(), monthReference.getMonth() - 1, 1)
+          );
+        }}
+        onStartDateChange={setStartDate}
+        startDate={startDate}
+        totalVisible={occurrences.length}
+      />
+
       <JobOccurrencesPanel
+        emptyMessage={emptyMessage}
+        isLoading={areOccurrencesLoading}
         jobId={jobId}
         scheduleRules={scheduleRules}
         occurrences={occurrences}

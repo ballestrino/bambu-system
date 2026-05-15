@@ -26,12 +26,16 @@ const hasRealTiming = (occurrence: OpsOccurrence) =>
   Boolean(occurrence.actualStartAt || occurrence.actualEndAt);
 
 export const JobOccurrencesPanel = ({
+  emptyMessage = "Todavía no hay ocurrencias para este trabajo.",
+  isLoading = false,
   jobId,
   scheduleRules,
   occurrences,
   onArchive,
   onDetach,
 }: {
+  emptyMessage?: string;
+  isLoading?: boolean;
   jobId: string;
   scheduleRules: OpsScheduleRule[];
   occurrences: OpsOccurrence[];
@@ -46,7 +50,9 @@ export const JobOccurrencesPanel = ({
         <CardTitle>Ocurrencias</CardTitle>
       </CardHeader>
       <CardContent className="space-y-3">
-        {sortedOccurrences.length ? (
+        {isLoading ? (
+          <div className="min-h-40 animate-pulse rounded-2xl bg-muted/40" />
+        ) : sortedOccurrences.length ? (
           sortedOccurrences.map((occurrence) => (
             <div key={occurrence.id} className="space-y-4 rounded-2xl border border-black/5 bg-white p-4">
               <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
@@ -148,7 +154,7 @@ export const JobOccurrencesPanel = ({
           ))
         ) : (
           <p className="text-sm text-muted-foreground">
-            Todavía no hay ocurrencias para este trabajo.
+            {emptyMessage}
           </p>
         )}
       </CardContent>
