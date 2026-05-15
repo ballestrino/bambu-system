@@ -11,7 +11,7 @@ const optionClassName =
 export const JobBudgetTaxModeToggle = ({
   disabled = false,
   isPending = false,
-  label = "Modo de precio",
+  label,
   value,
   onValueChange,
 }: {
@@ -22,12 +22,16 @@ export const JobBudgetTaxModeToggle = ({
   onValueChange: (nextValue: boolean) => void;
 }) => (
   <div className="space-y-2">
-    <div className="flex items-center gap-2">
-      <p className="text-sm font-medium">{label}</p>
-      {isPending ? (
-        <LoaderCircle className="h-4 w-4 animate-spin text-muted-foreground" />
-      ) : null}
-    </div>
+    {label ? (
+      <div className="flex items-center gap-2">
+        <p className="text-sm font-medium">{label}</p>
+        {isPending ? (
+          <LoaderCircle className="h-4 w-4 animate-spin text-muted-foreground" />
+        ) : null}
+      </div>
+    ) : isPending ? (
+      <LoaderCircle className="h-4 w-4 animate-spin text-muted-foreground" />
+    ) : null}
     <div className="inline-flex rounded-xl border border-border bg-muted/40 p-1">
       <Button
         type="button"

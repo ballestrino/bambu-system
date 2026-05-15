@@ -66,11 +66,10 @@ export const JobSummaryCard = ({ job }: { job: OpsJobDetail }) => {
               Resumen comercial y operativo que dio origen al trabajo.
             </p>
           </div>
-          <div className="flex flex-col items-start gap-3">
+          <div className="flex flex-row items-center gap-3">
             <JobBudgetTaxModeToggle
               disabled={!canToggleTaxMode}
               isPending={isUpdating}
-              label="Precio mostrado"
               value={job.budgetIncludesIva}
               onValueChange={async (budgetIncludesIva) => {
                 await updateJobAsync({
