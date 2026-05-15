@@ -3,6 +3,12 @@ import type {
   OpsEmployeePayment,
   OpsOccurrence,
 } from "@/components/ops/types";
+import {
+  TRANSPORTATION_PAY_PER_VISIT,
+  getCompletedVisitHours,
+  getEmployeeHourlyRate,
+  isCompletedEmployeeVisit,
+} from "@/components/ops/compensation-utils";
 
 const moneyFormat = new Intl.NumberFormat("es-UY", {
   currency: "UYU",
@@ -17,24 +23,9 @@ export const toPayrollNumber = (value: unknown) => {
 
 export const formatPayrollMoney = (amount: number) => moneyFormat.format(amount);
 
-export const getEmployeeRate = (employee: Pick<OpsEmployee, "hourlyRate">) => {
-  if (employee.hourlyRate === null || employee.hourlyRate === undefined) {
-    return null;
-  }
+export const getEmployeeRate = getEmployeeHourlyRate;
 
-  const rate = Number(employee.hourlyRate);
-  return Number.isFinite(rate) && rate >= 0 ? rate : null;
-};
-
-export const getPayrollHours = (occurrence: OpsOccurrence) => {
-  if (occurrence.status !== "DONE" || !occurrence.employeeId || !occurrence.actualStartAt || !occurrence.actualEndAt) {
-    return 0;
-  }
-
-  const startedAt = new Date(occurrence.actualStartAt).getTime();
-  const endedAt = new Date(occurrence.actualEndAt).getTime();
-  return Math.max(0, (endedAt - startedAt) / 3600000);
-};
+export const getPayrollHours = getCompletedVisitHours;
 
 export const getPaymentSummary = (payments: OpsEmployeePayment[]) =>
   payments.reduce(
@@ -65,6 +56,8 @@ export const buildPayrollRows = (
     hourlyRate: number | null;
     recordedTotal: number;
     suggestedAmount: number | null;
+    transportationAmount: number;
+    visits: number;
     voidedTotal: number;
   }>();
 
@@ -80,6 +73,8 @@ export const buildPayrollRows = (
       hourlyRate: getEmployeeRate(employee),
       recordedTotal: 0,
       suggestedAmount: null,
+      transportationAmount: 0,
+      visits: 0,
       voidedTotal: 0,
     };
     rows.set(employee.id, row);
@@ -89,7 +84,13 @@ export const buildPayrollRows = (
   employees.forEach(ensureRow);
   occurrences.forEach((occurrence) => {
     if (!occurrence.employee) return;
-    ensureRow(occurrence.employee).hours += getPayrollHours(occurrence);
+    const row = ensureRow(occurrence.employee);
+    row.hours += getPayrollHours(occurrence);
+
+    if (isCompletedEmployeeVisit(occurrence)) {
+      row.transportationAmount += TRANSPORTATION_PAY_PER_VISIT;
+      row.visits += 1;
+    }
   });
   payments.forEach((payment) => {
     const row = ensureRow(payment.employee);
@@ -103,14 +104,22 @@ export const buildPayrollRows = (
   return Array.from(rows.values())
     .map((row) => {
       const suggestedAmount =
-        row.hourlyRate === null ? null : row.hours * row.hourlyRate;
+        row.hourlyRate === null
+          ? null
+          : row.hours * row.hourlyRate + row.transportationAmount;
       return {
         ...row,
         balance: suggestedAmount === null ? null : suggestedAmount - row.recordedTotal,
         suggestedAmount,
       };
     })
-    .filter((row) => row.hours > 0 || row.recordedTotal > 0 || row.voidedTotal > 0)
+    .filter(
+      (row) =>
+        row.hours > 0 ||
+        row.visits > 0 ||
+        row.recordedTotal > 0 ||
+        row.voidedTotal > 0
+    )
     .sort((a, b) => a.employeeName.localeCompare(b.employeeName));
 };
 

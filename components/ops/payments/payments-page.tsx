@@ -10,8 +10,8 @@ import { PaymentDialog } from "@/components/ops/payments/payment-dialog";
 import { PaymentsFilters } from "@/components/ops/payments/payments-filters";
 import { PaymentsList } from "@/components/ops/payments/payments-list";
 import { PaymentsSummary } from "@/components/ops/payments/payments-summary";
-import { RevenueAttributionPanel } from "@/components/ops/payments/revenue-attribution-panel";
-import { buildRevenueAttribution, getPaymentSummary } from "@/components/ops/payments/payment-utils";
+import { EmployeeGeneratedPayPanel } from "@/components/ops/payments/revenue-attribution-panel";
+import { buildEmployeeGeneratedPay, getPaymentSummary } from "@/components/ops/payments/payment-utils";
 import { getMonthRange, toDateInputValue } from "@/components/ops/utils";
 import type { PaymentStatus } from "@prisma/client";
 
@@ -48,8 +48,8 @@ export const PaymentsPage = () => {
 
   const summary = getPaymentSummary(payments);
   const attribution = useMemo(
-    () => buildRevenueAttribution(payments, occurrences),
-    [occurrences, payments]
+    () => buildEmployeeGeneratedPay(occurrences),
+    [occurrences]
   );
 
   return (
@@ -82,7 +82,7 @@ export const PaymentsPage = () => {
             await voidPaymentAsync(paymentId);
           }}
         />
-        <RevenueAttributionPanel {...attribution} />
+        <EmployeeGeneratedPayPanel {...attribution} />
       </div>
     </div>
   );

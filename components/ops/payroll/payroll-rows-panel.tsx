@@ -15,6 +15,8 @@ type PayrollRow = {
   hourlyRate: number | null;
   recordedTotal: number;
   suggestedAmount: number | null;
+  transportationAmount: number;
+  visits: number;
 };
 
 export const PayrollRowsPanel = ({
@@ -34,12 +36,16 @@ export const PayrollRowsPanel = ({
       {rows.length ? (
         rows.map((row) => (
           <div key={row.employeeId} className="flex flex-col gap-3 rounded-lg border p-4 xl:flex-row xl:items-center xl:justify-between">
-            <div className="grid gap-2 text-sm md:grid-cols-4">
+            <div className="grid gap-2 text-sm md:grid-cols-5">
               <div>
                 <p className="font-medium">{row.employeeName}</p>
-                <p className="text-muted-foreground">{row.hours.toFixed(2)} hs</p>
+                <p className="text-muted-foreground">
+                  {row.hours.toFixed(2)} hs · {row.visits}{" "}
+                  {row.visits === 1 ? "visita" : "visitas"}
+                </p>
               </div>
               <p>Tarifa: {row.hourlyRate === null ? "-" : formatPayrollMoney(row.hourlyRate)}</p>
+              <p>Boleto: {formatPayrollMoney(row.transportationAmount)}</p>
               <p>Sugerido: {row.suggestedAmount === null ? "-" : formatPayrollMoney(row.suggestedAmount)}</p>
               <p>Saldo: {row.balance === null ? "-" : formatPayrollMoney(row.balance)}</p>
             </div>

@@ -1,28 +1,29 @@
 import Link from "next/link";
 
+import { TRANSPORTATION_PAY_PER_VISIT } from "@/components/ops/compensation-utils";
 import { formatMoney } from "@/components/ops/payments/payment-utils";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 type AttributionRow = {
-  amount: number;
+  amount: number | null;
   employeeId: string;
   employeeName: string;
+  hourlyRate: number | null;
   hours: number;
+  laborAmount: number;
+  transportationAmount: number;
+  visits: number;
 };
 
-export const RevenueAttributionPanel = ({
+export const EmployeeGeneratedPayPanel = ({
   rows,
-  unassignedJobs,
-  unassignedTotal,
 }: {
   rows: AttributionRow[];
-  unassignedJobs: { amount: number; jobId: string; jobName: string }[];
-  unassignedTotal: number;
 }) => (
   <Card className="border-0 bg-white/80 shadow-sm ring-1 ring-black/5">
     <CardHeader>
-      <CardTitle>Dinero generado por empleado</CardTitle>
+      <CardTitle>Pago generado por empleado</CardTitle>
     </CardHeader>
     <CardContent className="space-y-3">
       {rows.length ? (
@@ -30,10 +31,27 @@ export const RevenueAttributionPanel = ({
           <div key={row.employeeId} className="flex flex-col gap-2 rounded-lg border p-4 md:flex-row md:items-center md:justify-between">
             <div className="space-y-1">
               <p className="font-medium">{row.employeeName}</p>
-              <p className="text-sm text-muted-foreground">{row.hours.toFixed(2)} hs aprobadas por visitas realizadas</p>
+              <p className="text-sm text-muted-foreground">
+                {row.hours.toFixed(2)} hs reales · {row.visits}{" "}
+                {row.visits === 1 ? "visita" : "visitas"}
+              </p>
+              <p className="text-xs text-muted-foreground">
+                Tarifa:{" "}
+                {row.hourlyRate === null ? "pendiente" : `${formatMoney(row.hourlyRate)} / h`} · Boleto:{" "}
+                {formatMoney(TRANSPORTATION_PAY_PER_VISIT)} / visita
+              </p>
             </div>
-            <div className="flex items-center gap-3">
-              <p className="font-semibold">{formatMoney(row.amount)}</p>
+            <div className="flex flex-wrap items-center gap-3 md:justify-end">
+              <div className="text-left md:text-right">
+                <p className="font-semibold">
+                  {row.amount === null ? "Tarifa pendiente" : formatMoney(row.amount)}
+                </p>
+                <p className="text-xs text-muted-foreground">
+                  Horas:{" "}
+                  {row.hourlyRate === null ? "-" : formatMoney(row.laborAmount)} · Boletos:{" "}
+                  {formatMoney(row.transportationAmount)}
+                </p>
+              </div>
               <Button asChild size="sm" variant="outline">
                 <Link href={`/dashboard/employees/${row.employeeId}`}>Empleado</Link>
               </Button>
@@ -42,24 +60,9 @@ export const RevenueAttributionPanel = ({
         ))
       ) : (
         <p className="text-sm text-muted-foreground">
-          No hay horas reales completadas para atribuir cobros en este rango.
+          No hay visitas realizadas con empleada asignada en este rango.
         </p>
       )}
-      {unassignedTotal > 0 ? (
-        <div className="rounded-lg border border-dashed p-4">
-          <p className="font-medium">Sin atribuir: {formatMoney(unassignedTotal)}</p>
-          <p className="mt-1 text-sm text-muted-foreground">
-            Cobros registrados en trabajos sin horas reales completadas en el rango.
-          </p>
-          <div className="mt-3 flex flex-wrap gap-2">
-            {unassignedJobs.map((job) => (
-              <Button key={job.jobId} asChild size="sm" variant="outline">
-                <Link href={`/dashboard/jobs/${job.jobId}`}>{job.jobName}</Link>
-              </Button>
-            ))}
-          </div>
-        </div>
-      ) : null}
     </CardContent>
   </Card>
 );
