@@ -224,6 +224,7 @@ model Job {
   serviceLocation      String?
   operationalNotes     String?                 @db.Text
   status               JobStatus               @default(DRAFT)
+  budgetIncludesIva    Boolean                 @default(true)
   sourceBudgetId       String?
   sourceBudget         Budget?                 @relation("JobSourceBudget", fields: [sourceBudgetId], references: [id], onDelete: SetNull)
   sourceBudgetOptionId String?

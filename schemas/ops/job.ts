@@ -1,6 +1,7 @@
 import { z } from "zod";
 
 import {
+  booleanSchema,
   cuidSchema,
   dateRangeFiltersSchema,
   jsonValueSchema,
@@ -27,6 +28,7 @@ const jobBaseSchema = z.object({
   serviceLocation: optionalTrimmedString(255),
   operationalNotes: optionalTrimmedString(),
   status: jobStatusSchema.default("DRAFT"),
+  budgetIncludesIva: booleanSchema.default(true),
   sourceBudgetId: z.preprocess(
     (value) => (value === "" ? null : value),
     z.union([cuidSchema, z.null()]).optional()
@@ -54,6 +56,7 @@ export const UpdateJobSchema = z.object({
   serviceLocation: nullableTrimmedString(255),
   operationalNotes: nullableTrimmedString(),
   status: jobStatusSchema.optional(),
+  budgetIncludesIva: optionalBooleanSchema,
   sourceBudgetId: nullableCuidUpdateSchema,
   sourceBudgetOptionId: nullableCuidUpdateSchema,
   budgetSnapshot: z.union([jsonValueSchema, z.null()]).optional(),

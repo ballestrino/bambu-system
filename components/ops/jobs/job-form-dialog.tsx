@@ -8,6 +8,7 @@ import {
   dashboardSecondaryActionClass,
 } from "@/components/dashboard/dashboard-styles";
 import type { OpsJobDetail, OpsJobListItem } from "@/components/ops/types";
+import { JobBudgetTaxModeToggle } from "@/components/ops/jobs/job-budget-tax-mode-toggle";
 import { BudgetSourceSelector } from "@/components/ops/jobs/budget-source-selector";
 import { useJobMutations } from "@/components/ops/hooks/useJobMutations";
 import { Button } from "@/components/ui/button";
@@ -26,6 +27,7 @@ type EditableJob = {
   serviceLocation?: string | null;
   operationalNotes?: string | null;
   status: string;
+  budgetIncludesIva?: boolean;
   sourceBudgetId?: string | null;
   sourceBudgetOptionId?: string | null;
 };
@@ -37,6 +39,7 @@ const getInitialState = (job?: EditableJob) => ({
   serviceLocation: job?.serviceLocation ?? "",
   operationalNotes: job?.operationalNotes ?? "",
   status: job?.status ?? "DRAFT",
+  budgetIncludesIva: job?.budgetIncludesIva ?? true,
   sourceBudgetId: job?.sourceBudgetId ?? "",
   sourceBudgetOptionId: job?.sourceBudgetOptionId ?? "",
 });
@@ -62,6 +65,7 @@ export const JobFormDialog = ({
       serviceLocation: formState.serviceLocation,
       operationalNotes: formState.operationalNotes,
       status: formState.status as (typeof jobStatusValues)[number],
+      budgetIncludesIva: formState.budgetIncludesIva,
       sourceBudgetId: formState.sourceBudgetId || null,
       sourceBudgetOptionId: formState.sourceBudgetOptionId || null,
     };
@@ -152,6 +156,21 @@ export const JobFormDialog = ({
             onBudgetChange={(sourceBudgetId) => setFormState((current) => ({ ...current, sourceBudgetId }))}
             onOptionChange={(sourceBudgetOptionId) => setFormState((current) => ({ ...current, sourceBudgetOptionId }))}
           />
+          <div className="rounded-lg border p-4">
+            <JobBudgetTaxModeToggle
+              disabled={!formState.sourceBudgetOptionId}
+              label="Precio asociado al trabajo"
+              value={formState.budgetIncludesIva}
+              onValueChange={(budgetIncludesIva) =>
+                setFormState((current) => ({ ...current, budgetIncludesIva }))
+              }
+            />
+            <p className="mt-2 text-sm text-muted-foreground">
+              {!formState.sourceBudgetOptionId
+                ? "Seleccioná una opción del presupuesto para definir si el trabajo cobra con o sin IVA."
+                : "Este modo se reflejará en el esperado de Cobros y en la imagen del presupuesto."}
+            </p>
+          </div>
         </div>
         <DialogFooter>
           <Button variant="outline" onClick={() => setOpen(false)}>

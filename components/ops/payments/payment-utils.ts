@@ -1,6 +1,5 @@
 import type {
   OpsJobClientPayment,
-  OpsJobDetail,
   OpsOccurrence,
 } from "@/components/ops/types";
 
@@ -32,19 +31,6 @@ export const getPaymentSummary = (payments: OpsJobClientPayment[]) =>
     },
     { recordedTotal: 0, recordedCount: 0, voidedTotal: 0, voidedCount: 0 }
   );
-
-export const getJobSnapshotPrice = (job: OpsJobDetail) => {
-  if (job.budgetSnapshot && typeof job.budgetSnapshot === "object" && !Array.isArray(job.budgetSnapshot)) {
-    const option = job.budgetSnapshot.option;
-    if (option && typeof option === "object" && !Array.isArray(option)) {
-      const price = toMoneyNumber(option.price);
-      return price > 0 ? price : null;
-    }
-  }
-
-  const optionPrice = toMoneyNumber(job.sourceBudgetOption?.price);
-  return optionPrice > 0 ? optionPrice : null;
-};
 
 const getWorkedHours = (occurrence: OpsOccurrence) => {
   if (occurrence.status !== "DONE" || !occurrence.employeeId || !occurrence.actualStartAt || !occurrence.actualEndAt) {

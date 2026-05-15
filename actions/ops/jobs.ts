@@ -20,6 +20,7 @@ export const createJob = async (values: unknown) => {
     }
 
     const {
+      budgetIncludesIva,
       sourceBudgetId,
       sourceBudgetOptionId,
       budgetSnapshot,
@@ -34,6 +35,7 @@ export const createJob = async (values: unknown) => {
     const job = await db.job.create({
       data: {
         ...jobData,
+        budgetIncludesIva,
         sourceBudgetId: sourceBudgetId ?? undefined,
         sourceBudgetOptionId: sourceBudgetOptionId ?? undefined,
         budgetSnapshot:
@@ -128,6 +130,7 @@ export const updateJob = async (jobId: string, values: unknown) => {
         serviceLocation: nextServiceLocation,
         operationalNotes: nextOperationalNotes,
         status: parsedValues.data.status,
+        budgetIncludesIva: parsedValues.data.budgetIncludesIva,
         sourceBudgetId: hasOwnKey(parsedValues.data, "sourceBudgetId")
           ? nextSourceBudgetId
           : undefined,

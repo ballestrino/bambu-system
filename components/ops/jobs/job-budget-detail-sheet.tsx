@@ -1,9 +1,12 @@
 "use client";
 
 import { BudgetDetails } from "@/components/budgets/budget-details/BudgetDetails";
-import { calculateBudgetTotals } from "@/lib/budget-calculations";
 import type { BudgetFormValues } from "@/schemas/BudgetSchema";
 import { formatDate, formatDateTime } from "@/components/ops/utils";
+import {
+  formatJobBudgetPrice,
+  getJobBudgetTaxModeLabel,
+} from "@/lib/ops/job-budget-pricing";
 
 const SummaryItem = ({
   className,
@@ -44,15 +47,8 @@ export const mapSnapshotOptionToBudgetValues = (option: Record<string, unknown>)
   visits: Number(option.visits ?? 0),
 }) satisfies Partial<BudgetFormValues> & { has_products?: boolean };
 
-export const getSnapshotNetPriceLabel = (option: Record<string, unknown>) => {
-  const values = mapSnapshotOptionToBudgetValues(option);
-  const totals = calculateBudgetTotals(values);
-  const netPrice = values.has_products ? totals.totalPreTaxWithProducts : totals.priceNoTaxService;
-
-  return `$${netPrice.toFixed(2)}`;
-};
-
 export const JobBudgetDetailSheet = ({
+  budgetIncludesIva,
   imageDate,
   job,
   servicePrice,
@@ -60,6 +56,7 @@ export const JobBudgetDetailSheet = ({
   snapshotOption,
   teamAndHours,
 }: {
+  budgetIncludesIva: boolean;
   imageDate: string;
   job: {
     archivedAt: Date | null;
@@ -70,7 +67,7 @@ export const JobBudgetDetailSheet = ({
     createdAt: Date;
     updatedAt: Date;
   };
-  servicePrice: string;
+  servicePrice: number | null;
   snapshotBudget: Record<string, unknown> | null;
   snapshotOption: Record<string, unknown> | null;
   teamAndHours: string;
@@ -104,7 +101,16 @@ export const JobBudgetDetailSheet = ({
       </div>
 
       <div className="mt-3 space-y-3">
-        <SummaryItem className="rounded-xl border border-[#C58A2A]/15 bg-white/85 p-3 text-sm dark:bg-background/60" label="Precio del servicio" value={servicePrice} />
+        <SummaryItem
+          className="rounded-xl border border-[#C58A2A]/15 bg-white/85 p-3 text-sm dark:bg-background/60"
+          label="Precio del servicio"
+          value={formatJobBudgetPrice(servicePrice)}
+        />
+        <SummaryItem
+          className="rounded-xl border border-[#C58A2A]/15 bg-white/85 p-3 text-sm dark:bg-background/60"
+          label="Modo IVA"
+          value={getJobBudgetTaxModeLabel(budgetIncludesIva)}
+        />
         <SummaryItem className="rounded-xl border border-[#C58A2A]/15 bg-white/85 p-3 text-sm dark:bg-background/60" label="Horas y equipo" value={teamAndHours} />
       </div>
 

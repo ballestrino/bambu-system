@@ -11,6 +11,11 @@ import { JobFormDialog } from "@/components/ops/jobs/job-form-dialog";
 import { OpsRecordItem } from "@/components/ops/shared";
 import { formatDateTime } from "@/components/ops/utils";
 import type { OpsJobListItem } from "@/components/ops/types";
+import {
+  formatJobBudgetPrice,
+  getJobBudgetPrice,
+  getJobBudgetTaxModeLabel,
+} from "@/lib/ops/job-budget-pricing";
 
 export const JobCard = ({
   job,
@@ -20,7 +25,8 @@ export const JobCard = ({
   onArchive: (jobId: string) => Promise<void>;
 }) => {
   const location = job.serviceLocation || job.serviceAddress || "Sin ubicación cargada";
-  const option = job.sourceBudgetOption ? `$${job.sourceBudgetOption.price}` : "Sin opción";
+  const option = formatJobBudgetPrice(getJobBudgetPrice(job));
+  const taxModeLabel = getJobBudgetTaxModeLabel(job.budgetIncludesIva);
 
   return (
     <OpsRecordItem
@@ -47,7 +53,7 @@ export const JobCard = ({
           <span>Presupuesto: {job.sourceBudget?.name ?? "Sin vínculo"}</span>
           <span className="inline-flex items-center gap-1">
             <DollarSign className="h-3.5 w-3.5" />
-            Opción: {option}
+            Opción ({taxModeLabel.toLowerCase()}): {option}
           </span>
         </>
       }

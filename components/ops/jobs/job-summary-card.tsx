@@ -3,9 +3,10 @@
 import { ReceiptText } from "lucide-react";
 
 import {
-  getSnapshotNetPriceLabel,
   JobBudgetDetailSheet,
 } from "@/components/ops/jobs/job-budget-detail-sheet";
+import { JobBudgetTaxModeToggle } from "@/components/ops/jobs/job-budget-tax-mode-toggle";
+import { useJobMutations } from "@/components/ops/hooks/useJobMutations";
 import { formatDateTime } from "@/components/ops/utils";
 import type { OpsJobDetail } from "@/components/ops/types";
 import { Button } from "@/components/ui/button";
@@ -18,6 +19,11 @@ import {
   SheetTitle,
   SheetTrigger,
 } from "@/components/ui/sheet";
+import {
+  formatJobBudgetPrice,
+  getJobBudgetPrice,
+  getJobBudgetTaxModeLabel,
+} from "@/lib/ops/job-budget-pricing";
 
 const readSnapshot = (snapshot: OpsJobDetail["budgetSnapshot"]) => {
   if (!snapshot || typeof snapshot !== "object" || Array.isArray(snapshot)) {
@@ -28,6 +34,7 @@ const readSnapshot = (snapshot: OpsJobDetail["budgetSnapshot"]) => {
 };
 
 export const JobSummaryCard = ({ job }: { job: OpsJobDetail }) => {
+  const { updateJobAsync, isUpdating } = useJobMutations();
   const snapshot = readSnapshot(job.budgetSnapshot);
   const snapshotBudget =
     snapshot?.budget && typeof snapshot.budget === "object" && !Array.isArray(snapshot.budget)
@@ -37,9 +44,9 @@ export const JobSummaryCard = ({ job }: { job: OpsJobDetail }) => {
     snapshot?.option && typeof snapshot.option === "object" && !Array.isArray(snapshot.option)
       ? (snapshot.option as Record<string, unknown>)
       : null;
-  const servicePrice = snapshotOption
-    ? getSnapshotNetPriceLabel(snapshotOption)
-    : "Sin opcion";
+  const servicePrice = getJobBudgetPrice(job);
+  const servicePriceLabel = formatJobBudgetPrice(servicePrice);
+  const taxModeLabel = getJobBudgetTaxModeLabel(job.budgetIncludesIva);
   const teamAndHours = snapshotOption
     ? `${snapshotOption.hoursPerVisit ?? "-"} hs por visita / ${snapshotOption.employees ?? "-"} persona(s)`
     : "-";
@@ -47,6 +54,7 @@ export const JobSummaryCard = ({ job }: { job: OpsJobDetail }) => {
     typeof snapshot?.capturedAt === "string"
       ? formatDateTime(snapshot.capturedAt)
       : "Sin imagen guardada";
+  const canToggleTaxMode = Boolean(snapshotOption || job.sourceBudgetOption);
 
   return (
     <Card className="rounded-2xl border-0 bg-white/90 shadow-sm ring-1 ring-black/5 dark:bg-background/70">
@@ -58,29 +66,44 @@ export const JobSummaryCard = ({ job }: { job: OpsJobDetail }) => {
               Resumen comercial y operativo que dio origen al trabajo.
             </p>
           </div>
-          <Sheet>
-            <SheetTrigger asChild>
-              <Button type="button" variant="outline" size="sm" className="w-fit rounded-full border-black/10">
-                Ver detalle
-              </Button>
-            </SheetTrigger>
-            <SheetContent className="w-full overflow-y-auto px-4 sm:max-w-3xl">
-              <SheetHeader>
-                <SheetTitle>Imagen del presupuesto</SheetTitle>
-                <SheetDescription>
-                  Detalle del contexto comercial y operativo vinculado al trabajo.
-                </SheetDescription>
-              </SheetHeader>
-              <JobBudgetDetailSheet
-                imageDate={imageDate}
-                job={job}
-                servicePrice={servicePrice}
-                snapshotBudget={snapshotBudget}
-                snapshotOption={snapshotOption}
-                teamAndHours={teamAndHours}
-              />
-            </SheetContent>
-          </Sheet>
+          <div className="flex flex-col items-start gap-3">
+            <JobBudgetTaxModeToggle
+              disabled={!canToggleTaxMode}
+              isPending={isUpdating}
+              label="Precio mostrado"
+              value={job.budgetIncludesIva}
+              onValueChange={async (budgetIncludesIva) => {
+                await updateJobAsync({
+                  jobId: job.id,
+                  values: { budgetIncludesIva },
+                });
+              }}
+            />
+            <Sheet>
+              <SheetTrigger asChild>
+                <Button type="button" variant="outline" size="sm" className="w-fit rounded-full border-black/10">
+                  Ver detalle
+                </Button>
+              </SheetTrigger>
+              <SheetContent className="w-full overflow-y-auto px-4 sm:max-w-3xl">
+                <SheetHeader>
+                  <SheetTitle>Imagen del presupuesto</SheetTitle>
+                  <SheetDescription>
+                    Detalle del contexto comercial y operativo vinculado al trabajo.
+                  </SheetDescription>
+                </SheetHeader>
+                <JobBudgetDetailSheet
+                  budgetIncludesIva={job.budgetIncludesIva}
+                  imageDate={imageDate}
+                  job={job}
+                  servicePrice={servicePrice}
+                  snapshotBudget={snapshotBudget}
+                  snapshotOption={snapshotOption}
+                  teamAndHours={teamAndHours}
+                />
+              </SheetContent>
+            </Sheet>
+          </div>
         </div>
       </CardHeader>
       <CardContent className="space-y-4">
@@ -109,7 +132,9 @@ export const JobSummaryCard = ({ job }: { job: OpsJobDetail }) => {
                 <p className="mt-1 truncate text-sm font-semibold text-[#18251D] dark:text-[#EAF5EC]">
                   {job.sourceBudget?.name || "Sin vinculo"}
                 </p>
-                <p className="text-sm text-muted-foreground">Precio del servicio: {servicePrice}</p>
+                <p className="text-sm text-muted-foreground">
+                  Precio del servicio ({taxModeLabel.toLowerCase()}): {servicePriceLabel}
+                </p>
               </div>
             </div>
           </div>

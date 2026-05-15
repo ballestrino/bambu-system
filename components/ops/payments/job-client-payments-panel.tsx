@@ -3,11 +3,12 @@
 import { PaymentDialog } from "@/components/ops/payments/payment-dialog";
 import { PaymentsList } from "@/components/ops/payments/payments-list";
 import { PaymentsSummary } from "@/components/ops/payments/payments-summary";
-import { formatMoney, getJobSnapshotPrice, getPaymentSummary } from "@/components/ops/payments/payment-utils";
+import { formatMoney, getPaymentSummary } from "@/components/ops/payments/payment-utils";
 import { useJobClientPaymentMutations } from "@/components/ops/hooks/useJobClientPaymentMutations";
 import { useJobClientPayments } from "@/components/ops/hooks/useJobClientPayments";
 import type { OpsJobDetail, OpsJobListItem } from "@/components/ops/types";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { getJobBudgetPrice } from "@/lib/ops/job-budget-pricing";
 
 export const JobClientPaymentsPanel = ({
   job,
@@ -19,7 +20,7 @@ export const JobClientPaymentsPanel = ({
   const { payments, isLoading } = useJobClientPayments({ jobId: job.id }, job.id);
   const { voidPaymentAsync } = useJobClientPaymentMutations(job.id);
   const summary = getPaymentSummary(payments);
-  const expectedPrice = getJobSnapshotPrice(job);
+  const expectedPrice = getJobBudgetPrice(job);
   const balance = expectedPrice === null ? null : expectedPrice - summary.recordedTotal;
 
   return (
