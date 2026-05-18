@@ -7,15 +7,19 @@ import {
   dashboardPrimaryActionClass,
   dashboardSecondaryActionClass,
 } from "@/components/dashboard/dashboard-styles";
-import { getOpsStatusConfig, opsJobStatus } from "@/components/ops/shared";
+import {
+  getOpsStatusConfig, OpsFormBody, OpsFormDialogContent, OpsFormField,
+  OpsFormFooter, OpsFormGrid, OpsFormHeader, opsFormControlClass,
+  opsFormPanelClass, opsFormSelectTriggerClass, opsFormTextareaClass,
+  opsJobStatus,
+} from "@/components/ops/shared";
 import type { OpsJobDetail, OpsJobListItem } from "@/components/ops/types";
 import { JobBudgetTaxModeToggle } from "@/components/ops/jobs/job-budget-tax-mode-toggle";
 import { BudgetSourceSelector } from "@/components/ops/jobs/budget-source-selector";
 import { useJobMutations } from "@/components/ops/hooks/useJobMutations";
 import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Dialog, DialogDescription, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { jobStatusValues } from "@/schemas/ops";
@@ -39,7 +43,7 @@ const getInitialState = (job?: EditableJob) => ({
   serviceAddress: job?.serviceAddress ?? "",
   serviceLocation: job?.serviceLocation ?? "",
   operationalNotes: job?.operationalNotes ?? "",
-  status: job?.status ?? "DRAFT",
+  status: job?.status ?? "ACTIVE",
   budgetIncludesIva: job?.budgetIncludesIva ?? true,
   sourceBudgetId: job?.sourceBudgetId ?? "",
   sourceBudgetOptionId: job?.sourceBudgetOptionId ?? "",
@@ -104,23 +108,21 @@ export const JobFormDialog = ({
           </Button>
         )}
       </DialogTrigger>
-      <DialogContent className="max-w-2xl">
-        <DialogHeader>
+      <OpsFormDialogContent size="lg">
+        <OpsFormHeader>
           <DialogTitle>{job ? "Editar trabajo" : "Crear trabajo"}</DialogTitle>
           <DialogDescription>
             Definí la operación base y, si querés, vinculala a un presupuesto existente.
           </DialogDescription>
-        </DialogHeader>
-        <div className="grid gap-4">
-          <div className="grid gap-4 md:grid-cols-2">
-            <div className="space-y-2">
-              <Label>Nombre</Label>
-              <Input value={formState.name} onChange={(event) => setFormState((current) => ({ ...current, name: event.target.value }))} />
-            </div>
-            <div className="space-y-2">
-              <Label>Estado</Label>
+        </OpsFormHeader>
+        <OpsFormBody className="grid gap-4">
+          <OpsFormGrid>
+            <OpsFormField label="Nombre">
+              <Input className={opsFormControlClass} value={formState.name} onChange={(event) => setFormState((current) => ({ ...current, name: event.target.value }))} />
+            </OpsFormField>
+            <OpsFormField label="Estado">
               <Select value={formState.status} onValueChange={(value) => setFormState((current) => ({ ...current, status: value }))}>
-                <SelectTrigger className="w-full">
+                <SelectTrigger className={opsFormSelectTriggerClass}>
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -131,33 +133,29 @@ export const JobFormDialog = ({
                   ))}
                 </SelectContent>
               </Select>
-            </div>
-          </div>
-          <div className="space-y-2">
-            <Label>Descripción</Label>
-            <Textarea value={formState.description} onChange={(event) => setFormState((current) => ({ ...current, description: event.target.value }))} />
-          </div>
-          <div className="grid gap-4 md:grid-cols-2">
-            <div className="space-y-2">
-              <Label>Dirección de servicio</Label>
-              <Input value={formState.serviceAddress} onChange={(event) => setFormState((current) => ({ ...current, serviceAddress: event.target.value }))} />
-            </div>
-            <div className="space-y-2">
-              <Label>Ubicación de referencia</Label>
-              <Input value={formState.serviceLocation} onChange={(event) => setFormState((current) => ({ ...current, serviceLocation: event.target.value }))} />
-            </div>
-          </div>
-          <div className="space-y-2">
-            <Label>Notas operativas</Label>
-            <Textarea value={formState.operationalNotes} onChange={(event) => setFormState((current) => ({ ...current, operationalNotes: event.target.value }))} />
-          </div>
+            </OpsFormField>
+          </OpsFormGrid>
+          <OpsFormField label="Descripción">
+            <Textarea className={opsFormTextareaClass} value={formState.description} onChange={(event) => setFormState((current) => ({ ...current, description: event.target.value }))} />
+          </OpsFormField>
+          <OpsFormGrid>
+            <OpsFormField label="Dirección de servicio">
+              <Input className={opsFormControlClass} value={formState.serviceAddress} onChange={(event) => setFormState((current) => ({ ...current, serviceAddress: event.target.value }))} />
+            </OpsFormField>
+            <OpsFormField label="Ubicación de referencia">
+              <Input className={opsFormControlClass} value={formState.serviceLocation} onChange={(event) => setFormState((current) => ({ ...current, serviceLocation: event.target.value }))} />
+            </OpsFormField>
+          </OpsFormGrid>
+          <OpsFormField label="Notas operativas">
+            <Textarea className={opsFormTextareaClass} value={formState.operationalNotes} onChange={(event) => setFormState((current) => ({ ...current, operationalNotes: event.target.value }))} />
+          </OpsFormField>
           <BudgetSourceSelector
             sourceBudgetId={formState.sourceBudgetId}
             sourceBudgetOptionId={formState.sourceBudgetOptionId}
             onBudgetChange={(sourceBudgetId) => setFormState((current) => ({ ...current, sourceBudgetId }))}
             onOptionChange={(sourceBudgetOptionId) => setFormState((current) => ({ ...current, sourceBudgetOptionId }))}
           />
-          <div className="rounded-lg border p-4">
+          <div className={opsFormPanelClass}>
             <JobBudgetTaxModeToggle
               disabled={!formState.sourceBudgetOptionId}
               label="Precio asociado al trabajo"
@@ -172,8 +170,8 @@ export const JobFormDialog = ({
                 : "Este modo se reflejará en el esperado de Cobros y en la imagen del presupuesto."}
             </p>
           </div>
-        </div>
-        <DialogFooter>
+        </OpsFormBody>
+        <OpsFormFooter>
           <Button variant="outline" onClick={() => setOpen(false)}>
             Cancelar
           </Button>
@@ -181,8 +179,8 @@ export const JobFormDialog = ({
             {isPending ? <LoaderCircle className="h-4 w-4 animate-spin" /> : null}
             {job ? "Guardar cambios" : "Crear trabajo"}
           </Button>
-        </DialogFooter>
-      </DialogContent>
+        </OpsFormFooter>
+      </OpsFormDialogContent>
     </Dialog>
   );
 };

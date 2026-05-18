@@ -3,8 +3,13 @@
 import { Briefcase, Package2 } from "lucide-react";
 
 import { useBudgetSources } from "@/components/ops/hooks/useBudgetSources";
+import {
+  OpsFormField,
+  opsFormControlClass,
+  opsFormPanelClass,
+  opsFormSelectTriggerClass,
+} from "@/components/ops/shared";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 interface BudgetSourceSelectorProps {
@@ -27,9 +32,8 @@ export const BudgetSourceSelector = ({
   );
 
   return (
-    <div className="space-y-4 rounded-lg border p-4">
-      <div className="space-y-2">
-        <Label>Presupuesto base</Label>
+    <div className={opsFormPanelClass}>
+      <OpsFormField label="Presupuesto base">
         <Select
           value={sourceBudgetId || "none"}
           onValueChange={(value) => {
@@ -38,7 +42,7 @@ export const BudgetSourceSelector = ({
             onOptionChange("");
           }}
         >
-          <SelectTrigger className="w-full">
+          <SelectTrigger className={opsFormSelectTriggerClass}>
             <SelectValue placeholder={isLoading ? "Cargando..." : "Sin presupuesto"} />
           </SelectTrigger>
           <SelectContent>
@@ -50,16 +54,15 @@ export const BudgetSourceSelector = ({
             ))}
           </SelectContent>
         </Select>
-      </div>
+      </OpsFormField>
 
-      <div className="space-y-2">
-        <Label>Opción del presupuesto</Label>
+      <OpsFormField className="mt-4" label="Opción del presupuesto">
         <Select
           value={sourceBudgetOptionId || "none"}
           onValueChange={(value) => onOptionChange(value === "none" ? "" : value)}
           disabled={!selectedBudget}
         >
-          <SelectTrigger className="w-full">
+          <SelectTrigger className={opsFormSelectTriggerClass}>
             <SelectValue placeholder="Sin opción seleccionada" />
           </SelectTrigger>
           <SelectContent>
@@ -71,16 +74,16 @@ export const BudgetSourceSelector = ({
             ))}
           </SelectContent>
         </Select>
-      </div>
+      </OpsFormField>
 
       {selectedBudget ? (
-        <div className="grid gap-3 rounded-md bg-muted/50 p-3 text-sm md:grid-cols-2">
+        <div className="mt-4 grid gap-3 rounded-md border border-[#53985E]/15 bg-white/70 p-3 text-sm md:grid-cols-2 dark:bg-background/30">
           <div className="space-y-1">
             <div className="flex items-center gap-2 font-medium">
               <Briefcase className="h-4 w-4" />
               {selectedBudget.name}
             </div>
-            <Input readOnly value={selectedBudget.slug} />
+            <Input className={opsFormControlClass} readOnly value={selectedBudget.slug} />
           </div>
           {selectedOption ? (
             <div className="space-y-1">

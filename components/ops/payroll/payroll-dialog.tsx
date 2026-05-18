@@ -9,12 +9,16 @@ import {
 } from "@/components/dashboard/dashboard-styles";
 import { useEmployeePaymentMutations } from "@/components/ops/hooks/useEmployeePaymentMutations";
 import { formatPayrollMoney, toPayrollNumber } from "@/components/ops/payroll/payroll-utils";
+import {
+  OpsFormBody, OpsFormDialogContent, OpsFormField, OpsFormFooter,
+  OpsFormGrid, OpsFormHeader, opsFormControlClass, opsFormPanelClass,
+  opsFormSelectTriggerClass, opsFormTextareaClass,
+} from "@/components/ops/shared";
 import type { OpsEmployee, OpsEmployeePayment } from "@/components/ops/types";
 import { toDateInputValue } from "@/components/ops/utils";
 import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Dialog, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 
@@ -98,46 +102,45 @@ export const PayrollDialog = ({
           <Button size="sm" className={dashboardPrimaryActionClass}><Plus className="h-4 w-4" />Registrar pago</Button>
         )}
       </DialogTrigger>
-      <DialogContent>
-        <DialogHeader>
+      <OpsFormDialogContent size="sm">
+        <OpsFormHeader>
           <DialogTitle>{payment ? "Editar pago" : "Registrar pago"}</DialogTitle>
-        </DialogHeader>
-        <div className="grid gap-4">
+        </OpsFormHeader>
+        <OpsFormBody className="grid gap-4">
           {!employeeId && !payment ? (
-            <div className="space-y-2">
-              <Label>Empleado</Label>
+            <OpsFormField label="Empleado">
               <Select value={formState.employeeId} onValueChange={(nextEmployeeId) => setFormState((current) => ({ ...current, employeeId: nextEmployeeId }))}>
-                <SelectTrigger className="w-full"><SelectValue placeholder="Seleccionar empleado" /></SelectTrigger>
+                <SelectTrigger className={opsFormSelectTriggerClass}><SelectValue placeholder="Seleccionar empleado" /></SelectTrigger>
                 <SelectContent>
                   {employees.map((employee) => <SelectItem key={employee.id} value={employee.id}>{employee.name}</SelectItem>)}
                 </SelectContent>
               </Select>
-            </div>
+            </OpsFormField>
           ) : null}
           {suggestedAmount ? (
-            <p className="rounded-md bg-muted px-3 py-2 text-sm">
+            <p className={opsFormPanelClass}>
               Sugerido para el periodo: {formatPayrollMoney(suggestedAmount)}
             </p>
           ) : null}
-          <div className="grid gap-4 md:grid-cols-2">
-            <div className="space-y-2"><Label>Periodo desde</Label><Input type="date" value={formState.periodStart} onChange={(event) => setFormState((current) => ({ ...current, periodStart: event.target.value }))} /></div>
-            <div className="space-y-2"><Label>Periodo hasta</Label><Input type="date" value={formState.periodEnd} onChange={(event) => setFormState((current) => ({ ...current, periodEnd: event.target.value }))} /></div>
-          </div>
-          <div className="grid gap-4 md:grid-cols-2">
-            <div className="space-y-2"><Label>Fecha de pago</Label><Input type="date" value={formState.paymentDate} onChange={(event) => setFormState((current) => ({ ...current, paymentDate: event.target.value }))} /></div>
-            <div className="space-y-2"><Label>Monto</Label><Input min="0.01" step="0.01" type="number" value={formState.amount} onChange={(event) => setFormState((current) => ({ ...current, amount: event.target.value }))} /></div>
-          </div>
-          <div className="space-y-2"><Label>Referencia</Label><Input value={formState.reference} onChange={(event) => setFormState((current) => ({ ...current, reference: event.target.value }))} /></div>
-          <div className="space-y-2"><Label>Notas</Label><Textarea value={formState.notes} onChange={(event) => setFormState((current) => ({ ...current, notes: event.target.value }))} /></div>
-        </div>
-        <DialogFooter>
+          <OpsFormGrid>
+            <OpsFormField label="Periodo desde"><Input className={opsFormControlClass} type="date" value={formState.periodStart} onChange={(event) => setFormState((current) => ({ ...current, periodStart: event.target.value }))} /></OpsFormField>
+            <OpsFormField label="Periodo hasta"><Input className={opsFormControlClass} type="date" value={formState.periodEnd} onChange={(event) => setFormState((current) => ({ ...current, periodEnd: event.target.value }))} /></OpsFormField>
+          </OpsFormGrid>
+          <OpsFormGrid>
+            <OpsFormField label="Fecha de pago"><Input className={opsFormControlClass} type="date" value={formState.paymentDate} onChange={(event) => setFormState((current) => ({ ...current, paymentDate: event.target.value }))} /></OpsFormField>
+            <OpsFormField label="Monto"><Input className={opsFormControlClass} min="0.01" step="0.01" type="number" value={formState.amount} onChange={(event) => setFormState((current) => ({ ...current, amount: event.target.value }))} /></OpsFormField>
+          </OpsFormGrid>
+          <OpsFormField label="Referencia"><Input className={opsFormControlClass} value={formState.reference} onChange={(event) => setFormState((current) => ({ ...current, reference: event.target.value }))} /></OpsFormField>
+          <OpsFormField label="Notas"><Textarea className={opsFormTextareaClass} value={formState.notes} onChange={(event) => setFormState((current) => ({ ...current, notes: event.target.value }))} /></OpsFormField>
+        </OpsFormBody>
+        <OpsFormFooter>
           <Button variant="outline" onClick={() => setOpen(false)}>Cancelar</Button>
           <Button disabled={isPending || amount <= 0 || !formState.employeeId || !formState.paymentDate || !formState.periodStart || !formState.periodEnd} onClick={handleSubmit}>
             {isPending ? <LoaderCircle className="h-4 w-4 animate-spin" /> : null}
             Guardar pago
           </Button>
-        </DialogFooter>
-      </DialogContent>
+        </OpsFormFooter>
+      </OpsFormDialogContent>
     </Dialog>
   );
 };

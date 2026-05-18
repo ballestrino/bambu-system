@@ -9,12 +9,16 @@ import {
 } from "@/components/dashboard/dashboard-styles";
 import { useEmployees } from "@/components/ops/hooks/useEmployees";
 import { useJobEmployeeAssignmentMutations } from "@/components/ops/hooks/useJobEmployeeAssignmentMutations";
+import {
+  OpsFormBody, OpsFormDialogContent, OpsFormField, OpsFormFooter,
+  OpsFormGrid, OpsFormHeader, opsFormControlClass,
+  opsFormSelectTriggerClass,
+} from "@/components/ops/shared";
 import type { OpsJobEmployeeAssignment } from "@/components/ops/types";
 import { toDateTimeLocalValue } from "@/components/ops/utils";
 import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Dialog, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 const getInitialState = (assignment?: OpsJobEmployeeAssignment) => ({
@@ -82,18 +86,17 @@ export const JobAssignmentDialog = ({
           </Button>
         )}
       </DialogTrigger>
-      <DialogContent>
-        <DialogHeader>
+      <OpsFormDialogContent size="sm">
+        <OpsFormHeader>
           <DialogTitle>{assignment ? "Editar asignación" : "Asignar empleado"}</DialogTitle>
-        </DialogHeader>
-        <div className="grid gap-4">
-          <div className="space-y-2">
-            <Label>Empleado</Label>
+        </OpsFormHeader>
+        <OpsFormBody className="grid gap-4">
+          <OpsFormField label="Empleado">
             {assignment ? (
-              <Input value={assignment.employee.name} disabled />
+              <Input className={opsFormControlClass} value={assignment.employee.name} disabled />
             ) : (
               <Select value={formState.employeeId} onValueChange={(employeeId) => setFormState((current) => ({ ...current, employeeId }))}>
-                <SelectTrigger className="w-full">
+                <SelectTrigger className={opsFormSelectTriggerClass}>
                   <SelectValue placeholder="Seleccionar empleado activo" />
                 </SelectTrigger>
                 <SelectContent>
@@ -105,30 +108,27 @@ export const JobAssignmentDialog = ({
                 </SelectContent>
               </Select>
             )}
-          </div>
-          <div className="space-y-2">
-            <Label>Rol</Label>
-            <Input value={formState.roleLabel} onChange={(event) => setFormState((current) => ({ ...current, roleLabel: event.target.value }))} />
-          </div>
-          <div className="grid gap-4 md:grid-cols-2">
-            <div className="space-y-2">
-              <Label>Desde</Label>
-              <Input type="datetime-local" value={formState.assignedFrom} onChange={(event) => setFormState((current) => ({ ...current, assignedFrom: event.target.value }))} />
-            </div>
-            <div className="space-y-2">
-              <Label>Hasta</Label>
-              <Input type="datetime-local" value={formState.assignedTo} onChange={(event) => setFormState((current) => ({ ...current, assignedTo: event.target.value }))} />
-            </div>
-          </div>
-        </div>
-        <DialogFooter>
+          </OpsFormField>
+          <OpsFormField label="Rol">
+            <Input className={opsFormControlClass} value={formState.roleLabel} onChange={(event) => setFormState((current) => ({ ...current, roleLabel: event.target.value }))} />
+          </OpsFormField>
+          <OpsFormGrid>
+            <OpsFormField label="Desde">
+              <Input className={opsFormControlClass} type="datetime-local" value={formState.assignedFrom} onChange={(event) => setFormState((current) => ({ ...current, assignedFrom: event.target.value }))} />
+            </OpsFormField>
+            <OpsFormField label="Hasta">
+              <Input className={opsFormControlClass} type="datetime-local" value={formState.assignedTo} onChange={(event) => setFormState((current) => ({ ...current, assignedTo: event.target.value }))} />
+            </OpsFormField>
+          </OpsFormGrid>
+        </OpsFormBody>
+        <OpsFormFooter>
           <Button variant="outline" onClick={() => setOpen(false)}>Cancelar</Button>
           <Button disabled={isPending || !formState.assignedFrom || (!assignment && !formState.employeeId)} onClick={handleSubmit}>
             {isPending ? <LoaderCircle className="h-4 w-4 animate-spin" /> : null}
             {assignment ? "Guardar cambios" : "Asignar"}
           </Button>
-        </DialogFooter>
-      </DialogContent>
+        </OpsFormFooter>
+      </OpsFormDialogContent>
     </Dialog>
   );
 };

@@ -8,13 +8,16 @@ import {
   dashboardSecondaryActionClass,
 } from "@/components/dashboard/dashboard-styles";
 import { useJobScheduleRuleMutations } from "@/components/ops/hooks/useJobScheduleRuleMutations";
-import { opsFrequencyLabels } from "@/components/ops/shared";
+import {
+  OpsFormBody, OpsFormDialogContent, OpsFormField, OpsFormFooter,
+  OpsFormGrid, OpsFormHeader, opsFormControlClass, opsFormSelectTriggerClass,
+  opsFormSwitchClass, opsFormToggleClass, opsFrequencyLabels,
+} from "@/components/ops/shared";
 import type { OpsScheduleRule } from "@/components/ops/types";
 import { minutesToTimeInput, timeInputToMinutes, toDateInputValue } from "@/components/ops/utils";
 import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Dialog, DialogDescription, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import { recurrenceFrequencyValues } from "@/schemas/ops";
@@ -129,54 +132,60 @@ export const JobScheduleRuleDialog = ({
           </Button>
         )}
       </DialogTrigger>
-      <DialogContent>
-        <DialogHeader>
+      <OpsFormDialogContent size="sm">
+        <OpsFormHeader>
           <DialogTitle>{rule ? "Editar regla" : "Crear regla"}</DialogTitle>
           <DialogDescription>
             Define la recurrencia base. Se generan visitas hasta 3 meses hacia adelante.
           </DialogDescription>
-        </DialogHeader>
-        <div className="grid gap-4">
-          <label className="flex items-center justify-between rounded-md border px-3 py-2 text-sm">
+        </OpsFormHeader>
+        <OpsFormBody className="grid gap-4">
+          <label className={opsFormToggleClass}>
             Regla activa
-            <Switch checked={formState.isActive} onCheckedChange={(checked) => setFormState((current) => ({ ...current, isActive: checked }))} />
+            <Switch className={opsFormSwitchClass} checked={formState.isActive} onCheckedChange={(checked) => setFormState((current) => ({ ...current, isActive: checked }))} />
           </label>
-          <div className="grid gap-4 md:grid-cols-2">
-            <div className="space-y-2"><Label>Frecuencia</Label><Select value={formState.frequency} onValueChange={(value) => setFormState((current) => ({ ...current, frequency: value as RecurrenceFrequency }))}><SelectTrigger className="w-full"><SelectValue /></SelectTrigger><SelectContent>{recurrenceFrequencyValues.map((value) => <SelectItem key={value} value={value}>{opsFrequencyLabels[value]}</SelectItem>)}</SelectContent></Select></div>
-            <div className="space-y-2"><Label>Intervalo</Label><Input type="number" min="1" value={formState.interval} onChange={(event) => setFormState((current) => ({ ...current, interval: event.target.value }))} /></div>
-          </div>
+          <OpsFormGrid>
+            <OpsFormField label="Frecuencia">
+              <Select value={formState.frequency} onValueChange={(value) => setFormState((current) => ({ ...current, frequency: value as RecurrenceFrequency }))}>
+                <SelectTrigger className={opsFormSelectTriggerClass}><SelectValue /></SelectTrigger>
+                <SelectContent>{recurrenceFrequencyValues.map((value) => <SelectItem key={value} value={value}>{opsFrequencyLabels[value]}</SelectItem>)}</SelectContent>
+              </Select>
+            </OpsFormField>
+            <OpsFormField label="Intervalo">
+              <Input className={opsFormControlClass} type="number" min="1" value={formState.interval} onChange={(event) => setFormState((current) => ({ ...current, interval: event.target.value }))} />
+            </OpsFormField>
+          </OpsFormGrid>
           {formState.frequency === "WEEKLY" ? (
-            <div className="space-y-2">
-              <Label>Días</Label>
+            <OpsFormField label="Días">
               <div className="flex flex-wrap gap-2">
                 {weekdayOptions.map((day) => (
-                  <Button key={day.value} type="button" variant={formState.weekdays.includes(day.value) ? "default" : "outline"} size="sm" onClick={() => toggleWeekday(day.value)}>
+                  <Button key={day.value} type="button" variant={formState.weekdays.includes(day.value) ? "default" : "outline"} size="sm" className="h-9 w-9 rounded-full p-0" onClick={() => toggleWeekday(day.value)}>
                     {day.label}
                   </Button>
                 ))}
               </div>
-            </div>
+            </OpsFormField>
           ) : null}
           {formState.frequency === "MONTHLY" ? (
-            <div className="space-y-2"><Label>Día del mes</Label><Input type="number" min="1" max="31" value={formState.dayOfMonth} onChange={(event) => setFormState((current) => ({ ...current, dayOfMonth: event.target.value }))} /></div>
+            <OpsFormField label="Día del mes"><Input className={opsFormControlClass} type="number" min="1" max="31" value={formState.dayOfMonth} onChange={(event) => setFormState((current) => ({ ...current, dayOfMonth: event.target.value }))} /></OpsFormField>
           ) : null}
-          <div className="grid gap-4 md:grid-cols-2">
-            <div className="space-y-2"><Label>Fecha inicial</Label><Input type="date" value={formState.startDate} onChange={(event) => setFormState((current) => ({ ...current, startDate: event.target.value }))} /></div>
-            <div className="space-y-2"><Label>Fecha final</Label><Input type="date" value={formState.endDate} onChange={(event) => setFormState((current) => ({ ...current, endDate: event.target.value }))} /></div>
-          </div>
-          <div className="grid gap-4 md:grid-cols-2">
-            <div className="space-y-2"><Label>Hora de inicio</Label><Input type="time" value={formState.startTime} onChange={(event) => setFormState((current) => ({ ...current, startTime: event.target.value }))} /></div>
-            <div className="space-y-2"><Label>Duración (min)</Label><Input type="number" min="1" value={formState.durationMinutes} onChange={(event) => setFormState((current) => ({ ...current, durationMinutes: event.target.value }))} /></div>
-          </div>
-        </div>
-        <DialogFooter>
+          <OpsFormGrid>
+            <OpsFormField label="Fecha inicial"><Input className={opsFormControlClass} type="date" value={formState.startDate} onChange={(event) => setFormState((current) => ({ ...current, startDate: event.target.value }))} /></OpsFormField>
+            <OpsFormField label="Fecha final"><Input className={opsFormControlClass} type="date" value={formState.endDate} onChange={(event) => setFormState((current) => ({ ...current, endDate: event.target.value }))} /></OpsFormField>
+          </OpsFormGrid>
+          <OpsFormGrid>
+            <OpsFormField label="Hora de inicio"><Input className={opsFormControlClass} type="time" value={formState.startTime} onChange={(event) => setFormState((current) => ({ ...current, startTime: event.target.value }))} /></OpsFormField>
+            <OpsFormField label="Duración (min)"><Input className={opsFormControlClass} type="number" min="1" value={formState.durationMinutes} onChange={(event) => setFormState((current) => ({ ...current, durationMinutes: event.target.value }))} /></OpsFormField>
+          </OpsFormGrid>
+        </OpsFormBody>
+        <OpsFormFooter>
           <Button variant="outline" onClick={() => setOpen(false)}>Cancelar</Button>
           <Button disabled={isPending || !formState.startDate} onClick={handleSubmit}>
             {isPending ? <LoaderCircle className="h-4 w-4 animate-spin" /> : null}
             Guardar regla
           </Button>
-        </DialogFooter>
-      </DialogContent>
+        </OpsFormFooter>
+      </OpsFormDialogContent>
     </Dialog>
   );
 };
