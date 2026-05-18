@@ -7,13 +7,16 @@ import { useEmployees } from "@/components/ops/hooks/useEmployees";
 import { useJobs } from "@/components/ops/hooks/useJobs";
 import { useJobOccurrenceMutations } from "@/components/ops/hooks/useJobOccurrenceMutations";
 import { JobOccurrenceTrigger } from "@/components/ops/jobs/job-occurrence-trigger";
-import { getOpsStatusConfig, opsOccurrenceStatus } from "@/components/ops/shared";
+import {
+  getOpsStatusConfig, OpsFormBody, OpsFormDialogContent, OpsFormField,
+  OpsFormFooter, OpsFormGrid, OpsFormHeader, opsFormControlClass,
+  opsFormSelectTriggerClass, opsFormTextareaClass, opsOccurrenceStatus,
+} from "@/components/ops/shared";
 import type { OpsOccurrence, OpsScheduleRule } from "@/components/ops/types";
 import { toDateTimeLocalValue } from "@/components/ops/utils";
 import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Dialog, DialogDescription, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { occurrenceStatusValues } from "@/schemas/ops";
@@ -114,37 +117,34 @@ export const JobOccurrenceDialog = ({
           triggerVariant={triggerVariant}
         />
       </DialogTrigger>
-      <DialogContent>
-        <DialogHeader>
+      <OpsFormDialogContent size="md">
+        <OpsFormHeader>
           <DialogTitle>{occurrence ? "Editar visita" : "Crear visita"}</DialogTitle>
           <DialogDescription>Puede quedar sin empleada para resolverla desde la agenda.</DialogDescription>
-        </DialogHeader>
-        <div className="grid gap-4">
+        </OpsFormHeader>
+        <OpsFormBody className="grid gap-4">
           {!jobId && !occurrence ? (
-            <div className="space-y-2">
-              <Label>Trabajo</Label>
+            <OpsFormField label="Trabajo">
               <Select value={formState.jobId} onValueChange={(nextJobId) => setFormState((current) => ({ ...current, jobId: nextJobId }))}>
-                <SelectTrigger className="w-full"><SelectValue placeholder="Seleccionar trabajo" /></SelectTrigger>
+                <SelectTrigger className={opsFormSelectTriggerClass}><SelectValue placeholder="Seleccionar trabajo" /></SelectTrigger>
                 <SelectContent>
                   {jobs.map((job) => <SelectItem key={job.id} value={job.id}>{job.name}</SelectItem>)}
                 </SelectContent>
               </Select>
-            </div>
+            </OpsFormField>
           ) : null}
-          <div className="space-y-2">
-            <Label>Empleada</Label>
+          <OpsFormField label="Empleada">
             <Select value={formState.employeeId || "none"} onValueChange={(value) => setFormState((current) => ({ ...current, employeeId: value === "none" ? "" : value }))}>
-              <SelectTrigger className="w-full"><SelectValue placeholder="Sin empleada asignada" /></SelectTrigger>
+              <SelectTrigger className={opsFormSelectTriggerClass}><SelectValue placeholder="Sin empleada asignada" /></SelectTrigger>
               <SelectContent>
                 <SelectItem value="none">Sin empleada asignada</SelectItem>
                 {employees.map((employee) => <SelectItem key={employee.id} value={employee.id}>{employee.name}</SelectItem>)}
               </SelectContent>
             </Select>
-          </div>
-          <div className="space-y-2">
-            <Label>Regla opcional</Label>
+          </OpsFormField>
+          <OpsFormField label="Regla opcional">
             <Select value={formState.scheduleRuleId || "none"} onValueChange={(value) => setFormState((current) => ({ ...current, scheduleRuleId: value === "none" ? "" : value }))}>
-              <SelectTrigger className="w-full"><SelectValue placeholder="Sin regla vinculada" /></SelectTrigger>
+              <SelectTrigger className={opsFormSelectTriggerClass}><SelectValue placeholder="Sin regla vinculada" /></SelectTrigger>
               <SelectContent>
                 <SelectItem value="none">Sin regla</SelectItem>
                 {scheduleRules.map((rule, index) => (
@@ -154,17 +154,16 @@ export const JobOccurrenceDialog = ({
                 ))}
               </SelectContent>
             </Select>
-          </div>
-          <div className="grid gap-4 md:grid-cols-2">
-            <div className="space-y-2"><Label>Inicio programado</Label><Input type="datetime-local" value={formState.scheduledStartAt} onChange={(event) => setFormState((current) => ({ ...current, scheduledStartAt: event.target.value }))} /></div>
-            <div className="space-y-2"><Label>Fin programado</Label><Input type="datetime-local" value={formState.scheduledEndAt} onChange={(event) => setFormState((current) => ({ ...current, scheduledEndAt: event.target.value }))} /></div>
-          </div>
-          <div className="grid gap-4 md:grid-cols-2">
-            <div className="space-y-2"><Label>Inicio real</Label><Input type="datetime-local" value={formState.actualStartAt} onChange={(event) => setFormState((current) => ({ ...current, actualStartAt: event.target.value }))} /></div>
-            <div className="space-y-2"><Label>Fin real</Label><Input type="datetime-local" value={formState.actualEndAt} onChange={(event) => setFormState((current) => ({ ...current, actualEndAt: event.target.value }))} /></div>
-          </div>
-          <div className="space-y-2">
-            <Label>Estado</Label>
+          </OpsFormField>
+          <OpsFormGrid>
+            <OpsFormField label="Inicio programado"><Input className={opsFormControlClass} type="datetime-local" value={formState.scheduledStartAt} onChange={(event) => setFormState((current) => ({ ...current, scheduledStartAt: event.target.value }))} /></OpsFormField>
+            <OpsFormField label="Fin programado"><Input className={opsFormControlClass} type="datetime-local" value={formState.scheduledEndAt} onChange={(event) => setFormState((current) => ({ ...current, scheduledEndAt: event.target.value }))} /></OpsFormField>
+          </OpsFormGrid>
+          <OpsFormGrid>
+            <OpsFormField label="Inicio real"><Input className={opsFormControlClass} type="datetime-local" value={formState.actualStartAt} onChange={(event) => setFormState((current) => ({ ...current, actualStartAt: event.target.value }))} /></OpsFormField>
+            <OpsFormField label="Fin real"><Input className={opsFormControlClass} type="datetime-local" value={formState.actualEndAt} onChange={(event) => setFormState((current) => ({ ...current, actualEndAt: event.target.value }))} /></OpsFormField>
+          </OpsFormGrid>
+          <OpsFormField label="Estado">
             <Select
               value={formState.status}
               onValueChange={(value) =>
@@ -174,7 +173,7 @@ export const JobOccurrenceDialog = ({
                 }))
               }
             >
-              <SelectTrigger className="w-full"><SelectValue /></SelectTrigger>
+              <SelectTrigger className={opsFormSelectTriggerClass}><SelectValue /></SelectTrigger>
               <SelectContent>
                 {occurrenceStatusValues.map((status) => (
                   <SelectItem key={status} value={status}>
@@ -183,17 +182,17 @@ export const JobOccurrenceDialog = ({
                 ))}
               </SelectContent>
             </Select>
-          </div>
-          <div className="space-y-2"><Label>Notas</Label><Textarea value={formState.notes} onChange={(event) => setFormState((current) => ({ ...current, notes: event.target.value }))} /></div>
-        </div>
-        <DialogFooter>
+          </OpsFormField>
+          <OpsFormField label="Notas"><Textarea className={opsFormTextareaClass} value={formState.notes} onChange={(event) => setFormState((current) => ({ ...current, notes: event.target.value }))} /></OpsFormField>
+        </OpsFormBody>
+        <OpsFormFooter>
           <Button variant="outline" onClick={() => setOpen(false)}>Cancelar</Button>
           <Button disabled={isPending || !resolvedJobId || !formState.scheduledStartAt || !formState.scheduledEndAt} onClick={handleSubmit}>
             {isPending ? <LoaderCircle className="h-4 w-4 animate-spin" /> : null}
             Guardar visita
           </Button>
-        </DialogFooter>
-      </DialogContent>
+        </OpsFormFooter>
+      </OpsFormDialogContent>
     </Dialog>
   );
 };

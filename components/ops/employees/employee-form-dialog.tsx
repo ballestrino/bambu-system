@@ -8,12 +8,23 @@ import {
   dashboardSecondaryActionClass,
 } from "@/components/dashboard/dashboard-styles";
 import { getHourlyRateNumber } from "@/components/ops/employees/employee-payroll";
+import {
+  OpsFormBody,
+  OpsFormDialogContent,
+  OpsFormField,
+  OpsFormFooter,
+  OpsFormGrid,
+  OpsFormHeader,
+  opsFormControlClass,
+  opsFormSwitchClass,
+  opsFormTextareaClass,
+  opsFormToggleClass,
+} from "@/components/ops/shared";
 import type { OpsEmployee, OpsEmployeeDetail } from "@/components/ops/types";
 import { useEmployeeMutations } from "@/components/ops/hooks/useEmployeeMutations";
 import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Dialog, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
 
@@ -100,52 +111,48 @@ export const EmployeeFormDialog = ({
           </Button>
         )}
       </DialogTrigger>
-      <DialogContent className="max-w-xl">
-        <DialogHeader>
+      <OpsFormDialogContent size="md">
+        <OpsFormHeader>
           <DialogTitle>{employee ? "Editar empleado" : "Crear empleado"}</DialogTitle>
-        </DialogHeader>
-        <div className="grid gap-4">
-          <div className="space-y-2">
-            <Label>Nombre</Label>
-            <Input value={formState.name} onChange={(event) => setFormState((current) => ({ ...current, name: event.target.value }))} />
-          </div>
-          <div className="grid gap-4 md:grid-cols-2">
-            <div className="space-y-2">
-              <Label>Email</Label>
-              <Input value={formState.email} onChange={(event) => setFormState((current) => ({ ...current, email: event.target.value }))} />
-            </div>
-            <div className="space-y-2">
-              <Label>Teléfono</Label>
-              <Input value={formState.phone} onChange={(event) => setFormState((current) => ({ ...current, phone: event.target.value }))} />
-            </div>
-          </div>
-          <div className="space-y-2">
-            <Label>Tarifa horaria</Label>
+        </OpsFormHeader>
+        <OpsFormBody className="grid gap-4">
+          <OpsFormField label="Nombre">
+            <Input className={opsFormControlClass} value={formState.name} onChange={(event) => setFormState((current) => ({ ...current, name: event.target.value }))} />
+          </OpsFormField>
+          <OpsFormGrid>
+            <OpsFormField label="Email">
+              <Input className={opsFormControlClass} value={formState.email} onChange={(event) => setFormState((current) => ({ ...current, email: event.target.value }))} />
+            </OpsFormField>
+            <OpsFormField label="Teléfono">
+              <Input className={opsFormControlClass} value={formState.phone} onChange={(event) => setFormState((current) => ({ ...current, phone: event.target.value }))} />
+            </OpsFormField>
+          </OpsFormGrid>
+          <OpsFormField label="Tarifa horaria">
             <Input
+              className={opsFormControlClass}
               min="0"
               step="0.01"
               type="number"
               value={formState.hourlyRate}
               onChange={(event) => setFormState((current) => ({ ...current, hourlyRate: event.target.value }))}
             />
-          </div>
-          <div className="space-y-2">
-            <Label>Notas</Label>
-            <Textarea value={formState.notes} onChange={(event) => setFormState((current) => ({ ...current, notes: event.target.value }))} />
-          </div>
-          <label className="flex items-center justify-between rounded-md border px-3 py-2 text-sm">
+          </OpsFormField>
+          <OpsFormField label="Notas">
+            <Textarea className={opsFormTextareaClass} value={formState.notes} onChange={(event) => setFormState((current) => ({ ...current, notes: event.target.value }))} />
+          </OpsFormField>
+          <label className={opsFormToggleClass}>
             Activo
-            <Switch checked={formState.isActive} onCheckedChange={(isActive) => setFormState((current) => ({ ...current, isActive }))} />
+            <Switch className={opsFormSwitchClass} checked={formState.isActive} onCheckedChange={(isActive) => setFormState((current) => ({ ...current, isActive }))} />
           </label>
-        </div>
-        <DialogFooter>
+        </OpsFormBody>
+        <OpsFormFooter>
           <Button variant="outline" onClick={() => setOpen(false)}>Cancelar</Button>
           <Button disabled={isPending || !formState.name.trim() || isHourlyRateInvalid} onClick={handleSubmit}>
             {isPending ? <LoaderCircle className="h-4 w-4 animate-spin" /> : null}
             {employee ? "Guardar cambios" : "Crear empleado"}
           </Button>
-        </DialogFooter>
-      </DialogContent>
+        </OpsFormFooter>
+      </OpsFormDialogContent>
     </Dialog>
   );
 };
