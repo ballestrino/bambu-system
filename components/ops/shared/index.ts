@@ -3,6 +3,7 @@ export * from "@/components/ops/shared/ops-detail-hero";
 export * from "@/components/ops/shared/ops-detail-list";
 export * from "@/components/ops/shared/ops-empty-state";
 export * from "@/components/ops/shared/ops-filter-controls";
+export * from "@/components/ops/shared/ops-form-dialog";
 export * from "@/components/ops/shared/ops-metric-card";
 export * from "@/components/ops/shared/ops-page-shell";
 export * from "@/components/ops/shared/ops-record-list";
