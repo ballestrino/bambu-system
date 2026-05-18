@@ -56,6 +56,13 @@ export const PayrollPage = () => {
     [occurrences, payments, visibleEmployees]
   );
   const summary = getPayrollSummary(rows, payments);
+  const clearFilters = () => {
+    const nextMonth = getMonthRange(new Date());
+    setStartDate(toDateInputValue(nextMonth.start));
+    setEndDate(toDateInputValue(nextMonth.end));
+    setStatus("ALL");
+    setEmployeeId("ALL");
+  };
 
   return (
     <div className="container flex w-full flex-col gap-6">
@@ -74,6 +81,7 @@ export const PayrollPage = () => {
         employeeId={employeeId}
         employees={employees}
         endDate={endDate}
+        onClear={clearFilters}
         onEmployeeIdChange={setEmployeeId}
         onEndDateChange={setEndDate}
         onStartDateChange={setStartDate}
