@@ -10,12 +10,11 @@ import {
   UsersRound,
 } from "lucide-react";
 
-import { dashboardSecondaryActionClass } from "@/components/dashboard/dashboard-styles";
 import { JobAssignmentsPanel } from "@/components/ops/jobs/job-assignments-panel";
 import { JobAssignmentDialog } from "@/components/ops/jobs/job-assignment-dialog";
 import { JobFormDialog } from "@/components/ops/jobs/job-form-dialog";
 import { JobLatestOccurrencePanel } from "@/components/ops/jobs/job-latest-occurrence-panel";
-import { JobOccurrenceDialog } from "@/components/ops/jobs/job-occurrence-dialog";
+import { PendingVisitsPanel } from "@/components/ops/jobs/pending-visits-panel";
 import { JobScheduleRulesPanel } from "@/components/ops/jobs/job-schedule-rules-panel";
 import { JobScheduleRuleDialog } from "@/components/ops/jobs/job-schedule-rule-dialog";
 import { JobSummaryCard } from "@/components/ops/jobs/job-summary-card";
@@ -61,7 +60,7 @@ export const JobDetailPage = ({ jobId }: { jobId: string }) => {
     (occurrence) => occurrence.status === "SCHEDULED"
   );
   const completedOccurrences = occurrences.filter((occurrence) => occurrence.status === "DONE");
-  const nextOccurrenceToComplete = pendingOccurrences.find(
+  const pendingRegistrationOccurrences = pendingOccurrences.filter(
     (occurrence) => !occurrence.actualStartAt || !occurrence.actualEndAt
   );
   const location = job.serviceLocation || job.serviceAddress || "Sin ubicacion cargada";
@@ -97,22 +96,10 @@ export const JobDetailPage = ({ jobId }: { jobId: string }) => {
           icon={CalendarClock}
           title="Planificar las visitas"
         />
-      ) : nextOccurrenceToComplete ? (
-        <OpsNextAction
-          action={
-            <JobOccurrenceDialog
-              jobId={jobId}
-              occurrence={nextOccurrenceToComplete}
-              scheduleRules={scheduleRules}
-              triggerClassName={dashboardSecondaryActionClass}
-              triggerLabel="Completar visita"
-              triggerVariant="outline"
-            />
-          }
-          description="Hay una visita pendiente. Revisá responsable, horario real y notas para dejarla lista para pagos."
-          icon={CalendarCheck2}
-          title="Completar la proxima visita"
-          tone="warning"
+      ) : pendingRegistrationOccurrences.length ? (
+        <PendingVisitsPanel
+          occurrences={pendingRegistrationOccurrences}
+          scheduleRules={scheduleRules}
         />
       ) : (
         <OpsNextAction
