@@ -51,6 +51,13 @@ export const PaymentsPage = () => {
     () => buildEmployeeGeneratedPay(occurrences),
     [occurrences]
   );
+  const clearFilters = () => {
+    const nextMonth = getMonthRange(new Date());
+    setStartDate(toDateInputValue(nextMonth.start));
+    setEndDate(toDateInputValue(nextMonth.end));
+    setStatus("ALL");
+    setJobId("ALL");
+  };
 
   return (
     <div className="container flex w-full flex-col gap-6">
@@ -65,6 +72,7 @@ export const PaymentsPage = () => {
         endDate={endDate}
         jobId={jobId}
         jobs={jobs}
+        onClear={clearFilters}
         onEndDateChange={setEndDate}
         onJobIdChange={setJobId}
         onStartDateChange={setStartDate}
