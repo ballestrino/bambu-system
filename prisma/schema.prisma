@@ -306,6 +306,7 @@ model JobOccurrence {
   @@index([status, archivedAt])
   @@index([createdById])
   @@index([updatedById])
+  @@unique([scheduleRuleId, scheduledStartAt])
 }
 
 model Employee {

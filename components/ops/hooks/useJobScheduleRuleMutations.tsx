@@ -20,6 +20,7 @@ export const useJobScheduleRuleMutations = (jobId: string) => {
       queryClient.invalidateQueries({ queryKey: opsQueryKeys.job(jobId) }),
       queryClient.invalidateQueries({ queryKey: opsQueryKeys.scheduleRules(jobId) }),
       queryClient.invalidateQueries({ queryKey: opsQueryKeys.occurrences(jobId) }),
+      queryClient.invalidateQueries({ queryKey: ["ops", "calendar"] }),
     ]);
   };
 

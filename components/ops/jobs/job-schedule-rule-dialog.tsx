@@ -132,7 +132,9 @@ export const JobScheduleRuleDialog = ({
       <DialogContent>
         <DialogHeader>
           <DialogTitle>{rule ? "Editar regla" : "Crear regla"}</DialogTitle>
-          <DialogDescription>Define la recurrencia base del trabajo.</DialogDescription>
+          <DialogDescription>
+            Define la recurrencia base. Se generan visitas hasta 3 meses hacia adelante.
+          </DialogDescription>
         </DialogHeader>
         <div className="grid gap-4">
           <label className="flex items-center justify-between rounded-md border px-3 py-2 text-sm">

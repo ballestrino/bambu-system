@@ -7,29 +7,19 @@ import { AlertCircle } from "lucide-react";
 import { JobOccurrenceFilters } from "@/components/ops/jobs/job-occurrence-filters";
 import { JobOccurrenceDialog } from "@/components/ops/jobs/job-occurrence-dialog";
 import { JobOccurrencesPanel } from "@/components/ops/jobs/job-occurrences-panel";
+import {
+  getLastWeekRange,
+  getMonthRangeValues,
+  getOccurrenceEmployeeOptions,
+} from "@/components/ops/jobs/job-occurrence-page-utils";
 import { useJob } from "@/components/ops/hooks/useJob";
 import { useJobOccurrenceMutations } from "@/components/ops/hooks/useJobOccurrenceMutations";
 import { useJobOccurrences } from "@/components/ops/hooks/useJobOccurrences";
 import { useJobScheduleRules } from "@/components/ops/hooks/useJobScheduleRules";
 import { OpsPageHeader, OpsPageShell } from "@/components/ops/shared";
-import { getMonthRange, toDateInputValue } from "@/components/ops/utils";
+import { toDateInputValue } from "@/components/ops/utils";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-
-const getLastWeekRange = () => {
-  const end = new Date();
-  const start = new Date();
-  start.setDate(end.getDate() - 6);
-  return { start, end };
-};
-
-const getMonthRangeValues = (month: Date) => {
-  const { start, end } = getMonthRange(month);
-  return {
-    endDate: toDateInputValue(end),
-    startDate: toDateInputValue(start),
-  };
-};
 
 export const JobOccurrencesPage = ({ jobId }: { jobId: string }) => {
   const currentMonth = getMonthRangeValues(new Date());
@@ -44,14 +34,7 @@ export const JobOccurrencesPage = ({ jobId }: { jobId: string }) => {
     `job-occurrence-employees-${jobId}`
   );
   const employeeOptions = useMemo(
-    () =>
-      Array.from(
-        new Map(
-          allOccurrences
-            .filter((occurrence) => occurrence.employee)
-            .map((occurrence) => [occurrence.employeeId, occurrence.employee])
-        ).values()
-      ).sort((left, right) => left.name.localeCompare(right.name, "es")),
+    () => getOccurrenceEmployeeOptions(allOccurrences),
     [allOccurrences]
   );
   const resolvedEmployeeId = employeeOptions.some((employee) => employee.id === employeeId)

@@ -30,7 +30,9 @@ export const createJobOccurrence = async (values: unknown) => {
 
     await Promise.all([
       assertJobExists(parsedValues.data.jobId),
-      assertEmployeeExists(parsedValues.data.employeeId),
+      parsedValues.data.employeeId
+        ? assertEmployeeExists(parsedValues.data.employeeId)
+        : Promise.resolve(),
       assertOccurrenceRuleBelongsToJob(
         parsedValues.data.scheduleRuleId,
         parsedValues.data.jobId
@@ -40,6 +42,7 @@ export const createJobOccurrence = async (values: unknown) => {
     const occurrence = await db.jobOccurrence.create({
       data: {
         ...parsedValues.data,
+        employeeId: parsedValues.data.employeeId ?? null,
         createdById: session.user.id,
       },
     });
@@ -75,14 +78,16 @@ export const updateJobOccurrence = async (
       return { error: "La ocurrencia resultante es invalida" };
     }
 
-    await assertEmployeeExists(validatedValues.data.employeeId);
+    if (validatedValues.data.employeeId) {
+      await assertEmployeeExists(validatedValues.data.employeeId);
+    }
 
     const occurrence = await db.jobOccurrence.update({
       where: {
         id: occurrenceId,
       },
       data: {
-        employeeId: validatedValues.data.employeeId,
+        employeeId: validatedValues.data.employeeId ?? null,
         scheduledStartAt: validatedValues.data.scheduledStartAt,
         scheduledEndAt: validatedValues.data.scheduledEndAt,
         actualStartAt: mergedValues.actualStartAt,
@@ -116,23 +121,29 @@ export const detachJobOccurrence = async (
       return { error: "Datos invalidos para despegar la ocurrencia" };
     }
 
-    const mergedValues = buildResolvedJobOccurrence(existingOccurrence, parsedValues.data, {
-      isDetached: true,
-      scheduleRuleId: undefined,
-    });
+    const mergedValues = buildResolvedJobOccurrence(
+      existingOccurrence,
+      parsedValues.data,
+      {
+        isDetached: true,
+        scheduleRuleId: null,
+      }
+    );
     const validatedValues = validateResolvedJobOccurrence(mergedValues);
     if (!validatedValues.success) {
       return { error: "La ocurrencia despejada es invalida" };
     }
 
-    await assertEmployeeExists(validatedValues.data.employeeId);
+    if (validatedValues.data.employeeId) {
+      await assertEmployeeExists(validatedValues.data.employeeId);
+    }
 
     const occurrence = await db.jobOccurrence.update({
       where: {
         id: occurrenceId,
       },
       data: {
-        employeeId: validatedValues.data.employeeId,
+        employeeId: validatedValues.data.employeeId ?? null,
         scheduledStartAt: validatedValues.data.scheduledStartAt,
         scheduledEndAt: validatedValues.data.scheduledEndAt,
         actualStartAt: mergedValues.actualStartAt,

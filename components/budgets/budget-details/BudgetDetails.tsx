@@ -1,6 +1,7 @@
 "use client";
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { BudgetHourlyPrice } from "@/components/budgets/common/BudgetHourlyPrice";
 import { cn } from "@/lib/utils";
 import { calculateBudgetTotals, PRODUCT_MARGIN_PCT } from "@/lib/budget-calculations";
 import { BudgetFormValues, defaultBudgetValues } from "@/schemas/BudgetSchema";
@@ -40,7 +41,9 @@ export const BudgetDetails = ({ option, title }: BudgetDetailsProps) => {
         revenueAmountProducts,
         totalPreTaxWithProducts,
         totalIvaWithProducts,
-        totalFinalWithProducts
+        totalFinalWithProducts,
+        hourlyPriceNoTaxService,
+        hourlyPriceNoTaxWithProducts
     } = totals;
 
     const revenuePct = Number(values.revenue_percent) || 0;
@@ -49,6 +52,7 @@ export const BudgetDetails = ({ option, title }: BudgetDetailsProps) => {
 
     // Determine what to show as the final price at the bottom
     const finalPricePreTax = hasProducts ? totalPreTaxWithProducts : priceNoTaxService;
+    const finalHourlyPricePreTax = hasProducts ? hourlyPriceNoTaxWithProducts : hourlyPriceNoTaxService;
 
     return (
         <Card className={cn("h-full max-h-[calc(92vh)] gap-2 pt-4 shadow-lg overflow-y-auto", hasProducts ? "border-l-4 border-l-blue-500" : "border-l-4 border-l-gray-400")}>
@@ -87,6 +91,10 @@ export const BudgetDetails = ({ option, title }: BudgetDetailsProps) => {
                         <p className="text-muted-foreground">Transporte</p>
                         <p className="font-medium">${transport.toFixed(2)}</p>
                     </div>
+                    <BudgetHourlyPrice
+                        amount={finalHourlyPricePreTax}
+                        tone={hasProducts ? "blue" : "gray"}
+                    />
                 </div>
 
                 <hr className="my-2 border-t" />

@@ -17,43 +17,50 @@ export const buildResolvedJobOccurrence = (
   overrides?: Partial<
     Pick<JobOccurrence, "isDetached" | "scheduleRuleId">
   >
-) => ({
-  jobId: existingOccurrence.jobId,
-  employeeId: getPatchedValue(
-    patch,
-    "employeeId",
-    existingOccurrence.employeeId ?? ""
-  ),
-  scheduleRuleId:
-    overrides?.scheduleRuleId ?? existingOccurrence.scheduleRuleId ?? undefined,
-  scheduledStartAt: getPatchedValue(
-    patch,
-    "scheduledStartAt",
-    existingOccurrence.scheduledStartAt
-  ),
-  scheduledEndAt: getPatchedValue(
-    patch,
-    "scheduledEndAt",
-    existingOccurrence.scheduledEndAt
-  ),
-  actualStartAt: getPatchedValue(
-    patch,
-    "actualStartAt",
-    existingOccurrence.actualStartAt ?? null
-  ),
-  actualEndAt: getPatchedValue(
-    patch,
-    "actualEndAt",
-    existingOccurrence.actualEndAt ?? null
-  ),
-  status: getPatchedValue(patch, "status", existingOccurrence.status),
-  isDetached:
-    overrides?.isDetached ??
-    ("isDetached" in patch && patch.isDetached !== undefined
-      ? patch.isDetached
-      : existingOccurrence.isDetached),
-  notes: getPatchedValue(patch, "notes", existingOccurrence.notes ?? null),
-});
+) => {
+  const hasScheduleRuleOverride = overrides
+    ? "scheduleRuleId" in overrides
+    : false;
+
+  return {
+    jobId: existingOccurrence.jobId,
+    employeeId: getPatchedValue(
+      patch,
+      "employeeId",
+      existingOccurrence.employeeId ?? ""
+    ),
+    scheduleRuleId: hasScheduleRuleOverride
+      ? overrides?.scheduleRuleId ?? undefined
+      : existingOccurrence.scheduleRuleId ?? undefined,
+    scheduledStartAt: getPatchedValue(
+      patch,
+      "scheduledStartAt",
+      existingOccurrence.scheduledStartAt
+    ),
+    scheduledEndAt: getPatchedValue(
+      patch,
+      "scheduledEndAt",
+      existingOccurrence.scheduledEndAt
+    ),
+    actualStartAt: getPatchedValue(
+      patch,
+      "actualStartAt",
+      existingOccurrence.actualStartAt ?? null
+    ),
+    actualEndAt: getPatchedValue(
+      patch,
+      "actualEndAt",
+      existingOccurrence.actualEndAt ?? null
+    ),
+    status: getPatchedValue(patch, "status", existingOccurrence.status),
+    isDetached:
+      overrides?.isDetached ??
+      ("isDetached" in patch && patch.isDetached !== undefined
+        ? patch.isDetached
+        : existingOccurrence.isDetached),
+    notes: getPatchedValue(patch, "notes", existingOccurrence.notes ?? null),
+  };
+};
 
 export const validateResolvedJobOccurrence = (
   occurrence: ReturnType<typeof buildResolvedJobOccurrence>

@@ -7,21 +7,17 @@ import { ChevronDown, ChevronUp } from "lucide-react";
 import { BudgetFormValues } from "@/schemas/BudgetSchema";
 import { cn } from "@/lib/utils";
 import { calculateBudgetTotals, PRODUCT_MARGIN_PCT } from "@/lib/budget-calculations";
+import { BudgetHourlyPrice } from "@/components/budgets/common/BudgetHourlyPrice";
 
 type BudgetPreviewValues = BudgetFormValues & {
     has_products?: boolean;
 };
 
-
-
 export const BudgetPreview = () => {
     const { control } = useFormContext<BudgetFormValues>();
     const values = useWatch({ control }) as BudgetPreviewValues;
     const [isProductsOpen, setIsProductsOpen] = useState(false);
-
     const totals = calculateBudgetTotals(values);
-
-    // Destructure for easier usage
     const {
         totalHours,
         transport,
@@ -38,11 +34,14 @@ export const BudgetPreview = () => {
         revenueAmountProducts,
         totalPreTaxWithProducts,
         totalIvaWithProducts,
-        totalFinalWithProducts
+        totalFinalWithProducts,
+        hourlyPriceNoTaxService,
+        hourlyPriceNoTaxWithProducts
     } = totals;
 
     const revenuePct = Number(values.revenue_percent) || 0;
     const ivaPct = Number(values.iva) || 0;
+    const previewHourlyPriceNoTax = values.has_products || Number(values.products_price) > 0 ? hourlyPriceNoTaxWithProducts : hourlyPriceNoTaxService;
 
     return (
         <Card className="pt-4 mb-0 gap-2 h-full border-l-4 border-l-blue-500 shadow-lg overflow-y-auto max-h-[calc(92vh)]">
@@ -53,7 +52,6 @@ export const BudgetPreview = () => {
                 </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
-                {/* General Info */}
                 <hr className="border-t" />
                 <div className="grid grid-cols-2 gap-y-2 gap-x-4 text-sm">
                     <div>
@@ -82,11 +80,11 @@ export const BudgetPreview = () => {
                         <p className="text-muted-foreground">Transporte</p>
                         <p className="font-medium">${transport.toFixed(2)}</p>
                     </div>
+                    <BudgetHourlyPrice amount={previewHourlyPriceNoTax} />
                 </div>
 
                 <hr className="my-2 border-t" />
 
-                {/* Visual Contribution Breakdown */}
                 <div className="space-y-2">
                     <h4 className="font-semibold text-sm">Desglose de Contribuciones</h4>
                     <div className="space-y-1 text-sm">
@@ -111,7 +109,6 @@ export const BudgetPreview = () => {
 
                 <hr className="my-2 border-t" />
 
-                {/* Price Without Products (Service Only) */}
                 <div className="space-y-2 pt-2">
                     <h4 className="font-semibold text-sm uppercase text-muted-foreground tracking-wider mb-2">
                         {values.has_products ? "Sin Productos" : "Detalle del Servicio"}
@@ -143,7 +140,6 @@ export const BudgetPreview = () => {
 
                 <hr className="my-2 border-t" />
 
-                {/* Price With Products (Collapsible) - Only show if products exist or explicitly enabled */}
                 {((values.products_price || 0) > 0 || values.has_products) && (
                     <div className="space-y-2">
                         <button
@@ -166,7 +162,6 @@ export const BudgetPreview = () => {
                                     <span>${(costBasisNoProducts + products).toFixed(2)}</span>
                                 </div>
 
-                                {/* Margins */}
                                 <div className="flex justify-between text-sm text-green-600">
                                     <span>Ganancia Servicio ({revenuePct}%)</span>
                                     <span>${revenueAmountService.toFixed(2)}</span>

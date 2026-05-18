@@ -60,7 +60,7 @@ export const JobOccurrenceDialog = ({
       await updateOccurrenceAsync({
         occurrenceId: occurrence.id,
         values: {
-          employeeId: formState.employeeId,
+          employeeId: formState.employeeId || null,
           scheduledStartAt: new Date(formState.scheduledStartAt),
           scheduledEndAt: new Date(formState.scheduledEndAt),
           actualStartAt: formState.actualStartAt
@@ -74,7 +74,7 @@ export const JobOccurrenceDialog = ({
     } else {
       await createOccurrenceAsync({
         jobId: resolvedJobId,
-        employeeId: formState.employeeId,
+        employeeId: formState.employeeId || undefined,
         scheduleRuleId: formState.scheduleRuleId || undefined,
         scheduledStartAt: new Date(formState.scheduledStartAt),
         scheduledEndAt: new Date(formState.scheduledEndAt),
@@ -117,9 +117,7 @@ export const JobOccurrenceDialog = ({
       <DialogContent>
         <DialogHeader>
           <DialogTitle>{occurrence ? "Editar visita" : "Crear visita"}</DialogTitle>
-          <DialogDescription>
-            La visita planificada se actualiza luego con el empleado y horario real.
-          </DialogDescription>
+          <DialogDescription>Puede quedar sin empleada para resolverla desde la agenda.</DialogDescription>
         </DialogHeader>
         <div className="grid gap-4">
           {!jobId && !occurrence ? (
@@ -135,9 +133,10 @@ export const JobOccurrenceDialog = ({
           ) : null}
           <div className="space-y-2">
             <Label>Empleada</Label>
-            <Select value={formState.employeeId} onValueChange={(employeeId) => setFormState((current) => ({ ...current, employeeId }))}>
-              <SelectTrigger className="w-full"><SelectValue placeholder="Seleccionar empleada" /></SelectTrigger>
+            <Select value={formState.employeeId || "none"} onValueChange={(value) => setFormState((current) => ({ ...current, employeeId: value === "none" ? "" : value }))}>
+              <SelectTrigger className="w-full"><SelectValue placeholder="Sin empleada asignada" /></SelectTrigger>
               <SelectContent>
+                <SelectItem value="none">Sin empleada asignada</SelectItem>
                 {employees.map((employee) => <SelectItem key={employee.id} value={employee.id}>{employee.name}</SelectItem>)}
               </SelectContent>
             </Select>
@@ -189,7 +188,7 @@ export const JobOccurrenceDialog = ({
         </div>
         <DialogFooter>
           <Button variant="outline" onClick={() => setOpen(false)}>Cancelar</Button>
-          <Button disabled={isPending || !resolvedJobId || !formState.employeeId || !formState.scheduledStartAt || !formState.scheduledEndAt} onClick={handleSubmit}>
+          <Button disabled={isPending || !resolvedJobId || !formState.scheduledStartAt || !formState.scheduledEndAt} onClick={handleSubmit}>
             {isPending ? <LoaderCircle className="h-4 w-4 animate-spin" /> : null}
             Guardar visita
           </Button>

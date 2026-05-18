@@ -4,7 +4,6 @@ import { db } from "@/lib/db";
 import { requireAdminSession } from "@/lib/require-admin-session";
 import {
   JobFiltersSchema,
-  JobOccurrenceFiltersSchema,
   JobScheduleRuleFiltersSchema,
 } from "@/schemas/ops";
 import { buildDateTimeRange, opsAuditUserSelect } from "@/data/ops/shared";
@@ -157,62 +156,5 @@ export const getJobScheduleRules = async (filters?: unknown) => {
   } catch (error) {
     console.error("Error getting job schedule rules:", error);
     return { error: "Error al obtener las reglas del calendario" };
-  }
-};
-
-export const getJobOccurrences = async (filters?: unknown) => {
-  try {
-    await requireAdminSession();
-
-    const parsedFilters = JobOccurrenceFiltersSchema.safeParse(filters ?? {});
-    if (!parsedFilters.success) {
-      return { error: "Filtros de ocurrencias invalidos" };
-    }
-
-    const {
-      jobId,
-      employeeId,
-      scheduleRuleId,
-      statuses,
-      includeArchived,
-      isDetached,
-      startDate,
-      endDate,
-    } = parsedFilters.data;
-
-    const occurrences = await db.jobOccurrence.findMany({
-      where: {
-        jobId,
-        employeeId,
-        scheduleRuleId,
-        status: statuses?.length ? { in: statuses } : undefined,
-        archivedAt: includeArchived ? undefined : null,
-        isDetached,
-        scheduledStartAt: buildDateTimeRange(startDate, endDate),
-      },
-      include: {
-        job: {
-          select: {
-            id: true,
-            name: true,
-            status: true,
-          },
-        },
-        employee: true,
-        scheduleRule: true,
-        createdBy: {
-          select: opsAuditUserSelect,
-        },
-        updatedBy: {
-          select: opsAuditUserSelect,
-        },
-      },
-      orderBy: [{ scheduledStartAt: "asc" }],
-    });
-
-    return { occurrences };
-  } catch (error) {
-    console.error("Error getting job occurrences:", error);
-    return { error: "Error al obtener las ocurrencias del calendario" };
   }
 };

@@ -17,7 +17,7 @@ import {
     DialogDescription,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
-import { Bot, Send, MessageCircle, Plus, X, LogOut, Save, History, Search, MoreHorizontal, Pencil, Trash, Copy, Check, Paperclip, Square } from "lucide-react";
+import { Bot, Send, MessageCircle, Plus, X, LogOut, Save, History, Search, MoreHorizontal, Pencil, Trash, Paperclip, Square } from "lucide-react";
 import {
     DropdownMenu,
     DropdownMenuContent,
@@ -35,12 +35,8 @@ import DeleteDialog from "@/components/ui/delete-dialog";
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import Image from 'next/image';
-
-const cleanContent = (content: string) => {
-    const codeBlockRegex = /^```(?:markdown)?\s*([\s\S]*?)\s*```$/i;
-    const match = content.match(codeBlockRegex);
-    return match ? match[1] : content;
-};
+import { AssistantMessageCopyMenu } from "@/components/ai/AssistantMessageCopyMenu";
+import { cleanChatContent } from "@/lib/ai-chat-copy";
 
 interface AIChatProps {
     contextData: {
@@ -62,33 +58,6 @@ interface SavedChat {
     createdAt: Date;
     messages: { role: string; content: string; imageUrl?: string | null }[];
     name?: string;
-}
-
-function CopyButton({ content }: { content: string }) {
-    const [isCopied, setIsCopied] = useState(false);
-
-    const copyToClipboard = async () => {
-        try {
-            await navigator.clipboard.writeText(content);
-            setIsCopied(true);
-            toast.success("Copiado al portapapeles");
-            setTimeout(() => setIsCopied(false), 2000);
-        } catch {
-            toast.error("Error al copiar");
-        }
-    };
-
-    return (
-        <Button
-            variant="ghost"
-            size="icon"
-            className="absolute top-2 right-2 h-6 w-6 bg-background/50 backdrop-blur-sm hover:bg-background/80"
-            onClick={copyToClipboard}
-            title="Copiar mensaje"
-        >
-            {isCopied ? <Check className="h-3 w-3" /> : <Copy className="h-3 w-3" />}
-        </Button>
-    );
 }
 
 export function AIChat({ contextData, trigger }: AIChatProps) {
@@ -446,10 +415,10 @@ export function AIChat({ contextData, trigger }: AIChatProps) {
                                                             h3: ({ children }) => <h3 className="text-base font-bold mb-1 mt-2">{children}</h3>,
                                                         }}
                                                     >
-                                                        {cleanContent(m.content)}
+                                                        {cleanChatContent(m.content)}
                                                     </ReactMarkdown>
                                                 </div>
-                                                <CopyButton content={cleanContent(m.content)} />
+                                                <AssistantMessageCopyMenu content={m.content} />
                                             </>
                                         ) : (
                                             <>

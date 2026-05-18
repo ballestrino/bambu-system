@@ -88,6 +88,8 @@ export const calculateBudgetTotals = (values: Partial<BudgetFormValues>) => {
     const totalPreTaxWithProducts = priceNoTaxService + priceNoTaxProducts;
     const totalIvaWithProducts = totalPreTaxWithProducts * (ivaPct / 100);
     const totalFinalWithProducts = totalPreTaxWithProducts + totalIvaWithProducts;
+    const hourlyPriceNoTaxService = totalHours > 0 ? priceNoTaxService / totalHours : 0;
+    const hourlyPriceNoTaxWithProducts = totalHours > 0 ? totalPreTaxWithProducts / totalHours : 0;
 
     return {
         totalHours,
@@ -107,6 +109,8 @@ export const calculateBudgetTotals = (values: Partial<BudgetFormValues>) => {
         priceNoTaxProducts,
         totalPreTaxWithProducts,
         totalIvaWithProducts,
-        totalFinalWithProducts
+        totalFinalWithProducts,
+        hourlyPriceNoTaxService,
+        hourlyPriceNoTaxWithProducts
     };
 };
