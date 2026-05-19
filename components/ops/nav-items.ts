@@ -3,10 +3,17 @@ import {
   CalendarDays,
   CircleDollarSign,
   HandCoins,
+  LayoutDashboard,
   UsersRound,
 } from "lucide-react";
 
 export const opsNavItems = [
+  {
+    title: "Inicio",
+    description: "Resumen operativo diario",
+    url: "/dashboard",
+    icon: LayoutDashboard,
+  },
   {
     title: "Trabajos",
     description: "Servicios activos y archivo operativo",

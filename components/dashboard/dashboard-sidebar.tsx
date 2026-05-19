@@ -49,7 +49,10 @@ const groups = [
     label: "Operaciones",
     items: opsNavItems.map((item) => ({
       ...item,
-      match: (pathname: string) => pathname.startsWith(item.url),
+      match: (pathname: string) =>
+        item.url === "/dashboard"
+          ? pathname === "/dashboard"
+          : pathname.startsWith(item.url),
     })),
   },
 ] as const;
@@ -121,4 +124,3 @@ export function DashboardSidebarFloatingTrigger() {
     </div>
   );
 }
-
