@@ -123,6 +123,7 @@ export const PendingVisitsPanel = ({
                         </Button>
                       ) : null}
                       <JobOccurrenceDialog
+                        completeOnSave={mode === "pending"}
                         occurrence={occurrence}
                         scheduleRules={occurrenceRules}
                         triggerLabel={actionLabel}

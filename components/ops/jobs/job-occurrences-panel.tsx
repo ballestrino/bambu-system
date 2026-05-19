@@ -112,6 +112,7 @@ export const JobOccurrencesPanel = ({
 
                 <div className="flex flex-wrap gap-2 lg:justify-end">
                   <JobOccurrenceDialog
+                    completeOnSave={occurrence.status === "SCHEDULED"}
                     jobId={jobId}
                     scheduleRules={scheduleRules}
                     occurrence={occurrence}

@@ -6,6 +6,10 @@ import { LoaderCircle } from "lucide-react";
 import { useEmployees } from "@/components/ops/hooks/useEmployees";
 import { useJobs } from "@/components/ops/hooks/useJobs";
 import { useJobOccurrenceMutations } from "@/components/ops/hooks/useJobOccurrenceMutations";
+import {
+  getInitialOccurrenceState,
+  getResolvedActualTimes,
+} from "@/components/ops/jobs/job-occurrence-dialog-utils";
 import { JobOccurrenceTrigger } from "@/components/ops/jobs/job-occurrence-trigger";
 import {
   getOpsStatusConfig, OpsFormBody, OpsFormDialogContent, OpsFormField,
@@ -13,7 +17,6 @@ import {
   opsFormSelectTriggerClass, opsFormTextareaClass, opsOccurrenceStatus,
 } from "@/components/ops/shared";
 import type { OpsOccurrence, OpsScheduleRule } from "@/components/ops/types";
-import { toDateTimeLocalValue } from "@/components/ops/utils";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogDescription, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
@@ -23,19 +26,8 @@ import { occurrenceStatusValues } from "@/schemas/ops";
 
 type OccurrenceStatus = (typeof occurrenceStatusValues)[number];
 
-const getInitialState = (occurrence?: OpsOccurrence) => ({
-  jobId: occurrence?.jobId ?? "",
-  employeeId: occurrence?.employeeId ?? "",
-  scheduleRuleId: occurrence?.scheduleRuleId ?? "",
-  scheduledStartAt: toDateTimeLocalValue(occurrence?.scheduledStartAt),
-  scheduledEndAt: toDateTimeLocalValue(occurrence?.scheduledEndAt),
-  actualStartAt: toDateTimeLocalValue(occurrence?.actualStartAt),
-  actualEndAt: toDateTimeLocalValue(occurrence?.actualEndAt),
-  status: occurrence?.status ?? "SCHEDULED",
-  notes: occurrence?.notes ?? "",
-});
-
 export const JobOccurrenceDialog = ({
+  completeOnSave = false,
   jobId,
   scheduleRules = [],
   occurrence,
@@ -43,6 +35,7 @@ export const JobOccurrenceDialog = ({
   triggerLabel,
   triggerVariant,
 }: {
+  completeOnSave?: boolean;
   jobId?: string;
   scheduleRules?: OpsScheduleRule[];
   occurrence?: OpsOccurrence;
@@ -51,7 +44,9 @@ export const JobOccurrenceDialog = ({
   triggerVariant?: ComponentProps<typeof Button>["variant"];
 }) => {
   const [open, setOpen] = useState(false);
-  const [formState, setFormState] = useState(getInitialState(occurrence));
+  const [formState, setFormState] = useState(
+    getInitialOccurrenceState(occurrence, completeOnSave)
+  );
   const { employees } = useEmployees({ isActive: true });
   const { jobs } = useJobs({ includeArchived: false });
   const resolvedJobId = jobId ?? occurrence?.jobId ?? formState.jobId;
@@ -59,6 +54,11 @@ export const JobOccurrenceDialog = ({
     useJobOccurrenceMutations(resolvedJobId);
 
   const handleSubmit = async () => {
+    const { actualEndAt, actualStartAt } = getResolvedActualTimes(
+      formState,
+      completeOnSave
+    );
+
     if (occurrence) {
       await updateOccurrenceAsync({
         occurrenceId: occurrence.id,
@@ -66,10 +66,8 @@ export const JobOccurrenceDialog = ({
           employeeId: formState.employeeId || null,
           scheduledStartAt: new Date(formState.scheduledStartAt),
           scheduledEndAt: new Date(formState.scheduledEndAt),
-          actualStartAt: formState.actualStartAt
-            ? new Date(formState.actualStartAt)
-            : null,
-          actualEndAt: formState.actualEndAt ? new Date(formState.actualEndAt) : null,
+          actualStartAt: actualStartAt ?? null,
+          actualEndAt: actualEndAt ?? null,
           status: formState.status as OccurrenceStatus,
           notes: formState.notes,
         },
@@ -81,12 +79,8 @@ export const JobOccurrenceDialog = ({
         scheduleRuleId: formState.scheduleRuleId || undefined,
         scheduledStartAt: new Date(formState.scheduledStartAt),
         scheduledEndAt: new Date(formState.scheduledEndAt),
-        actualStartAt: formState.actualStartAt
-          ? new Date(formState.actualStartAt)
-          : undefined,
-        actualEndAt: formState.actualEndAt
-          ? new Date(formState.actualEndAt)
-          : undefined,
+        actualStartAt,
+        actualEndAt,
         status: formState.status as OccurrenceStatus,
         isDetached: false,
         notes: formState.notes || undefined,
@@ -103,7 +97,7 @@ export const JobOccurrenceDialog = ({
       open={open}
       onOpenChange={(nextOpen) => {
         if (nextOpen) {
-          setFormState(getInitialState(occurrence));
+          setFormState(getInitialOccurrenceState(occurrence, completeOnSave));
         }
 
         setOpen(nextOpen);
