@@ -31,10 +31,10 @@ export default function NavDashboard() {
                             </li>
                             <li>
                                 <NavigationMenuLink asChild>
-                                    <Link href="/dashboard/jobs">
+                                    <Link href="/dashboard">
                                         <div className="font-medium">Operaciones</div>
                                         <div className="text-muted-foreground text-sm">
-                                            Trabajos y calendario operativo
+                                            Resumen, trabajos y calendario operativo
                                         </div>
                                     </Link>
                                 </NavigationMenuLink>

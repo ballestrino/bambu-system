@@ -2,26 +2,28 @@ import "server-only";
 
 import type { JobScheduleRule } from "@prisma/client";
 
+import {
+  addLocalDays,
+  addLocalMonths,
+  compareLocalDates,
+  DEFAULT_OPS_TIMEZONE,
+  diffLocalDays,
+  diffLocalMonths,
+  endOfZonedDay,
+  getIsoWeekday,
+  getLocalDate,
+  startOfIsoWeek,
+  startOfZonedDay,
+  zonedTimeToUtc,
+  type LocalDate,
+} from "@/lib/ops/timezone";
+
 export const MAX_GENERATION_MONTHS = 3;
 export const MINUTE = 60 * 1000;
-
-const DAY = 24 * 60 * MINUTE;
 
 export type GenerationRange = {
   start: Date;
   end: Date;
-};
-
-const startOfDay = (date: Date) =>
-  new Date(date.getFullYear(), date.getMonth(), date.getDate());
-
-const endOfDay = (date: Date) =>
-  new Date(date.getFullYear(), date.getMonth(), date.getDate(), 23, 59, 59, 999);
-
-const addMonths = (date: Date, months: number) => {
-  const next = new Date(date);
-  next.setMonth(next.getMonth() + months);
-  return next;
 };
 
 const maxDate = (...dates: Date[]) =>
@@ -30,28 +32,36 @@ const maxDate = (...dates: Date[]) =>
 const minDate = (...dates: Date[]) =>
   new Date(Math.min(...dates.map((date) => date.getTime())));
 
-const diffDays = (left: Date, right: Date) =>
-  Math.floor((startOfDay(left).getTime() - startOfDay(right).getTime()) / DAY);
+const getRuleTimezone = (rule: JobScheduleRule) =>
+  rule.timezone || DEFAULT_OPS_TIMEZONE;
 
-const getWeekday = (date: Date) => date.getDay() || 7;
+export const getGenerationHorizonEnd = (
+  timeZone = DEFAULT_OPS_TIMEZONE
+) => {
+  const today = getLocalDate(new Date(), timeZone);
+  const horizon = addLocalMonths(today, MAX_GENERATION_MONTHS);
 
-const startOfIsoWeek = (date: Date) => {
-  const day = startOfDay(date);
-  day.setDate(day.getDate() - (getWeekday(day) - 1));
-  return day;
+  return zonedTimeToUtc(
+    {
+      ...horizon,
+      hour: 23,
+      millisecond: 999,
+      minute: 59,
+      second: 59,
+    },
+    timeZone
+  );
 };
 
-const diffMonths = (left: Date, right: Date) =>
-  (left.getFullYear() - right.getFullYear()) * 12 +
-  left.getMonth() -
-  right.getMonth();
+export const getGenerationStart = (
+  rangeStart?: Date,
+  timeZone = DEFAULT_OPS_TIMEZONE
+) => {
+  const today = getLocalDate(new Date(), timeZone);
+  const requested = rangeStart ? getLocalDate(rangeStart, timeZone) : today;
+  const start = compareLocalDates(requested, today) > 0 ? requested : today;
 
-export const getGenerationHorizonEnd = () =>
-  endOfDay(addMonths(startOfDay(new Date()), MAX_GENERATION_MONTHS));
-
-export const getGenerationStart = (rangeStart?: Date) => {
-  const today = startOfDay(new Date());
-  return rangeStart ? maxDate(startOfDay(rangeStart), today) : today;
+  return zonedTimeToUtc(start, timeZone);
 };
 
 export const getGenerationWindow = (
@@ -59,49 +69,68 @@ export const getGenerationWindow = (
   rangeStart?: Date,
   rangeEnd?: Date
 ): GenerationRange | null => {
-  const horizonEnd = getGenerationHorizonEnd();
-  const requestedStart = getGenerationStart(rangeStart);
-  const requestedEnd = rangeEnd ? endOfDay(rangeEnd) : horizonEnd;
-  const start = maxDate(startOfDay(rule.startDate), requestedStart);
-  const end = minDate(rule.endDate ?? horizonEnd, requestedEnd, horizonEnd);
+  const timeZone = getRuleTimezone(rule);
+  const horizonEnd = getGenerationHorizonEnd(timeZone);
+  const requestedStart = getGenerationStart(rangeStart, timeZone);
+  const requestedEnd = rangeEnd
+    ? endOfZonedDay(rangeEnd, timeZone)
+    : horizonEnd;
+  const start = maxDate(startOfZonedDay(rule.startDate, timeZone), requestedStart);
+  const end = minDate(
+    rule.endDate ? endOfZonedDay(rule.endDate, timeZone) : horizonEnd,
+    requestedEnd,
+    horizonEnd
+  );
 
   return start.getTime() <= end.getTime() ? { start, end } : null;
 };
 
-const matchesRuleDate = (rule: JobScheduleRule, date: Date) => {
-  if (date.getTime() < startOfDay(rule.startDate).getTime()) {
+const matchesRuleDate = (
+  rule: JobScheduleRule,
+  date: LocalDate,
+  timeZone: string
+) => {
+  const ruleStart = getLocalDate(rule.startDate, timeZone);
+
+  if (compareLocalDates(date, ruleStart) < 0) {
     return false;
   }
 
   if (rule.frequency === "DAILY") {
-    return diffDays(date, rule.startDate) % rule.interval === 0;
+    return diffLocalDays(date, ruleStart) % rule.interval === 0;
   }
 
   if (rule.frequency === "WEEKLY") {
     const weekDiff = Math.floor(
-      diffDays(startOfIsoWeek(date), startOfIsoWeek(rule.startDate)) / 7
+      diffLocalDays(startOfIsoWeek(date), startOfIsoWeek(ruleStart)) / 7
     );
+
     return (
       weekDiff % rule.interval === 0 &&
-      rule.weekdays.includes(getWeekday(date))
+      rule.weekdays.includes(getIsoWeekday(date))
     );
   }
 
-  const monthDiff = diffMonths(date, rule.startDate);
+  const monthDiff = diffLocalMonths(date, ruleStart);
   return (
     monthDiff >= 0 &&
     monthDiff % rule.interval === 0 &&
-    date.getDate() === rule.dayOfMonth
+    date.day === rule.dayOfMonth
   );
 };
 
-const buildOccurrenceStart = (rule: JobScheduleRule, date: Date) =>
-  new Date(
-    date.getFullYear(),
-    date.getMonth(),
-    date.getDate(),
-    Math.floor(rule.startTimeMinutes / 60),
-    rule.startTimeMinutes % 60
+const buildOccurrenceStart = (
+  rule: JobScheduleRule,
+  date: LocalDate,
+  timeZone: string
+) =>
+  zonedTimeToUtc(
+    {
+      ...date,
+      hour: Math.floor(rule.startTimeMinutes / 60),
+      minute: rule.startTimeMinutes % 60,
+    },
+    timeZone
   );
 
 export const buildCandidateStarts = (
@@ -109,11 +138,13 @@ export const buildCandidateStarts = (
   range: GenerationRange
 ) => {
   const starts: Date[] = [];
-  const cursor = startOfDay(range.start);
+  const timeZone = getRuleTimezone(rule);
+  const rangeEndDate = getLocalDate(range.end, timeZone);
+  let cursor = getLocalDate(range.start, timeZone);
 
-  while (cursor.getTime() <= range.end.getTime()) {
-    if (matchesRuleDate(rule, cursor)) {
-      const start = buildOccurrenceStart(rule, cursor);
+  while (compareLocalDates(cursor, rangeEndDate) <= 0) {
+    if (matchesRuleDate(rule, cursor, timeZone)) {
+      const start = buildOccurrenceStart(rule, cursor, timeZone);
       if (
         start.getTime() >= range.start.getTime() &&
         start.getTime() <= range.end.getTime()
@@ -122,7 +153,7 @@ export const buildCandidateStarts = (
       }
     }
 
-    cursor.setDate(cursor.getDate() + 1);
+    cursor = addLocalDays(cursor, 1);
   }
 
   return starts;

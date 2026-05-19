@@ -14,6 +14,7 @@ import { JobAssignmentsPanel } from "@/components/ops/jobs/job-assignments-panel
 import { JobAssignmentDialog } from "@/components/ops/jobs/job-assignment-dialog";
 import { JobFormDialog } from "@/components/ops/jobs/job-form-dialog";
 import { JobLatestOccurrencePanel } from "@/components/ops/jobs/job-latest-occurrence-panel";
+import { getPendingRegistrationVisits } from "@/components/ops/jobs/pending-visits-utils";
 import { PendingVisitsPanel } from "@/components/ops/jobs/pending-visits-panel";
 import { JobScheduleRulesPanel } from "@/components/ops/jobs/job-schedule-rules-panel";
 import { JobScheduleRuleDialog } from "@/components/ops/jobs/job-schedule-rule-dialog";
@@ -60,9 +61,7 @@ export const JobDetailPage = ({ jobId }: { jobId: string }) => {
     (occurrence) => occurrence.status === "SCHEDULED"
   );
   const completedOccurrences = occurrences.filter((occurrence) => occurrence.status === "DONE");
-  const pendingRegistrationOccurrences = pendingOccurrences.filter(
-    (occurrence) => !occurrence.actualStartAt || !occurrence.actualEndAt
-  );
+  const pendingRegistrationOccurrences = getPendingRegistrationVisits(occurrences);
   const location = job.serviceLocation || job.serviceAddress || "Sin ubicacion cargada";
 
   return (

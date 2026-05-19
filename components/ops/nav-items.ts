@@ -45,3 +45,6 @@ export const opsNavItems = [
     icon: HandCoins,
   },
 ] as const;
+
+export const isOpsNavItemActive = (pathname: string, url: string) =>
+  url === "/dashboard" ? pathname === "/dashboard" : pathname.startsWith(url);

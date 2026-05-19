@@ -1,7 +1,7 @@
 "use client"
 
 import { Button } from "@/components/ui/button"
-import { opsNavItems } from "@/components/ops/nav-items"
+import { isOpsNavItemActive, opsNavItems } from "@/components/ops/nav-items"
 import {
     Sheet,
     SheetContent,
@@ -63,7 +63,7 @@ export default function MobileNav({ admin, user }: MobileNavProps) {
                                     <Link
                                         key={item.url}
                                         href={item.url}
-                                        className={getLinkClass(pathname.startsWith(item.url))}
+                                        className={getLinkClass(isOpsNavItemActive(pathname, item.url))}
                                         onClick={() => setOpen(false)}
                                     >
                                         <item.icon className="h-4 w-4" />

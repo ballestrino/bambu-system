@@ -4,7 +4,7 @@ import Link from "next/link";
 import { Home, List } from "lucide-react";
 import { usePathname } from "next/navigation";
 
-import { opsNavItems } from "@/components/ops/nav-items";
+import { isOpsNavItemActive, opsNavItems } from "@/components/ops/nav-items";
 import {
   Sidebar,
   SidebarContent,
@@ -49,10 +49,7 @@ const groups = [
     label: "Operaciones",
     items: opsNavItems.map((item) => ({
       ...item,
-      match: (pathname: string) =>
-        item.url === "/dashboard"
-          ? pathname === "/dashboard"
-          : pathname.startsWith(item.url),
+      match: (pathname: string) => isOpsNavItemActive(pathname, item.url),
     })),
   },
 ] as const;
