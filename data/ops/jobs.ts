@@ -86,6 +86,11 @@ export const getJobById = async (id: string) => {
         occurrences: {
           include: {
             employee: true,
+            employees: {
+              include: {
+                employee: true,
+              },
+            },
           },
         },
         assignments: {

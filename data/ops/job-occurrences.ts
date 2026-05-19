@@ -53,6 +53,11 @@ export const getJobOccurrences = async (filters?: unknown) => {
           },
         },
         employee: true,
+        employees: {
+          include: {
+            employee: true,
+          },
+        },
         scheduleRule: true,
         createdBy: {
           select: opsAuditUserSelect,
