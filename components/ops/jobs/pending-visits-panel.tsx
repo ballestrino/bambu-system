@@ -6,6 +6,7 @@ import { BriefcaseBusiness, CalendarCheck2, ChevronDown } from "lucide-react";
 
 import { dashboardSecondaryActionClass } from "@/components/dashboard/dashboard-styles";
 import { JobOccurrenceDialog } from "@/components/ops/jobs/job-occurrence-dialog";
+import { getOccurrenceEmployeesLabel } from "@/components/ops/jobs/occurrence-employees";
 import {
   getPendingRegistrationVisits,
   getTomorrowScheduledVisits,
@@ -22,7 +23,7 @@ type PendingVisitsMode = "pending" | "tomorrow";
 export const PendingVisitsPanel = ({
   countLabel,
   defaultOpen = true,
-  description = "Revisá responsable, horario real y notas para dejar estas visitas listas para pagos.",
+  description = "Revisá equipo, horario real y notas para dejar estas visitas listas para pagos.",
   emptyMessage = "No hay visitas pendientes de registro.",
   isLoading = false,
   mode = "pending",
@@ -104,8 +105,8 @@ export const PendingVisitsPanel = ({
                           <p className="font-medium">{occurrence.job.name}</p>
                         </div>
                         <div>
-                          <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Empleada</p>
-                          <p className="font-medium">{occurrence.employee?.name ?? "Sin empleada asignada"}</p>
+                          <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Equipo</p>
+                          <p className="font-medium">{getOccurrenceEmployeesLabel(occurrence)}</p>
                         </div>
                         <div>
                           <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Programado</p>

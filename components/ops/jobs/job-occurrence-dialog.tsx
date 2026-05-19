@@ -10,6 +10,7 @@ import {
   getInitialOccurrenceState,
   getResolvedActualTimes,
 } from "@/components/ops/jobs/job-occurrence-dialog-utils";
+import { JobOccurrenceEmployeeField } from "@/components/ops/jobs/job-occurrence-employee-field";
 import { JobOccurrenceTrigger } from "@/components/ops/jobs/job-occurrence-trigger";
 import {
   getOpsStatusConfig, OpsFormBody, OpsFormDialogContent, OpsFormField,
@@ -63,7 +64,7 @@ export const JobOccurrenceDialog = ({
       await updateOccurrenceAsync({
         occurrenceId: occurrence.id,
         values: {
-          employeeId: formState.employeeId || null,
+          employeeIds: formState.employeeIds,
           scheduledStartAt: new Date(formState.scheduledStartAt),
           scheduledEndAt: new Date(formState.scheduledEndAt),
           actualStartAt: actualStartAt ?? null,
@@ -75,7 +76,7 @@ export const JobOccurrenceDialog = ({
     } else {
       await createOccurrenceAsync({
         jobId: resolvedJobId,
-        employeeId: formState.employeeId || undefined,
+        employeeIds: formState.employeeIds,
         scheduleRuleId: formState.scheduleRuleId || undefined,
         scheduledStartAt: new Date(formState.scheduledStartAt),
         scheduledEndAt: new Date(formState.scheduledEndAt),
@@ -114,7 +115,7 @@ export const JobOccurrenceDialog = ({
       <OpsFormDialogContent size="md">
         <OpsFormHeader>
           <DialogTitle>{occurrence ? "Editar visita" : "Crear visita"}</DialogTitle>
-          <DialogDescription>Puede quedar sin empleada para resolverla desde la agenda.</DialogDescription>
+          <DialogDescription>Puede quedar sin equipo para resolverla desde la agenda.</DialogDescription>
         </OpsFormHeader>
         <OpsFormBody className="grid gap-4">
           {!jobId && !occurrence ? (
@@ -127,15 +128,13 @@ export const JobOccurrenceDialog = ({
               </Select>
             </OpsFormField>
           ) : null}
-          <OpsFormField label="Empleada">
-            <Select value={formState.employeeId || "none"} onValueChange={(value) => setFormState((current) => ({ ...current, employeeId: value === "none" ? "" : value }))}>
-              <SelectTrigger className={opsFormSelectTriggerClass}><SelectValue placeholder="Sin empleada asignada" /></SelectTrigger>
-              <SelectContent>
-                <SelectItem value="none">Sin empleada asignada</SelectItem>
-                {employees.map((employee) => <SelectItem key={employee.id} value={employee.id}>{employee.name}</SelectItem>)}
-              </SelectContent>
-            </Select>
-          </OpsFormField>
+          <JobOccurrenceEmployeeField
+            employees={employees}
+            selectedEmployeeIds={formState.employeeIds}
+            onChange={(employeeIds) =>
+              setFormState((current) => ({ ...current, employeeIds }))
+            }
+          />
           <OpsFormField label="Regla opcional">
             <Select value={formState.scheduleRuleId || "none"} onValueChange={(value) => setFormState((current) => ({ ...current, scheduleRuleId: value === "none" ? "" : value }))}>
               <SelectTrigger className={opsFormSelectTriggerClass}><SelectValue placeholder="Sin regla vinculada" /></SelectTrigger>

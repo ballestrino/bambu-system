@@ -2,6 +2,7 @@
 
 import { dashboardSecondaryActionClass } from "@/components/dashboard/dashboard-styles";
 import { JobOccurrenceDialog } from "@/components/ops/jobs/job-occurrence-dialog";
+import { getOccurrenceEmployeesLabel } from "@/components/ops/jobs/occurrence-employees";
 import { OccurrenceStatusBadge } from "@/components/ops/jobs/status-badges";
 import type { OpsOccurrence, OpsScheduleRule } from "@/components/ops/types";
 import { formatDate, formatTime } from "@/components/ops/utils";
@@ -72,10 +73,10 @@ export const JobOccurrencesPanel = ({
                   <div className="grid gap-4 text-sm md:grid-cols-3">
                     <div className="space-y-1">
                       <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
-                        Responsable
+                        Equipo
                       </p>
                       <p className="font-medium">
-                        {occurrence.employee?.name ?? "Sin empleada asignada"}
+                        {getOccurrenceEmployeesLabel(occurrence)}
                       </p>
                     </div>
 

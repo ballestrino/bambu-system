@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 
+import { getOccurrenceEmployeesLabel } from "@/components/ops/jobs/occurrence-employees";
 import { OccurrenceStatusBadge } from "@/components/ops/jobs/status-badges";
 import type { OpsOccurrence } from "@/components/ops/types";
 import { formatDate, formatTime } from "@/components/ops/utils";
@@ -69,10 +70,10 @@ export const JobLatestOccurrencePanel = ({
             <div className="grid gap-4 text-sm md:grid-cols-3">
               <div className="space-y-1">
                 <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
-                  Responsable
+                  Equipo
                 </p>
                 <p className="font-medium">
-                  {latestOccurrence.employee?.name ?? "Sin empleada asignada"}
+                  {getOccurrenceEmployeesLabel(latestOccurrence)}
                 </p>
               </div>
 

@@ -1,12 +1,13 @@
 import type { OpsOccurrence } from "@/components/ops/types";
 import { toDateTimeLocalValue } from "@/components/ops/utils";
+import { getOccurrenceEmployeeIds } from "@/components/ops/jobs/occurrence-employees";
 
 export const getInitialOccurrenceState = (
   occurrence?: OpsOccurrence,
   completeOnSave = false
 ) => ({
   jobId: occurrence?.jobId ?? "",
-  employeeId: occurrence?.employeeId ?? "",
+  employeeIds: getOccurrenceEmployeeIds(occurrence),
   scheduleRuleId: occurrence?.scheduleRuleId ?? "",
   scheduledStartAt: toDateTimeLocalValue(occurrence?.scheduledStartAt),
   scheduledEndAt: toDateTimeLocalValue(occurrence?.scheduledEndAt),

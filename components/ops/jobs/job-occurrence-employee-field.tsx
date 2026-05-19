@@ -1,0 +1,61 @@
+"use client";
+
+import { UsersRound } from "lucide-react";
+
+import { OpsFormField, opsFormPanelClass } from "@/components/ops/shared";
+import type { OpsEmployee } from "@/components/ops/types";
+import { Checkbox } from "@/components/ui/checkbox";
+import { cn } from "@/lib/utils";
+
+export const JobOccurrenceEmployeeField = ({
+  employees,
+  onChange,
+  selectedEmployeeIds,
+}: {
+  employees: OpsEmployee[];
+  onChange: (employeeIds: string[]) => void;
+  selectedEmployeeIds: string[];
+}) => {
+  const selectedIds = new Set(selectedEmployeeIds);
+
+  const toggleEmployee = (employeeId: string, checked: boolean) => {
+    onChange(
+      checked
+        ? [...selectedEmployeeIds, employeeId]
+        : selectedEmployeeIds.filter((id) => id !== employeeId)
+    );
+  };
+
+  return (
+    <OpsFormField
+      description="Puede quedar sin equipo asignado para resolverlo desde la agenda."
+      label="Equipo"
+    >
+      <div className={cn(opsFormPanelClass, "space-y-3")}>
+        {employees.length ? (
+          employees.map((employee) => (
+            <label
+              key={employee.id}
+              className="flex min-h-11 cursor-pointer items-center gap-3 rounded-md px-2 text-sm text-[#244C2D] transition-colors hover:bg-white dark:text-[#EAF5EC] dark:hover:bg-[#1B2A1E]"
+            >
+              <Checkbox
+                checked={selectedIds.has(employee.id)}
+                onCheckedChange={(checked) =>
+                  toggleEmployee(employee.id, checked === true)
+                }
+              />
+              <span className="min-w-0 flex-1 truncate font-medium">
+                {employee.name}
+              </span>
+            </label>
+          ))
+        ) : (
+          <div className="flex min-h-11 items-center gap-2 text-sm text-muted-foreground">
+            <UsersRound className="h-4 w-4" />
+            No hay empleadas activas.
+          </div>
+        )}
+      </div>
+    </OpsFormField>
+  );
+};
