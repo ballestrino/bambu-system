@@ -34,10 +34,19 @@ export const getJobOccurrences = async (filters?: unknown) => {
       userId: session.user.id,
     });
 
+    const employeeFilter = employeeId
+      ? {
+          OR: [
+            { employeeId },
+            { employees: { some: { employeeId } } },
+          ],
+        }
+      : {};
+
     const occurrences = await db.jobOccurrence.findMany({
       where: {
+        ...employeeFilter,
         jobId,
-        employeeId,
         scheduleRuleId,
         status: statuses?.length ? { in: statuses } : undefined,
         archivedAt: includeArchived ? undefined : null,

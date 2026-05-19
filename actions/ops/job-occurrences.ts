@@ -3,21 +3,27 @@
 import { db } from "@/lib/db";
 import { getActionErrorMessage } from "@/lib/ops/action-error";
 import {
-  assertEmployeeExists,
   assertJobExists,
   assertOccurrenceExists,
   assertOccurrenceRuleBelongsToJob,
 } from "@/lib/ops/assertions";
 import {
+  assertOccurrenceEmployeesExist,
+  getOccurrenceEmployeeIds,
+  getPatchedEmployeeIds,
+  getSubmittedEmployeeIds,
+} from "@/lib/ops/job-occurrence-employees";
+import {
   buildResolvedJobOccurrence,
   validateResolvedJobOccurrence,
 } from "@/lib/ops/job-occurrence-patch";
-import { requireAdminSession } from "@/lib/require-admin-session";
 import {
-  CreateJobOccurrenceSchema,
-  DetachJobOccurrenceSchema,
-  UpdateJobOccurrenceSchema,
-} from "@/schemas/ops";
+  createOccurrenceWithEmployees,
+  stripOccurrenceEmployeeInputs,
+  updateOccurrenceWithEmployees,
+} from "@/lib/ops/job-occurrence-persistence";
+import { requireAdminSession } from "@/lib/require-admin-session";
+import { CreateJobOccurrenceSchema, DetachJobOccurrenceSchema, UpdateJobOccurrenceSchema } from "@/schemas/ops";
 
 export const createJobOccurrence = async (values: unknown) => {
   try {
@@ -28,24 +34,24 @@ export const createJobOccurrence = async (values: unknown) => {
       return { error: "Datos invalidos para crear la ocurrencia" };
     }
 
+    const employeeIds = getSubmittedEmployeeIds(parsedValues.data);
+
     await Promise.all([
       assertJobExists(parsedValues.data.jobId),
-      parsedValues.data.employeeId
-        ? assertEmployeeExists(parsedValues.data.employeeId)
-        : Promise.resolve(),
+      assertOccurrenceEmployeesExist(employeeIds),
       assertOccurrenceRuleBelongsToJob(
         parsedValues.data.scheduleRuleId,
         parsedValues.data.jobId
       ),
     ]);
 
-    const occurrence = await db.jobOccurrence.create({
-      data: {
-        ...parsedValues.data,
-        employeeId: parsedValues.data.employeeId ?? null,
+    const occurrence = await createOccurrenceWithEmployees(
+      {
+        ...stripOccurrenceEmployeeInputs(parsedValues.data),
         createdById: session.user.id,
       },
-    });
+      employeeIds
+    );
 
     return { success: "Ocurrencia creada", occurrence };
   } catch (error) {
@@ -56,10 +62,7 @@ export const createJobOccurrence = async (values: unknown) => {
   }
 };
 
-export const updateJobOccurrence = async (
-  occurrenceId: string,
-  values: unknown
-) => {
+export const updateJobOccurrence = async (occurrenceId: string, values: unknown) => {
   try {
     const session = await requireAdminSession();
     const existingOccurrence = await assertOccurrenceExists(occurrenceId);
@@ -69,6 +72,12 @@ export const updateJobOccurrence = async (
       return { error: "Datos invalidos para actualizar la ocurrencia" };
     }
 
+    const existingEmployeeIds = await getOccurrenceEmployeeIds(occurrenceId);
+    const employeeIds = getPatchedEmployeeIds({
+      existingEmployeeIds,
+      legacyEmployeeId: existingOccurrence.employeeId,
+      patch: parsedValues.data,
+    });
     const mergedValues = buildResolvedJobOccurrence(
       existingOccurrence,
       parsedValues.data
@@ -78,16 +87,10 @@ export const updateJobOccurrence = async (
       return { error: "La ocurrencia resultante es invalida" };
     }
 
-    if (validatedValues.data.employeeId) {
-      await assertEmployeeExists(validatedValues.data.employeeId);
-    }
+    await assertOccurrenceEmployeesExist(employeeIds);
 
-    const occurrence = await db.jobOccurrence.update({
-      where: {
-        id: occurrenceId,
-      },
+    const occurrence = await updateOccurrenceWithEmployees({
       data: {
-        employeeId: validatedValues.data.employeeId ?? null,
         scheduledStartAt: validatedValues.data.scheduledStartAt,
         scheduledEndAt: validatedValues.data.scheduledEndAt,
         actualStartAt: mergedValues.actualStartAt,
@@ -97,6 +100,8 @@ export const updateJobOccurrence = async (
         notes: mergedValues.notes,
         updatedById: session.user.id,
       },
+      employeeIds,
+      occurrenceId,
     });
 
     return { success: "Ocurrencia actualizada", occurrence };
@@ -108,10 +113,7 @@ export const updateJobOccurrence = async (
   }
 };
 
-export const detachJobOccurrence = async (
-  occurrenceId: string,
-  values?: unknown
-) => {
+export const detachJobOccurrence = async (occurrenceId: string, values?: unknown) => {
   try {
     const session = await requireAdminSession();
     const existingOccurrence = await assertOccurrenceExists(occurrenceId);
@@ -121,6 +123,12 @@ export const detachJobOccurrence = async (
       return { error: "Datos invalidos para despegar la ocurrencia" };
     }
 
+    const existingEmployeeIds = await getOccurrenceEmployeeIds(occurrenceId);
+    const employeeIds = getPatchedEmployeeIds({
+      existingEmployeeIds,
+      legacyEmployeeId: existingOccurrence.employeeId,
+      patch: parsedValues.data,
+    });
     const mergedValues = buildResolvedJobOccurrence(
       existingOccurrence,
       parsedValues.data,
@@ -134,16 +142,10 @@ export const detachJobOccurrence = async (
       return { error: "La ocurrencia despejada es invalida" };
     }
 
-    if (validatedValues.data.employeeId) {
-      await assertEmployeeExists(validatedValues.data.employeeId);
-    }
+    await assertOccurrenceEmployeesExist(employeeIds);
 
-    const occurrence = await db.jobOccurrence.update({
-      where: {
-        id: occurrenceId,
-      },
+    const occurrence = await updateOccurrenceWithEmployees({
       data: {
-        employeeId: validatedValues.data.employeeId ?? null,
         scheduledStartAt: validatedValues.data.scheduledStartAt,
         scheduledEndAt: validatedValues.data.scheduledEndAt,
         actualStartAt: mergedValues.actualStartAt,
@@ -154,16 +156,15 @@ export const detachJobOccurrence = async (
         notes: mergedValues.notes,
         updatedById: session.user.id,
       },
+      employeeIds,
+      occurrenceId,
     });
 
     return { success: "Ocurrencia separada de la regla", occurrence };
   } catch (error) {
     console.error("Error detaching job occurrence:", error);
     return {
-      error: getActionErrorMessage(
-        error,
-        "Error al separar la ocurrencia de la regla"
-      ),
+      error: getActionErrorMessage(error, "Error al separar la ocurrencia de la regla"),
     };
   }
 };
