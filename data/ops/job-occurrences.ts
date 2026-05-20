@@ -45,6 +45,14 @@ export const getJobOccurrences = async (filters?: unknown) => {
         ...employeeFilter,
         jobId,
         scheduleRuleId,
+        NOT: {
+          job: {
+            archivedAt: {
+              not: null,
+            },
+          },
+          status: "SCHEDULED",
+        },
         status: statuses?.length ? { in: statuses } : undefined,
         archivedAt: includeArchived ? undefined : null,
         isDetached,

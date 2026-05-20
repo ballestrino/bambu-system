@@ -33,6 +33,9 @@ const getRulesForGeneration = async ({
       id: scheduleRuleId,
       isActive: true,
       jobId,
+      job: {
+        archivedAt: null,
+      },
       startDate: { lte: requestedEnd },
       OR: [{ endDate: null }, { endDate: { gte: assignmentStart } }],
     },
