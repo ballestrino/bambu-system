@@ -4,6 +4,7 @@ import {
   booleanSchema,
   cuidSchema,
   dateRangeFiltersSchema,
+  nullableCuidUpdateSchema,
   nullableDateUpdateSchema,
   nullableTrimmedString,
   optionalBooleanSchema,
@@ -87,6 +88,7 @@ export const CreateJobOccurrenceSchema = jobOccurrenceBaseSchema;
 export const UpdateJobOccurrenceSchema = z
   .object({
     employeeIds: optionalEmployeeIdsSchema,
+    scheduleRuleId: nullableCuidUpdateSchema,
     scheduledStartAt: z.coerce.date().optional(),
     scheduledEndAt: z.coerce.date().optional(),
     actualStartAt: nullableDateUpdateSchema,

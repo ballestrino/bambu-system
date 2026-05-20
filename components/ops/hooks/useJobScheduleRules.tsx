@@ -6,9 +6,13 @@ import { getJobScheduleRulesAction } from "@/components/ops/actions/get-job-sche
 import { opsQueryKeys } from "@/components/ops/query-keys";
 import type { JobScheduleRuleFilters } from "@/schemas/ops";
 
-export const useJobScheduleRules = (filters?: JobScheduleRuleFilters) => {
+export const useJobScheduleRules = (
+  filters?: JobScheduleRuleFilters,
+  options?: { enabled?: boolean }
+) => {
   const jobId = filters?.jobId;
   const scheduleRulesQuery = useQuery({
+    enabled: options?.enabled ?? true,
     queryKey: [...opsQueryKeys.scheduleRules(jobId), filters ?? {}],
     queryFn: () => getJobScheduleRulesAction(filters),
     staleTime: 1000 * 60,

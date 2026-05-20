@@ -7,13 +7,16 @@ import type {
   DetachJobOccurrenceInput,
   UpdateJobOccurrenceInput,
 } from "@/schemas/ops";
-import { getPatchedValue } from "@/lib/ops/patch";
+import { getPatchedValue, hasOwnKey } from "@/lib/ops/patch";
 
 type JobOccurrencePatch = DetachJobOccurrenceInput | UpdateJobOccurrenceInput;
+type JobOccurrenceRulePatch = JobOccurrencePatch & {
+  scheduleRuleId?: string | null;
+};
 
 export const buildResolvedJobOccurrence = (
   existingOccurrence: JobOccurrence,
-  patch: JobOccurrencePatch,
+  patch: JobOccurrenceRulePatch,
   overrides?: Partial<
     Pick<JobOccurrence, "isDetached" | "scheduleRuleId">
   >
@@ -26,7 +29,9 @@ export const buildResolvedJobOccurrence = (
     jobId: existingOccurrence.jobId,
     scheduleRuleId: hasScheduleRuleOverride
       ? overrides?.scheduleRuleId ?? undefined
-      : existingOccurrence.scheduleRuleId ?? undefined,
+      : hasOwnKey(patch, "scheduleRuleId")
+        ? patch.scheduleRuleId ?? undefined
+        : existingOccurrence.scheduleRuleId ?? undefined,
     scheduledStartAt: getPatchedValue(
       patch,
       "scheduledStartAt",
@@ -62,6 +67,7 @@ export const validateResolvedJobOccurrence = (
 ) =>
   CreateJobOccurrenceSchema.safeParse({
     ...occurrence,
+    scheduleRuleId: occurrence.scheduleRuleId ?? undefined,
     actualStartAt: occurrence.actualStartAt ?? undefined,
     actualEndAt: occurrence.actualEndAt ?? undefined,
     notes: occurrence.notes ?? undefined,

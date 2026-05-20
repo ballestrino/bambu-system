@@ -1,5 +1,8 @@
 import type { OpsOccurrence } from "@/components/ops/types";
-import { toDateTimeLocalValue } from "@/components/ops/utils";
+import {
+  parseDateTimeLocalValue,
+  toDateTimeLocalValue,
+} from "@/components/ops/utils";
 import { getOccurrenceEmployeeIds } from "@/components/ops/jobs/occurrence-employees";
 
 export const getInitialOccurrenceState = (
@@ -20,22 +23,65 @@ export const getInitialOccurrenceState = (
   notes: occurrence?.notes ?? "",
 });
 
-type OccurrenceFormState = ReturnType<typeof getInitialOccurrenceState>;
+export type OccurrenceFormState = ReturnType<typeof getInitialOccurrenceState>;
 
-const toOptionalDate = (value: string) => (value ? new Date(value) : undefined);
+export const syncOccurrenceActualTimes = (
+  formState: OccurrenceFormState
+) => ({
+  ...formState,
+  actualEndAt: formState.scheduledEndAt,
+  actualStartAt: formState.scheduledStartAt,
+});
+
+export const updateOccurrenceScheduledTime = ({
+  field,
+  formState,
+  occurrence,
+  value,
+}: {
+  field: "scheduledEndAt" | "scheduledStartAt";
+  formState: OccurrenceFormState;
+  occurrence?: OpsOccurrence;
+  value: string;
+}) => {
+  const nextFormState = {
+    ...formState,
+    [field]: value,
+  };
+
+  if (occurrence) {
+    return nextFormState;
+  }
+
+  if (
+    field === "scheduledStartAt" &&
+    (!formState.actualStartAt ||
+      formState.actualStartAt === formState.scheduledStartAt)
+  ) {
+    nextFormState.actualStartAt = value;
+  }
+
+  if (
+    field === "scheduledEndAt" &&
+    (!formState.actualEndAt || formState.actualEndAt === formState.scheduledEndAt)
+  ) {
+    nextFormState.actualEndAt = value;
+  }
+
+  return nextFormState;
+};
 
 export const getResolvedActualTimes = (
-  formState: OccurrenceFormState,
-  completeOnSave = false
+  formState: OccurrenceFormState
 ) => {
-  const useScheduledFallback = completeOnSave || formState.status === "DONE";
+  const useScheduledFallback = formState.status === "DONE";
 
   return {
-    actualEndAt: toOptionalDate(
+    actualEndAt: parseDateTimeLocalValue(
       formState.actualEndAt ||
         (useScheduledFallback ? formState.scheduledEndAt : "")
     ),
-    actualStartAt: toOptionalDate(
+    actualStartAt: parseDateTimeLocalValue(
       formState.actualStartAt ||
         (useScheduledFallback ? formState.scheduledStartAt : "")
     ),

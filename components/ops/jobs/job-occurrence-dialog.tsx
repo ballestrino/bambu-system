@@ -1,16 +1,20 @@
 "use client";
 
 import { useState, type ComponentProps } from "react";
-import { LoaderCircle } from "lucide-react";
+import { ClockArrowUp, LoaderCircle } from "lucide-react";
 
 import { useEmployees } from "@/components/ops/hooks/useEmployees";
 import { useJobs } from "@/components/ops/hooks/useJobs";
 import { useJobOccurrenceMutations } from "@/components/ops/hooks/useJobOccurrenceMutations";
+import { useJobScheduleRules } from "@/components/ops/hooks/useJobScheduleRules";
 import {
   getInitialOccurrenceState,
   getResolvedActualTimes,
+  syncOccurrenceActualTimes,
+  updateOccurrenceScheduledTime,
 } from "@/components/ops/jobs/job-occurrence-dialog-utils";
 import { JobOccurrenceEmployeeField } from "@/components/ops/jobs/job-occurrence-employee-field";
+import { getJobScheduleRuleOptionLabel } from "@/components/ops/jobs/job-schedule-rule-label";
 import { JobOccurrenceTrigger } from "@/components/ops/jobs/job-occurrence-trigger";
 import {
   getOpsStatusConfig, OpsFormBody, OpsFormDialogContent, OpsFormField,
@@ -18,6 +22,7 @@ import {
   opsFormSelectTriggerClass, opsFormTextareaClass, opsOccurrenceStatus,
 } from "@/components/ops/shared";
 import type { OpsOccurrence, OpsScheduleRule } from "@/components/ops/types";
+import { parseDateTimeLocalValue } from "@/components/ops/utils";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogDescription, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
@@ -51,24 +56,71 @@ export const JobOccurrenceDialog = ({
   const { employees } = useEmployees({ isActive: true });
   const { jobs } = useJobs({ includeArchived: false });
   const resolvedJobId = jobId ?? occurrence?.jobId ?? formState.jobId;
+  const shouldLoadScheduleRules = Boolean(resolvedJobId);
+  const { scheduleRules: fetchedScheduleRules } = useJobScheduleRules(
+    resolvedJobId ? { jobId: resolvedJobId, isActive: true } : undefined,
+    {
+      enabled: shouldLoadScheduleRules,
+    }
+  );
   const { createOccurrenceAsync, updateOccurrenceAsync, isCreating, isUpdating } =
     useJobOccurrenceMutations(resolvedJobId);
+  const currentScheduleRule =
+    occurrence?.scheduleRule && occurrence.scheduleRule.jobId === resolvedJobId
+      ? occurrence.scheduleRule
+      : null;
+  const availableScheduleRules = [...scheduleRules, ...fetchedScheduleRules];
+  const mergedScheduleRules = availableScheduleRules.reduce<OpsScheduleRule[]>(
+    (rules, rule) => {
+      if (
+        rule.jobId === resolvedJobId &&
+        !rules.some((currentRule) => currentRule.id === rule.id)
+      ) {
+        rules.push(rule);
+      }
+
+      return rules;
+    },
+    []
+  );
+  const scheduleRuleOptions =
+    currentScheduleRule &&
+    !mergedScheduleRules.some((rule) => rule.id === currentScheduleRule.id)
+      ? [currentScheduleRule, ...mergedScheduleRules]
+      : mergedScheduleRules;
+  const selectedScheduleRuleId = scheduleRuleOptions.some(
+    (rule) => rule.id === formState.scheduleRuleId
+  )
+    ? formState.scheduleRuleId
+    : "";
 
   const handleSubmit = async () => {
-    const { actualEndAt, actualStartAt } = getResolvedActualTimes(
-      formState,
-      completeOnSave
-    );
+    const { actualEndAt, actualStartAt } = getResolvedActualTimes(formState);
+    const scheduledStartAt = parseDateTimeLocalValue(formState.scheduledStartAt);
+    const scheduledEndAt = parseDateTimeLocalValue(formState.scheduledEndAt);
+    const resolvedScheduleRuleId = selectedScheduleRuleId || null;
+
+    if (!scheduledStartAt || !scheduledEndAt) {
+      return;
+    }
 
     if (occurrence) {
+      const nextIsDetached = resolvedScheduleRuleId
+        ? false
+        : occurrence.scheduleRuleId
+          ? true
+          : occurrence.isDetached;
+
       await updateOccurrenceAsync({
         occurrenceId: occurrence.id,
         values: {
           employeeIds: formState.employeeIds,
-          scheduledStartAt: new Date(formState.scheduledStartAt),
-          scheduledEndAt: new Date(formState.scheduledEndAt),
+          scheduleRuleId: resolvedScheduleRuleId,
+          scheduledStartAt,
+          scheduledEndAt,
           actualStartAt: actualStartAt ?? null,
           actualEndAt: actualEndAt ?? null,
+          isDetached: nextIsDetached,
           status: formState.status as OccurrenceStatus,
           notes: formState.notes,
         },
@@ -78,8 +130,8 @@ export const JobOccurrenceDialog = ({
         jobId: resolvedJobId,
         employeeIds: formState.employeeIds,
         scheduleRuleId: formState.scheduleRuleId || undefined,
-        scheduledStartAt: new Date(formState.scheduledStartAt),
-        scheduledEndAt: new Date(formState.scheduledEndAt),
+        scheduledStartAt,
+        scheduledEndAt,
         actualStartAt,
         actualEndAt,
         status: formState.status as OccurrenceStatus,
@@ -136,22 +188,38 @@ export const JobOccurrenceDialog = ({
             }
           />
           <OpsFormField label="Regla opcional">
-            <Select value={formState.scheduleRuleId || "none"} onValueChange={(value) => setFormState((current) => ({ ...current, scheduleRuleId: value === "none" ? "" : value }))}>
-              <SelectTrigger className={opsFormSelectTriggerClass}><SelectValue placeholder="Sin regla vinculada" /></SelectTrigger>
+            <Select value={selectedScheduleRuleId || "none"} onValueChange={(value) => setFormState((current) => ({ ...current, scheduleRuleId: value === "none" ? "" : value }))} disabled={!resolvedJobId}>
+              <SelectTrigger className={opsFormSelectTriggerClass}><SelectValue placeholder={resolvedJobId ? "Sin regla vinculada" : "Selecciona un trabajo primero"} /></SelectTrigger>
               <SelectContent>
                 <SelectItem value="none">Sin regla</SelectItem>
-                {scheduleRules.map((rule, index) => (
+                {scheduleRuleOptions.map((rule) => (
                   <SelectItem key={rule.id} value={rule.id}>
-                    Regla {index + 1}
+                    {getJobScheduleRuleOptionLabel(rule)}
                   </SelectItem>
                 ))}
               </SelectContent>
             </Select>
           </OpsFormField>
           <OpsFormGrid>
-            <OpsFormField label="Inicio programado"><Input className={opsFormControlClass} type="datetime-local" value={formState.scheduledStartAt} onChange={(event) => setFormState((current) => ({ ...current, scheduledStartAt: event.target.value }))} /></OpsFormField>
-            <OpsFormField label="Fin programado"><Input className={opsFormControlClass} type="datetime-local" value={formState.scheduledEndAt} onChange={(event) => setFormState((current) => ({ ...current, scheduledEndAt: event.target.value }))} /></OpsFormField>
+            <OpsFormField label="Inicio programado"><Input className={opsFormControlClass} type="datetime-local" value={formState.scheduledStartAt} onChange={(event) => setFormState((current) => updateOccurrenceScheduledTime({ field: "scheduledStartAt", formState: current, occurrence, value: event.target.value }))} /></OpsFormField>
+            <OpsFormField label="Fin programado"><Input className={opsFormControlClass} type="datetime-local" value={formState.scheduledEndAt} onChange={(event) => setFormState((current) => updateOccurrenceScheduledTime({ field: "scheduledEndAt", formState: current, occurrence, value: event.target.value }))} /></OpsFormField>
           </OpsFormGrid>
+          <div className="flex items-center justify-between gap-3 rounded-md border border-[#53985E]/15 bg-[#F7FBF7] px-3 py-2 text-sm text-[#244C2D] dark:bg-[#132016] dark:text-[#EAF5EC]">
+            <span>Horario real</span>
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              className="h-9"
+              disabled={!formState.scheduledStartAt || !formState.scheduledEndAt}
+              onClick={() =>
+                setFormState((current) => syncOccurrenceActualTimes(current))
+              }
+            >
+              <ClockArrowUp className="h-4 w-4" />
+              Sincronizar
+            </Button>
+          </div>
           <OpsFormGrid>
             <OpsFormField label="Inicio real"><Input className={opsFormControlClass} type="datetime-local" value={formState.actualStartAt} onChange={(event) => setFormState((current) => ({ ...current, actualStartAt: event.target.value }))} /></OpsFormField>
             <OpsFormField label="Fin real"><Input className={opsFormControlClass} type="datetime-local" value={formState.actualEndAt} onChange={(event) => setFormState((current) => ({ ...current, actualEndAt: event.target.value }))} /></OpsFormField>

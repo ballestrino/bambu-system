@@ -11,6 +11,10 @@ const timeFormat = new Intl.DateTimeFormat("es-UY", {
   timeStyle: "short",
 });
 
+const isValidDate = (date: Date) => !Number.isNaN(date.getTime());
+const localDateTimePattern =
+  /^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})$/;
+
 export const formatDate = (value: Date | string | null | undefined) => {
   if (!value) {
     return "-";
@@ -41,6 +45,10 @@ export const toDateInputValue = (value: Date | string | null | undefined) => {
   }
 
   const date = new Date(value);
+  if (!isValidDate(date)) {
+    return "";
+  }
+
   return date.toISOString().slice(0, 10);
 };
 
@@ -52,8 +60,36 @@ export const toDateTimeLocalValue = (
   }
 
   const date = new Date(value);
+  if (!isValidDate(date)) {
+    return "";
+  }
+
   const offset = date.getTimezoneOffset() * 60000;
   return new Date(date.getTime() - offset).toISOString().slice(0, 16);
+};
+
+export const parseDateTimeLocalValue = (value: string) => {
+  if (!value) {
+    return undefined;
+  }
+
+  const match = value.match(localDateTimePattern);
+  if (!match) {
+    return undefined;
+  }
+
+  const [, year, month, day, hours, minutes] = match;
+  const date = new Date(
+    Number(year),
+    Number(month) - 1,
+    Number(day),
+    Number(hours),
+    Number(minutes),
+    0,
+    0
+  );
+
+  return isValidDate(date) ? date : undefined;
 };
 
 export const getMonthRange = (month: Date) => {

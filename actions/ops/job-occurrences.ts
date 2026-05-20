@@ -86,10 +86,17 @@ export const updateJobOccurrence = async (occurrenceId: string, values: unknown)
       return { error: "La ocurrencia resultante es invalida" };
     }
 
-    await assertOccurrenceEmployeesExist(employeeIds);
+    await Promise.all([
+      assertOccurrenceEmployeesExist(employeeIds),
+      assertOccurrenceRuleBelongsToJob(
+        mergedValues.scheduleRuleId ?? undefined,
+        existingOccurrence.jobId
+      ),
+    ]);
 
     const occurrence = await updateOccurrenceWithEmployees({
       data: {
+        scheduleRuleId: mergedValues.scheduleRuleId,
         scheduledStartAt: validatedValues.data.scheduledStartAt,
         scheduledEndAt: validatedValues.data.scheduledEndAt,
         actualStartAt: mergedValues.actualStartAt,
