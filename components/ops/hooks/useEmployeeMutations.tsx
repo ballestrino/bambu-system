@@ -6,20 +6,14 @@ import { toast } from "sonner";
 import { archiveEmployeeAction } from "@/components/ops/actions/archive-employee.action";
 import { createEmployeeAction } from "@/components/ops/actions/create-employee.action";
 import { updateEmployeeAction } from "@/components/ops/actions/update-employee.action";
-import { opsQueryKeys } from "@/components/ops/query-keys";
+import { invalidateEmployeeScopes } from "@/components/ops/hooks/useOpsInvalidation";
 import type { CreateEmployeeInput, UpdateEmployeeInput } from "@/schemas/ops";
 
 export const useEmployeeMutations = () => {
   const queryClient = useQueryClient();
 
   const invalidateEmployeeQueries = async (employeeId?: string) => {
-    await Promise.all([
-      queryClient.invalidateQueries({ queryKey: opsQueryKeys.employees }),
-      queryClient.invalidateQueries({ queryKey: opsQueryKeys.assignments }),
-      employeeId
-        ? queryClient.invalidateQueries({ queryKey: opsQueryKeys.employee(employeeId) })
-        : Promise.resolve(),
-    ]);
+    await invalidateEmployeeScopes(queryClient, { employeeId });
   };
 
   const createEmployeeMutation = useMutation({

@@ -6,6 +6,7 @@ import { toast } from "sonner";
 import { createJobClientPaymentAction } from "@/components/ops/actions/create-job-client-payment.action";
 import { updateJobClientPaymentAction } from "@/components/ops/actions/update-job-client-payment.action";
 import { voidJobClientPaymentAction } from "@/components/ops/actions/void-job-client-payment.action";
+import { invalidateJobScopes } from "@/components/ops/hooks/useOpsInvalidation";
 import { opsQueryKeys } from "@/components/ops/query-keys";
 import type {
   CreateJobClientPaymentInput,
@@ -19,6 +20,7 @@ export const useJobClientPaymentMutations = (jobId?: string) => {
     const scope = paymentJobId ?? jobId;
 
     await Promise.all([
+      invalidateJobScopes(queryClient, { jobId: scope }),
       queryClient.invalidateQueries({ queryKey: opsQueryKeys.clientPayments }),
       queryClient.invalidateQueries({ queryKey: opsQueryKeys.clientPaymentScope() }),
       scope
@@ -26,8 +28,6 @@ export const useJobClientPaymentMutations = (jobId?: string) => {
             queryKey: opsQueryKeys.clientPaymentScope(scope),
           })
         : Promise.resolve(),
-      scope ? queryClient.invalidateQueries({ queryKey: opsQueryKeys.job(scope) }) : Promise.resolve(),
-      queryClient.invalidateQueries({ queryKey: opsQueryKeys.jobs }),
     ]);
   };
 

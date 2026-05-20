@@ -6,6 +6,7 @@ import { toast } from "sonner";
 import { archiveJobEmployeeAssignmentAction } from "@/components/ops/actions/archive-job-employee-assignment.action";
 import { createJobEmployeeAssignmentAction } from "@/components/ops/actions/create-job-employee-assignment.action";
 import { updateJobEmployeeAssignmentAction } from "@/components/ops/actions/update-job-employee-assignment.action";
+import { invalidateOperationalScopes } from "@/components/ops/hooks/useOpsInvalidation";
 import { opsQueryKeys } from "@/components/ops/query-keys";
 import type { CreateJobEmployeeAssignmentInput, UpdateJobEmployeeAssignmentInput } from "@/schemas/ops";
 
@@ -14,8 +15,8 @@ export const useJobEmployeeAssignmentMutations = (jobId?: string, employeeId?: s
 
   const invalidateAssignmentQueries = async () => {
     await Promise.all([
+      invalidateOperationalScopes(queryClient, { employeeId, jobId }),
       queryClient.invalidateQueries({ queryKey: opsQueryKeys.assignments }),
-      queryClient.invalidateQueries({ queryKey: opsQueryKeys.occurrences() }),
       jobId
         ? queryClient.invalidateQueries({
             queryKey: opsQueryKeys.assignmentScope(jobId),
@@ -26,11 +27,6 @@ export const useJobEmployeeAssignmentMutations = (jobId?: string, employeeId?: s
             queryKey: opsQueryKeys.assignmentScope(employeeId),
           })
         : Promise.resolve(),
-      queryClient.invalidateQueries({ queryKey: opsQueryKeys.employees }),
-      queryClient.invalidateQueries({ queryKey: opsQueryKeys.jobs }),
-      jobId ? queryClient.invalidateQueries({ queryKey: opsQueryKeys.job(jobId) }) : Promise.resolve(),
-      employeeId ? queryClient.invalidateQueries({ queryKey: opsQueryKeys.employee(employeeId) }) : Promise.resolve(),
-      queryClient.invalidateQueries({ queryKey: ["ops", "calendar"] }),
     ]);
   };
 

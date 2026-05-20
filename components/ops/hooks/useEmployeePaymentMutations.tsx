@@ -6,6 +6,7 @@ import { toast } from "sonner";
 import { createEmployeePaymentAction } from "@/components/ops/actions/create-employee-payment.action";
 import { updateEmployeePaymentAction } from "@/components/ops/actions/update-employee-payment.action";
 import { voidEmployeePaymentAction } from "@/components/ops/actions/void-employee-payment.action";
+import { invalidateEmployeeScopes } from "@/components/ops/hooks/useOpsInvalidation";
 import { opsQueryKeys } from "@/components/ops/query-keys";
 import type {
   CreateEmployeePaymentInput,
@@ -19,6 +20,7 @@ export const useEmployeePaymentMutations = (employeeId?: string) => {
     const scope = paymentEmployeeId ?? employeeId;
 
     await Promise.all([
+      invalidateEmployeeScopes(queryClient, { employeeId: scope }),
       queryClient.invalidateQueries({ queryKey: opsQueryKeys.employeePayments }),
       queryClient.invalidateQueries({ queryKey: opsQueryKeys.employeePaymentScope() }),
       scope
@@ -26,8 +28,6 @@ export const useEmployeePaymentMutations = (employeeId?: string) => {
             queryKey: opsQueryKeys.employeePaymentScope(scope),
           })
         : Promise.resolve(),
-      scope ? queryClient.invalidateQueries({ queryKey: opsQueryKeys.employee(scope) }) : Promise.resolve(),
-      queryClient.invalidateQueries({ queryKey: opsQueryKeys.employees }),
     ]);
   };
 

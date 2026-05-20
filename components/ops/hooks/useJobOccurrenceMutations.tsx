@@ -7,7 +7,7 @@ import { archiveJobOccurrenceAction } from "@/components/ops/actions/archive-job
 import { createJobOccurrenceAction } from "@/components/ops/actions/create-job-occurrence.action";
 import { detachJobOccurrenceAction } from "@/components/ops/actions/detach-job-occurrence.action";
 import { updateJobOccurrenceAction } from "@/components/ops/actions/update-job-occurrence.action";
-import { opsQueryKeys } from "@/components/ops/query-keys";
+import { invalidateOperationalScopes } from "@/components/ops/hooks/useOpsInvalidation";
 import type {
   CreateJobOccurrenceInput,
   DetachJobOccurrenceInput,
@@ -18,14 +18,7 @@ export const useJobOccurrenceMutations = (jobId?: string) => {
   const queryClient = useQueryClient();
 
   const invalidateQueries = async () => {
-    await Promise.all([
-      jobId ? queryClient.invalidateQueries({ queryKey: opsQueryKeys.job(jobId) }) : Promise.resolve(),
-      jobId
-        ? queryClient.invalidateQueries({ queryKey: opsQueryKeys.occurrences(jobId) })
-        : Promise.resolve(),
-      queryClient.invalidateQueries({ queryKey: ["ops", "occurrences"] }),
-      queryClient.invalidateQueries({ queryKey: ["ops", "calendar"] }),
-    ]);
+    await invalidateOperationalScopes(queryClient, { jobId });
   };
 
   const createMutation = useMutation({

@@ -6,7 +6,7 @@ import { toast } from "sonner";
 import { archiveJobScheduleRuleAction } from "@/components/ops/actions/archive-job-schedule-rule.action";
 import { createJobScheduleRuleAction } from "@/components/ops/actions/create-job-schedule-rule.action";
 import { updateJobScheduleRuleAction } from "@/components/ops/actions/update-job-schedule-rule.action";
-import { opsQueryKeys } from "@/components/ops/query-keys";
+import { invalidateJobScopes } from "@/components/ops/hooks/useOpsInvalidation";
 import type {
   CreateJobScheduleRuleInput,
   UpdateJobScheduleRuleInput,
@@ -16,12 +16,7 @@ export const useJobScheduleRuleMutations = (jobId: string) => {
   const queryClient = useQueryClient();
 
   const invalidateQueries = async () => {
-    await Promise.all([
-      queryClient.invalidateQueries({ queryKey: opsQueryKeys.job(jobId) }),
-      queryClient.invalidateQueries({ queryKey: opsQueryKeys.scheduleRules(jobId) }),
-      queryClient.invalidateQueries({ queryKey: opsQueryKeys.occurrences(jobId) }),
-      queryClient.invalidateQueries({ queryKey: ["ops", "calendar"] }),
-    ]);
+    await invalidateJobScopes(queryClient, { jobId });
   };
 
   const createMutation = useMutation({
