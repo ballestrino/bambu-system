@@ -73,7 +73,7 @@ export const JobOccurrenceFilters = ({
       ? { label: `Periodo: ${startDate} a ${endDate}`, onRemove: onPresetCurrentMonth }
       : null,
     selectedEmployee
-      ? { label: `Empleada: ${selectedEmployee.name}`, onRemove: () => onEmployeeIdChange("ALL") }
+      ? { label: `Equipo: ${selectedEmployee.name}`, onRemove: () => onEmployeeIdChange("ALL") }
       : null,
   ].filter(Boolean) as OpsFilterChip[];
 
@@ -97,13 +97,13 @@ export const JobOccurrenceFilters = ({
               onChange={(event) => onEndDateChange(event.target.value)}
             />
           </OpsFilterField>
-          <OpsFilterField label="Empleada">
+          <OpsFilterField label="Equipo">
             <Select value={employeeId} onValueChange={onEmployeeIdChange}>
               <SelectTrigger className={opsFilterControlClass}>
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="ALL">Todas</SelectItem>
+                <SelectItem value="ALL">Todos</SelectItem>
                 {employeeOptions.map((employee) => (
                   <SelectItem key={employee.id} value={employee.id}>
                     {employee.name}

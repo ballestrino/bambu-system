@@ -1,4 +1,8 @@
 import type { OpsEmployee, OpsOccurrence } from "@/components/ops/types";
+import {
+  getOccurrenceEmployees,
+  hasOccurrenceEmployees,
+} from "@/components/ops/jobs/occurrence-employees";
 
 export const TRANSPORTATION_PAY_PER_VISIT = 52;
 
@@ -14,7 +18,10 @@ export const getEmployeeHourlyRate = (
 };
 
 export const isCompletedEmployeeVisit = (occurrence: OpsOccurrence) =>
-  occurrence.status === "DONE" && Boolean(occurrence.employeeId);
+  occurrence.status === "DONE" && hasOccurrenceEmployees(occurrence);
+
+export const getCompletedVisitEmployees = (occurrence: OpsOccurrence) =>
+  isCompletedEmployeeVisit(occurrence) ? getOccurrenceEmployees(occurrence) : [];
 
 export const getCompletedVisitHours = (occurrence: OpsOccurrence) => {
   if (

@@ -1,4 +1,5 @@
 import type { OpsOccurrence } from "@/components/ops/types";
+import { getOccurrenceEmployees } from "@/components/ops/jobs/occurrence-employees";
 import { getMonthRange, toDateInputValue } from "@/components/ops/utils";
 
 export const getLastWeekRange = () => {
@@ -22,8 +23,8 @@ export const getOccurrenceEmployeeOptions = (
   const employees = new Map<string, NonNullable<OpsOccurrence["employee"]>>();
 
   for (const occurrence of occurrences) {
-    if (occurrence.employee) {
-      employees.set(occurrence.employee.id, occurrence.employee);
+    for (const employee of getOccurrenceEmployees(occurrence)) {
+      employees.set(employee.id, employee);
     }
   }
 

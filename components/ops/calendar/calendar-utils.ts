@@ -1,4 +1,5 @@
 import type { OpsOccurrence } from "@/components/ops/types";
+import { hasOccurrenceEmployees } from "@/components/ops/jobs/occurrence-employees";
 
 export const byScheduledStart = (a: OpsOccurrence, b: OpsOccurrence) =>
   new Date(a.scheduledStartAt).getTime() - new Date(b.scheduledStartAt).getTime();
@@ -9,7 +10,7 @@ export const sameDay = (date: Date | string, selectedDate?: Date) =>
     : false;
 
 export const getVisitActionLabel = (occurrence: OpsOccurrence) => {
-  if (!occurrence.employeeId) {
+  if (!hasOccurrenceEmployees(occurrence)) {
     return "Asignar";
   }
 
@@ -34,7 +35,7 @@ export const getCalendarStats = (occurrences: OpsOccurrence[]) => {
     doneCount: done.length,
     doneDates: done.map((occurrence) => new Date(occurrence.scheduledStartAt)),
     needsAttentionCount: occurrences.filter(
-      (occurrence) => !occurrence.employeeId || attention.includes(occurrence)
+      (occurrence) => !hasOccurrenceEmployees(occurrence) || attention.includes(occurrence)
     ).length,
     pendingCount: scheduled.length,
     scheduledDates: scheduled.map(

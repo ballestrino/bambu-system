@@ -3,6 +3,7 @@
 import Link from "next/link";
 
 import { dashboardPrimaryActionClass } from "@/components/dashboard/dashboard-styles";
+import { getOccurrenceEmployeesLabel } from "@/components/ops/jobs/occurrence-employees";
 import { OccurrenceStatusBadge } from "@/components/ops/jobs/status-badges";
 import type { OpsOccurrence } from "@/components/ops/types";
 import { formatDate, formatTime } from "@/components/ops/utils";
@@ -73,6 +74,9 @@ export const EmployeeLatestVisitPanel = ({
                   Trabajo
                 </p>
                 <p className="font-medium">{latestVisit.job.name}</p>
+                <p className="text-sm text-muted-foreground">
+                  {getOccurrenceEmployeesLabel(latestVisit)}
+                </p>
               </div>
 
               <div className="space-y-1">

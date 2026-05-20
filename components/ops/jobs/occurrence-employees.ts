@@ -13,6 +13,9 @@ export const getOccurrenceEmployees = (occurrence: OpsOccurrence) => {
 export const getOccurrenceEmployeeIds = (occurrence?: OpsOccurrence) =>
   occurrence ? getOccurrenceEmployees(occurrence).map((employee) => employee.id) : [];
 
+export const hasOccurrenceEmployees = (occurrence: OpsOccurrence) =>
+  getOccurrenceEmployees(occurrence).length > 0;
+
 export const getOccurrenceEmployeesLabel = (occurrence: OpsOccurrence) => {
   const employees = getOccurrenceEmployees(occurrence);
 

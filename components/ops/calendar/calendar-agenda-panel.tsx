@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { AlertCircle, BriefcaseBusiness, UserRound } from "lucide-react";
+import { AlertCircle, BriefcaseBusiness, UsersRound } from "lucide-react";
 
 import { dashboardSecondaryActionClass } from "@/components/dashboard/dashboard-styles";
 import {
@@ -7,6 +7,7 @@ import {
   getVisitActionLabel,
 } from "@/components/ops/calendar/calendar-utils";
 import { JobOccurrenceDialog } from "@/components/ops/jobs/job-occurrence-dialog";
+import { getOccurrenceEmployeesLabel } from "@/components/ops/jobs/occurrence-employees";
 import { OccurrenceStatusBadge } from "@/components/ops/jobs/status-badges";
 import type { OpsOccurrence } from "@/components/ops/types";
 import { formatDate, formatTime } from "@/components/ops/utils";
@@ -29,8 +30,8 @@ const CalendarAgendaItem = ({ occurrence }: { occurrence: OpsOccurrence }) => (
             {occurrence.job.name}
           </h3>
           <p className="mt-1 flex items-center gap-1 text-sm text-muted-foreground">
-            <UserRound className="h-3.5 w-3.5" />
-            {occurrence.employee?.name ?? "Sin empleada asignada"}
+            <UsersRound className="h-3.5 w-3.5" />
+            {getOccurrenceEmployeesLabel(occurrence)}
           </p>
         </div>
         <div className="flex flex-wrap gap-x-4 gap-y-1 text-sm text-muted-foreground">

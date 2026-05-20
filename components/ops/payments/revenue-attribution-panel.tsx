@@ -60,7 +60,7 @@ export const EmployeeGeneratedPayPanel = ({
         ))
       ) : (
         <p className="text-sm text-muted-foreground">
-          No hay visitas realizadas con empleada asignada en este rango.
+          No hay visitas realizadas con equipo asignado en este rango.
         </p>
       )}
     </CardContent>

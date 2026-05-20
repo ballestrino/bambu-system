@@ -5,6 +5,7 @@ import type {
 } from "@/components/ops/types";
 import {
   TRANSPORTATION_PAY_PER_VISIT,
+  getCompletedVisitEmployees,
   getCompletedVisitHours,
   getEmployeeHourlyRate,
   isCompletedEmployeeVisit,
@@ -83,14 +84,21 @@ export const buildPayrollRows = (
 
   employees.forEach(ensureRow);
   occurrences.forEach((occurrence) => {
-    if (!occurrence.employee) return;
-    const row = ensureRow(occurrence.employee);
-    row.hours += getPayrollHours(occurrence);
+    const assignedEmployees = getCompletedVisitEmployees(occurrence);
+    if (!assignedEmployees.length) return;
 
-    if (isCompletedEmployeeVisit(occurrence)) {
-      row.transportationAmount += TRANSPORTATION_PAY_PER_VISIT;
-      row.visits += 1;
-    }
+    const workedHours = getPayrollHours(occurrence);
+    const isCompletedVisit = isCompletedEmployeeVisit(occurrence);
+
+    assignedEmployees.forEach((employee) => {
+      const row = ensureRow(employee);
+      row.hours += workedHours;
+
+      if (isCompletedVisit) {
+        row.transportationAmount += TRANSPORTATION_PAY_PER_VISIT;
+        row.visits += 1;
+      }
+    });
   });
   payments.forEach((payment) => {
     const row = ensureRow(payment.employee);

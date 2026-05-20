@@ -2,14 +2,7 @@
 
 import { useMemo, useState } from "react";
 import Link from "next/link";
-import {
-  BadgeDollarSign,
-  CalendarDays,
-  CheckCircle2,
-  Clock3,
-  TimerReset,
-  XCircle,
-} from "lucide-react";
+import { BadgeDollarSign, CalendarDays, CheckCircle2, Clock3, TimerReset, XCircle } from "lucide-react";
 
 import { dashboardSecondaryActionClass } from "@/components/dashboard/dashboard-styles";
 import {
@@ -21,6 +14,7 @@ import {
   summarizeEmployeeVisits,
 } from "@/components/ops/employees/employee-payroll";
 import { useJobOccurrences } from "@/components/ops/hooks/useJobOccurrences";
+import { getOccurrenceEmployeesLabel } from "@/components/ops/jobs/occurrence-employees";
 import { OccurrenceStatusBadge } from "@/components/ops/jobs/status-badges";
 import {
   OpsDateFilterInput,
@@ -171,7 +165,7 @@ export const EmployeeVisitsPanel = ({
                     <p className="font-semibold">
                       {formatTime(occurrence.actualStartAt)} - {formatTime(occurrence.actualEndAt)}
                     </p>
-                    <p className="text-sm text-muted-foreground">{occurrence.employee?.name ?? "Sin empleada asignada"}</p>
+                    <p className="text-sm text-muted-foreground">{getOccurrenceEmployeesLabel(occurrence)}</p>
                   </div>
                   <div className="space-y-2 xl:border-l xl:border-black/5 xl:pl-4">
                     <div className="flex justify-center xl:justify-start">

@@ -4,6 +4,7 @@ import type {
 } from "@/components/ops/types";
 import {
   TRANSPORTATION_PAY_PER_VISIT,
+  getCompletedVisitEmployees,
   getCompletedVisitHours,
   getEmployeeHourlyRate,
   isCompletedEmployeeVisit,
@@ -53,26 +54,35 @@ export const buildEmployeeGeneratedPay = (occurrences: OpsOccurrence[]) => {
   const rows = new Map<string, GeneratedPayRow>();
 
   occurrences.forEach((occurrence) => {
-    const employeeId = occurrence.employeeId;
-    if (!isCompletedEmployeeVisit(occurrence) || !occurrence.employee || !employeeId) {
+    const assignedEmployees = getCompletedVisitEmployees(occurrence);
+    if (!assignedEmployees.length) {
       return;
     }
 
-    const current = rows.get(employeeId) ?? {
-      amount: null,
-      employeeId,
-      employeeName: occurrence.employee.name,
-      hourlyRate: getEmployeeHourlyRate(occurrence.employee),
-      hours: 0,
-      laborAmount: 0,
-      transportationAmount: 0,
-      visits: 0,
-    };
+    const workedHours = getCompletedVisitHours(occurrence);
+    const isCompletedVisit = isCompletedEmployeeVisit(occurrence);
 
-    current.hours += getCompletedVisitHours(occurrence);
-    current.transportationAmount += TRANSPORTATION_PAY_PER_VISIT;
-    current.visits += 1;
-    rows.set(current.employeeId, current);
+    assignedEmployees.forEach((employee) => {
+      const current = rows.get(employee.id) ?? {
+        amount: null,
+        employeeId: employee.id,
+        employeeName: employee.name,
+        hourlyRate: getEmployeeHourlyRate(employee),
+        hours: 0,
+        laborAmount: 0,
+        transportationAmount: 0,
+        visits: 0,
+      };
+
+      current.hours += workedHours;
+
+      if (isCompletedVisit) {
+        current.transportationAmount += TRANSPORTATION_PAY_PER_VISIT;
+        current.visits += 1;
+      }
+
+      rows.set(current.employeeId, current);
+    });
   });
 
   return {
