@@ -21,18 +21,40 @@ export const getEmployees = async (filters?: unknown) => {
     const { query, isActive, includeArchived, startDate, endDate } =
       parsedFilters.data;
 
-    const where: Prisma.EmployeeWhereInput = {
-      isActive,
-      archivedAt: includeArchived ? undefined : null,
-      createdAt: buildDateTimeRange(startDate, endDate),
-      OR: query
-        ? [
+    const searchFilter: Prisma.EmployeeWhereInput | undefined = query
+      ? {
+          OR: [
             { name: { contains: query, mode: "insensitive" } },
             { email: { contains: query, mode: "insensitive" } },
             { phone: { contains: query, mode: "insensitive" } },
             { notes: { contains: query, mode: "insensitive" } },
-          ]
-        : undefined,
+          ],
+        }
+      : undefined;
+    const archiveFilter: Prisma.EmployeeWhereInput = includeArchived
+      ? {
+          OR: [
+            {
+              archivedAt: null,
+              isActive,
+            },
+            {
+              archivedAt: {
+                not: null,
+              },
+            },
+          ],
+        }
+      : {
+          archivedAt: null,
+          isActive,
+        };
+    const whereFilters: Prisma.EmployeeWhereInput[] = searchFilter
+      ? [archiveFilter, searchFilter]
+      : [archiveFilter];
+    const where: Prisma.EmployeeWhereInput = {
+      AND: whereFilters,
+      createdAt: buildDateTimeRange(startDate, endDate),
     };
 
     const employees = await db.employee.findMany({

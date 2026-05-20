@@ -38,14 +38,14 @@ export const JobAssignmentsPanel = ({
                 </Button>
                 <JobAssignmentDialog jobId={jobId} assignment={assignment} />
                 <DeleteDialog
-                  title="Archivar asignación"
-                  description="El empleado dejará de estar asignado a este trabajo."
-                  deleteButtonText="Archivar"
+                  title="Desasignar empleada"
+                  description="La empleada dejará de formar parte del equipo activo del trabajo y se quitará de futuras visitas programadas."
+                  deleteButtonText="Desasignar"
                   deleteButtonVariant="default"
                   onConfirm={async () => {
                     await onArchive(assignment.id);
                   }}
-                  trigger={<Button size="sm" variant="outline" className={dashboardSecondaryActionClass}>Archivar</Button>}
+                  trigger={<Button size="sm" variant="outline" className={dashboardSecondaryActionClass}>Desasignar</Button>}
                 />
               </>
             }

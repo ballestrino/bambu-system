@@ -15,6 +15,7 @@ export const useJobEmployeeAssignmentMutations = (jobId?: string, employeeId?: s
   const invalidateAssignmentQueries = async () => {
     await Promise.all([
       queryClient.invalidateQueries({ queryKey: opsQueryKeys.assignments }),
+      queryClient.invalidateQueries({ queryKey: opsQueryKeys.occurrences() }),
       jobId
         ? queryClient.invalidateQueries({
             queryKey: opsQueryKeys.assignmentScope(jobId),
@@ -26,8 +27,10 @@ export const useJobEmployeeAssignmentMutations = (jobId?: string, employeeId?: s
           })
         : Promise.resolve(),
       queryClient.invalidateQueries({ queryKey: opsQueryKeys.employees }),
+      queryClient.invalidateQueries({ queryKey: opsQueryKeys.jobs }),
       jobId ? queryClient.invalidateQueries({ queryKey: opsQueryKeys.job(jobId) }) : Promise.resolve(),
       employeeId ? queryClient.invalidateQueries({ queryKey: opsQueryKeys.employee(employeeId) }) : Promise.resolve(),
+      queryClient.invalidateQueries({ queryKey: ["ops", "calendar"] }),
     ]);
   };
 
@@ -58,11 +61,11 @@ export const useJobEmployeeAssignmentMutations = (jobId?: string, employeeId?: s
   const archiveAssignmentMutation = useMutation({
     mutationFn: (assignmentId: string) => archiveJobEmployeeAssignmentAction(assignmentId),
     onSuccess: async () => {
-      toast.success("Asignacion archivada");
+      toast.success("Empleada desasignada");
       await invalidateAssignmentQueries();
     },
     onError: (error) => {
-      toast.error(error instanceof Error ? error.message : "Error al archivar la asignacion");
+      toast.error(error instanceof Error ? error.message : "Error al desasignar la empleada");
     },
   });
 

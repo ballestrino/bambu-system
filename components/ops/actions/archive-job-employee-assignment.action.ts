@@ -20,6 +20,6 @@ export const archiveJobEmployeeAssignmentAction = async (
       throw error;
     }
 
-    throw new Error("Error al archivar la asignacion");
+    throw new Error("Error al desasignar la empleada");
   }
 };

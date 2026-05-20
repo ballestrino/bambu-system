@@ -112,23 +112,58 @@ export const updateJobEmployeeAssignment = async (
 export const archiveJobEmployeeAssignment = async (assignmentId: string) => {
   try {
     const session = await requireAdminSession();
-    await assertAssignmentExists(assignmentId);
+    const existingAssignment = await assertAssignmentExists(assignmentId);
+    const archivedAt = new Date();
 
-    const assignment = await db.jobEmployeeAssignment.update({
-      where: {
-        id: assignmentId,
-      },
-      data: {
-        archivedAt: new Date(),
-        updatedById: session.user.id,
-      },
+    const assignment = await db.$transaction(async (tx) => {
+      const archivedAssignment = await tx.jobEmployeeAssignment.update({
+        where: {
+          id: assignmentId,
+        },
+        data: {
+          archivedAt,
+          updatedById: session.user.id,
+        },
+      });
+      const futureOccurrences = await tx.jobOccurrence.findMany({
+        where: {
+          archivedAt: null,
+          isDetached: false,
+          jobId: existingAssignment.jobId,
+          scheduledStartAt: {
+            gte: archivedAt,
+          },
+          status: "SCHEDULED",
+          employees: {
+            some: {
+              employeeId: existingAssignment.employeeId,
+            },
+          },
+        },
+        select: {
+          id: true,
+        },
+      });
+
+      if (futureOccurrences.length) {
+        await tx.jobOccurrenceEmployee.deleteMany({
+          where: {
+            employeeId: existingAssignment.employeeId,
+            jobOccurrenceId: {
+              in: futureOccurrences.map((occurrence) => occurrence.id),
+            },
+          },
+        });
+      }
+
+      return archivedAssignment;
     });
 
-    return { success: "Asignacion archivada", assignment };
+    return { success: "Empleada desasignada", assignment };
   } catch (error) {
     console.error("Error archiving job employee assignment:", error);
     return {
-      error: getActionErrorMessage(error, "Error al archivar la asignacion"),
+      error: getActionErrorMessage(error, "Error al desasignar la empleada"),
     };
   }
 };
