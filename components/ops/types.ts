@@ -30,7 +30,6 @@ export type OpsJobDetail = Prisma.JobGetPayload<{
     scheduleRules: true;
     occurrences: {
       include: {
-        employee: true;
         employees: {
           include: {
             employee: true;
@@ -73,7 +72,6 @@ export type OpsOccurrence = Prisma.JobOccurrenceGetPayload<{
         status: true;
       };
     };
-    employee: true;
     employees: {
       include: {
         employee: true;

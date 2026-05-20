@@ -68,7 +68,6 @@ const buildOccurrenceCandidates = (
     return {
       data: {
         createdById: userId,
-        employeeId: employeeIds[0] ?? null,
         isDetached: false,
         jobId: rule.jobId,
         scheduleRuleId: rule.id,

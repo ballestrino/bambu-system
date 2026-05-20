@@ -5,7 +5,6 @@ import type { Prisma } from "@prisma/client";
 import { db } from "@/lib/db";
 
 type EmployeePatch = {
-  employeeId?: string | null;
   employeeIds?: string[];
 };
 
@@ -18,20 +17,16 @@ export const getUniqueEmployeeIds = (employeeIds: string[]) =>
   Array.from(new Set(employeeIds));
 
 export const getSubmittedEmployeeIds = (values: EmployeePatch) => {
-  if (values.employeeIds?.length) {
-    return getUniqueEmployeeIds(values.employeeIds);
-  }
-
-  return values.employeeId ? [values.employeeId] : [];
+  return values.employeeIds?.length
+    ? getUniqueEmployeeIds(values.employeeIds)
+    : [];
 };
 
 export const getPatchedEmployeeIds = ({
   existingEmployeeIds,
-  legacyEmployeeId,
   patch,
 }: {
   existingEmployeeIds: string[];
-  legacyEmployeeId?: string | null;
   patch: EmployeePatch;
 }) => {
   if (
@@ -41,18 +36,7 @@ export const getPatchedEmployeeIds = ({
     return getUniqueEmployeeIds(patch.employeeIds);
   }
 
-  if (
-    Object.prototype.hasOwnProperty.call(patch, "employeeId") &&
-    patch.employeeId !== undefined
-  ) {
-    return patch.employeeId ? [patch.employeeId] : [];
-  }
-
-  return existingEmployeeIds.length
-    ? getUniqueEmployeeIds(existingEmployeeIds)
-    : legacyEmployeeId
-      ? [legacyEmployeeId]
-      : [];
+  return getUniqueEmployeeIds(existingEmployeeIds);
 };
 
 export const getOccurrenceEmployeeIds = async (jobOccurrenceId: string) => {

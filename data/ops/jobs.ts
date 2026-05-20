@@ -85,7 +85,6 @@ export const getJobById = async (id: string) => {
         scheduleRules: true,
         occurrences: {
           include: {
-            employee: true,
             employees: {
               include: {
                 employee: true,

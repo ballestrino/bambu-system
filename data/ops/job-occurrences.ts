@@ -36,10 +36,7 @@ export const getJobOccurrences = async (filters?: unknown) => {
 
     const employeeFilter = employeeId
       ? {
-          OR: [
-            { employeeId },
-            { employees: { some: { employeeId } } },
-          ],
+          employees: { some: { employeeId } },
         }
       : {};
 
@@ -61,7 +58,6 @@ export const getJobOccurrences = async (filters?: unknown) => {
             status: true,
           },
         },
-        employee: true,
         employees: {
           include: {
             employee: true,

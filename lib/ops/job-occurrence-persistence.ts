@@ -6,27 +6,23 @@ import { db } from "@/lib/db";
 import { syncOccurrenceEmployees } from "@/lib/ops/job-occurrence-employees";
 
 export const stripOccurrenceEmployeeInputs = <
-  T extends { employeeId?: string | null; employeeIds?: string[] },
+  T extends { employeeIds?: string[] },
 >(
   values: T
 ) => {
   const data = { ...values };
-  delete data.employeeId;
   delete data.employeeIds;
 
-  return data as Omit<T, "employeeId" | "employeeIds">;
+  return data as Omit<T, "employeeIds">;
 };
 
 export const createOccurrenceWithEmployees = async (
-  data: Omit<Prisma.JobOccurrenceUncheckedCreateInput, "employeeId">,
+  data: Prisma.JobOccurrenceUncheckedCreateInput,
   employeeIds: string[]
 ) =>
   db.$transaction(async (tx) => {
     const occurrence = await tx.jobOccurrence.create({
-      data: {
-        ...data,
-        employeeId: employeeIds[0] ?? null,
-      },
+      data,
     });
 
     await syncOccurrenceEmployees(tx, occurrence.id, employeeIds);
@@ -47,10 +43,7 @@ export const updateOccurrenceWithEmployees = async ({
       where: {
         id: occurrenceId,
       },
-      data: {
-        ...data,
-        employeeId: employeeIds[0] ?? null,
-      },
+      data,
     });
 
     await syncOccurrenceEmployees(tx, occurrenceId, employeeIds);

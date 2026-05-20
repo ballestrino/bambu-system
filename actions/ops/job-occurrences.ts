@@ -75,7 +75,6 @@ export const updateJobOccurrence = async (occurrenceId: string, values: unknown)
     const existingEmployeeIds = await getOccurrenceEmployeeIds(occurrenceId);
     const employeeIds = getPatchedEmployeeIds({
       existingEmployeeIds,
-      legacyEmployeeId: existingOccurrence.employeeId,
       patch: parsedValues.data,
     });
     const mergedValues = buildResolvedJobOccurrence(
@@ -126,7 +125,6 @@ export const detachJobOccurrence = async (occurrenceId: string, values?: unknown
     const existingEmployeeIds = await getOccurrenceEmployeeIds(occurrenceId);
     const employeeIds = getPatchedEmployeeIds({
       existingEmployeeIds,
-      legacyEmployeeId: existingOccurrence.employeeId,
       patch: parsedValues.data,
     });
     const mergedValues = buildResolvedJobOccurrence(

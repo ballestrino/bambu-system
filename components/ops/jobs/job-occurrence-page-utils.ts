@@ -20,7 +20,10 @@ export const getMonthRangeValues = (month: Date) => {
 export const getOccurrenceEmployeeOptions = (
   occurrences: OpsOccurrence[]
 ) => {
-  const employees = new Map<string, NonNullable<OpsOccurrence["employee"]>>();
+  const employees = new Map<
+    string,
+    OpsOccurrence["employees"][number]["employee"]
+  >();
 
   for (const occurrence of occurrences) {
     for (const employee of getOccurrenceEmployees(occurrence)) {

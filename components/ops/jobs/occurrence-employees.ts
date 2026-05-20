@@ -1,13 +1,7 @@
 import type { OpsOccurrence } from "@/components/ops/types";
 
 export const getOccurrenceEmployees = (occurrence: OpsOccurrence) => {
-  const employees = occurrence.employees.map(({ employee }) => employee);
-
-  if (employees.length) {
-    return employees;
-  }
-
-  return occurrence.employee ? [occurrence.employee] : [];
+  return occurrence.employees.map(({ employee }) => employee);
 };
 
 export const getOccurrenceEmployeeIds = (occurrence?: OpsOccurrence) =>

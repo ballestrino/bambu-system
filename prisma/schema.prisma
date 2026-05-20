@@ -282,8 +282,6 @@ model JobOccurrence {
   jobId            String
   job              Job              @relation(fields: [jobId], references: [id], onDelete: Restrict)
   employees        JobOccurrenceEmployee[]
-  employeeId       String?
-  employee         Employee?        @relation(fields: [employeeId], references: [id], onDelete: Restrict)
   scheduleRuleId   String?
   scheduleRule     JobScheduleRule? @relation(fields: [scheduleRuleId], references: [id], onDelete: SetNull)
   scheduledStartAt DateTime
@@ -303,7 +301,6 @@ model JobOccurrence {
   updatedAt        DateTime         @updatedAt
 
   @@index([jobId, scheduledStartAt])
-  @@index([employeeId, scheduledStartAt])
   @@index([status, archivedAt])
   @@index([createdById])
   @@index([updatedById])
@@ -325,7 +322,6 @@ model Employee {
   updatedBy   User?                   @relation("EmployeeUpdatedBy", fields: [updatedById], references: [id], onDelete: Restrict)
   assignments JobEmployeeAssignment[]
   occurrenceAssignments JobOccurrenceEmployee[]
-  occurrences JobOccurrence[]
   timeEntries TimeEntry[]
   payments    EmployeePayment[]
   createdAt   DateTime                @default(now())

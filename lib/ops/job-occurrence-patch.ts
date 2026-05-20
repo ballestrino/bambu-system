@@ -24,11 +24,6 @@ export const buildResolvedJobOccurrence = (
 
   return {
     jobId: existingOccurrence.jobId,
-    employeeId: getPatchedValue(
-      patch,
-      "employeeId",
-      existingOccurrence.employeeId ?? ""
-    ),
     scheduleRuleId: hasScheduleRuleOverride
       ? overrides?.scheduleRuleId ?? undefined
       : existingOccurrence.scheduleRuleId ?? undefined,

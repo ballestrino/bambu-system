@@ -4,7 +4,6 @@ import {
   booleanSchema,
   cuidSchema,
   dateRangeFiltersSchema,
-  nullableCuidUpdateSchema,
   nullableDateUpdateSchema,
   nullableTrimmedString,
   optionalBooleanSchema,
@@ -51,10 +50,6 @@ const optionalEmployeeIdsSchema = z.preprocess(
 const jobOccurrenceBaseSchema = z
   .object({
     jobId: cuidSchema,
-    employeeId: z.preprocess(
-      (value) => (value === "" || value === null ? undefined : value),
-      cuidSchema.optional()
-    ),
     employeeIds: optionalEmployeeIdsSchema,
     scheduleRuleId: z.preprocess(
       (value) => (value === "" ? undefined : value),
@@ -91,7 +86,6 @@ export const CreateJobOccurrenceSchema = jobOccurrenceBaseSchema;
 
 export const UpdateJobOccurrenceSchema = z
   .object({
-    employeeId: nullableCuidUpdateSchema,
     employeeIds: optionalEmployeeIdsSchema,
     scheduledStartAt: z.coerce.date().optional(),
     scheduledEndAt: z.coerce.date().optional(),
@@ -129,7 +123,6 @@ export const UpdateJobOccurrenceSchema = z
 
 export const DetachJobOccurrenceSchema = z
   .object({
-    employeeId: nullableCuidUpdateSchema,
     employeeIds: optionalEmployeeIdsSchema,
     scheduledStartAt: z.coerce.date().optional(),
     scheduledEndAt: z.coerce.date().optional(),
