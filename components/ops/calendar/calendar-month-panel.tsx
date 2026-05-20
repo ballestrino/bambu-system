@@ -43,20 +43,20 @@ export const CalendarMonthPanel = ({
           scheduled: stats.scheduledDates,
         }}
         modifiersClassNames={{
-          attention: "bg-amber-100 text-amber-900 font-semibold",
-          done: "bg-emerald-100 text-emerald-800 font-semibold",
-          scheduled: "bg-[#EAF5EC] text-[#244C2D] font-semibold",
+          attention: "bg-amber-100 text-amber-900 font-semibold dark:bg-amber-500/20 dark:text-amber-100",
+          done: "bg-emerald-100 text-emerald-800 font-semibold dark:bg-emerald-500/20 dark:text-emerald-100",
+          scheduled: "bg-[#EAF5EC] text-[#244C2D] font-semibold dark:bg-[#244C2D]/80 dark:text-[#EAF5EC]",
         }}
         className="mx-auto rounded-md bg-transparent p-0 [--cell-size:2.75rem] sm:[--cell-size:3rem]"
       />
       <div className="flex flex-wrap gap-2 text-xs text-muted-foreground">
-        <span className="rounded-full bg-[#EAF5EC] px-3 py-1 text-[#244C2D]">
+        <span className="rounded-full bg-[#EAF5EC] px-3 py-1 text-[#244C2D] dark:bg-[#244C2D]/80 dark:text-[#EAF5EC]">
           Programadas
         </span>
-        <span className="rounded-full bg-emerald-100 px-3 py-1 text-emerald-800">
+        <span className="rounded-full bg-emerald-100 px-3 py-1 text-emerald-800 dark:bg-emerald-500/20 dark:text-emerald-100">
           Realizadas
         </span>
-        <span className="rounded-full bg-amber-100 px-3 py-1 text-amber-900">
+        <span className="rounded-full bg-amber-100 px-3 py-1 text-amber-900 dark:bg-amber-500/20 dark:text-amber-100">
           Atención
         </span>
       </div>

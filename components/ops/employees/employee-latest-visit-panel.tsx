@@ -44,7 +44,7 @@ export const EmployeeLatestVisitPanel = ({
   const latestVisit = getLatestVisit(occurrences);
 
   return (
-    <Card className="border-0 bg-white/80 shadow-sm ring-1 ring-black/5">
+    <Card className="border-0 bg-white/80 shadow-sm ring-1 ring-black/5 dark:bg-[#132016] dark:ring-white/10">
       <CardHeader className="flex flex-row items-center justify-between gap-3">
         <div className="space-y-1">
           <CardTitle>Ultima visita</CardTitle>
@@ -60,7 +60,7 @@ export const EmployeeLatestVisitPanel = ({
         {isLoading ? (
           <div className="min-h-32 animate-pulse rounded-2xl bg-muted/40" />
         ) : latestVisit ? (
-          <div className="space-y-4 rounded-2xl border border-black/5 bg-white p-4">
+          <div className="space-y-4 rounded-2xl border border-black/5 bg-white p-4 dark:border-white/10 dark:bg-[#1B2A1E]">
             <div className="flex flex-wrap items-center gap-2">
               <OccurrenceStatusBadge status={latestVisit.status} />
               <span className="text-sm text-muted-foreground">

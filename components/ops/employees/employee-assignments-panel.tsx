@@ -17,14 +17,14 @@ export const EmployeeAssignmentsPanel = ({
   const activeAssignments = assignments.filter((assignment) => !assignment.archivedAt);
 
   return (
-    <Card className="border-0 bg-white/80 shadow-sm ring-1 ring-black/5">
+    <Card className="border-0 bg-white/80 shadow-sm ring-1 ring-black/5 dark:bg-[#132016] dark:ring-white/10">
       <CardHeader>
         <CardTitle>Trabajos asignados</CardTitle>
       </CardHeader>
       <CardContent className="space-y-3">
         {assignments.length ? (
           assignments.map((assignment) => (
-            <div key={assignment.id} className="flex flex-col gap-3 rounded-lg border p-4 md:flex-row md:items-center md:justify-between">
+            <div key={assignment.id} className="flex flex-col gap-3 rounded-lg border border-black/5 bg-white p-4 md:flex-row md:items-center md:justify-between dark:border-white/10 dark:bg-[#1B2A1E]">
               <div className="space-y-1 text-sm">
                 <div className="flex flex-wrap items-center gap-2">
                   <p className="font-medium">{assignment.job.name}</p>

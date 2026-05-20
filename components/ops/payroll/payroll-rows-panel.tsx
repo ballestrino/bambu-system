@@ -30,12 +30,12 @@ export const PayrollRowsPanel = ({
   periodStart: string;
   rows: PayrollRow[];
 }) => (
-  <Card className="border-0 bg-white/80 shadow-sm ring-1 ring-black/5">
+  <Card className="border-0 bg-white/80 shadow-sm ring-1 ring-black/5 dark:bg-[#132016] dark:ring-white/10">
     <CardHeader><CardTitle>Resumen por empleado</CardTitle></CardHeader>
     <CardContent className="space-y-3">
       {rows.length ? (
         rows.map((row) => (
-          <div key={row.employeeId} className="flex flex-col gap-3 rounded-lg border p-4 xl:flex-row xl:items-center xl:justify-between">
+          <div key={row.employeeId} className="flex flex-col gap-3 rounded-lg border border-black/5 bg-white p-4 xl:flex-row xl:items-center xl:justify-between dark:border-white/10 dark:bg-[#1B2A1E]">
             <div className="grid gap-2 text-sm md:grid-cols-5">
               <div>
                 <p className="font-medium">{row.employeeName}</p>
