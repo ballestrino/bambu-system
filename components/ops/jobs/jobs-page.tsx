@@ -45,7 +45,7 @@ export const JobsPage = () => {
     includeArchived: filterState.includeArchived,
   };
 
-  const { jobs, isLoading } = useJobs(filters);
+  const { jobs, isFetching, isLoading, refetch } = useJobs(filters);
   const { archiveJobAsync } = useJobMutations();
   const updateFilters = (values: Partial<JobFilterState>) => {
     setFilterState((current) => ({ ...current, ...values }));
@@ -58,7 +58,9 @@ export const JobsPage = () => {
         query={filterState.query}
         status={filterState.status}
         includeArchived={filterState.includeArchived}
+        isRefreshing={isFetching}
         onQueryChange={(query) => updateFilters({ query })}
+        onRefresh={refetch}
         onStatusChange={(status) =>
           updateFilters({ status: status as JobStatusFilter })
         }

@@ -28,11 +28,20 @@ export const PayrollPage = () => {
   };
   const selectedEmployeeId = employeeId === "ALL" ? undefined : employeeId;
 
-  const { employees } = useEmployees({ includeArchived: true });
+  const {
+    employees,
+    isFetching: areEmployeesFetching,
+    refetch: refetchEmployees,
+  } = useEmployees({ includeArchived: true });
   const visibleEmployees = selectedEmployeeId
     ? employees.filter((employee) => employee.id === selectedEmployeeId)
     : employees;
-  const { payments, isLoading } = useEmployeePayments(
+  const {
+    payments,
+    isFetching: arePaymentsFetching,
+    isLoading,
+    refetch: refetchPayments,
+  } = useEmployeePayments(
     {
       employeeId: selectedEmployeeId,
       ...rangeFilters,
@@ -40,7 +49,11 @@ export const PayrollPage = () => {
     },
     `payroll-${employeeId}-${startDate}-${endDate}-${status}`
   );
-  const { occurrences } = useJobOccurrences(
+  const {
+    occurrences,
+    isFetching: areOccurrencesFetching,
+    refetch: refetchOccurrences,
+  } = useJobOccurrences(
     {
       employeeId: selectedEmployeeId,
       ...rangeFilters,
@@ -56,6 +69,11 @@ export const PayrollPage = () => {
     [occurrences, payments, visibleEmployees]
   );
   const summary = getPayrollSummary(rows, payments);
+  const isRefreshing =
+    areEmployeesFetching || areOccurrencesFetching || arePaymentsFetching;
+  const refreshPayrollData = async () => {
+    await Promise.all([refetchEmployees(), refetchOccurrences(), refetchPayments()]);
+  };
   const clearFilters = () => {
     const nextMonth = getMonthRange(new Date());
     setStartDate(toDateInputValue(nextMonth.start));
@@ -81,9 +99,11 @@ export const PayrollPage = () => {
         employeeId={employeeId}
         employees={employees}
         endDate={endDate}
+        isRefreshing={isRefreshing}
         onClear={clearFilters}
         onEmployeeIdChange={setEmployeeId}
         onEndDateChange={setEndDate}
+        onRefresh={refreshPayrollData}
         onStartDateChange={setStartDate}
         onStatusChange={setStatus}
         startDate={startDate}

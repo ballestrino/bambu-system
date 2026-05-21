@@ -44,7 +44,7 @@ export const EmployeesPage = () => {
     includeArchived: filterState.includeArchived,
   };
 
-  const { employees, isLoading } = useEmployees(filters);
+  const { employees, isFetching, isLoading, refetch } = useEmployees(filters);
   const { archiveEmployeeAsync } = useEmployeeMutations();
   const updateFilters = (values: Partial<EmployeeFilterState>) => {
     setFilterState((current) => ({ ...current, ...values }));
@@ -57,7 +57,9 @@ export const EmployeesPage = () => {
         query={filterState.query}
         activeFilter={filterState.activeFilter}
         includeArchived={filterState.includeArchived}
+        isRefreshing={isFetching}
         onQueryChange={(query) => updateFilters({ query })}
+        onRefresh={refetch}
         onActiveFilterChange={(activeFilter) => updateFilters({ activeFilter })}
         onIncludeArchivedChange={(includeArchived) =>
           updateFilters({ includeArchived })

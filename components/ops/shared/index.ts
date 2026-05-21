@@ -7,6 +7,7 @@ export * from "@/components/ops/shared/ops-form-dialog";
 export * from "@/components/ops/shared/ops-metric-card";
 export * from "@/components/ops/shared/ops-page-shell";
 export * from "@/components/ops/shared/ops-record-list";
+export * from "@/components/ops/shared/ops-refresh-button";
 export * from "@/components/ops/shared/ops-theme";
 export * from "@/components/ops/shared/use-ops-debounced-value";
 export * from "@/components/ops/shared/use-ops-persisted-state";

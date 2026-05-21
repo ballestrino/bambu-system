@@ -29,12 +29,25 @@ export const PaymentsPage = () => {
     statuses: status === "ALL" ? undefined : [status as PaymentStatus],
   };
 
-  const { jobs } = useJobs({ includeArchived: false });
-  const { payments, isLoading } = useJobClientPayments(
+  const {
+    jobs,
+    isFetching: areJobsFetching,
+    refetch: refetchJobs,
+  } = useJobs({ includeArchived: false });
+  const {
+    payments,
+    isFetching: arePaymentsFetching,
+    isLoading,
+    refetch: refetchPayments,
+  } = useJobClientPayments(
     filters,
     `payments-${jobId}-${startDate}-${endDate}-${status}`
   );
-  const { occurrences } = useJobOccurrences(
+  const {
+    occurrences,
+    isFetching: areOccurrencesFetching,
+    refetch: refetchOccurrences,
+  } = useJobOccurrences(
     {
       jobId: jobId === "ALL" ? undefined : jobId,
       startDate: filters.startDate,
@@ -51,6 +64,11 @@ export const PaymentsPage = () => {
     () => buildEmployeeGeneratedPay(occurrences),
     [occurrences]
   );
+  const isRefreshing =
+    areJobsFetching || arePaymentsFetching || areOccurrencesFetching;
+  const refreshPaymentsData = async () => {
+    await Promise.all([refetchJobs(), refetchPayments(), refetchOccurrences()]);
+  };
   const clearFilters = () => {
     const nextMonth = getMonthRange(new Date());
     setStartDate(toDateInputValue(nextMonth.start));
@@ -70,11 +88,13 @@ export const PaymentsPage = () => {
       </div>
       <PaymentsFilters
         endDate={endDate}
+        isRefreshing={isRefreshing}
         jobId={jobId}
         jobs={jobs}
         onClear={clearFilters}
         onEndDateChange={setEndDate}
         onJobIdChange={setJobId}
+        onRefresh={refreshPaymentsData}
         onStartDateChange={setStartDate}
         onStatusChange={setStatus}
         startDate={startDate}

@@ -29,22 +29,40 @@ export const OpsDashboardPage = () => {
     };
   }, []);
 
-  const { occurrences, isLoading: areVisitsLoading } = useJobOccurrences(
-    occurrenceFilters,
-    "dashboard-visits"
-  );
-  const { employees, isLoading: areEmployeesLoading } = useEmployees({
+  const {
+    occurrences,
+    isFetching: areVisitsFetching,
+    isLoading: areVisitsLoading,
+    refetch: refetchVisits,
+  } = useJobOccurrences(occurrenceFilters, "dashboard-visits");
+  const {
+    employees,
+    isFetching: areEmployeesFetching,
+    isLoading: areEmployeesLoading,
+    refetch: refetchEmployees,
+  } = useEmployees({
     includeArchived: false,
     isActive: true,
   });
-  const { jobs, isLoading: areJobsLoading } = useJobs({
+  const {
+    jobs,
+    isFetching: areJobsFetching,
+    isLoading: areJobsLoading,
+    refetch: refetchJobs,
+  } = useJobs({
     includeArchived: false,
   });
-  const { payments, isLoading: arePaymentsLoading } = useJobClientPayments(
-    { statuses: ["RECORDED"] },
-    "dashboard-recorded-payments"
-  );
-  const { scheduleRules } = useJobScheduleRules({ isActive: true });
+  const {
+    payments,
+    isFetching: arePaymentsFetching,
+    isLoading: arePaymentsLoading,
+    refetch: refetchPayments,
+  } = useJobClientPayments({ statuses: ["RECORDED"] }, "dashboard-recorded-payments");
+  const {
+    scheduleRules,
+    isFetching: areRulesFetching,
+    refetch: refetchScheduleRules,
+  } = useJobScheduleRules({ isActive: true });
 
   const pendingVisitCount = useMemo(
     () => getPendingRegistrationVisits(occurrences).length,
@@ -54,11 +72,31 @@ export const OpsDashboardPage = () => {
     () => getDashboardFinancials(jobs, payments),
     [jobs, payments]
   );
+  const isRefreshing =
+    areEmployeesFetching ||
+    areJobsFetching ||
+    arePaymentsFetching ||
+    areRulesFetching ||
+    areVisitsFetching;
+  const refreshDashboard = async () => {
+    await Promise.all([
+      refetchEmployees(),
+      refetchJobs(),
+      refetchPayments(),
+      refetchScheduleRules(),
+      refetchVisits(),
+    ]);
+  };
 
   return (
     <OpsPageShell>
       <OpsPageHeader
-        actions={<DashboardQuickActions />}
+        actions={
+          <DashboardQuickActions
+            isRefreshing={isRefreshing}
+            onRefresh={refreshDashboard}
+          />
+        }
         description="Accesos rápidos y visitas que necesitan atención para cerrar la operación diaria."
         eyebrow="Operaciones"
         title="Dashboard operativo"

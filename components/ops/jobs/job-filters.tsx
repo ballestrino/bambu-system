@@ -3,6 +3,7 @@
 import {
   OpsFilterChips,
   OpsFilterSheet,
+  OpsRefreshButton,
   OpsSearchInput,
   OpsToolbar,
   getOpsStatusConfig,
@@ -22,17 +23,21 @@ interface JobFiltersProps {
   status: string;
   includeArchived: boolean;
   onQueryChange: (value: string) => void;
+  onRefresh: () => Promise<unknown> | void;
   onStatusChange: (value: string) => void;
   onIncludeArchivedChange: (value: boolean) => void;
   onClear: () => void;
+  isRefreshing?: boolean;
 }
 
 export const JobFilters = ({
   query,
   status,
   includeArchived,
+  isRefreshing,
   onClear,
   onQueryChange,
+  onRefresh,
   onStatusChange,
   onIncludeArchivedChange,
 }: JobFiltersProps) => {
@@ -101,6 +106,11 @@ export const JobFilters = ({
             {statusField}
             {archivedField}
           </OpsFilterSheet>
+          <OpsRefreshButton
+            className="px-3"
+            isRefreshing={isRefreshing}
+            onRefresh={onRefresh}
+          />
         </div>
         <OpsFilterChips chips={chips} onClear={onClear} />
       </div>
@@ -110,6 +120,10 @@ export const JobFilters = ({
           {searchField}
           {statusField}
           {archivedField}
+          <OpsRefreshButton
+            isRefreshing={isRefreshing}
+            onRefresh={onRefresh}
+          />
         </OpsToolbar>
         <OpsFilterChips chips={chips} onClear={onClear} />
       </div>

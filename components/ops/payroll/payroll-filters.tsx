@@ -6,6 +6,7 @@ import {
   OpsFilterChips,
   OpsFilterField,
   OpsFilterSheet,
+  OpsRefreshButton,
   OpsToolbar,
   opsFilterControlClass,
   opsPaymentStatus,
@@ -18,9 +19,11 @@ type PayrollFiltersProps = {
   employeeId: string;
   employees: OpsEmployee[];
   endDate: string;
+  isRefreshing?: boolean;
   onClear: () => void;
   onEmployeeIdChange: (value: string) => void;
   onEndDateChange: (value: string) => void;
+  onRefresh: () => Promise<unknown> | void;
   onStartDateChange: (value: string) => void;
   onStatusChange: (value: string) => void;
   startDate: string;
@@ -31,9 +34,11 @@ export const PayrollFilters = ({
   employeeId,
   employees,
   endDate,
+  isRefreshing,
   onClear,
   onEmployeeIdChange,
   onEndDateChange,
+  onRefresh,
   onStartDateChange,
   onStatusChange,
   startDate,
@@ -103,16 +108,23 @@ export const PayrollFilters = ({
   return (
     <div className="space-y-3">
       <div className="space-y-3 md:hidden">
-        <OpsFilterSheet
-          activeCount={chips.length}
-          description="Ajusta periodo, estado y empleada para revisar pagos."
-          onClear={onClear}
-        >
-          {startField}
-          {endField}
-          {statusField}
-          {employeeField}
-        </OpsFilterSheet>
+        <div className="flex gap-2">
+          <OpsFilterSheet
+            activeCount={chips.length}
+            description="Ajusta periodo, estado y empleada para revisar pagos."
+            onClear={onClear}
+          >
+            {startField}
+            {endField}
+            {statusField}
+            {employeeField}
+          </OpsFilterSheet>
+          <OpsRefreshButton
+            className="px-3"
+            isRefreshing={isRefreshing}
+            onRefresh={onRefresh}
+          />
+        </div>
         <OpsFilterChips chips={chips} onClear={onClear} />
       </div>
 
@@ -122,6 +134,10 @@ export const PayrollFilters = ({
           {endField}
           {statusField}
           {employeeField}
+          <OpsRefreshButton
+            isRefreshing={isRefreshing}
+            onRefresh={onRefresh}
+          />
         </OpsToolbar>
         <OpsFilterChips chips={chips} onClear={onClear} />
       </div>

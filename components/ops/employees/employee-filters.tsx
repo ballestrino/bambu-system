@@ -3,6 +3,7 @@
 import {
   OpsFilterChips,
   OpsFilterSheet,
+  OpsRefreshButton,
   OpsSearchInput,
   OpsToolbar,
   opsFilterControlClass,
@@ -24,16 +25,20 @@ export const EmployeeFilters = ({
   query,
   activeFilter,
   includeArchived,
+  isRefreshing,
   onClear,
   onQueryChange,
+  onRefresh,
   onActiveFilterChange,
   onIncludeArchivedChange,
 }: {
   query: string;
   activeFilter: string;
   includeArchived: boolean;
+  isRefreshing?: boolean;
   onClear: () => void;
   onQueryChange: (value: string) => void;
+  onRefresh: () => Promise<unknown> | void;
   onActiveFilterChange: (value: string) => void;
   onIncludeArchivedChange: (value: boolean) => void;
 }) => {
@@ -100,6 +105,11 @@ export const EmployeeFilters = ({
             {activeField}
             {archivedField}
           </OpsFilterSheet>
+          <OpsRefreshButton
+            className="px-3"
+            isRefreshing={isRefreshing}
+            onRefresh={onRefresh}
+          />
         </div>
         <OpsFilterChips chips={chips} onClear={onClear} />
       </div>
@@ -109,6 +119,10 @@ export const EmployeeFilters = ({
           {searchField}
           {activeField}
           {archivedField}
+          <OpsRefreshButton
+            isRefreshing={isRefreshing}
+            onRefresh={onRefresh}
+          />
         </OpsToolbar>
         <OpsFilterChips chips={chips} onClear={onClear} />
       </div>
