@@ -8,6 +8,7 @@ import {
   nullableDateUpdateSchema,
   nullableTrimmedString,
   optionalBooleanSchema,
+  optionalDateSchema,
   optionalTrimmedString,
 } from "@/schemas/ops/common";
 
@@ -23,8 +24,8 @@ export const occurrenceStatusSchema = z.enum(occurrenceStatusValues);
 const occurrenceTimingShape = {
   scheduledStartAt: z.coerce.date(),
   scheduledEndAt: z.coerce.date(),
-  actualStartAt: z.coerce.date().optional(),
-  actualEndAt: z.coerce.date().optional(),
+  actualStartAt: optionalDateSchema,
+  actualEndAt: optionalDateSchema,
 };
 
 const normalizeEmployeeIds = (value: unknown) => {
@@ -89,8 +90,8 @@ export const UpdateJobOccurrenceSchema = z
   .object({
     employeeIds: optionalEmployeeIdsSchema,
     scheduleRuleId: nullableCuidUpdateSchema,
-    scheduledStartAt: z.coerce.date().optional(),
-    scheduledEndAt: z.coerce.date().optional(),
+    scheduledStartAt: optionalDateSchema,
+    scheduledEndAt: optionalDateSchema,
     actualStartAt: nullableDateUpdateSchema,
     actualEndAt: nullableDateUpdateSchema,
     status: occurrenceStatusSchema.optional(),
@@ -126,8 +127,8 @@ export const UpdateJobOccurrenceSchema = z
 export const DetachJobOccurrenceSchema = z
   .object({
     employeeIds: optionalEmployeeIdsSchema,
-    scheduledStartAt: z.coerce.date().optional(),
-    scheduledEndAt: z.coerce.date().optional(),
+    scheduledStartAt: optionalDateSchema,
+    scheduledEndAt: optionalDateSchema,
     actualStartAt: nullableDateUpdateSchema,
     actualEndAt: nullableDateUpdateSchema,
     status: occurrenceStatusSchema.optional(),

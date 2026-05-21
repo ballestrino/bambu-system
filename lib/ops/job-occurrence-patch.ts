@@ -14,6 +14,18 @@ type JobOccurrenceRulePatch = JobOccurrencePatch & {
   scheduleRuleId?: string | null;
 };
 
+const getPatchedNullableValue = <T extends object, K extends keyof T, V>(
+  patch: T,
+  key: K,
+  currentValue: V | null
+): T[K] | V | null => {
+  if (!hasOwnKey(patch, key) || patch[key] === undefined) {
+    return currentValue ?? null;
+  }
+
+  return patch[key] ?? null;
+};
+
 export const buildResolvedJobOccurrence = (
   existingOccurrence: JobOccurrence,
   patch: JobOccurrenceRulePatch,
@@ -42,15 +54,15 @@ export const buildResolvedJobOccurrence = (
       "scheduledEndAt",
       existingOccurrence.scheduledEndAt
     ),
-    actualStartAt: getPatchedValue(
+    actualStartAt: getPatchedNullableValue(
       patch,
       "actualStartAt",
-      existingOccurrence.actualStartAt ?? null
+      existingOccurrence.actualStartAt
     ),
-    actualEndAt: getPatchedValue(
+    actualEndAt: getPatchedNullableValue(
       patch,
       "actualEndAt",
-      existingOccurrence.actualEndAt ?? null
+      existingOccurrence.actualEndAt
     ),
     status: getPatchedValue(patch, "status", existingOccurrence.status),
     isDetached:

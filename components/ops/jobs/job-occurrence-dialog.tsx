@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, type ComponentProps } from "react";
+import { useRef, useState, type ComponentProps } from "react";
 import { ClockArrowUp, LoaderCircle } from "lucide-react";
 
 import { useEmployees } from "@/components/ops/hooks/useEmployees";
@@ -8,6 +8,7 @@ import { useJobs } from "@/components/ops/hooks/useJobs";
 import { useJobOccurrenceMutations } from "@/components/ops/hooks/useJobOccurrenceMutations";
 import { useJobScheduleRules } from "@/components/ops/hooks/useJobScheduleRules";
 import {
+  clearOccurrenceActualTimes,
   getInitialOccurrenceState,
   getResolvedActualTimes,
   syncOccurrenceActualTimes,
@@ -53,6 +54,8 @@ export const JobOccurrenceDialog = ({
   const [formState, setFormState] = useState(
     getInitialOccurrenceState(occurrence, completeOnSave)
   );
+  const actualStartAtInputRef = useRef<HTMLInputElement>(null);
+  const actualEndAtInputRef = useRef<HTMLInputElement>(null);
   const { employees } = useEmployees({ isActive: true });
   const { jobs } = useJobs({ includeArchived: false });
   const resolvedJobId = jobId ?? occurrence?.jobId ?? formState.jobId;
@@ -95,9 +98,20 @@ export const JobOccurrenceDialog = ({
     : "";
 
   const handleSubmit = async () => {
-    const { actualEndAt, actualStartAt } = getResolvedActualTimes(formState);
-    const scheduledStartAt = parseDateTimeLocalValue(formState.scheduledStartAt);
-    const scheduledEndAt = parseDateTimeLocalValue(formState.scheduledEndAt);
+    const submittedFormState = {
+      ...formState,
+      actualStartAt:
+        actualStartAtInputRef.current?.value ?? formState.actualStartAt,
+      actualEndAt: actualEndAtInputRef.current?.value ?? formState.actualEndAt,
+    };
+    const { actualEndAt, actualStartAt } =
+      getResolvedActualTimes(submittedFormState);
+    const scheduledStartAt = parseDateTimeLocalValue(
+      submittedFormState.scheduledStartAt
+    );
+    const scheduledEndAt = parseDateTimeLocalValue(
+      submittedFormState.scheduledEndAt
+    );
     const resolvedScheduleRuleId = selectedScheduleRuleId || null;
 
     if (!scheduledStartAt || !scheduledEndAt) {
@@ -141,6 +155,31 @@ export const JobOccurrenceDialog = ({
     }
 
     setOpen(false);
+  };
+
+  const handleClearActualTimes = () => {
+    const nextFormState = clearOccurrenceActualTimes(formState);
+    if (actualStartAtInputRef.current) actualStartAtInputRef.current.value = "";
+    if (actualEndAtInputRef.current) actualEndAtInputRef.current.value = "";
+    setFormState(nextFormState);
+  };
+
+  const handleSyncActualTimes = () => {
+    const nextFormState = syncOccurrenceActualTimes(formState);
+    if (actualStartAtInputRef.current) {
+      actualStartAtInputRef.current.value = nextFormState.actualStartAt;
+    }
+    if (actualEndAtInputRef.current) {
+      actualEndAtInputRef.current.value = nextFormState.actualEndAt;
+    }
+    setFormState(nextFormState);
+  };
+
+  const handleActualTimeInput = (
+    field: "actualEndAt" | "actualStartAt",
+    value: string
+  ) => {
+    setFormState((current) => ({ ...current, [field]: value }));
   };
 
   const isPending = isCreating || isUpdating;
@@ -206,23 +245,61 @@ export const JobOccurrenceDialog = ({
           </OpsFormGrid>
           <div className="flex items-center justify-between gap-3 rounded-md border border-[#53985E]/15 bg-[#F7FBF7] px-3 py-2 text-sm text-[#244C2D] dark:bg-[#132016] dark:text-[#EAF5EC]">
             <span>Horario real</span>
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              className="h-9"
-              disabled={!formState.scheduledStartAt || !formState.scheduledEndAt}
-              onClick={() =>
-                setFormState((current) => syncOccurrenceActualTimes(current))
-              }
-            >
-              <ClockArrowUp className="h-4 w-4" />
-              Sincronizar
-            </Button>
+            <div className="flex items-center gap-2">
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                className="h-9"
+                onClick={handleClearActualTimes}
+              >
+                Limpiar
+              </Button>
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                className="h-9"
+                disabled={!formState.scheduledStartAt || !formState.scheduledEndAt}
+                onClick={handleSyncActualTimes}
+              >
+                <ClockArrowUp className="h-4 w-4" />
+                Sincronizar
+              </Button>
+            </div>
           </div>
           <OpsFormGrid>
-            <OpsFormField label="Inicio real"><Input className={opsFormControlClass} type="datetime-local" value={formState.actualStartAt} onChange={(event) => setFormState((current) => ({ ...current, actualStartAt: event.target.value }))} /></OpsFormField>
-            <OpsFormField label="Fin real"><Input className={opsFormControlClass} type="datetime-local" value={formState.actualEndAt} onChange={(event) => setFormState((current) => ({ ...current, actualEndAt: event.target.value }))} /></OpsFormField>
+            <OpsFormField label="Inicio real">
+              <Input
+                ref={actualStartAtInputRef}
+                className={opsFormControlClass}
+                type="datetime-local"
+                value={formState.actualStartAt}
+                onInput={(event) =>
+                  handleActualTimeInput(
+                    "actualStartAt",
+                    event.currentTarget.value
+                  )
+                }
+                onChange={(event) =>
+                  handleActualTimeInput("actualStartAt", event.target.value)
+                }
+              />
+            </OpsFormField>
+            <OpsFormField label="Fin real">
+              <Input
+                ref={actualEndAtInputRef}
+                className={opsFormControlClass}
+                type="datetime-local"
+                value={formState.actualEndAt}
+                onInput={(event) =>
+                  handleActualTimeInput("actualEndAt", event.currentTarget.value)
+                }
+                onChange={(event) =>
+                  handleActualTimeInput("actualEndAt", event.target.value)
+                }
+              />
+            </OpsFormField>
           </OpsFormGrid>
           <OpsFormField label="Estado">
             <Select

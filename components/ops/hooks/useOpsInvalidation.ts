@@ -18,10 +18,10 @@ export const invalidateJobScopes = async (
 ) => {
   await Promise.all([
     invalidateRoot(queryClient, opsQueryKeys.jobs),
-    invalidateRoot(queryClient, opsQueryKeys.occurrences()),
-    invalidateRoot(queryClient, opsQueryKeys.scheduleRules()),
+    invalidateRoot(queryClient, opsQueryKeys.occurrenceRoot),
+    invalidateRoot(queryClient, opsQueryKeys.scheduleRuleRoot),
     invalidateRoot(queryClient, opsQueryKeys.clientPayments),
-    invalidateRoot(queryClient, ["ops", "calendar"]),
+    invalidateRoot(queryClient, opsQueryKeys.calendarRoot),
     jobId
       ? queryClient.invalidateQueries({ queryKey: opsQueryKeys.job(jobId) })
       : Promise.resolve(),
@@ -35,9 +35,9 @@ export const invalidateEmployeeScopes = async (
   await Promise.all([
     invalidateRoot(queryClient, opsQueryKeys.employees),
     invalidateRoot(queryClient, opsQueryKeys.assignments),
-    invalidateRoot(queryClient, opsQueryKeys.occurrences()),
+    invalidateRoot(queryClient, opsQueryKeys.occurrenceRoot),
     invalidateRoot(queryClient, opsQueryKeys.employeePayments),
-    invalidateRoot(queryClient, ["ops", "calendar"]),
+    invalidateRoot(queryClient, opsQueryKeys.calendarRoot),
     employeeId
       ? queryClient.invalidateQueries({
           queryKey: opsQueryKeys.employee(employeeId),

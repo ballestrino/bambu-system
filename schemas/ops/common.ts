@@ -80,7 +80,7 @@ export const nullableDateUpdateSchema = z.preprocess((value) => {
   }
 
   return value;
-}, z.union([z.coerce.date(), z.null()]).optional());
+}, z.union([z.null(), z.coerce.date()]).optional());
 
 export const optionalTrimmedString = (maxLength = 5000) =>
   z.preprocess((value) => {

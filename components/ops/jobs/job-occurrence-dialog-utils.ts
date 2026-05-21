@@ -8,20 +8,32 @@ import { getOccurrenceEmployeeIds } from "@/components/ops/jobs/occurrence-emplo
 export const getInitialOccurrenceState = (
   occurrence?: OpsOccurrence,
   completeOnSave = false
-) => ({
-  jobId: occurrence?.jobId ?? "",
-  employeeIds: getOccurrenceEmployeeIds(occurrence),
-  scheduleRuleId: occurrence?.scheduleRuleId ?? "",
-  scheduledStartAt: toDateTimeLocalValue(occurrence?.scheduledStartAt),
-  scheduledEndAt: toDateTimeLocalValue(occurrence?.scheduledEndAt),
-  actualStartAt: toDateTimeLocalValue(occurrence?.actualStartAt),
-  actualEndAt: toDateTimeLocalValue(occurrence?.actualEndAt),
-  status:
-    completeOnSave && occurrence?.status === "SCHEDULED"
-      ? "DONE"
-      : occurrence?.status ?? "SCHEDULED",
-  notes: occurrence?.notes ?? "",
-});
+) => {
+  const scheduledStartAt = toDateTimeLocalValue(occurrence?.scheduledStartAt);
+  const scheduledEndAt = toDateTimeLocalValue(occurrence?.scheduledEndAt);
+  const actualStartAt = toDateTimeLocalValue(occurrence?.actualStartAt);
+  const actualEndAt = toDateTimeLocalValue(occurrence?.actualEndAt);
+  const shouldPrefillActualTimes =
+    completeOnSave &&
+    occurrence?.status === "SCHEDULED" &&
+    !actualStartAt &&
+    !actualEndAt;
+
+  return {
+    jobId: occurrence?.jobId ?? "",
+    employeeIds: getOccurrenceEmployeeIds(occurrence),
+    scheduleRuleId: occurrence?.scheduleRuleId ?? "",
+    scheduledStartAt,
+    scheduledEndAt,
+    actualStartAt: shouldPrefillActualTimes ? scheduledStartAt : actualStartAt,
+    actualEndAt: shouldPrefillActualTimes ? scheduledEndAt : actualEndAt,
+    status:
+      completeOnSave && occurrence?.status === "SCHEDULED"
+        ? "DONE"
+        : occurrence?.status ?? "SCHEDULED",
+    notes: occurrence?.notes ?? "",
+  };
+};
 
 export type OccurrenceFormState = ReturnType<typeof getInitialOccurrenceState>;
 
@@ -31,6 +43,14 @@ export const syncOccurrenceActualTimes = (
   ...formState,
   actualEndAt: formState.scheduledEndAt,
   actualStartAt: formState.scheduledStartAt,
+});
+
+export const clearOccurrenceActualTimes = (
+  formState: OccurrenceFormState
+) => ({
+  ...formState,
+  actualEndAt: "",
+  actualStartAt: "",
 });
 
 export const updateOccurrenceScheduledTime = ({
@@ -74,16 +94,8 @@ export const updateOccurrenceScheduledTime = ({
 export const getResolvedActualTimes = (
   formState: OccurrenceFormState
 ) => {
-  const useScheduledFallback = formState.status === "DONE";
-
   return {
-    actualEndAt: parseDateTimeLocalValue(
-      formState.actualEndAt ||
-        (useScheduledFallback ? formState.scheduledEndAt : "")
-    ),
-    actualStartAt: parseDateTimeLocalValue(
-      formState.actualStartAt ||
-        (useScheduledFallback ? formState.scheduledStartAt : "")
-    ),
+    actualEndAt: parseDateTimeLocalValue(formState.actualEndAt),
+    actualStartAt: parseDateTimeLocalValue(formState.actualStartAt),
   };
 };
