@@ -28,7 +28,7 @@ export const PayrollPage = () => {
   };
   const selectedEmployeeId = employeeId === "ALL" ? undefined : employeeId;
 
-  const { employees } = useEmployees({ includeArchived: false });
+  const { employees } = useEmployees({ includeArchived: true });
   const visibleEmployees = selectedEmployeeId
     ? employees.filter((employee) => employee.id === selectedEmployeeId)
     : employees;
