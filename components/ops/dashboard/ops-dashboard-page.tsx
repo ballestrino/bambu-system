@@ -2,12 +2,15 @@
 
 import { useMemo } from "react";
 
+import { getDashboardFinancials } from "@/components/ops/dashboard/dashboard-financials";
 import { DashboardMetricGrid } from "@/components/ops/dashboard/dashboard-metric-grid";
 import { DashboardQuickActions } from "@/components/ops/dashboard/dashboard-quick-actions";
 import { DashboardVisitsPanel } from "@/components/ops/dashboard/dashboard-visits-panel";
 import { useEmployees } from "@/components/ops/hooks/useEmployees";
+import { useJobClientPayments } from "@/components/ops/hooks/useJobClientPayments";
 import { useJobOccurrences } from "@/components/ops/hooks/useJobOccurrences";
 import { useJobScheduleRules } from "@/components/ops/hooks/useJobScheduleRules";
+import { useJobs } from "@/components/ops/hooks/useJobs";
 import {
   getPendingRegistrationVisits,
   getPendingVisitsRange,
@@ -34,11 +37,22 @@ export const OpsDashboardPage = () => {
     includeArchived: false,
     isActive: true,
   });
+  const { jobs, isLoading: areJobsLoading } = useJobs({
+    includeArchived: false,
+  });
+  const { payments, isLoading: arePaymentsLoading } = useJobClientPayments(
+    { statuses: ["RECORDED"] },
+    "dashboard-recorded-payments"
+  );
   const { scheduleRules } = useJobScheduleRules({ isActive: true });
 
   const pendingVisitCount = useMemo(
     () => getPendingRegistrationVisits(occurrences).length,
     [occurrences]
+  );
+  const financials = useMemo(
+    () => getDashboardFinancials(jobs, payments),
+    [jobs, payments]
   );
 
   return (
@@ -53,7 +67,9 @@ export const OpsDashboardPage = () => {
       <DashboardMetricGrid
         activeEmployeeCount={employees.length}
         areEmployeesLoading={areEmployeesLoading}
+        areFinancialsLoading={areJobsLoading || arePaymentsLoading}
         areVisitsLoading={areVisitsLoading}
+        financials={financials}
         pendingVisitCount={pendingVisitCount}
       />
 

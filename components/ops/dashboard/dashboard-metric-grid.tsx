@@ -5,6 +5,7 @@ import {
   UsersRound,
 } from "lucide-react";
 
+import { formatDashboardMoney } from "@/components/ops/dashboard/dashboard-financials";
 import { OpsMetricsGrid } from "@/components/ops/shared";
 
 const loadingValue = "...";
@@ -12,12 +13,20 @@ const loadingValue = "...";
 export const DashboardMetricGrid = ({
   activeEmployeeCount,
   areEmployeesLoading,
+  areFinancialsLoading,
   areVisitsLoading,
+  financials,
   pendingVisitCount,
 }: {
   activeEmployeeCount: number;
   areEmployeesLoading: boolean;
+  areFinancialsLoading: boolean;
   areVisitsLoading: boolean;
+  financials: {
+    projectedProfit: number;
+    projectedRevenue: number;
+    recordedRevenue: number;
+  };
   pendingVisitCount: number;
 }) => (
   <OpsMetricsGrid
@@ -37,18 +46,31 @@ export const DashboardMetricGrid = ({
         value: areEmployeesLoading ? loadingValue : activeEmployeeCount,
       },
       {
-        helper: "Pendiente de integrar pagos y cobros",
+        helper: "Proyectada desde presupuestos asociados",
         icon: TrendingUp,
         label: "Ganancias",
         tone: "money",
-        value: <span className="text-base">Próximamente</span>,
+        value: areFinancialsLoading
+          ? loadingValue
+          : formatDashboardMoney(financials.projectedProfit),
       },
       {
-        helper: "Pendiente de integrar facturación real",
+        helper: areFinancialsLoading ? "Calculando facturación" : (
+          <span className="flex flex-col gap-1">
+            <span>
+              Proyectado: {formatDashboardMoney(financials.projectedRevenue)}
+            </span>
+            <span>
+              Recaudado: {formatDashboardMoney(financials.recordedRevenue)}
+            </span>
+          </span>
+        ),
         icon: ReceiptText,
         label: "Facturación total",
         tone: "neutral",
-        value: <span className="text-base">Próximamente</span>,
+        value: areFinancialsLoading
+          ? loadingValue
+          : formatDashboardMoney(financials.projectedRevenue),
       },
     ]}
   />
