@@ -83,8 +83,12 @@ export const buildPayrollRows = (
   };
 
   employees.forEach(ensureRow);
+  const visibleEmployeeIds = new Set(employees.map((employee) => employee.id));
+
   occurrences.forEach((occurrence) => {
-    const assignedEmployees = getCompletedVisitEmployees(occurrence);
+    const assignedEmployees = getCompletedVisitEmployees(occurrence).filter(
+      (employee) => visibleEmployeeIds.has(employee.id)
+    );
     if (!assignedEmployees.length) return;
 
     const workedHours = getPayrollHours(occurrence);
