@@ -1,7 +1,12 @@
 import type { OpsOccurrence } from "@/components/ops/types";
 
+const isOccurrenceEmployee = (
+  employee: OpsOccurrence["employees"][number]["employee"]
+): employee is NonNullable<OpsOccurrence["employees"][number]["employee"]> =>
+  employee !== null;
+
 export const getOccurrenceEmployees = (occurrence: OpsOccurrence) => {
-  return occurrence.employees.map(({ employee }) => employee);
+  return occurrence.employees.map(({ employee }) => employee).filter(isOccurrenceEmployee);
 };
 
 export const getOccurrenceEmployeeIds = (occurrence?: OpsOccurrence) =>
