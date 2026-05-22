@@ -2,7 +2,7 @@
 
 import { useQuery } from "@tanstack/react-query";
 
-import { getEmployeesAction } from "@/components/ops/actions/get-employees.action";
+import { getEmployeesAction } from "@/components/ops/actions/employees/get-employees.action";
 import { opsQueryKeys } from "@/components/ops/query-keys";
 import type { EmployeeFilters } from "@/schemas/ops";
 
@@ -21,3 +21,4 @@ export const useEmployees = (filters?: EmployeeFilters) => {
     refetch: employeesQuery.refetch,
   };
 };
+

@@ -3,9 +3,9 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 
-import { archiveJobAction } from "@/components/ops/actions/archive-job.action";
-import { createJobAction } from "@/components/ops/actions/create-job.action";
-import { updateJobAction } from "@/components/ops/actions/update-job.action";
+import { archiveJobAction } from "@/components/ops/actions/jobs/archive-job.action";
+import { createJobAction } from "@/components/ops/actions/jobs/create-job.action";
+import { updateJobAction } from "@/components/ops/actions/jobs/update-job.action";
 import { invalidateJobScopes } from "@/components/ops/hooks/useOpsInvalidation";
 import type { CreateJobInput, UpdateJobInput } from "@/schemas/ops";
 
@@ -71,3 +71,4 @@ export const useJobMutations = () => {
     isArchiving: archiveJobMutation.isPending,
   };
 };
+

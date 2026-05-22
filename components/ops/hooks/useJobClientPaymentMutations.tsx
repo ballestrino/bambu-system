@@ -3,9 +3,9 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 
-import { createJobClientPaymentAction } from "@/components/ops/actions/create-job-client-payment.action";
-import { updateJobClientPaymentAction } from "@/components/ops/actions/update-job-client-payment.action";
-import { voidJobClientPaymentAction } from "@/components/ops/actions/void-job-client-payment.action";
+import { createJobClientPaymentAction } from "@/components/ops/actions/payments/create-job-client-payment.action";
+import { updateJobClientPaymentAction } from "@/components/ops/actions/payments/update-job-client-payment.action";
+import { voidJobClientPaymentAction } from "@/components/ops/actions/payments/void-job-client-payment.action";
 import { invalidateJobScopes } from "@/components/ops/hooks/useOpsInvalidation";
 import { opsQueryKeys } from "@/components/ops/query-keys";
 import type {
@@ -83,3 +83,4 @@ export const useJobClientPaymentMutations = (jobId?: string) => {
     isVoiding: voidPaymentMutation.isPending,
   };
 };
+

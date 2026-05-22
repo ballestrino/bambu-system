@@ -3,7 +3,7 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 
-import { updateOpsCostSettingsAction } from "@/components/ops/actions/update-ops-cost-settings.action";
+import { updateOpsCostSettingsAction } from "@/components/ops/actions/costs/update-ops-cost-settings.action";
 import { opsQueryKeys } from "@/components/ops/query-keys";
 import type { OpsCostSettingsInput } from "@/schemas/ops";
 
@@ -29,3 +29,4 @@ export const useOpsCostSettingsMutation = () => {
     isUpdating: updateSettingsMutation.isPending,
   };
 };
+

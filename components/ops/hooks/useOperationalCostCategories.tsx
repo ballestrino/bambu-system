@@ -2,7 +2,7 @@
 
 import { useQuery } from "@tanstack/react-query";
 
-import { getOperationalCostCategoriesAction } from "@/components/ops/actions/get-operational-cost-categories.action";
+import { getOperationalCostCategoriesAction } from "@/components/ops/actions/costs/get-operational-cost-categories.action";
 import { opsQueryKeys } from "@/components/ops/query-keys";
 import type { OperationalCostCategoryFilters } from "@/schemas/ops";
 
@@ -23,3 +23,4 @@ export const useOperationalCostCategories = (
     refetch: categoriesQuery.refetch,
   };
 };
+

@@ -2,7 +2,7 @@
 
 import { useQuery } from "@tanstack/react-query";
 
-import { getEmployeePaymentsAction } from "@/components/ops/actions/get-employee-payments.action";
+import { getEmployeePaymentsAction } from "@/components/ops/actions/employees/get-employee-payments.action";
 import { opsQueryKeys } from "@/components/ops/query-keys";
 import type { EmployeePaymentFilters } from "@/schemas/ops";
 
@@ -27,3 +27,4 @@ export const useEmployeePayments = (
     refetch: paymentsQuery.refetch,
   };
 };
+

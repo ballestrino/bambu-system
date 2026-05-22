@@ -2,7 +2,7 @@
 
 import { useQuery } from "@tanstack/react-query";
 
-import { getJobEmployeeAssignmentsAction } from "@/components/ops/actions/get-job-employee-assignments.action";
+import { getJobEmployeeAssignmentsAction } from "@/components/ops/actions/jobs/get-job-employee-assignments.action";
 import { opsQueryKeys } from "@/components/ops/query-keys";
 import type { JobEmployeeAssignmentFilters } from "@/schemas/ops";
 
@@ -29,3 +29,4 @@ export const useJobEmployeeAssignments = (
     refetch: assignmentsQuery.refetch,
   };
 };
+

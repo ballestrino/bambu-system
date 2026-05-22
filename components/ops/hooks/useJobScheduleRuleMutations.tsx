@@ -3,9 +3,9 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 
-import { archiveJobScheduleRuleAction } from "@/components/ops/actions/archive-job-schedule-rule.action";
-import { createJobScheduleRuleAction } from "@/components/ops/actions/create-job-schedule-rule.action";
-import { updateJobScheduleRuleAction } from "@/components/ops/actions/update-job-schedule-rule.action";
+import { archiveJobScheduleRuleAction } from "@/components/ops/actions/jobs/archive-job-schedule-rule.action";
+import { createJobScheduleRuleAction } from "@/components/ops/actions/jobs/create-job-schedule-rule.action";
+import { updateJobScheduleRuleAction } from "@/components/ops/actions/jobs/update-job-schedule-rule.action";
 import { invalidateJobScopes } from "@/components/ops/hooks/useOpsInvalidation";
 import type {
   CreateJobScheduleRuleInput,
@@ -81,3 +81,4 @@ export const useJobScheduleRuleMutations = (jobId: string) => {
     isArchiving: archiveMutation.isPending,
   };
 };
+

@@ -3,9 +3,9 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 
-import { archiveJobEmployeeAssignmentAction } from "@/components/ops/actions/archive-job-employee-assignment.action";
-import { createJobEmployeeAssignmentAction } from "@/components/ops/actions/create-job-employee-assignment.action";
-import { updateJobEmployeeAssignmentAction } from "@/components/ops/actions/update-job-employee-assignment.action";
+import { archiveJobEmployeeAssignmentAction } from "@/components/ops/actions/jobs/archive-job-employee-assignment.action";
+import { createJobEmployeeAssignmentAction } from "@/components/ops/actions/jobs/create-job-employee-assignment.action";
+import { updateJobEmployeeAssignmentAction } from "@/components/ops/actions/jobs/update-job-employee-assignment.action";
 import { invalidateOperationalScopes } from "@/components/ops/hooks/useOpsInvalidation";
 import { opsQueryKeys } from "@/components/ops/query-keys";
 import type { CreateJobEmployeeAssignmentInput, UpdateJobEmployeeAssignmentInput } from "@/schemas/ops";
@@ -74,3 +74,4 @@ export const useJobEmployeeAssignmentMutations = (jobId?: string, employeeId?: s
     isArchiving: archiveAssignmentMutation.isPending,
   };
 };
+

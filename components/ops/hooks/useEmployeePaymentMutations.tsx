@@ -3,9 +3,9 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 
-import { createEmployeePaymentAction } from "@/components/ops/actions/create-employee-payment.action";
-import { updateEmployeePaymentAction } from "@/components/ops/actions/update-employee-payment.action";
-import { voidEmployeePaymentAction } from "@/components/ops/actions/void-employee-payment.action";
+import { createEmployeePaymentAction } from "@/components/ops/actions/employees/create-employee-payment.action";
+import { updateEmployeePaymentAction } from "@/components/ops/actions/employees/update-employee-payment.action";
+import { voidEmployeePaymentAction } from "@/components/ops/actions/employees/void-employee-payment.action";
 import { invalidateEmployeeScopes } from "@/components/ops/hooks/useOpsInvalidation";
 import { opsQueryKeys } from "@/components/ops/query-keys";
 import type {
@@ -83,3 +83,4 @@ export const useEmployeePaymentMutations = (employeeId?: string) => {
     isVoiding: voidPaymentMutation.isPending,
   };
 };
+

@@ -2,7 +2,7 @@
 
 import { useQuery } from "@tanstack/react-query";
 
-import { getBudgetSourcesAction } from "@/components/ops/actions/get-budget-sources.action";
+import { getBudgetSourcesAction } from "@/components/ops/actions/budgets/get-budget-sources.action";
 import { opsQueryKeys } from "@/components/ops/query-keys";
 
 export const useBudgetSources = () => {
@@ -19,3 +19,4 @@ export const useBudgetSources = () => {
     error: budgetSourcesQuery.error,
   };
 };
+

@@ -2,7 +2,7 @@
 
 import { useQuery } from "@tanstack/react-query";
 
-import { getOpsCostSettingsAction } from "@/components/ops/actions/get-ops-cost-settings.action";
+import { getOpsCostSettingsAction } from "@/components/ops/actions/costs/get-ops-cost-settings.action";
 import { opsQueryKeys } from "@/components/ops/query-keys";
 
 export const useOpsCostSettings = () => {
@@ -20,3 +20,4 @@ export const useOpsCostSettings = () => {
     refetch: settingsQuery.refetch,
   };
 };
+

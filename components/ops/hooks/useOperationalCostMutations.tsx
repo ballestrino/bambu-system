@@ -3,9 +3,9 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 
-import { createOperationalCostAction } from "@/components/ops/actions/create-operational-cost.action";
-import { updateOperationalCostAction } from "@/components/ops/actions/update-operational-cost.action";
-import { voidOperationalCostAction } from "@/components/ops/actions/void-operational-cost.action";
+import { createOperationalCostAction } from "@/components/ops/actions/costs/create-operational-cost.action";
+import { updateOperationalCostAction } from "@/components/ops/actions/costs/update-operational-cost.action";
+import { voidOperationalCostAction } from "@/components/ops/actions/costs/void-operational-cost.action";
 import { opsQueryKeys } from "@/components/ops/query-keys";
 import type {
   CreateOperationalCostInput,
@@ -67,3 +67,4 @@ export const useOperationalCostMutations = () => {
     isVoiding: voidCostMutation.isPending,
   };
 };
+

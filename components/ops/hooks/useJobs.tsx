@@ -2,7 +2,7 @@
 
 import { useQuery } from "@tanstack/react-query";
 
-import { getJobsAction } from "@/components/ops/actions/get-jobs.action";
+import { getJobsAction } from "@/components/ops/actions/jobs/get-jobs.action";
 import { opsQueryKeys } from "@/components/ops/query-keys";
 import type { JobFilters } from "@/schemas/ops";
 
@@ -21,3 +21,4 @@ export const useJobs = (filters?: JobFilters) => {
     refetch: jobsQuery.refetch,
   };
 };
+

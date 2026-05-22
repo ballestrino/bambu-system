@@ -3,10 +3,10 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 
-import { archiveJobOccurrenceAction } from "@/components/ops/actions/archive-job-occurrence.action";
-import { createJobOccurrenceAction } from "@/components/ops/actions/create-job-occurrence.action";
-import { detachJobOccurrenceAction } from "@/components/ops/actions/detach-job-occurrence.action";
-import { updateJobOccurrenceAction } from "@/components/ops/actions/update-job-occurrence.action";
+import { archiveJobOccurrenceAction } from "@/components/ops/actions/jobs/archive-job-occurrence.action";
+import { createJobOccurrenceAction } from "@/components/ops/actions/jobs/create-job-occurrence.action";
+import { detachJobOccurrenceAction } from "@/components/ops/actions/jobs/detach-job-occurrence.action";
+import { updateJobOccurrenceAction } from "@/components/ops/actions/jobs/update-job-occurrence.action";
 import { invalidateOperationalScopes } from "@/components/ops/hooks/useOpsInvalidation";
 import type {
   CreateJobOccurrenceInput,
@@ -105,3 +105,4 @@ export const useJobOccurrenceMutations = (jobId?: string) => {
     isArchiving: archiveMutation.isPending,
   };
 };
+

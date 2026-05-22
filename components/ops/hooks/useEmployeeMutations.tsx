@@ -3,9 +3,9 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 
-import { archiveEmployeeAction } from "@/components/ops/actions/archive-employee.action";
-import { createEmployeeAction } from "@/components/ops/actions/create-employee.action";
-import { updateEmployeeAction } from "@/components/ops/actions/update-employee.action";
+import { archiveEmployeeAction } from "@/components/ops/actions/employees/archive-employee.action";
+import { createEmployeeAction } from "@/components/ops/actions/employees/create-employee.action";
+import { updateEmployeeAction } from "@/components/ops/actions/employees/update-employee.action";
 import { invalidateEmployeeScopes } from "@/components/ops/hooks/useOpsInvalidation";
 import type { CreateEmployeeInput, UpdateEmployeeInput } from "@/schemas/ops";
 
@@ -62,3 +62,4 @@ export const useEmployeeMutations = () => {
     isArchiving: archiveEmployeeMutation.isPending,
   };
 };
+

@@ -2,7 +2,7 @@
 
 import { useQuery } from "@tanstack/react-query";
 
-import { getEmployeeAction } from "@/components/ops/actions/get-employee.action";
+import { getEmployeeAction } from "@/components/ops/actions/employees/get-employee.action";
 import { opsQueryKeys } from "@/components/ops/query-keys";
 
 export const useEmployee = (employeeId: string) => {
@@ -19,3 +19,4 @@ export const useEmployee = (employeeId: string) => {
     refetch: employeeQuery.refetch,
   };
 };
+

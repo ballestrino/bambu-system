@@ -2,7 +2,7 @@
 
 import { useQuery } from "@tanstack/react-query";
 
-import { getJobScheduleRulesAction } from "@/components/ops/actions/get-job-schedule-rules.action";
+import { getJobScheduleRulesAction } from "@/components/ops/actions/jobs/get-job-schedule-rules.action";
 import { opsQueryKeys } from "@/components/ops/query-keys";
 import type { JobScheduleRuleFilters } from "@/schemas/ops";
 
@@ -26,3 +26,4 @@ export const useJobScheduleRules = (
     refetch: scheduleRulesQuery.refetch,
   };
 };
+

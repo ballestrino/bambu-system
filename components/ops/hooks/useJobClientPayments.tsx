@@ -2,7 +2,7 @@
 
 import { useQuery } from "@tanstack/react-query";
 
-import { getJobClientPaymentsAction } from "@/components/ops/actions/get-job-client-payments.action";
+import { getJobClientPaymentsAction } from "@/components/ops/actions/payments/get-job-client-payments.action";
 import { opsQueryKeys } from "@/components/ops/query-keys";
 import type { JobClientPaymentFilters } from "@/schemas/ops";
 
@@ -27,3 +27,4 @@ export const useJobClientPayments = (
     refetch: paymentsQuery.refetch,
   };
 };
+

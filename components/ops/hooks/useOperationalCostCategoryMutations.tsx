@@ -3,9 +3,9 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 
-import { archiveOperationalCostCategoryAction } from "@/components/ops/actions/archive-operational-cost-category.action";
-import { createOperationalCostCategoryAction } from "@/components/ops/actions/create-operational-cost-category.action";
-import { updateOperationalCostCategoryAction } from "@/components/ops/actions/update-operational-cost-category.action";
+import { archiveOperationalCostCategoryAction } from "@/components/ops/actions/costs/archive-operational-cost-category.action";
+import { createOperationalCostCategoryAction } from "@/components/ops/actions/costs/create-operational-cost-category.action";
+import { updateOperationalCostCategoryAction } from "@/components/ops/actions/costs/update-operational-cost-category.action";
 import { opsQueryKeys } from "@/components/ops/query-keys";
 import type {
   CreateOperationalCostCategoryInput,
@@ -68,3 +68,4 @@ export const useOperationalCostCategoryMutations = () => {
     isUpdating: updateCategoryMutation.isPending,
   };
 };
+

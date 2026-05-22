@@ -2,7 +2,7 @@
 
 import { useQuery } from "@tanstack/react-query";
 
-import { getJobOccurrencesAction } from "@/components/ops/actions/get-job-occurrences.action";
+import { getJobOccurrencesAction } from "@/components/ops/actions/jobs/get-job-occurrences.action";
 import { opsQueryKeys } from "@/components/ops/query-keys";
 import type { JobOccurrenceFilters } from "@/schemas/ops";
 
@@ -27,3 +27,4 @@ export const useJobOccurrences = (
     refetch: occurrencesQuery.refetch,
   };
 };
+

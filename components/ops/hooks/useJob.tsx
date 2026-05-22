@@ -2,7 +2,7 @@
 
 import { useQuery } from "@tanstack/react-query";
 
-import { getJobAction } from "@/components/ops/actions/get-job.action";
+import { getJobAction } from "@/components/ops/actions/jobs/get-job.action";
 import { opsQueryKeys } from "@/components/ops/query-keys";
 
 export const useJob = (jobId: string) => {
@@ -21,3 +21,4 @@ export const useJob = (jobId: string) => {
     refetch: jobQuery.refetch,
   };
 };
+
