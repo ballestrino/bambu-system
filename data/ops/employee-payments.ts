@@ -3,7 +3,7 @@ import "server-only";
 import { db } from "@/lib/db";
 import { requireAdminSession } from "@/lib/require-admin-session";
 import { EmployeePaymentFiltersSchema } from "@/schemas/ops";
-import { opsAuditUserSelect } from "@/data/ops/shared";
+import { buildDateTimeRange, opsAuditUserSelect } from "@/data/ops/shared";
 
 export const getEmployeePayments = async (filters?: unknown) => {
   try {
@@ -14,19 +14,26 @@ export const getEmployeePayments = async (filters?: unknown) => {
       return { error: "Filtros de pagos invalidos" };
     }
 
-    const { employeeId, statuses, startDate, endDate } = parsedFilters.data;
+    const { basis, employeeId, statuses, startDate, endDate } =
+      parsedFilters.data;
+    const dateFilter =
+      (basis ?? "PERIOD") === "PAYMENT_DATE"
+        ? { paymentDate: buildDateTimeRange(startDate, endDate) }
+        : {
+            AND:
+              startDate || endDate
+                ? [
+                    endDate ? { periodStart: { lte: endDate } } : {},
+                    startDate ? { periodEnd: { gte: startDate } } : {},
+                  ]
+                : undefined,
+          };
 
     const employeePayments = await db.employeePayment.findMany({
       where: {
+        ...dateFilter,
         employeeId,
         status: statuses?.length ? { in: statuses } : undefined,
-        AND:
-          startDate || endDate
-            ? [
-                endDate ? { periodStart: { lte: endDate } } : {},
-                startDate ? { periodEnd: { gte: startDate } } : {},
-              ]
-            : undefined,
       },
       include: {
         employee: true,

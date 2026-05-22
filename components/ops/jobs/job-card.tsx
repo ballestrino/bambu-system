@@ -5,11 +5,12 @@ import { BriefcaseBusiness, CalendarClock, DollarSign, MapPin } from "lucide-rea
 
 import { dashboardSecondaryActionClass } from "@/components/dashboard/dashboard-styles";
 import DeleteDialog from "@/components/ui/delete-dialog";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { JobStatusBadge } from "@/components/ops/jobs/status-badges";
 import { JobFormDialog } from "@/components/ops/jobs/job-form-dialog";
 import { OpsRecordItem } from "@/components/ops/shared";
-import { formatDateTime } from "@/components/ops/utils";
+import { formatDate, formatDateTime } from "@/components/ops/utils";
 import type { OpsJobListItem } from "@/components/ops/types";
 import {
   formatJobBudgetPrice,
@@ -42,7 +43,14 @@ export const JobCard = ({
           {location}
         </span>
       }
-      status={<JobStatusBadge status={job.status} />}
+      status={
+        <div className="flex flex-wrap gap-2">
+          {job.jobType === "PUNCTUAL" ? (
+            <Badge variant="outline">Puntual</Badge>
+          ) : null}
+          <JobStatusBadge status={job.status} />
+        </div>
+      }
       description={job.description}
       meta={
         <>
@@ -51,6 +59,12 @@ export const JobCard = ({
             Actualizado: {formatDateTime(job.updatedAt)}
           </span>
           <span>Presupuesto: {job.sourceBudget?.name ?? "Sin vínculo"}</span>
+          {job.jobType === "PUNCTUAL" ? (
+            <span>
+              Periodo: {formatDate(job.punctualStartDate)} -{" "}
+              {formatDate(job.punctualEndDate)}
+            </span>
+          ) : null}
           <span className="inline-flex items-center gap-1">
             <DollarSign className="h-3.5 w-3.5" />
             Opción ({taxModeLabel.toLowerCase()}): {option}

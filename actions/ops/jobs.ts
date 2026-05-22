@@ -1,19 +1,18 @@
 "use server";
 
 import { Prisma } from "@prisma/client";
-
 import { db } from "@/lib/db";
 import { getActionErrorMessage } from "@/lib/ops/action-error";
 import { assertJobExists } from "@/lib/ops/assertions";
 import { resolveJobBudgetSource } from "@/lib/ops/job-budget-snapshot";
-import { getPatchedValue, hasOwnKey } from "@/lib/ops/patch";
+import { resolveJobUpdatePatch } from "@/lib/ops/job-update-patch";
+import { hasOwnKey } from "@/lib/ops/patch";
 import { requireAdminSession } from "@/lib/require-admin-session";
 import { CreateJobSchema, UpdateJobSchema } from "@/schemas/ops";
 
 export const createJob = async (values: unknown) => {
   try {
     const session = await requireAdminSession();
-
     const parsedValues = CreateJobSchema.safeParse(values);
     if (!parsedValues.success) {
       return { error: "Datos invalidos para crear el trabajo" };
@@ -26,7 +25,6 @@ export const createJob = async (values: unknown) => {
       budgetSnapshot,
       ...jobData
     } = parsedValues.data;
-
     const resolvedSource = await resolveJobBudgetSource({
       sourceBudgetId,
       sourceBudgetOptionId,
@@ -49,7 +47,6 @@ export const createJob = async (values: unknown) => {
         sourceBudgetOption: true,
       },
     });
-
     return { success: "Trabajo creado", job };
   } catch (error) {
     console.error("Error creating job:", error);
@@ -63,59 +60,20 @@ export const updateJob = async (jobId: string, values: unknown) => {
   try {
     const session = await requireAdminSession();
     const existingJob = await assertJobExists(jobId);
-
     const parsedValues = UpdateJobSchema.safeParse(values);
     if (!parsedValues.success) {
       return { error: "Datos invalidos para actualizar el trabajo" };
     }
 
-    const nextDescription = getPatchedValue(
-      parsedValues.data,
-      "description",
-      existingJob.description ?? null
-    );
-    const nextServiceAddress = getPatchedValue(
-      parsedValues.data,
-      "serviceAddress",
-      existingJob.serviceAddress ?? null
-    );
-    const nextServiceLocation = getPatchedValue(
-      parsedValues.data,
-      "serviceLocation",
-      existingJob.serviceLocation ?? null
-    );
-    const nextOperationalNotes = getPatchedValue(
-      parsedValues.data,
-      "operationalNotes",
-      existingJob.operationalNotes ?? null
-    );
-    const nextSourceBudgetId =
-      hasOwnKey(parsedValues.data, "sourceBudgetId")
-        ? parsedValues.data.sourceBudgetId
-        : existingJob.sourceBudgetId;
-
-    const nextSourceBudgetOptionId =
-      nextSourceBudgetId === null
-        ? null
-        : hasOwnKey(parsedValues.data, "sourceBudgetOptionId")
-          ? parsedValues.data.sourceBudgetOptionId
-          : existingJob.sourceBudgetOptionId;
-
-    if (nextSourceBudgetOptionId && !nextSourceBudgetId) {
-      return {
-        error: "No puedes asociar una opcion sin seleccionar un presupuesto",
-      };
-    }
-
-    const sourceChanged =
-      nextSourceBudgetId !== existingJob.sourceBudgetId ||
-      nextSourceBudgetOptionId !== existingJob.sourceBudgetOptionId;
+    const patch = resolveJobUpdatePatch(existingJob, parsedValues.data);
+    if ("error" in patch) return { error: patch.error };
 
     const resolvedSource =
-      sourceChanged && (nextSourceBudgetId || nextSourceBudgetOptionId)
+      patch.sourceChanged &&
+      (patch.nextSourceBudgetId || patch.nextSourceBudgetOptionId)
         ? await resolveJobBudgetSource({
-            sourceBudgetId: nextSourceBudgetId,
-            sourceBudgetOptionId: nextSourceBudgetOptionId,
+            sourceBudgetId: patch.nextSourceBudgetId,
+            sourceBudgetOptionId: patch.nextSourceBudgetOptionId,
           })
         : null;
 
@@ -125,25 +83,30 @@ export const updateJob = async (jobId: string, values: unknown) => {
       },
       data: {
         name: parsedValues.data.name,
-        description: nextDescription,
-        serviceAddress: nextServiceAddress,
-        serviceLocation: nextServiceLocation,
-        operationalNotes: nextOperationalNotes,
+        description: patch.nextDescription,
+        serviceAddress: patch.nextServiceAddress,
+        serviceLocation: patch.nextServiceLocation,
+        operationalNotes: patch.nextOperationalNotes,
         status: parsedValues.data.status,
+        jobType: patch.nextJobType,
+        punctualStartDate:
+          patch.nextJobType === "PUNCTUAL" ? patch.nextPunctualStartDate : null,
+        punctualEndDate:
+          patch.nextJobType === "PUNCTUAL" ? patch.nextPunctualEndDate : null,
         budgetIncludesIva: parsedValues.data.budgetIncludesIva,
         sourceBudgetId: hasOwnKey(parsedValues.data, "sourceBudgetId")
-          ? nextSourceBudgetId
+          ? patch.nextSourceBudgetId
           : undefined,
         sourceBudgetOptionId: hasOwnKey(parsedValues.data, "sourceBudgetId") ||
           hasOwnKey(parsedValues.data, "sourceBudgetOptionId")
-          ? nextSourceBudgetOptionId
+          ? patch.nextSourceBudgetOptionId
           : undefined,
         budgetSnapshot:
           hasOwnKey(parsedValues.data, "budgetSnapshot")
             ? parsedValues.data.budgetSnapshot === null
               ? Prisma.DbNull
               : (parsedValues.data.budgetSnapshot as Prisma.InputJsonValue)
-            : sourceChanged && resolvedSource?.budgetSnapshot
+            : patch.sourceChanged && resolvedSource?.budgetSnapshot
               ? (resolvedSource.budgetSnapshot as Prisma.InputJsonValue)
               : undefined,
         updatedById: session.user.id,

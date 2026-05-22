@@ -143,3 +143,33 @@ export const assertEmployeePaymentExists = async (employeePaymentId: string) => 
 
   return employeePayment;
 };
+
+export const assertOperationalCostCategoryExists = async (
+  categoryId: string
+) => {
+  const category = await db.operationalCostCategory.findUnique({
+    where: {
+      id: categoryId,
+    },
+  });
+
+  if (!category) {
+    throw new Error("La categoria de coste no existe");
+  }
+
+  return category;
+};
+
+export const assertOperationalCostExists = async (costId: string) => {
+  const cost = await db.operationalCost.findUnique({
+    where: {
+      id: costId,
+    },
+  });
+
+  if (!cost) {
+    throw new Error("El coste no existe");
+  }
+
+  return cost;
+};

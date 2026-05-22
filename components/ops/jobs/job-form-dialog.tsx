@@ -13,9 +13,13 @@ import {
   opsFormPanelClass, opsFormSelectTriggerClass, opsFormTextareaClass,
   opsJobStatus,
 } from "@/components/ops/shared";
-import type { OpsJobDetail, OpsJobListItem } from "@/components/ops/types";
 import { JobBudgetTaxModeToggle } from "@/components/ops/jobs/job-budget-tax-mode-toggle";
 import { BudgetSourceSelector } from "@/components/ops/jobs/budget-source-selector";
+import { JobTypeFields } from "@/components/ops/jobs/job-type-fields";
+import {
+  getInitialJobFormState,
+  type JobFormJob,
+} from "@/components/ops/jobs/job-form-state";
 import { useJobMutations } from "@/components/ops/hooks/useJobMutations";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogDescription, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
@@ -24,40 +28,15 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Textarea } from "@/components/ui/textarea";
 import { jobStatusValues } from "@/schemas/ops";
 
-type EditableJob = {
-  id: string;
-  name: string;
-  description?: string | null;
-  serviceAddress?: string | null;
-  serviceLocation?: string | null;
-  operationalNotes?: string | null;
-  status: string;
-  budgetIncludesIva?: boolean;
-  sourceBudgetId?: string | null;
-  sourceBudgetOptionId?: string | null;
-};
-
-const getInitialState = (job?: EditableJob) => ({
-  name: job?.name ?? "",
-  description: job?.description ?? "",
-  serviceAddress: job?.serviceAddress ?? "",
-  serviceLocation: job?.serviceLocation ?? "",
-  operationalNotes: job?.operationalNotes ?? "",
-  status: job?.status ?? "ACTIVE",
-  budgetIncludesIva: job?.budgetIncludesIva ?? true,
-  sourceBudgetId: job?.sourceBudgetId ?? "",
-  sourceBudgetOptionId: job?.sourceBudgetOptionId ?? "",
-});
-
 export const JobFormDialog = ({
   job,
   triggerLabel,
 }: {
-  job?: EditableJob | OpsJobListItem | OpsJobDetail;
+  job?: JobFormJob;
   triggerLabel?: string;
 }) => {
   const [open, setOpen] = useState(false);
-  const [formState, setFormState] = useState(getInitialState(job));
+  const [formState, setFormState] = useState(getInitialJobFormState(job));
   const { createJobAsync, updateJobAsync, isCreating, isUpdating } = useJobMutations();
 
   const isPending = isCreating || isUpdating;
@@ -70,6 +49,15 @@ export const JobFormDialog = ({
       serviceLocation: formState.serviceLocation,
       operationalNotes: formState.operationalNotes,
       status: formState.status as (typeof jobStatusValues)[number],
+      jobType: formState.jobType,
+      punctualStartDate:
+        formState.jobType === "PUNCTUAL" && formState.punctualStartDate
+          ? new Date(`${formState.punctualStartDate}T00:00:00`)
+          : undefined,
+      punctualEndDate:
+        formState.jobType === "PUNCTUAL" && formState.punctualEndDate
+          ? new Date(`${formState.punctualEndDate}T23:59:59`)
+          : undefined,
       budgetIncludesIva: formState.budgetIncludesIva,
       sourceBudgetId: formState.sourceBudgetId || null,
       sourceBudgetOptionId: formState.sourceBudgetOptionId || null,
@@ -89,7 +77,7 @@ export const JobFormDialog = ({
       open={open}
       onOpenChange={(nextOpen) => {
         if (nextOpen) {
-          setFormState(getInitialState(job));
+          setFormState(getInitialJobFormState(job));
         }
 
         setOpen(nextOpen);
@@ -135,6 +123,25 @@ export const JobFormDialog = ({
               </Select>
             </OpsFormField>
           </OpsFormGrid>
+          <JobTypeFields
+            jobType={formState.jobType}
+            punctualEndDate={formState.punctualEndDate}
+            punctualStartDate={formState.punctualStartDate}
+            onJobTypeChange={(jobType) =>
+              setFormState((current) => ({
+                ...current,
+                jobType,
+                punctualEndDate: jobType === "PUNCTUAL" ? current.punctualEndDate : "",
+                punctualStartDate: jobType === "PUNCTUAL" ? current.punctualStartDate : "",
+              }))
+            }
+            onPunctualEndDateChange={(punctualEndDate) =>
+              setFormState((current) => ({ ...current, punctualEndDate }))
+            }
+            onPunctualStartDateChange={(punctualStartDate) =>
+              setFormState((current) => ({ ...current, punctualStartDate }))
+            }
+          />
           <OpsFormField label="Descripción">
             <Textarea className={opsFormTextareaClass} value={formState.description} onChange={(event) => setFormState((current) => ({ ...current, description: event.target.value }))} />
           </OpsFormField>
@@ -175,7 +182,7 @@ export const JobFormDialog = ({
           <Button variant="outline" onClick={() => setOpen(false)}>
             Cancelar
           </Button>
-          <Button disabled={isPending || !formState.name.trim()} onClick={handleSubmit}>
+          <Button disabled={isPending || !formState.name.trim() || (formState.jobType === "PUNCTUAL" && (!formState.punctualStartDate || !formState.punctualEndDate))} onClick={handleSubmit}>
             {isPending ? <LoaderCircle className="h-4 w-4 animate-spin" /> : null}
             {job ? "Guardar cambios" : "Crear trabajo"}
           </Button>

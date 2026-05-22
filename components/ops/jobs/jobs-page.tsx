@@ -18,16 +18,19 @@ import {
 import { jobStatusValues } from "@/schemas/ops";
 
 type JobStatusFilter = (typeof jobStatusValues)[number] | "all";
+type JobVisibilityFilter = "DEFAULT" | "PUNCTUAL" | "ALL";
 
 type JobFilterState = {
   query: string;
   status: JobStatusFilter;
+  visibility: JobVisibilityFilter;
   includeArchived: boolean;
 };
 
 const defaultJobFilters: JobFilterState = {
   query: "",
   status: "all",
+  visibility: "DEFAULT",
   includeArchived: false,
 };
 
@@ -42,6 +45,7 @@ export const JobsPage = () => {
     query: debouncedQuery || undefined,
     statuses:
       filterState.status !== "all" ? [filterState.status] : undefined,
+    visibility: filterState.visibility,
     includeArchived: filterState.includeArchived,
   };
 
@@ -57,12 +61,16 @@ export const JobsPage = () => {
       <JobFilters
         query={filterState.query}
         status={filterState.status}
+        visibility={filterState.visibility}
         includeArchived={filterState.includeArchived}
         isRefreshing={isFetching}
         onQueryChange={(query) => updateFilters({ query })}
         onRefresh={refetch}
         onStatusChange={(status) =>
           updateFilters({ status: status as JobStatusFilter })
+        }
+        onVisibilityChange={(visibility) =>
+          updateFilters({ visibility: visibility as JobVisibilityFilter })
         }
         onIncludeArchivedChange={(includeArchived) =>
           updateFilters({ includeArchived })

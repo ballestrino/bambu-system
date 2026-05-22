@@ -141,3 +141,20 @@ export type OpsEmployeePayment = Prisma.EmployeePaymentGetPayload<{
     updatedBy: OpsAuditUserSelect;
   };
 }>;
+
+export type OpsOperationalCostCategory =
+  Prisma.OperationalCostCategoryGetPayload<Record<string, never>>;
+
+export type OpsOperationalCost = Prisma.OperationalCostGetPayload<{
+  include: {
+    category: true;
+    employee: true;
+    job: true;
+    createdBy: OpsAuditUserSelect;
+    updatedBy: OpsAuditUserSelect;
+  };
+}>;
+
+export type OpsCostSettings = Prisma.OpsCostSettingsGetPayload<
+  Record<string, never>
+>;

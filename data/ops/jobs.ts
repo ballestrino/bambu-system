@@ -9,6 +9,14 @@ import {
 import { buildDateTimeRange, opsAuditUserSelect } from "@/data/ops/shared";
 import { Prisma } from "@prisma/client";
 
+const getCurrentMonthRange = () => {
+  const today = new Date();
+  return {
+    end: new Date(today.getFullYear(), today.getMonth() + 1, 0, 23, 59, 59),
+    start: new Date(today.getFullYear(), today.getMonth(), 1),
+  };
+};
+
 export const getJobs = async (filters?: unknown) => {
   try {
     await requireAdminSession();
@@ -21,26 +29,48 @@ export const getJobs = async (filters?: unknown) => {
     const {
       query,
       statuses,
+      visibility,
       includeArchived,
       sourceBudgetId,
       sourceBudgetOptionId,
       startDate,
       endDate,
     } = parsedFilters.data;
+    const currentMonth = getCurrentMonthRange();
+    const visibilityFilter =
+      visibility === "DEFAULT"
+        ? {
+            OR: [
+              { jobType: "ONGOING" as const },
+              {
+                jobType: "PUNCTUAL" as const,
+                punctualStartDate: { lte: currentMonth.end },
+                punctualEndDate: { gte: currentMonth.start },
+              },
+            ],
+          }
+        : visibility === "PUNCTUAL"
+          ? { jobType: "PUNCTUAL" as const }
+          : {};
 
     const where: Prisma.JobWhereInput = {
+      ...visibilityFilter,
       archivedAt: includeArchived ? undefined : null,
       status: statuses?.length ? { in: statuses } : undefined,
       sourceBudgetId,
       sourceBudgetOptionId,
       createdAt: buildDateTimeRange(startDate, endDate),
-      OR: query
+      AND: query
         ? [
-            { name: { contains: query, mode: "insensitive" } },
-            { description: { contains: query, mode: "insensitive" } },
-            { serviceAddress: { contains: query, mode: "insensitive" } },
-            { serviceLocation: { contains: query, mode: "insensitive" } },
-            { operationalNotes: { contains: query, mode: "insensitive" } },
+            {
+              OR: [
+                { name: { contains: query, mode: "insensitive" } },
+                { description: { contains: query, mode: "insensitive" } },
+                { serviceAddress: { contains: query, mode: "insensitive" } },
+                { serviceLocation: { contains: query, mode: "insensitive" } },
+                { operationalNotes: { contains: query, mode: "insensitive" } },
+              ],
+            },
           ]
         : undefined,
     };

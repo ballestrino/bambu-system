@@ -1,6 +1,7 @@
 export * from "@/actions/ops/employee-payments";
 export * from "@/actions/ops/employees";
 export * from "@/actions/ops/job-client-payments";
+export * from "@/actions/ops/operational-costs";
 export * from "@/actions/ops/job-employee-assignments";
 export * from "@/actions/ops/job-occurrences";
 export * from "@/actions/ops/job-schedule-rules";

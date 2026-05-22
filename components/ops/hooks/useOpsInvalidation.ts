@@ -21,6 +21,7 @@ export const invalidateJobScopes = async (
     invalidateRoot(queryClient, opsQueryKeys.occurrenceRoot),
     invalidateRoot(queryClient, opsQueryKeys.scheduleRuleRoot),
     invalidateRoot(queryClient, opsQueryKeys.clientPayments),
+    invalidateRoot(queryClient, opsQueryKeys.costs),
     invalidateRoot(queryClient, opsQueryKeys.calendarRoot),
     jobId
       ? queryClient.invalidateQueries({ queryKey: opsQueryKeys.job(jobId) })
@@ -37,6 +38,7 @@ export const invalidateEmployeeScopes = async (
     invalidateRoot(queryClient, opsQueryKeys.assignments),
     invalidateRoot(queryClient, opsQueryKeys.occurrenceRoot),
     invalidateRoot(queryClient, opsQueryKeys.employeePayments),
+    invalidateRoot(queryClient, opsQueryKeys.costs),
     invalidateRoot(queryClient, opsQueryKeys.calendarRoot),
     employeeId
       ? queryClient.invalidateQueries({

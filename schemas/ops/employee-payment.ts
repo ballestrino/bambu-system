@@ -10,6 +10,15 @@ import {
 
 import { paymentStatusSchema } from "@/schemas/ops/job-client-payment";
 
+export const employeePaymentFilterBasisValues = [
+  "PAYMENT_DATE",
+  "PERIOD",
+] as const;
+
+export const employeePaymentFilterBasisSchema = z.enum(
+  employeePaymentFilterBasisValues
+);
+
 const employeePaymentBaseSchema = z
   .object({
     employeeId: cuidSchema,
@@ -58,6 +67,7 @@ export const UpdateEmployeePaymentSchema = z
   });
 
 export const EmployeePaymentFiltersSchema = dateRangeFiltersSchema.extend({
+  basis: employeePaymentFilterBasisSchema.optional(),
   employeeId: z.preprocess(
     (value) => (value === "" ? undefined : value),
     cuidSchema.optional()

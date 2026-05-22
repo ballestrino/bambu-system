@@ -12,6 +12,12 @@ enum UserRole {
   USER
 }
 
+enum OperationalCostCategoryKind {
+  GENERAL
+  BPS
+  TRANSPORT
+}
+
 model User {
   id                            String                  @id @default(cuid())
   name                          String?
@@ -42,6 +48,11 @@ model User {
   updatedJobClientPayments      JobClientPayment[]      @relation("JobClientPaymentUpdatedBy")
   createdEmployeePayments       EmployeePayment[]       @relation("EmployeePaymentCreatedBy")
   updatedEmployeePayments       EmployeePayment[]       @relation("EmployeePaymentUpdatedBy")
+  createdOperationalCostCategories OperationalCostCategory[] @relation("OperationalCostCategoryCreatedBy")
+  updatedOperationalCostCategories OperationalCostCategory[] @relation("OperationalCostCategoryUpdatedBy")
+  createdOperationalCosts       OperationalCost[]       @relation("OperationalCostCreatedBy")
+  updatedOperationalCosts       OperationalCost[]       @relation("OperationalCostUpdatedBy")
+  updatedOpsCostSettings        OpsCostSettings[]       @relation("OpsCostSettingsUpdatedBy")
 }
 
 model Account {
@@ -192,6 +203,11 @@ enum JobStatus {
   ARCHIVED
 }
 
+enum JobType {
+  ONGOING
+  PUNCTUAL
+}
+
 enum RecurrenceFrequency {
   DAILY
   WEEKLY
@@ -224,6 +240,9 @@ model Job {
   serviceLocation      String?
   operationalNotes     String?                 @db.Text
   status               JobStatus               @default(DRAFT)
+  jobType              JobType                 @default(ONGOING)
+  punctualStartDate    DateTime?
+  punctualEndDate      DateTime?
   budgetIncludesIva    Boolean                 @default(true)
   sourceBudgetId       String?
   sourceBudget         Budget?                 @relation("JobSourceBudget", fields: [sourceBudgetId], references: [id], onDelete: SetNull)
@@ -240,10 +259,12 @@ model Job {
   assignments          JobEmployeeAssignment[]
   timeEntries          TimeEntry[]
   clientPayments       JobClientPayment[]
+  operationalCosts     OperationalCost[]
   createdAt            DateTime                @default(now())
   updatedAt            DateTime                @updatedAt
 
   @@index([status, archivedAt])
+  @@index([jobType, punctualStartDate, punctualEndDate])
   @@index([sourceBudgetId])
   @@index([sourceBudgetOptionId])
   @@index([createdById])
@@ -324,6 +345,7 @@ model Employee {
   occurrenceAssignments JobOccurrenceEmployee[]
   timeEntries TimeEntry[]
   payments    EmployeePayment[]
+  operationalCosts OperationalCost[]
   createdAt   DateTime                @default(now())
   updatedAt   DateTime                @updatedAt
 
@@ -444,6 +466,67 @@ model EmployeePayment {
   @@index([employeeId, paymentDate])
   @@index([status, paymentDate])
   @@index([createdById])
+  @@index([updatedById])
+}
+
+model OperationalCostCategory {
+  id          String                      @id @default(cuid())
+  name        String
+  description String?
+  color       String                      @default("#53985E")
+  kind        OperationalCostCategoryKind @default(GENERAL)
+  isActive    Boolean                     @default(true)
+  archivedAt  DateTime?
+  costs       OperationalCost[]
+  createdById String
+  createdBy   User                        @relation("OperationalCostCategoryCreatedBy", fields: [createdById], references: [id], onDelete: Restrict)
+  updatedById String?
+  updatedBy   User?                       @relation("OperationalCostCategoryUpdatedBy", fields: [updatedById], references: [id], onDelete: Restrict)
+  createdAt   DateTime                    @default(now())
+  updatedAt   DateTime                    @updatedAt
+
+  @@unique([name])
+  @@index([kind, isActive, archivedAt])
+  @@index([createdById])
+  @@index([updatedById])
+}
+
+model OperationalCost {
+  id          String                  @id @default(cuid())
+  categoryId  String
+  category    OperationalCostCategory @relation(fields: [categoryId], references: [id], onDelete: Restrict)
+  jobId       String?
+  job         Job?                    @relation(fields: [jobId], references: [id], onDelete: SetNull)
+  employeeId  String?
+  employee    Employee?               @relation(fields: [employeeId], references: [id], onDelete: SetNull)
+  costDate    DateTime
+  amount      Decimal                 @db.Decimal(12, 2)
+  reference   String?
+  notes       String?                 @db.Text
+  status      PaymentStatus           @default(RECORDED)
+  createdById String
+  createdBy   User                    @relation("OperationalCostCreatedBy", fields: [createdById], references: [id], onDelete: Restrict)
+  updatedById String?
+  updatedBy   User?                   @relation("OperationalCostUpdatedBy", fields: [updatedById], references: [id], onDelete: Restrict)
+  createdAt   DateTime                @default(now())
+  updatedAt   DateTime                @updatedAt
+
+  @@index([categoryId, costDate])
+  @@index([employeeId, costDate])
+  @@index([jobId, costDate])
+  @@index([status, costDate])
+  @@index([createdById])
+  @@index([updatedById])
+}
+
+model OpsCostSettings {
+  id                 String   @id @default("default")
+  bpsEstimatePercent Decimal  @default(0) @db.Decimal(5, 2)
+  updatedById        String?
+  updatedBy          User?    @relation("OpsCostSettingsUpdatedBy", fields: [updatedById], references: [id], onDelete: Restrict)
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+
   @@index([updatedById])
 }
 

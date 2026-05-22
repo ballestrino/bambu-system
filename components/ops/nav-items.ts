@@ -4,6 +4,7 @@ import {
   CircleDollarSign,
   HandCoins,
   LayoutDashboard,
+  ReceiptText,
   UsersRound,
 } from "lucide-react";
 
@@ -37,6 +38,12 @@ export const opsNavItems = [
     description: "Ingresos recibidos de clientes",
     url: "/dashboard/payments",
     icon: CircleDollarSign,
+  },
+  {
+    title: "Costes",
+    description: "Gastos reales y ganancia de caja",
+    url: "/dashboard/costs",
+    icon: ReceiptText,
   },
   {
     title: "Pagos",
