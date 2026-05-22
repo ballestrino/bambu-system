@@ -17,7 +17,10 @@ export const JobClientPaymentsPanel = ({
   job: OpsJobDetail;
   jobs: OpsJobListItem[];
 }) => {
-  const { payments, isLoading } = useJobClientPayments({ jobId: job.id }, job.id);
+  const { payments, isLoading } = useJobClientPayments(
+    { jobId: job.id, statuses: ["RECORDED"] },
+    job.id
+  );
   const { voidPaymentAsync } = useJobClientPaymentMutations(job.id);
   const summary = getPaymentSummary(payments);
   const expectedPrice = getJobBudgetPrice(job);
@@ -45,7 +48,7 @@ export const JobClientPaymentsPanel = ({
           </div>
         </CardContent>
       </Card>
-      <PaymentsSummary {...summary} />
+      <PaymentsSummary {...summary} showVoided={false} />
       <PaymentsList
         isLoading={isLoading}
         jobs={jobs}

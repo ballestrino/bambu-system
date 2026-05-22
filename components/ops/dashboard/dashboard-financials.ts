@@ -1,7 +1,10 @@
 import type {
+  OpsEmployeePayment,
   OpsJobClientPayment,
   OpsJobListItem,
+  OpsOperationalCost,
 } from "@/components/ops/types";
+import { getCostsSummary } from "@/components/ops/costs/cost-utils";
 import { getJobBudgetPrice } from "@/lib/ops/job-budget-pricing";
 
 const moneyFormat = new Intl.NumberFormat("es-UY", {
@@ -31,15 +34,24 @@ const getJobProjectedProfit = (job: OpsJobListItem) => {
 export const formatDashboardMoney = (amount: number) =>
   moneyFormat.format(amount);
 
-export const getDashboardFinancials = (
-  jobs: OpsJobListItem[],
-  payments: OpsJobClientPayment[]
-) => ({
-  projectedProfit: jobs.reduce(
+export const getDashboardFinancials = ({
+  bpsEstimatePercent,
+  clientPayments,
+  employeePayments,
+  jobs,
+  operationalCosts,
+}: {
+  bpsEstimatePercent: number;
+  clientPayments: OpsJobClientPayment[];
+  employeePayments: OpsEmployeePayment[];
+  jobs: OpsJobListItem[];
+  operationalCosts: OpsOperationalCost[];
+}) => {
+  const projectedProfit = jobs.reduce(
     (total, job) => total + getJobProjectedProfit(job),
     0
-  ),
-  projectedRevenue: jobs.reduce(
+  );
+  const projectedRevenue = jobs.reduce(
     (total, job) =>
       total +
       (getJobBudgetPrice({
@@ -48,9 +60,18 @@ export const getDashboardFinancials = (
         sourceBudgetOption: job.sourceBudgetOption,
       }) ?? 0),
     0
-  ),
-  recordedRevenue: payments.reduce(
-    (total, payment) => total + toMoneyNumber(payment.amount),
-    0
-  ),
-});
+  );
+  const costsSummary = getCostsSummary({
+    bpsEstimatePercent,
+    clientPayments,
+    employeePayments,
+    operationalCosts,
+  });
+
+  return {
+    ...costsSummary,
+    projectedProfit,
+    projectedRevenue,
+    recordedRevenue: costsSummary.recordedRevenue,
+  };
+};

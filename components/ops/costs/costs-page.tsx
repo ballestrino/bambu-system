@@ -31,7 +31,7 @@ const getDefaultFilters = (): CostsFilterState => {
     endDate: toDateInputValue(currentMonth.end),
     jobId: "ALL",
     startDate: toDateInputValue(currentMonth.start),
-    status: "ALL",
+    status: "RECORDED",
   };
 };
 

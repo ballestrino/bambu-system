@@ -1,5 +1,9 @@
 import {
+  BadgeDollarSign,
+  CalendarDays,
   CalendarClock,
+  HandCoins,
+  Percent,
   ReceiptText,
   TrendingUp,
   UsersRound,
@@ -14,19 +18,28 @@ export const DashboardMetricGrid = ({
   activeEmployeeCount,
   areEmployeesLoading,
   areFinancialsLoading,
+  areMonthlyVisitsLoading,
   areVisitsLoading,
   financials,
+  monthlyVisitCount,
   pendingVisitCount,
 }: {
   activeEmployeeCount: number;
   areEmployeesLoading: boolean;
   areFinancialsLoading: boolean;
+  areMonthlyVisitsLoading: boolean;
   areVisitsLoading: boolean;
   financials: {
+    estimatedBpsTotal: number;
+    marginPercent: number;
     projectedProfit: number;
     projectedRevenue: number;
+    realBpsTotal: number;
+    realProfit: number;
     recordedRevenue: number;
+    totalCosts: number;
   };
+  monthlyVisitCount: number;
   pendingVisitCount: number;
 }) => (
   <OpsMetricsGrid
@@ -46,13 +59,38 @@ export const DashboardMetricGrid = ({
         value: areEmployeesLoading ? loadingValue : activeEmployeeCount,
       },
       {
-        helper: "Proyectada desde presupuestos asociados",
+        helper: "Programadas dentro del mes actual",
+        icon: CalendarDays,
+        label: "Visitas del mes",
+        tone: "neutral",
+        value: areMonthlyVisitsLoading ? loadingValue : monthlyVisitCount,
+      },
+      {
+        helper: areFinancialsLoading ? "Calculando ganancia real" : (
+          <span className="flex flex-col gap-1">
+            <span>
+              Proyectada: {formatDashboardMoney(financials.projectedProfit)}
+            </span>
+            <span>
+              Costes: {formatDashboardMoney(financials.totalCosts)}
+            </span>
+          </span>
+        ),
         icon: TrendingUp,
         label: "Ganancias",
-        tone: "money",
+        tone: financials.realProfit >= 0 ? "money" : "danger",
         value: areFinancialsLoading
           ? loadingValue
-          : formatDashboardMoney(financials.projectedProfit),
+          : formatDashboardMoney(financials.realProfit),
+      },
+      {
+        helper: "Empleadas + costes registrados",
+        icon: HandCoins,
+        label: "Costes",
+        tone: "warning",
+        value: areFinancialsLoading
+          ? loadingValue
+          : formatDashboardMoney(financials.totalCosts),
       },
       {
         helper: areFinancialsLoading ? "Calculando facturación" : (
@@ -70,7 +108,31 @@ export const DashboardMetricGrid = ({
         tone: "neutral",
         value: areFinancialsLoading
           ? loadingValue
-          : formatDashboardMoney(financials.projectedRevenue),
+          : formatDashboardMoney(financials.recordedRevenue),
+      },
+      {
+        helper: areFinancialsLoading ? "Calculando BPS" : (
+          <span className="flex flex-col gap-1">
+            <span>
+              Estimado: {formatDashboardMoney(financials.estimatedBpsTotal)}
+            </span>
+          </span>
+        ),
+        icon: BadgeDollarSign,
+        label: "BPS",
+        tone: "active",
+        value: areFinancialsLoading
+          ? loadingValue
+          : formatDashboardMoney(financials.realBpsTotal),
+      },
+      {
+        helper: "Ganancia real sobre cobrado",
+        icon: Percent,
+        label: "Margen",
+        tone: financials.marginPercent >= 0 ? "success" : "danger",
+        value: areFinancialsLoading
+          ? loadingValue
+          : `${financials.marginPercent.toFixed(1)}%`,
       },
     ]}
   />

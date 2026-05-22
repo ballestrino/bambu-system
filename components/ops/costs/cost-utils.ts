@@ -50,8 +50,8 @@ export const getCostsSummary = ({
     0
   );
   const estimatedBpsTotal = employeePaymentsTotal * (bpsEstimatePercent / 100);
-  const realProfit =
-    recordedRevenue - employeePaymentsTotal - manualCostsTotal;
+  const totalCosts = employeePaymentsTotal + manualCostsTotal;
+  const realProfit = recordedRevenue - totalCosts;
 
   return {
     bpsDifference: realBpsTotal - estimatedBpsTotal,
@@ -62,5 +62,6 @@ export const getCostsSummary = ({
     realBpsTotal,
     realProfit,
     recordedRevenue,
+    totalCosts,
   };
 };

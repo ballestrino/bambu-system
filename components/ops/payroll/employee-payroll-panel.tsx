@@ -36,7 +36,7 @@ export const EmployeePayrollPanel = ({
   };
 
   const { payments, isLoading } = useEmployeePayments(
-    { employeeId: employee.id, ...rangeFilters },
+    { employeeId: employee.id, ...rangeFilters, statuses: ["RECORDED"] },
     `employee-payroll-${employee.id}-${startDate}-${endDate}`
   );
   const { occurrences } = useJobOccurrences(
@@ -122,7 +122,7 @@ export const EmployeePayrollPanel = ({
           startDate={startDate}
         />
       </OpsSection>
-      <PayrollSummary {...summary} />
+      <PayrollSummary {...summary} showVoided={false} />
       <EmployeePaymentList
         employees={[employee]}
         isLoading={isLoading}

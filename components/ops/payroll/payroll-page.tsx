@@ -19,7 +19,7 @@ export const PayrollPage = () => {
   const currentMonth = getMonthRange(new Date());
   const [startDate, setStartDate] = useState(toDateInputValue(currentMonth.start));
   const [endDate, setEndDate] = useState(toDateInputValue(currentMonth.end));
-  const [status, setStatus] = useState("ALL");
+  const [status, setStatus] = useState("RECORDED");
   const [employeeId, setEmployeeId] = useState("ALL");
 
   const rangeFilters = {
@@ -78,7 +78,7 @@ export const PayrollPage = () => {
     const nextMonth = getMonthRange(new Date());
     setStartDate(toDateInputValue(nextMonth.start));
     setEndDate(toDateInputValue(nextMonth.end));
-    setStatus("ALL");
+    setStatus("RECORDED");
     setEmployeeId("ALL");
   };
 
@@ -109,7 +109,7 @@ export const PayrollPage = () => {
         startDate={startDate}
         status={status}
       />
-      <PayrollSummary {...summary} />
+      <PayrollSummary {...summary} showVoided={status !== "RECORDED"} />
       <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
         <PayrollRowsPanel
           employees={employees}

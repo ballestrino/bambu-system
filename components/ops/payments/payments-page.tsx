@@ -19,7 +19,7 @@ export const PaymentsPage = () => {
   const currentMonth = getMonthRange(new Date());
   const [startDate, setStartDate] = useState(toDateInputValue(currentMonth.start));
   const [endDate, setEndDate] = useState(toDateInputValue(currentMonth.end));
-  const [status, setStatus] = useState("ALL");
+  const [status, setStatus] = useState("RECORDED");
   const [jobId, setJobId] = useState("ALL");
 
   const filters = {
@@ -73,7 +73,7 @@ export const PaymentsPage = () => {
     const nextMonth = getMonthRange(new Date());
     setStartDate(toDateInputValue(nextMonth.start));
     setEndDate(toDateInputValue(nextMonth.end));
-    setStatus("ALL");
+    setStatus("RECORDED");
     setJobId("ALL");
   };
 
@@ -100,7 +100,7 @@ export const PaymentsPage = () => {
         startDate={startDate}
         status={status}
       />
-      <PaymentsSummary {...summary} />
+      <PaymentsSummary {...summary} showVoided={status !== "RECORDED"} />
       <div className="grid gap-6 xl:grid-cols-[minmax(0,1.1fr)_minmax(0,0.9fr)]">
         <PaymentsList
           isLoading={isLoading}

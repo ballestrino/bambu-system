@@ -16,20 +16,20 @@ export const CostsSummary = ({
   bpsDifference,
   employeePaymentsTotal,
   estimatedBpsTotal,
-  manualCostsTotal,
   marginPercent,
   realBpsTotal,
   realProfit,
   recordedRevenue,
+  totalCosts,
 }: {
   bpsDifference: number;
   employeePaymentsTotal: number;
   estimatedBpsTotal: number;
-  manualCostsTotal: number;
   marginPercent: number;
   realBpsTotal: number;
   realProfit: number;
   recordedRevenue: number;
+  totalCosts: number;
 }) => (
   <OpsMetricsGrid
     metrics={[
@@ -48,11 +48,11 @@ export const CostsSummary = ({
         value: formatCostMoney(employeePaymentsTotal),
       },
       {
-        helper: "costes registrados",
+        helper: "empleadas + costes registrados",
         icon: ReceiptText,
-        label: "Costes",
+        label: "Costes totales",
         tone: "archived",
-        value: formatCostMoney(manualCostsTotal),
+        value: formatCostMoney(totalCosts),
       },
       {
         helper: "caja real del periodo",
