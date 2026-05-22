@@ -1,8 +1,11 @@
 "use client";
 
+import { useState } from "react";
 import { Briefcase, Package2 } from "lucide-react";
 
 import { useBudgetSources } from "@/components/ops/hooks/useBudgetSources";
+import { BudgetSourceCombobox } from "@/components/ops/jobs/budget-source-combobox";
+import { useOpsDebouncedValue } from "@/components/ops/shared/use-ops-debounced-value";
 import {
   OpsFormField,
   opsFormControlClass,
@@ -25,7 +28,19 @@ export const BudgetSourceSelector = ({
   onBudgetChange,
   onOptionChange,
 }: BudgetSourceSelectorProps) => {
-  const { budgetSources, isLoading } = useBudgetSources();
+  const [search, setSearch] = useState("");
+  const debouncedSearch = useOpsDebouncedValue(search, 300);
+  const {
+    budgetSources,
+    fetchNextPage,
+    hasNextPage,
+    isFetching,
+    isFetchingNextPage,
+    isLoading,
+  } = useBudgetSources({
+    query: debouncedSearch,
+    selectedBudgetId: sourceBudgetId || undefined,
+  });
   const selectedBudget = budgetSources.find((budget) => budget.id === sourceBudgetId);
   const selectedOption = selectedBudget?.budgetOptions.find(
     (option) => option.id === sourceBudgetOptionId
@@ -34,26 +49,20 @@ export const BudgetSourceSelector = ({
   return (
     <div className={opsFormPanelClass}>
       <OpsFormField label="Presupuesto base">
-        <Select
-          value={sourceBudgetId || "none"}
-          onValueChange={(value) => {
-            const nextBudgetId = value === "none" ? "" : value;
-            onBudgetChange(nextBudgetId);
-            onOptionChange("");
-          }}
-        >
-          <SelectTrigger className={opsFormSelectTriggerClass}>
-            <SelectValue placeholder={isLoading ? "Cargando..." : "Sin presupuesto"} />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="none">Sin presupuesto</SelectItem>
-            {budgetSources.map((budget) => (
-              <SelectItem key={budget.id} value={budget.id}>
-                {budget.name}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+        <BudgetSourceCombobox
+          budgetSources={budgetSources}
+          fetchNextPage={() => void fetchNextPage()}
+          hasNextPage={hasNextPage}
+          isFetching={isFetching}
+          isFetchingNextPage={isFetchingNextPage}
+          isLoading={isLoading}
+          onBudgetChange={onBudgetChange}
+          onOptionChange={onOptionChange}
+          onSearchChange={setSearch}
+          search={search}
+          selectedBudget={selectedBudget}
+          sourceBudgetId={sourceBudgetId}
+        />
       </OpsFormField>
 
       <OpsFormField className="mt-4" label="Opción del presupuesto">

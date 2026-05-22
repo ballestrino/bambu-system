@@ -9,7 +9,8 @@ export const opsQueryKeys = {
     ["ops", "occurrences", scope ?? "all"] as const,
   calendarRoot: ["ops", "calendar"] as const,
   calendar: (monthKey: string) => ["ops", "calendar", monthKey] as const,
-  budgetSources: ["ops", "budget-sources"] as const,
+  budgetSources: (scope?: { query?: string; selectedBudgetId?: string }) =>
+    ["ops", "budget-sources", scope ?? {}] as const,
   employees: ["ops", "employees"] as const,
   employee: (employeeId: string) => ["ops", "employee", employeeId] as const,
   assignments: ["ops", "assignments"] as const,
