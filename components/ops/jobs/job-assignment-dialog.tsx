@@ -42,27 +42,29 @@ export const JobAssignmentDialog = ({
     useJobEmployeeAssignmentMutations(jobId, assignment?.employeeId);
   const isPending = isCreating || isUpdating;
 
-  const handleSubmit = async () => {
+  const handleSubmit = () => {
+    setOpen(false);
+
     if (assignment) {
-      await updateAssignmentAsync({
+      void updateAssignmentAsync({
         assignmentId: assignment.id,
+        onErrorAction: () => setOpen(true),
         values: {
           roleLabel: formState.roleLabel,
           assignedFrom: new Date(formState.assignedFrom),
           assignedTo: formState.assignedTo ? new Date(formState.assignedTo) : null,
         },
-      });
+      }).catch(() => undefined);
     } else {
-      await createAssignmentAsync({
+      void createAssignmentAsync({
         jobId,
+        onErrorAction: () => setOpen(true),
         employeeId: formState.employeeId,
         roleLabel: formState.roleLabel || undefined,
         assignedFrom: new Date(formState.assignedFrom),
         assignedTo: formState.assignedTo ? new Date(formState.assignedTo) : undefined,
-      });
+      }).catch(() => undefined);
     }
-
-    setOpen(false);
   };
 
   return (

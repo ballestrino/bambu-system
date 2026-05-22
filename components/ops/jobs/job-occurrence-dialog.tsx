@@ -97,7 +97,7 @@ export const JobOccurrenceDialog = ({
     ? formState.scheduleRuleId
     : "";
 
-  const handleSubmit = async () => {
+  const handleSubmit = () => {
     const submittedFormState = {
       ...formState,
       actualStartAt:
@@ -118,6 +118,8 @@ export const JobOccurrenceDialog = ({
       return;
     }
 
+    setOpen(false);
+
     if (occurrence) {
       const nextIsDetached = resolvedScheduleRuleId
         ? false
@@ -125,8 +127,9 @@ export const JobOccurrenceDialog = ({
           ? true
           : occurrence.isDetached;
 
-      await updateOccurrenceAsync({
+      void updateOccurrenceAsync({
         occurrenceId: occurrence.id,
+        onErrorAction: () => setOpen(true),
         values: {
           employeeIds: formState.employeeIds,
           scheduleRuleId: resolvedScheduleRuleId,
@@ -138,10 +141,11 @@ export const JobOccurrenceDialog = ({
           status: formState.status as OccurrenceStatus,
           notes: formState.notes,
         },
-      });
+      }).catch(() => undefined);
     } else {
-      await createOccurrenceAsync({
+      void createOccurrenceAsync({
         jobId: resolvedJobId,
+        onErrorAction: () => setOpen(true),
         employeeIds: formState.employeeIds,
         scheduleRuleId: formState.scheduleRuleId || undefined,
         scheduledStartAt,
@@ -151,10 +155,8 @@ export const JobOccurrenceDialog = ({
         status: formState.status as OccurrenceStatus,
         isDetached: false,
         notes: formState.notes || undefined,
-      });
+      }).catch(() => undefined);
     }
-
-    setOpen(false);
   };
 
   const handleClearActualTimes = () => {

@@ -1,6 +1,7 @@
 "use server";
 
 import { db } from "@/lib/db";
+import { opsAssignmentInclude } from "@/data/ops/includes";
 import { getActionErrorMessage } from "@/lib/ops/action-error";
 import {
   assertAssignmentExists,
@@ -33,6 +34,7 @@ export const createJobEmployeeAssignment = async (values: unknown) => {
         ...parsedValues.data,
         createdById: session.user.id,
       },
+      include: opsAssignmentInclude,
     });
 
     return { success: "Asignacion creada", assignment };
@@ -98,6 +100,7 @@ export const updateJobEmployeeAssignment = async (
         assignedTo: mergedValues.assignedTo,
         updatedById: session.user.id,
       },
+      include: opsAssignmentInclude,
     });
 
     return { success: "Asignacion actualizada", assignment };
@@ -124,6 +127,7 @@ export const archiveJobEmployeeAssignment = async (assignmentId: string) => {
           archivedAt,
           updatedById: session.user.id,
         },
+        include: opsAssignmentInclude,
       });
       const futureOccurrences = await tx.jobOccurrence.findMany({
         where: {

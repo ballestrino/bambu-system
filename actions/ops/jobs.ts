@@ -1,6 +1,7 @@
 "use server";
 
 import { Prisma } from "@prisma/client";
+import { opsJobListInclude } from "@/data/ops/includes";
 import { db } from "@/lib/db";
 import { getActionErrorMessage } from "@/lib/ops/action-error";
 import { assertJobExists } from "@/lib/ops/assertions";
@@ -42,10 +43,7 @@ export const createJob = async (values: unknown) => {
             undefined) as Prisma.InputJsonValue | undefined,
         createdById: session.user.id,
       },
-      include: {
-        sourceBudget: true,
-        sourceBudgetOption: true,
-      },
+      include: opsJobListInclude,
     });
     return { success: "Trabajo creado", job };
   } catch (error) {
@@ -111,10 +109,7 @@ export const updateJob = async (jobId: string, values: unknown) => {
               : undefined,
         updatedById: session.user.id,
       },
-      include: {
-        sourceBudget: true,
-        sourceBudgetOption: true,
-      },
+      include: opsJobListInclude,
     });
 
     return { success: "Trabajo actualizado", job };
@@ -140,6 +135,7 @@ export const archiveJob = async (jobId: string) => {
         archivedAt: new Date(),
         updatedById: session.user.id,
       },
+      include: opsJobListInclude,
     });
 
     return { success: "Trabajo archivado", job };

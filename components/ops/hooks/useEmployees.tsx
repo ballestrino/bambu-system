@@ -10,7 +10,7 @@ export const useEmployees = (filters?: EmployeeFilters) => {
   const employeesQuery = useQuery({
     queryKey: [...opsQueryKeys.employees, filters ?? {}],
     queryFn: () => getEmployeesAction(filters),
-    staleTime: 1000 * 60,
+    staleTime: 1000 * 60 * 5,
   });
 
   return {

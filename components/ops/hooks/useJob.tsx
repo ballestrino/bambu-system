@@ -10,7 +10,7 @@ export const useJob = (jobId: string) => {
     queryKey: opsQueryKeys.job(jobId),
     queryFn: () => getJobAction(jobId),
     enabled: !!jobId,
-    staleTime: 1000 * 60,
+    staleTime: 1000 * 60 * 5,
   });
 
   return {

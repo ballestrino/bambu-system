@@ -1,6 +1,7 @@
 "use server";
 
 import { db } from "@/lib/db";
+import { opsOccurrenceInclude } from "@/data/ops/includes";
 import { getActionErrorMessage } from "@/lib/ops/action-error";
 import {
   assertJobExists,
@@ -28,14 +29,12 @@ import { CreateJobOccurrenceSchema, DetachJobOccurrenceSchema, UpdateJobOccurren
 export const createJobOccurrence = async (values: unknown) => {
   try {
     const session = await requireAdminSession();
-
     const parsedValues = CreateJobOccurrenceSchema.safeParse(values);
     if (!parsedValues.success) {
       return { error: "Datos invalidos para crear la ocurrencia" };
     }
 
     const employeeIds = getSubmittedEmployeeIds(parsedValues.data);
-
     await Promise.all([
       assertJobExists(parsedValues.data.jobId),
       assertOccurrenceEmployeesExist(employeeIds),
@@ -187,6 +186,7 @@ export const archiveJobOccurrence = async (occurrenceId: string) => {
         archivedAt: new Date(),
         updatedById: session.user.id,
       },
+      include: opsOccurrenceInclude,
     });
 
     return { success: "Ocurrencia archivada", occurrence };

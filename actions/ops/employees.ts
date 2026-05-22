@@ -1,6 +1,7 @@
 "use server";
 
 import { db } from "@/lib/db";
+import { opsEmployeeInclude } from "@/data/ops/includes";
 import { getActionErrorMessage } from "@/lib/ops/action-error";
 import { assertEmployeeExists } from "@/lib/ops/assertions";
 import { getPatchedDbValue } from "@/lib/ops/patch";
@@ -21,6 +22,7 @@ export const createEmployee = async (values: unknown) => {
         ...parsedValues.data,
         createdById: session.user.id,
       },
+      include: opsEmployeeInclude,
     });
 
     return { success: "Empleada creada", employee };
@@ -55,6 +57,7 @@ export const updateEmployee = async (employeeId: string, values: unknown) => {
         isActive: parsedValues.data.isActive,
         updatedById: session.user.id,
       },
+      include: opsEmployeeInclude,
     });
 
     return { success: "Empleada actualizada", employee };
@@ -80,6 +83,7 @@ export const archiveEmployee = async (employeeId: string) => {
         archivedAt: new Date(),
         updatedById: session.user.id,
       },
+      include: opsEmployeeInclude,
     });
 
     return { success: "Empleada archivada", employee };

@@ -59,7 +59,7 @@ export const EmployeeFormDialog = ({
   const hasHourlyRate = formState.hourlyRate.trim() !== "";
   const isHourlyRateInvalid = hasHourlyRate && hourlyRate === null;
 
-  const handleSubmit = async () => {
+  const handleSubmit = () => {
     if (isHourlyRateInvalid) {
       return;
     }
@@ -72,22 +72,24 @@ export const EmployeeFormDialog = ({
       isActive: formState.isActive,
     };
 
+    setOpen(false);
+
     if (employee) {
-      await updateEmployeeAsync({
+      void updateEmployeeAsync({
         employeeId: employee.id,
+        onErrorAction: () => setOpen(true),
         values: {
           ...payload,
           hourlyRate: hasHourlyRate ? hourlyRate ?? undefined : null,
         },
-      });
+      }).catch(() => undefined);
     } else {
-      await createEmployeeAsync({
+      void createEmployeeAsync({
         ...payload,
+        onErrorAction: () => setOpen(true),
         hourlyRate: hasHourlyRate ? hourlyRate ?? undefined : undefined,
-      });
+      }).catch(() => undefined);
     }
-
-    setOpen(false);
   };
 
   return (

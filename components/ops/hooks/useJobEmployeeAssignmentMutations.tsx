@@ -6,62 +6,181 @@ import { toast } from "sonner";
 import { archiveJobEmployeeAssignmentAction } from "@/components/ops/actions/jobs/archive-job-employee-assignment.action";
 import { createJobEmployeeAssignmentAction } from "@/components/ops/actions/jobs/create-job-employee-assignment.action";
 import { updateJobEmployeeAssignmentAction } from "@/components/ops/actions/jobs/update-job-employee-assignment.action";
-import { invalidateOperationalScopes } from "@/components/ops/hooks/useOpsInvalidation";
+import {
+  findCachedItem,
+  getOptimisticId,
+  mapListItems,
+  optimisticAuditUser,
+  patchListItem,
+  reconcileListItem,
+  restoreSnapshots,
+  snapshotQueries,
+} from "@/components/ops/cache/optimistic-cache";
+import { matchesAssignmentFilters, sortAssignments } from "@/components/ops/cache/optimistic-filters";
+import { showMutationError, stripMutationErrorAction, type MutationErrorAction } from "@/components/ops/cache/mutation-toast";
 import { opsQueryKeys } from "@/components/ops/query-keys";
+import type {
+  OpsEmployee,
+  OpsJobEmployeeAssignment,
+  OpsJobListItem,
+  OpsOccurrence,
+} from "@/components/ops/types";
 import type { CreateJobEmployeeAssignmentInput, UpdateJobEmployeeAssignmentInput } from "@/schemas/ops";
 
-export const useJobEmployeeAssignmentMutations = (jobId?: string, employeeId?: string) => {
+const assignmentRoots = [
+  opsQueryKeys.assignments,
+  opsQueryKeys.occurrenceRoot,
+  opsQueryKeys.calendarRoot,
+];
+
+const buildOptimisticAssignment = (
+  queryClient: ReturnType<typeof useQueryClient>,
+  values: CreateJobEmployeeAssignmentInput
+): OpsJobEmployeeAssignment => {
+  const now = new Date();
+  const job = findCachedItem<OpsJobListItem>(queryClient, opsQueryKeys.jobs, values.jobId);
+  const employee = findCachedItem<OpsEmployee>(
+    queryClient,
+    opsQueryKeys.employees,
+    values.employeeId
+  );
+  return {
+    ...values,
+    id: getOptimisticId("assignment"),
+    archivedAt: null,
+    assignedTo: values.assignedTo ?? null,
+    createdAt: now,
+    createdBy: optimisticAuditUser,
+    createdById: optimisticAuditUser.id,
+    employee: employee ?? { id: values.employeeId, name: "Empleado" },
+    job: job ?? { id: values.jobId, name: "Trabajo" },
+    roleLabel: values.roleLabel ?? null,
+    updatedAt: now,
+    updatedBy: null,
+    updatedById: null,
+  } as OpsJobEmployeeAssignment;
+};
+
+const removeArchivedEmployeeFromFutureVisits = (
+  queryClient: ReturnType<typeof useQueryClient>,
+  assignment: OpsJobEmployeeAssignment
+) => {
+  const archivedAt = new Date();
+  mapListItems<OpsOccurrence>(queryClient, opsQueryKeys.occurrenceRoot, (occurrence) => {
+    if (
+      occurrence.jobId !== assignment.jobId ||
+      occurrence.isDetached ||
+      occurrence.status !== "SCHEDULED" ||
+      new Date(occurrence.scheduledStartAt).getTime() < archivedAt.getTime()
+    ) {
+      return occurrence;
+    }
+
+    return {
+      ...occurrence,
+      employees: occurrence.employees.filter(
+        (item) => item.employeeId !== assignment.employeeId
+      ),
+    };
+  });
+};
+
+export const useJobEmployeeAssignmentMutations = (_jobId?: string, _employeeId?: string) => {
+  void _jobId;
+  void _employeeId;
   const queryClient = useQueryClient();
 
-  const invalidateAssignmentQueries = async () => {
-    await Promise.all([
-      invalidateOperationalScopes(queryClient, { employeeId, jobId }),
-      queryClient.invalidateQueries({ queryKey: opsQueryKeys.assignments }),
-      jobId
-        ? queryClient.invalidateQueries({
-            queryKey: opsQueryKeys.assignmentScope(jobId),
-          })
-        : Promise.resolve(),
-      employeeId
-        ? queryClient.invalidateQueries({
-            queryKey: opsQueryKeys.assignmentScope(employeeId),
-          })
-        : Promise.resolve(),
-    ]);
-  };
-
   const createAssignmentMutation = useMutation({
-    mutationFn: (values: CreateJobEmployeeAssignmentInput) =>
-      createJobEmployeeAssignmentAction(values),
-    onSuccess: async () => {
-      toast.success("Empleada asignada");
-      await invalidateAssignmentQueries();
+    mutationFn: (values: CreateJobEmployeeAssignmentInput & MutationErrorAction) =>
+      createJobEmployeeAssignmentAction(stripMutationErrorAction(values)),
+    onMutate: async (values) => {
+      const snapshots = await snapshotQueries(queryClient, assignmentRoots);
+      const optimisticAssignment = buildOptimisticAssignment(queryClient, values);
+
+      reconcileListItem(queryClient, opsQueryKeys.assignments, optimisticAssignment, {
+        matches: matchesAssignmentFilters,
+        sort: sortAssignments,
+      });
+      return { optimisticId: optimisticAssignment.id, snapshots };
     },
-    onError: (error) => {
-      toast.error(error instanceof Error ? error.message : "Error al asignar la empleada");
+    onSuccess: (assignment, _values, context) => {
+      if (!assignment) return;
+      reconcileListItem(queryClient, opsQueryKeys.assignments, assignment, {
+        matches: matchesAssignmentFilters,
+        sort: sortAssignments,
+        tempId: context?.optimisticId,
+      });
+      toast.success("Empleada asignada");
+    },
+    onError: (error, values, context) => {
+      restoreSnapshots(queryClient, context?.snapshots);
+      showMutationError(error, "Error al asignar la empleada", values.onErrorAction);
     },
   });
 
   const updateAssignmentMutation = useMutation({
-    mutationFn: ({ assignmentId, values }: { assignmentId: string; values: UpdateJobEmployeeAssignmentInput }) =>
-      updateJobEmployeeAssignmentAction(assignmentId, values),
-    onSuccess: async () => {
-      toast.success("Asignacion actualizada");
-      await invalidateAssignmentQueries();
+    mutationFn: ({
+      assignmentId,
+      values,
+    }: {
+      assignmentId: string;
+      values: UpdateJobEmployeeAssignmentInput;
+    } & MutationErrorAction) => updateJobEmployeeAssignmentAction(assignmentId, values),
+    onMutate: async ({ assignmentId, values }) => {
+      const snapshots = await snapshotQueries(queryClient, assignmentRoots);
+      patchListItem<OpsJobEmployeeAssignment>(
+        queryClient,
+        opsQueryKeys.assignments,
+        assignmentId,
+        (assignment) => ({ ...assignment, ...values, updatedAt: new Date() }),
+        { matches: matchesAssignmentFilters, sort: sortAssignments }
+      );
+      return { snapshots };
     },
-    onError: (error) => {
-      toast.error(error instanceof Error ? error.message : "Error al actualizar la asignacion");
+    onSuccess: (assignment) => {
+      if (!assignment) return;
+      reconcileListItem(queryClient, opsQueryKeys.assignments, assignment, {
+        matches: matchesAssignmentFilters,
+        sort: sortAssignments,
+      });
+      toast.success("Asignacion actualizada");
+    },
+    onError: (error, values, context) => {
+      restoreSnapshots(queryClient, context?.snapshots);
+      showMutationError(error, "Error al actualizar la asignacion", values.onErrorAction);
     },
   });
 
   const archiveAssignmentMutation = useMutation({
     mutationFn: (assignmentId: string) => archiveJobEmployeeAssignmentAction(assignmentId),
-    onSuccess: async () => {
-      toast.success("Empleada desasignada");
-      await invalidateAssignmentQueries();
+    onMutate: async (assignmentId) => {
+      const snapshots = await snapshotQueries(queryClient, assignmentRoots);
+      let nextAssignment: OpsJobEmployeeAssignment | null = null;
+      patchListItem<OpsJobEmployeeAssignment>(
+        queryClient,
+        opsQueryKeys.assignments,
+        assignmentId,
+        (assignment) => {
+          nextAssignment = { ...assignment, archivedAt: new Date(), updatedAt: new Date() };
+          return nextAssignment;
+        },
+        { matches: matchesAssignmentFilters, sort: sortAssignments }
+      );
+      if (nextAssignment) removeArchivedEmployeeFromFutureVisits(queryClient, nextAssignment);
+      return { snapshots };
     },
-    onError: (error) => {
-      toast.error(error instanceof Error ? error.message : "Error al desasignar la empleada");
+    onSuccess: (assignment) => {
+      if (!assignment) return;
+      reconcileListItem(queryClient, opsQueryKeys.assignments, assignment, {
+        matches: matchesAssignmentFilters,
+        sort: sortAssignments,
+      });
+      removeArchivedEmployeeFromFutureVisits(queryClient, assignment);
+      toast.success("Empleada desasignada");
+    },
+    onError: (error, _assignmentId, context) => {
+      restoreSnapshots(queryClient, context?.snapshots);
+      showMutationError(error, "Error al desasignar la empleada");
     },
   });
 
@@ -74,4 +193,3 @@ export const useJobEmployeeAssignmentMutations = (jobId?: string, employeeId?: s
     isArchiving: archiveAssignmentMutation.isPending,
   };
 };
-

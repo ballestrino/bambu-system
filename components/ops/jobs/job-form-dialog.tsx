@@ -41,7 +41,7 @@ export const JobFormDialog = ({
 
   const isPending = isCreating || isUpdating;
 
-  const handleSubmit = async () => {
+  const handleSubmit = () => {
     const payload = {
       name: formState.name.trim(),
       description: formState.description,
@@ -63,13 +63,20 @@ export const JobFormDialog = ({
       sourceBudgetOptionId: formState.sourceBudgetOptionId || null,
     };
 
-    if (job) {
-      await updateJobAsync({ jobId: job.id, values: payload });
-    } else {
-      await createJobAsync(payload);
-    }
-
     setOpen(false);
+
+    if (job) {
+      void updateJobAsync({
+        jobId: job.id,
+        onErrorAction: () => setOpen(true),
+        values: payload,
+      }).catch(() => undefined);
+    } else {
+      void createJobAsync({
+        ...payload,
+        onErrorAction: () => setOpen(true),
+      }).catch(() => undefined);
+    }
   };
 
   return (

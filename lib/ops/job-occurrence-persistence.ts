@@ -2,6 +2,7 @@ import "server-only";
 
 import type { Prisma } from "@prisma/client";
 
+import { opsOccurrenceInclude } from "@/data/ops/includes";
 import { db } from "@/lib/db";
 import { syncOccurrenceEmployees } from "@/lib/ops/job-occurrence-employees";
 
@@ -26,7 +27,12 @@ export const createOccurrenceWithEmployees = async (
     });
 
     await syncOccurrenceEmployees(tx, occurrence.id, employeeIds);
-    return occurrence;
+    return tx.jobOccurrence.findUniqueOrThrow({
+      where: {
+        id: occurrence.id,
+      },
+      include: opsOccurrenceInclude,
+    });
   });
 
 export const updateOccurrenceWithEmployees = async ({
@@ -47,5 +53,10 @@ export const updateOccurrenceWithEmployees = async ({
     });
 
     await syncOccurrenceEmployees(tx, occurrenceId, employeeIds);
-    return occurrence;
+    return tx.jobOccurrence.findUniqueOrThrow({
+      where: {
+        id: occurrence.id,
+      },
+      include: opsOccurrenceInclude,
+    });
   });

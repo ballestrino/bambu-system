@@ -10,7 +10,7 @@ export const useJobs = (filters?: JobFilters) => {
   const jobsQuery = useQuery({
     queryKey: [...opsQueryKeys.jobs, filters ?? {}],
     queryFn: () => getJobsAction(filters),
-    staleTime: 1000 * 60,
+    staleTime: 1000 * 60 * 5,
   });
 
   return {

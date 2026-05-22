@@ -9,7 +9,7 @@ export const useEmployee = (employeeId: string) => {
   const employeeQuery = useQuery({
     queryKey: opsQueryKeys.employee(employeeId),
     queryFn: () => getEmployeeAction(employeeId),
-    staleTime: 1000 * 60,
+    staleTime: 1000 * 60 * 5,
   });
 
   return {
