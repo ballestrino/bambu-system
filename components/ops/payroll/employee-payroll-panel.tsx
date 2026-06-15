@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo } from "react";
 
 import { useEmployeePaymentMutations } from "@/components/ops/hooks/useEmployeePaymentMutations";
 import { useEmployeePayments } from "@/components/ops/hooks/useEmployeePayments";
@@ -10,34 +10,38 @@ import { EmployeePayrollFilters } from "@/components/ops/payroll/employee-payrol
 import { PayrollDialog } from "@/components/ops/payroll/payroll-dialog";
 import { PayrollSummary } from "@/components/ops/payroll/payroll-summary";
 import { buildPayrollRows, getPayrollSummary } from "@/components/ops/payroll/payroll-utils";
-import { OpsSection } from "@/components/ops/shared";
+import { OpsSection, useOpsSelectedMonth } from "@/components/ops/shared";
 import type { OpsEmployeeDetail } from "@/components/ops/types";
-import { getMonthRange, toDateInputValue } from "@/components/ops/utils";
-
-const getMonthRangeValues = (month: Date) => {
-  const { start, end } = getMonthRange(month);
-  return {
-    endDate: toDateInputValue(end),
-    startDate: toDateInputValue(start),
-  };
-};
+import {
+  formatMonth,
+  getMonthKey,
+  toDateInputValue,
+} from "@/components/ops/utils";
 
 export const EmployeePayrollPanel = ({
   employee,
 }: {
   employee: OpsEmployeeDetail;
 }) => {
-  const currentMonth = getMonthRangeValues(new Date());
-  const [startDate, setStartDate] = useState(currentMonth.startDate);
-  const [endDate, setEndDate] = useState(currentMonth.endDate);
+  const {
+    goToNextMonth,
+    goToPreviousMonth,
+    month,
+    monthKey,
+    monthRange,
+    resetToCurrentMonth,
+    setMonth,
+  } = useOpsSelectedMonth();
+  const startDate = toDateInputValue(monthRange.start);
+  const endDate = toDateInputValue(monthRange.end);
   const rangeFilters = {
-    startDate: startDate ? new Date(`${startDate}T00:00:00`) : undefined,
-    endDate: endDate ? new Date(`${endDate}T23:59:59`) : undefined,
+    startDate: monthRange.start,
+    endDate: monthRange.end,
   };
 
   const { payments, isLoading } = useEmployeePayments(
     { employeeId: employee.id, ...rangeFilters, statuses: ["RECORDED"] },
-    `employee-payroll-${employee.id}-${startDate}-${endDate}`
+    `employee-payroll-${employee.id}-${monthKey}`
   );
   const { occurrences } = useJobOccurrences(
     {
@@ -46,7 +50,7 @@ export const EmployeePayrollPanel = ({
       includeArchived: false,
       statuses: ["DONE"],
     },
-    `employee-payroll-occurrences-${employee.id}-${startDate}-${endDate}`
+    `employee-payroll-occurrences-${employee.id}-${monthKey}`
   );
   const { voidPaymentAsync } = useEmployeePaymentMutations(employee.id);
   const rows = useMemo(
@@ -55,25 +59,20 @@ export const EmployeePayrollPanel = ({
   );
   const summary = getPayrollSummary(rows, payments);
   const row = rows[0];
-  const previousMonth = new Date();
-  previousMonth.setMonth(previousMonth.getMonth() - 1);
-  const previousMonthRange = getMonthRangeValues(previousMonth);
+  const currentMonthKey = getMonthKey(new Date());
+  const previousMonthKey = getMonthKey(
+    new Date(new Date().getFullYear(), new Date().getMonth() - 1, 1)
+  );
   const activePreset =
-    startDate === currentMonth.startDate && endDate === currentMonth.endDate
+    monthKey === currentMonthKey
       ? "current-month"
-      : startDate === previousMonthRange.startDate && endDate === previousMonthRange.endDate
+      : monthKey === previousMonthKey
         ? "previous-month"
         : null;
-  const monthReference = startDate ? new Date(`${startDate}T00:00:00`) : new Date();
-  const monthLabel = monthReference.toLocaleDateString("es-UY", {
-    month: "long",
-    year: "numeric",
-  });
-
-  const setMonthDates = (month: Date) => {
-    const nextRange = getMonthRangeValues(month);
-    setStartDate(nextRange.startDate);
-    setEndDate(nextRange.endDate);
+  const monthLabel = formatMonth(month);
+  const handleDateMonthChange = (value: string) => {
+    if (!value) return;
+    setMonth(new Date(`${value}T00:00:00`));
   };
 
   return (
@@ -96,28 +95,16 @@ export const EmployeePayrollPanel = ({
           endDate={endDate}
           monthLabel={monthLabel}
           onClear={() => {
-            setMonthDates(new Date());
+            resetToCurrentMonth();
           }}
-          onEndDateChange={setEndDate}
-          onNextMonth={() => {
-            setMonthDates(
-              new Date(monthReference.getFullYear(), monthReference.getMonth() + 1, 1)
-            );
-          }}
+          onEndDateChange={handleDateMonthChange}
+          onNextMonth={goToNextMonth}
           onPresetCurrentMonth={() => {
-            setMonthDates(new Date());
+            resetToCurrentMonth();
           }}
-          onPresetPreviousMonth={() => {
-            setMonthDates(
-              new Date(monthReference.getFullYear(), monthReference.getMonth() - 1, 1)
-            );
-          }}
-          onPreviousMonth={() => {
-            setMonthDates(
-              new Date(monthReference.getFullYear(), monthReference.getMonth() - 1, 1)
-            );
-          }}
-          onStartDateChange={setStartDate}
+          onPresetPreviousMonth={goToPreviousMonth}
+          onPreviousMonth={goToPreviousMonth}
+          onStartDateChange={handleDateMonthChange}
           paymentCount={payments.length}
           startDate={startDate}
         />

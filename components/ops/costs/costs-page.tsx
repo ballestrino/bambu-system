@@ -18,28 +18,34 @@ import { useOperationalCostMutations } from "@/components/ops/hooks/useOperation
 import { useOperationalCosts } from "@/components/ops/hooks/useOperationalCosts";
 import { useOpsCostSettings } from "@/components/ops/hooks/useOpsCostSettings";
 import { useEmployeePayments } from "@/components/ops/hooks/useEmployeePayments";
-import { OpsPageHeader, OpsPageShell, OpsSection } from "@/components/ops/shared";
+import {
+  OpsPageHeader,
+  OpsPageShell,
+  OpsSection,
+  useOpsSelectedMonth,
+} from "@/components/ops/shared";
 import { EmployeePaymentList } from "@/components/ops/payroll/employee-payment-list";
 import { useEmployeePaymentMutations } from "@/components/ops/hooks/useEmployeePaymentMutations";
-import { getMonthRange, toDateInputValue } from "@/components/ops/utils";
+import { formatMonth } from "@/components/ops/utils";
 
 const getDefaultFilters = (): CostsFilterState => {
-  const currentMonth = getMonthRange(new Date());
   return {
     categoryId: "ALL",
     employeeId: "ALL",
-    endDate: toDateInputValue(currentMonth.end),
     jobId: "ALL",
-    startDate: toDateInputValue(currentMonth.start),
     status: "RECORDED",
   };
 };
 
 export const CostsPage = () => {
+  const { month, monthKey, monthRange, resetToCurrentMonth } =
+    useOpsSelectedMonth();
   const [filters, setFilters] = useState<CostsFilterState>(getDefaultFilters);
+  const monthLabel = formatMonth(month);
   const rangeFilters = {
-    startDate: filters.startDate ? new Date(`${filters.startDate}T00:00:00`) : undefined,
-    endDate: filters.endDate ? new Date(`${filters.endDate}T23:59:59`) : undefined,
+    assignedMonth: month,
+    startDate: monthRange.start,
+    endDate: monthRange.end,
   };
   const selectedStatus =
     filters.status === "ALL" ? undefined : [filters.status as PaymentStatus];
@@ -55,16 +61,16 @@ export const CostsPage = () => {
   const settingsQuery = useOpsCostSettings();
   const paymentsQuery = useJobClientPayments(
     { jobId: selectedJobId, ...rangeFilters, statuses: selectedStatus },
-    `costs-revenue-${filters.jobId}-${filters.startDate}-${filters.endDate}-${filters.status}`
+    `costs-revenue-${filters.jobId}-${monthKey}-${filters.status}`
   );
   const employeePaymentsQuery = useEmployeePayments(
     {
-      basis: "PAYMENT_DATE",
+      basis: "PERIOD",
       employeeId: selectedEmployeeId,
       ...rangeFilters,
       statuses: selectedStatus,
     },
-    `costs-payroll-${filters.employeeId}-${filters.startDate}-${filters.endDate}-${filters.status}`
+    `costs-payroll-${filters.employeeId}-${monthKey}-${filters.status}`
   );
   const costsQuery = useOperationalCosts(
     {
@@ -74,7 +80,7 @@ export const CostsPage = () => {
       ...rangeFilters,
       statuses: selectedStatus,
     },
-    `costs-${filters.categoryId}-${filters.employeeId}-${filters.jobId}-${filters.startDate}-${filters.endDate}-${filters.status}`
+    `costs-${filters.categoryId}-${filters.employeeId}-${filters.jobId}-${monthKey}-${filters.status}`
   );
   const { voidCostAsync } = useOperationalCostMutations();
   const { voidPaymentAsync } = useEmployeePaymentMutations();
@@ -122,7 +128,7 @@ export const CostsPage = () => {
     <OpsPageShell>
       <OpsPageHeader
         title="Costes"
-        description="Ganancia real por mes de caja: cobros menos pagos y costes registrados."
+        description="Ganancia real del periodo: cobros asignados menos pagos y costes registrados."
         actions={
           <CostDialog
             categories={categoriesQuery.categories}
@@ -137,8 +143,12 @@ export const CostsPage = () => {
         filters={filters}
         isRefreshing={isRefreshing}
         jobs={jobsQuery.jobs}
+        monthLabel={monthLabel}
         onChange={(values) => setFilters((current) => ({ ...current, ...values }))}
-        onClear={() => setFilters(getDefaultFilters())}
+        onClear={() => {
+          resetToCurrentMonth();
+          setFilters(getDefaultFilters());
+        }}
         onRefresh={refreshData}
       />
       <CostsSummary {...summary} />

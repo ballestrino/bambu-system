@@ -12,22 +12,22 @@ import { PaymentsList } from "@/components/ops/payments/payments-list";
 import { PaymentsSummary } from "@/components/ops/payments/payments-summary";
 import { EmployeeGeneratedPayPanel } from "@/components/ops/payments/revenue-attribution-panel";
 import { buildEmployeeGeneratedPay, getPaymentSummary } from "@/components/ops/payments/payment-utils";
-import { getMonthRange, toDateInputValue } from "@/components/ops/utils";
+import { useOpsSelectedMonth } from "@/components/ops/shared";
+import { formatMonth } from "@/components/ops/utils";
 import type { PaymentStatus } from "@prisma/client";
 
 export const PaymentsPage = () => {
-  const currentMonth = getMonthRange(new Date());
-  const [startDate, setStartDate] = useState(toDateInputValue(currentMonth.start));
-  const [endDate, setEndDate] = useState(toDateInputValue(currentMonth.end));
+  const { month, monthKey, monthRange, resetToCurrentMonth } =
+    useOpsSelectedMonth();
   const [status, setStatus] = useState("RECORDED");
   const [jobId, setJobId] = useState("ALL");
 
   const filters = {
+    assignedMonth: month,
     jobId: jobId === "ALL" ? undefined : jobId,
-    startDate: startDate ? new Date(`${startDate}T00:00:00`) : undefined,
-    endDate: endDate ? new Date(`${endDate}T23:59:59`) : undefined,
     statuses: status === "ALL" ? undefined : [status as PaymentStatus],
   };
+  const monthLabel = formatMonth(month);
 
   const {
     jobs,
@@ -41,7 +41,7 @@ export const PaymentsPage = () => {
     refetch: refetchPayments,
   } = useJobClientPayments(
     filters,
-    `payments-${jobId}-${startDate}-${endDate}-${status}`
+    `payments-${jobId}-${monthKey}-${status}`
   );
   const {
     occurrences,
@@ -50,12 +50,12 @@ export const PaymentsPage = () => {
   } = useJobOccurrences(
     {
       jobId: jobId === "ALL" ? undefined : jobId,
-      startDate: filters.startDate,
-      endDate: filters.endDate,
+      startDate: monthRange.start,
+      endDate: monthRange.end,
       statuses: ["DONE"],
       includeArchived: false,
     },
-    `payment-attribution-${jobId}-${startDate}-${endDate}`
+    `payment-attribution-${jobId}-${monthKey}`
   );
   const { voidPaymentAsync } = useJobClientPaymentMutations();
 
@@ -70,9 +70,7 @@ export const PaymentsPage = () => {
     await Promise.all([refetchJobs(), refetchPayments(), refetchOccurrences()]);
   };
   const clearFilters = () => {
-    const nextMonth = getMonthRange(new Date());
-    setStartDate(toDateInputValue(nextMonth.start));
-    setEndDate(toDateInputValue(nextMonth.end));
+    resetToCurrentMonth();
     setStatus("RECORDED");
     setJobId("ALL");
   };
@@ -87,17 +85,14 @@ export const PaymentsPage = () => {
         <PaymentDialog jobs={jobs} />
       </div>
       <PaymentsFilters
-        endDate={endDate}
         isRefreshing={isRefreshing}
         jobId={jobId}
         jobs={jobs}
+        monthLabel={monthLabel}
         onClear={clearFilters}
-        onEndDateChange={setEndDate}
         onJobIdChange={setJobId}
         onRefresh={refreshPaymentsData}
-        onStartDateChange={setStartDate}
         onStatusChange={setStatus}
-        startDate={startDate}
         status={status}
       />
       <PaymentsSummary {...summary} showVoided={status !== "RECORDED"} />

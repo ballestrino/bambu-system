@@ -28,6 +28,9 @@ const assertOptionalLinks = async (values: {
   ]);
 };
 
+const normalizeAssignedMonth = (date: Date) =>
+  new Date(Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), 1));
+
 export const createOperationalCostCategory = async (values: unknown) => {
   try {
     const session = await requireAdminSession();
@@ -102,7 +105,11 @@ export const createOperationalCost = async (values: unknown) => {
     ]);
 
     const cost = await db.operationalCost.create({
-      data: { ...parsedValues.data, createdById: session.user.id },
+      data: {
+        ...parsedValues.data,
+        assignedMonth: normalizeAssignedMonth(parsedValues.data.assignedMonth),
+        createdById: session.user.id,
+      },
     });
 
     return { success: "Coste creado", cost };
@@ -121,6 +128,7 @@ export const updateOperationalCost = async (costId: string, values: unknown) => 
       return { error: "Datos invalidos para actualizar el coste" };
     }
     const mergedValues = {
+      assignedMonth: getPatchedValue(parsedValues.data, "assignedMonth", existingCost.assignedMonth),
       categoryId: getPatchedValue(parsedValues.data, "categoryId", existingCost.categoryId),
       costDate: getPatchedValue(parsedValues.data, "costDate", existingCost.costDate),
       amount: getPatchedValue(parsedValues.data, "amount", Number(existingCost.amount)),
@@ -142,6 +150,7 @@ export const updateOperationalCost = async (costId: string, values: unknown) => 
     const cost = await db.operationalCost.update({
       where: { id: costId },
       data: {
+        assignedMonth: normalizeAssignedMonth(validatedValues.data.assignedMonth),
         amount: validatedValues.data.amount,
         categoryId: validatedValues.data.categoryId,
         costDate: validatedValues.data.costDate,

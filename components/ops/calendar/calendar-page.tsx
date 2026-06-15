@@ -10,14 +10,22 @@ import {
 import { CalendarMonthPanel } from "@/components/ops/calendar/calendar-month-panel";
 import { useJobOccurrences } from "@/components/ops/hooks/useJobOccurrences";
 import { JobOccurrenceDialog } from "@/components/ops/jobs/job-occurrence-dialog";
-import { getMonthKey, getMonthRange } from "@/components/ops/utils";
-import { OpsPageHeader, OpsPageShell, OpsRefreshButton } from "@/components/ops/shared";
+import {
+  OpsPageHeader,
+  OpsPageShell,
+  OpsRefreshButton,
+  useOpsSelectedMonth,
+} from "@/components/ops/shared";
 
 export const CalendarPage = () => {
-  const [month, setMonth] = useState(new Date());
-  const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date());
-  const monthRange = getMonthRange(month);
-  const monthKey = getMonthKey(month);
+  const { month, monthKey, monthRange, setMonth } = useOpsSelectedMonth();
+  const [selectedDate, setSelectedDate] = useState<Date | undefined>();
+  const visibleSelectedDate =
+    selectedDate &&
+    selectedDate.getFullYear() === month.getFullYear() &&
+    selectedDate.getMonth() === month.getMonth()
+      ? selectedDate
+      : monthRange.start;
   const {
     occurrences,
     isFetching,
@@ -35,9 +43,11 @@ export const CalendarPage = () => {
   const selectedDayOccurrences = useMemo(
     () =>
       occurrences
-        .filter((occurrence) => sameDay(occurrence.scheduledStartAt, selectedDate))
+        .filter((occurrence) =>
+          sameDay(occurrence.scheduledStartAt, visibleSelectedDate)
+        )
         .sort(byScheduledStart),
-    [occurrences, selectedDate]
+    [occurrences, visibleSelectedDate]
   );
 
   return (
@@ -58,7 +68,7 @@ export const CalendarPage = () => {
         <CalendarMonthPanel
           month={month}
           occurrences={occurrences}
-          selectedDate={selectedDate}
+          selectedDate={visibleSelectedDate}
           onMonthChange={setMonth}
           onSelectDate={setSelectedDate}
         />
@@ -66,7 +76,7 @@ export const CalendarPage = () => {
           allOccurrences={occurrences}
           isLoading={isLoading}
           occurrences={selectedDayOccurrences}
-          selectedDate={selectedDate}
+          selectedDate={visibleSelectedDate}
         />
       </div>
     </OpsPageShell>

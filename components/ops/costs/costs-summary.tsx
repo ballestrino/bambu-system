@@ -34,14 +34,14 @@ export const CostsSummary = ({
   <OpsMetricsGrid
     metrics={[
       {
-        helper: "cobros por fecha de pago",
+        helper: "cobros asignados al periodo",
         icon: CircleDollarSign,
         label: "Cobrado",
         tone: "money",
         value: formatCostMoney(recordedRevenue),
       },
       {
-        helper: "pagos hechos a empleadas",
+        helper: "pagos del periodo trabajado",
         icon: HandCoins,
         label: "Empleadas",
         tone: "warning",
@@ -55,7 +55,7 @@ export const CostsSummary = ({
         value: formatCostMoney(totalCosts),
       },
       {
-        helper: "caja real del periodo",
+        helper: "resultado real del periodo",
         icon: TrendingUp,
         label: "Ganancia",
         tone: realProfit >= 0 ? "success" : "danger",

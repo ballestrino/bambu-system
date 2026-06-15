@@ -2,7 +2,6 @@
 
 import {
   getOpsStatusConfig,
-  OpsDateFilterInput,
   OpsFilterChips,
   OpsFilterField,
   OpsFilterSheet,
@@ -16,61 +15,36 @@ import type { OpsJobListItem } from "@/components/ops/types";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 type PaymentsFiltersProps = {
-  endDate: string;
   jobId: string;
   jobs: OpsJobListItem[];
   isRefreshing?: boolean;
+  monthLabel: string;
   onClear: () => void;
-  onEndDateChange: (value: string) => void;
   onJobIdChange: (value: string) => void;
-  onStartDateChange: (value: string) => void;
   onRefresh: () => Promise<unknown> | void;
   onStatusChange: (value: string) => void;
-  startDate: string;
   status: string;
 };
 
 export const PaymentsFilters = ({
-  endDate,
   jobId,
   jobs,
   isRefreshing,
+  monthLabel,
   onClear,
-  onEndDateChange,
   onJobIdChange,
   onRefresh,
-  onStartDateChange,
   onStatusChange,
-  startDate,
   status,
 }: PaymentsFiltersProps) => {
   const selectedStatus =
     status === "ALL" ? null : getOpsStatusConfig(opsPaymentStatus, status);
   const selectedJob = jobs.find((job) => job.id === jobId);
   const chips = [
-    startDate ? { label: `Desde: ${startDate}`, onRemove: () => onStartDateChange("") } : null,
-    endDate ? { label: `Hasta: ${endDate}`, onRemove: () => onEndDateChange("") } : null,
+    { label: `Mes: ${monthLabel}` },
     selectedStatus ? { label: `Estado: ${selectedStatus.label}`, onRemove: () => onStatusChange("ALL") } : null,
     selectedJob ? { label: `Trabajo: ${selectedJob.name}`, onRemove: () => onJobIdChange("ALL") } : null,
   ].filter(Boolean) as OpsFilterChip[];
-
-  const startField = (
-    <OpsFilterField label="Desde">
-      <OpsDateFilterInput
-        value={startDate}
-        onChange={(event) => onStartDateChange(event.target.value)}
-      />
-    </OpsFilterField>
-  );
-
-  const endField = (
-    <OpsFilterField label="Hasta">
-      <OpsDateFilterInput
-        value={endDate}
-        onChange={(event) => onEndDateChange(event.target.value)}
-      />
-    </OpsFilterField>
-  );
 
   const statusField = (
     <OpsFilterField label="Estado">
@@ -111,11 +85,9 @@ export const PaymentsFilters = ({
         <div className="flex gap-2">
           <OpsFilterSheet
             activeCount={chips.length}
-            description="Ajusta periodo, estado y trabajo para revisar cobros."
+            description="Ajusta estado y trabajo para revisar cobros."
             onClear={onClear}
           >
-            {startField}
-            {endField}
             {statusField}
             {jobField}
           </OpsFilterSheet>
@@ -130,8 +102,6 @@ export const PaymentsFilters = ({
 
       <div className="hidden space-y-3 md:block">
         <OpsToolbar summary={`${chips.length} filtro(s) activo(s)`}>
-          {startField}
-          {endField}
           {statusField}
           {jobField}
           <OpsRefreshButton

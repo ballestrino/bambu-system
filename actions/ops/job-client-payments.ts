@@ -13,6 +13,9 @@ import {
   UpdateJobClientPaymentSchema,
 } from "@/schemas/ops";
 
+const normalizeAssignedMonth = (date: Date) =>
+  new Date(Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), 1));
+
 export const createJobClientPayment = async (values: unknown) => {
   try {
     const session = await requireAdminSession();
@@ -27,6 +30,7 @@ export const createJobClientPayment = async (values: unknown) => {
     const clientPayment = await db.jobClientPayment.create({
       data: {
         ...parsedValues.data,
+        assignedMonth: normalizeAssignedMonth(parsedValues.data.assignedMonth),
         createdById: session.user.id,
       },
     });
@@ -57,6 +61,11 @@ export const updateJobClientPayment = async (
 
     const mergedValues = {
       jobId: existingClientPayment.jobId,
+      assignedMonth: getPatchedValue(
+        parsedValues.data,
+        "assignedMonth",
+        existingClientPayment.assignedMonth
+      ),
       paymentDate: getPatchedValue(
         parsedValues.data,
         "paymentDate",
@@ -94,6 +103,7 @@ export const updateJobClientPayment = async (
         id: jobClientPaymentId,
       },
       data: {
+        assignedMonth: normalizeAssignedMonth(validatedValues.data.assignedMonth),
         paymentDate: validatedValues.data.paymentDate,
         amount: validatedValues.data.amount,
         reference: mergedValues.reference,

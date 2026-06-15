@@ -16,6 +16,7 @@ import {
   opsFormControlClass,
   opsFormSelectTriggerClass,
   opsFormTextareaClass,
+  useOpsSelectedMonth,
 } from "@/components/ops/shared";
 import type {
   OpsEmployee,
@@ -23,7 +24,7 @@ import type {
   OpsOperationalCost,
   OpsOperationalCostCategory,
 } from "@/components/ops/types";
-import { toDateInputValue } from "@/components/ops/utils";
+import { getUtcMonthKey, parseUtcMonthKey, toDateInputValue } from "@/components/ops/utils";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
@@ -32,8 +33,11 @@ import { Textarea } from "@/components/ui/textarea";
 
 const noneValue = "NONE";
 
-const getInitialState = (cost?: OpsOperationalCost) => ({
+const getInitialState = (defaultMonthKey: string, cost?: OpsOperationalCost) => ({
   amount: cost ? String(toCostNumber(cost.amount)) : "",
+  assignedMonth: cost?.assignedMonth
+    ? getUtcMonthKey(new Date(cost.assignedMonth))
+    : defaultMonthKey,
   categoryId: cost?.categoryId ?? "",
   costDate: toDateInputValue(cost?.costDate ?? new Date()),
   employeeId: cost?.employeeId ?? noneValue,
@@ -53,16 +57,21 @@ export const CostDialog = ({
   employees: OpsEmployee[];
   jobs: OpsJobListItem[];
 }) => {
+  const { monthKey } = useOpsSelectedMonth();
   const [open, setOpen] = useState(false);
-  const [formState, setFormState] = useState(getInitialState(cost));
+  const [formState, setFormState] = useState(getInitialState(monthKey, cost));
   const { createCostAsync, updateCostAsync, isCreating, isUpdating } =
     useOperationalCostMutations();
   const amount = toCostNumber(formState.amount);
   const isPending = isCreating || isUpdating;
 
   const handleSubmit = async () => {
+    const assignedMonth = parseUtcMonthKey(formState.assignedMonth);
+    if (!assignedMonth) return;
+
     const values = {
       amount,
+      assignedMonth,
       categoryId: formState.categoryId,
       costDate: new Date(`${formState.costDate}T00:00:00`),
       employeeId: formState.employeeId === noneValue ? null : formState.employeeId,
@@ -85,7 +94,7 @@ export const CostDialog = ({
     <Dialog
       open={open}
       onOpenChange={(nextOpen) => {
-        if (nextOpen) setFormState(getInitialState(cost));
+        if (nextOpen) setFormState(getInitialState(monthKey, cost));
         setOpen(nextOpen);
       }}
     >
@@ -118,7 +127,10 @@ export const CostDialog = ({
             </Select>
           </OpsFormField>
           <OpsFormGrid>
-            <OpsFormField label="Fecha"><Input className={opsFormControlClass} type="date" value={formState.costDate} onChange={(event) => setFormState((current) => ({ ...current, costDate: event.target.value }))} /></OpsFormField>
+            <OpsFormField label="Mes asignado"><Input className={opsFormControlClass} type="month" value={formState.assignedMonth} onChange={(event) => setFormState((current) => ({ ...current, assignedMonth: event.target.value }))} /></OpsFormField>
+            <OpsFormField label="Fecha del coste"><Input className={opsFormControlClass} type="date" value={formState.costDate} onChange={(event) => setFormState((current) => ({ ...current, costDate: event.target.value }))} /></OpsFormField>
+          </OpsFormGrid>
+          <OpsFormGrid>
             <OpsFormField label="Monto"><Input className={opsFormControlClass} min="0.01" step="0.01" type="number" value={formState.amount} onChange={(event) => setFormState((current) => ({ ...current, amount: event.target.value }))} /></OpsFormField>
           </OpsFormGrid>
           <OpsFormGrid>
@@ -146,7 +158,7 @@ export const CostDialog = ({
         </OpsFormBody>
         <OpsFormFooter>
           <Button variant="outline" onClick={() => setOpen(false)}>Cancelar</Button>
-          <Button disabled={isPending || !formState.categoryId || amount <= 0 || !formState.costDate} onClick={handleSubmit}>
+          <Button disabled={isPending || !formState.assignedMonth || !formState.categoryId || amount <= 0 || !formState.costDate} onClick={handleSubmit}>
             {isPending ? <LoaderCircle className="h-4 w-4 animate-spin" /> : null}
             Guardar coste
           </Button>

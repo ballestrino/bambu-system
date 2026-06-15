@@ -7,6 +7,17 @@ const dateFormat = new Intl.DateTimeFormat("es-UY", {
   dateStyle: "medium",
 });
 
+const monthFormat = new Intl.DateTimeFormat("es-UY", {
+  month: "long",
+  year: "numeric",
+});
+
+const utcMonthFormat = new Intl.DateTimeFormat("es-UY", {
+  month: "long",
+  timeZone: "UTC",
+  year: "numeric",
+});
+
 const timeFormat = new Intl.DateTimeFormat("es-UY", {
   timeStyle: "short",
 });
@@ -21,6 +32,22 @@ export const formatDate = (value: Date | string | null | undefined) => {
   }
 
   return dateFormat.format(new Date(value));
+};
+
+export const formatMonth = (value: Date | string | null | undefined) => {
+  if (!value) {
+    return "-";
+  }
+
+  return monthFormat.format(new Date(value));
+};
+
+export const formatUtcMonth = (value: Date | string | null | undefined) => {
+  if (!value) {
+    return "-";
+  }
+
+  return utcMonthFormat.format(new Date(value));
 };
 
 export const formatDateTime = (value: Date | string | null | undefined) => {
@@ -100,6 +127,20 @@ export const getMonthRange = (month: Date) => {
 
 export const getMonthKey = (month: Date) =>
   `${month.getFullYear()}-${String(month.getMonth() + 1).padStart(2, "0")}`;
+
+export const getUtcMonthKey = (month: Date) =>
+  `${month.getUTCFullYear()}-${String(month.getUTCMonth() + 1).padStart(2, "0")}`;
+
+export const parseUtcMonthKey = (monthKey: string) => {
+  const match = monthKey.match(/^(\d{4})-(\d{2})$/);
+  if (!match) {
+    return undefined;
+  }
+
+  const [, year, month] = match;
+  const date = new Date(Date.UTC(Number(year), Number(month) - 1, 1));
+  return isValidDate(date) ? date : undefined;
+};
 
 export const minutesToTimeInput = (minutes: number) => {
   const hours = Math.floor(minutes / 60);

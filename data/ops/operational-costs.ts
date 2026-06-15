@@ -8,7 +8,11 @@ import {
   OperationalCostCategoryFiltersSchema,
   OperationalCostFiltersSchema,
 } from "@/schemas/ops";
-import { buildDateTimeRange, opsAuditUserSelect } from "@/data/ops/shared";
+import {
+  buildAssignedMonthRange,
+  buildDateTimeRange,
+  opsAuditUserSelect,
+} from "@/data/ops/shared";
 
 const defaultCategories = [
   { name: "BPS", kind: "BPS", color: "#3B82F6" },
@@ -67,14 +71,25 @@ export const getOperationalCosts = async (filters?: unknown) => {
       return { error: "Filtros de costes invalidos" };
     }
 
-    const { categoryId, employeeId, jobId, kinds, statuses, startDate, endDate } =
-      parsedFilters.data;
+    const {
+      assignedMonth,
+      categoryId,
+      employeeId,
+      jobId,
+      kinds,
+      statuses,
+      startDate,
+      endDate,
+    } = parsedFilters.data;
+    const assignedMonthRange = assignedMonth
+      ? buildAssignedMonthRange(assignedMonth)
+      : buildDateTimeRange(startDate, endDate);
     const where: Prisma.OperationalCostWhereInput = {
       categoryId,
       employeeId,
       jobId,
       status: statuses?.length ? { in: statuses } : undefined,
-      costDate: buildDateTimeRange(startDate, endDate),
+      assignedMonth: assignedMonthRange,
       category: kinds?.length ? { kind: { in: kinds } } : undefined,
     };
 
@@ -87,7 +102,11 @@ export const getOperationalCosts = async (filters?: unknown) => {
         createdBy: { select: opsAuditUserSelect },
         updatedBy: { select: opsAuditUserSelect },
       },
-      orderBy: [{ costDate: "desc" }, { createdAt: "desc" }],
+      orderBy: [
+        { assignedMonth: "desc" },
+        { costDate: "desc" },
+        { createdAt: "desc" },
+      ],
     });
 
     return { costs };

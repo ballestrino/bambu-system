@@ -19,11 +19,15 @@ import {
   getPendingRegistrationVisits,
   getPendingVisitsRange,
 } from "@/components/ops/jobs/pending-visits-utils";
-import { OpsPageHeader, OpsPageShell } from "@/components/ops/shared";
-import { getMonthRange } from "@/components/ops/utils";
+import {
+  OpsPageHeader,
+  OpsPageShell,
+  useOpsSelectedMonth,
+} from "@/components/ops/shared";
 import type { JobOccurrenceFilters } from "@/schemas/ops";
 
 export const OpsDashboardPage = () => {
+  const { monthKey, monthRange } = useOpsSelectedMonth();
   const occurrenceFilters = useMemo<JobOccurrenceFilters>(() => {
     const { endDate } = getPendingVisitsRange();
 
@@ -38,14 +42,12 @@ export const OpsDashboardPage = () => {
     startDate: Date;
     statuses: PaymentStatus[];
   }>(() => {
-    const { end, start } = getMonthRange(new Date());
-
     return {
-      endDate: end,
-      startDate: start,
+      endDate: monthRange.end,
+      startDate: monthRange.start,
       statuses: ["RECORDED"],
     };
-  }, []);
+  }, [monthRange.end, monthRange.start]);
 
   const {
     occurrences,
@@ -64,7 +66,7 @@ export const OpsDashboardPage = () => {
       includeArchived: false,
       startDate: financialDateFilters.startDate,
     },
-    "dashboard-month-visits"
+    `dashboard-month-visits-${monthKey}`
   );
   const {
     employees,
@@ -88,7 +90,10 @@ export const OpsDashboardPage = () => {
     isFetching: arePaymentsFetching,
     isLoading: arePaymentsLoading,
     refetch: refetchPayments,
-  } = useJobClientPayments(financialDateFilters, "dashboard-recorded-payments");
+  } = useJobClientPayments(
+    financialDateFilters,
+    `dashboard-recorded-payments-${monthKey}`
+  );
   const {
     payments: employeePayments,
     isFetching: areEmployeePaymentsFetching,
@@ -96,14 +101,17 @@ export const OpsDashboardPage = () => {
     refetch: refetchEmployeePayments,
   } = useEmployeePayments(
     { ...financialDateFilters, basis: "PAYMENT_DATE" },
-    "dashboard-recorded-employee-payments"
+    `dashboard-recorded-employee-payments-${monthKey}`
   );
   const {
     costs,
     isFetching: areCostsFetching,
     isLoading: areCostsLoading,
     refetch: refetchCosts,
-  } = useOperationalCosts(financialDateFilters, "dashboard-recorded-costs");
+  } = useOperationalCosts(
+    financialDateFilters,
+    `dashboard-recorded-costs-${monthKey}`
+  );
   const {
     settings,
     isFetching: areSettingsFetching,

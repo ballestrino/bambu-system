@@ -427,6 +427,7 @@ model JobClientPayment {
   id          String        @id @default(cuid())
   jobId       String
   job         Job           @relation(fields: [jobId], references: [id], onDelete: Restrict)
+  assignedMonth DateTime
   paymentDate DateTime
   amount      Decimal       @db.Decimal(12, 2)
   reference   String?
@@ -439,7 +440,10 @@ model JobClientPayment {
   createdAt   DateTime      @default(now())
   updatedAt   DateTime      @updatedAt
 
+  @@index([jobId, assignedMonth])
+  @@index([jobId, status, assignedMonth])
   @@index([jobId, paymentDate])
+  @@index([status, assignedMonth])
   @@index([status, paymentDate])
   @@index([createdById])
   @@index([updatedById])
@@ -499,6 +503,7 @@ model OperationalCost {
   job         Job?                    @relation(fields: [jobId], references: [id], onDelete: SetNull)
   employeeId  String?
   employee    Employee?               @relation(fields: [employeeId], references: [id], onDelete: SetNull)
+  assignedMonth DateTime
   costDate    DateTime
   amount      Decimal                 @db.Decimal(12, 2)
   reference   String?
@@ -511,9 +516,13 @@ model OperationalCost {
   createdAt   DateTime                @default(now())
   updatedAt   DateTime                @updatedAt
 
+  @@index([categoryId, assignedMonth])
   @@index([categoryId, costDate])
+  @@index([employeeId, assignedMonth])
   @@index([employeeId, costDate])
+  @@index([jobId, assignedMonth])
   @@index([jobId, costDate])
+  @@index([status, assignedMonth])
   @@index([status, costDate])
   @@index([createdById])
   @@index([updatedById])

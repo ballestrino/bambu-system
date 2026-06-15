@@ -59,7 +59,7 @@ export const DashboardMetricGrid = ({
         value: areEmployeesLoading ? loadingValue : activeEmployeeCount,
       },
       {
-        helper: "Programadas dentro del mes actual",
+        helper: "Programadas dentro del mes seleccionado",
         icon: CalendarDays,
         label: "Visitas del mes",
         tone: "neutral",

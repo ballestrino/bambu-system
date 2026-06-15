@@ -3,7 +3,11 @@ import "server-only";
 import { db } from "@/lib/db";
 import { requireAdminSession } from "@/lib/require-admin-session";
 import { JobClientPaymentFiltersSchema } from "@/schemas/ops";
-import { buildDateTimeRange, opsAuditUserSelect } from "@/data/ops/shared";
+import {
+  buildAssignedMonthRange,
+  buildDateTimeRange,
+  opsAuditUserSelect,
+} from "@/data/ops/shared";
 
 export const getJobClientPayments = async (filters?: unknown) => {
   try {
@@ -14,13 +18,17 @@ export const getJobClientPayments = async (filters?: unknown) => {
       return { error: "Filtros de cobros invalidos" };
     }
 
-    const { jobId, statuses, startDate, endDate } = parsedFilters.data;
+    const { assignedMonth, jobId, statuses, startDate, endDate } =
+      parsedFilters.data;
+    const assignedMonthRange = assignedMonth
+      ? buildAssignedMonthRange(assignedMonth)
+      : buildDateTimeRange(startDate, endDate);
 
     const clientPayments = await db.jobClientPayment.findMany({
       where: {
         jobId,
         status: statuses?.length ? { in: statuses } : undefined,
-        paymentDate: buildDateTimeRange(startDate, endDate),
+        assignedMonth: assignedMonthRange,
       },
       include: {
         job: true,
@@ -31,7 +39,11 @@ export const getJobClientPayments = async (filters?: unknown) => {
           select: opsAuditUserSelect,
         },
       },
-      orderBy: [{ paymentDate: "desc" }, { createdAt: "desc" }],
+      orderBy: [
+        { assignedMonth: "desc" },
+        { paymentDate: "desc" },
+        { createdAt: "desc" },
+      ],
     });
 
     return { clientPayments };

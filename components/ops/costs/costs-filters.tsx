@@ -3,9 +3,7 @@
 import type { PaymentStatus } from "@prisma/client";
 
 import {
-  OpsDateFilterInput,
   OpsFilterChips,
-  OpsFilterField,
   OpsFilterSheet,
   OpsRefreshButton,
   OpsToolbar,
@@ -24,9 +22,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 export type CostsFilterState = {
   categoryId: string;
   employeeId: string;
-  endDate: string;
   jobId: string;
-  startDate: string;
   status: string;
 };
 
@@ -36,6 +32,7 @@ export const CostsFilters = ({
   filters,
   isRefreshing,
   jobs,
+  monthLabel,
   onChange,
   onClear,
   onRefresh,
@@ -45,6 +42,7 @@ export const CostsFilters = ({
   filters: CostsFilterState;
   isRefreshing?: boolean;
   jobs: OpsJobListItem[];
+  monthLabel: string;
   onChange: (values: Partial<CostsFilterState>) => void;
   onClear: () => void;
   onRefresh: () => Promise<unknown> | void;
@@ -57,6 +55,7 @@ export const CostsFilters = ({
   );
   const selectedJob = jobs.find((job) => job.id === filters.jobId);
   const chips = [
+    { label: `Mes: ${monthLabel}` },
     selectedCategory
       ? { label: `Categoria: ${selectedCategory.name}`, onRemove: () => onChange({ categoryId: "ALL" }) }
       : null,
@@ -70,23 +69,6 @@ export const CostsFilters = ({
       ? { label: `Estado: ${getOpsStatusConfig(opsPaymentStatus, filters.status as PaymentStatus).label}`, onRemove: () => onChange({ status: "ALL" }) }
       : null,
   ].filter(Boolean) as OpsFilterChip[];
-
-  const dateFields = (
-    <>
-      <OpsFilterField label="Desde">
-        <OpsDateFilterInput
-          value={filters.startDate}
-          onChange={(event) => onChange({ startDate: event.target.value })}
-        />
-      </OpsFilterField>
-      <OpsFilterField label="Hasta">
-        <OpsDateFilterInput
-          value={filters.endDate}
-          onChange={(event) => onChange({ endDate: event.target.value })}
-        />
-      </OpsFilterField>
-    </>
-  );
 
   const selectFields = (
     <>
@@ -135,14 +117,12 @@ export const CostsFilters = ({
     <div className="space-y-3">
       <div className="md:hidden">
         <OpsFilterSheet activeCount={chips.length} onClear={onClear}>
-          {dateFields}
           {selectFields}
           {relationFields}
         </OpsFilterSheet>
       </div>
       <div className="hidden md:block">
         <OpsToolbar summary={`${chips.length} filtro(s) activo(s)`}>
-          {dateFields}
           {selectFields}
           {relationFields}
           <OpsRefreshButton isRefreshing={isRefreshing} onRefresh={onRefresh} />

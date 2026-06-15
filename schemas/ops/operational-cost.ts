@@ -47,6 +47,7 @@ export const OperationalCostCategoryFiltersSchema = z.object({
 
 const operationalCostBaseSchema = z.object({
   categoryId: cuidSchema,
+  assignedMonth: z.coerce.date(),
   costDate: z.coerce.date(),
   amount: positiveAmountSchema,
   jobId: z.preprocess((value) => (value === "" ? null : value), z.union([cuidSchema, z.null()]).optional()),
@@ -60,6 +61,7 @@ export const CreateOperationalCostSchema = operationalCostBaseSchema;
 
 export const UpdateOperationalCostSchema = z.object({
   categoryId: nullableCuidUpdateSchema,
+  assignedMonth: z.coerce.date().optional(),
   costDate: z.coerce.date().optional(),
   amount: positiveAmountSchema.optional(),
   jobId: nullableCuidUpdateSchema,
@@ -70,6 +72,7 @@ export const UpdateOperationalCostSchema = z.object({
 });
 
 export const OperationalCostFiltersSchema = dateRangeFiltersSchema.extend({
+  assignedMonth: z.coerce.date().optional(),
   categoryId: z.preprocess((value) => (value === "" ? undefined : value), cuidSchema.optional()),
   employeeId: z.preprocess((value) => (value === "" ? undefined : value), cuidSchema.optional()),
   jobId: z.preprocess((value) => (value === "" ? undefined : value), cuidSchema.optional()),

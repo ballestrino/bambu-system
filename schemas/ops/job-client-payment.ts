@@ -13,6 +13,7 @@ export const paymentStatusSchema = z.enum(paymentStatusValues);
 
 const jobClientPaymentBaseSchema = z.object({
   jobId: cuidSchema,
+  assignedMonth: z.coerce.date(),
   paymentDate: z.coerce.date(),
   amount: positiveAmountSchema,
   reference: optionalTrimmedString(255),
@@ -23,6 +24,7 @@ const jobClientPaymentBaseSchema = z.object({
 export const CreateJobClientPaymentSchema = jobClientPaymentBaseSchema;
 
 export const UpdateJobClientPaymentSchema = z.object({
+  assignedMonth: z.coerce.date().optional(),
   paymentDate: z.coerce.date().optional(),
   amount: positiveAmountSchema.optional(),
   reference: nullableTrimmedString(255),
@@ -31,6 +33,7 @@ export const UpdateJobClientPaymentSchema = z.object({
 });
 
 export const JobClientPaymentFiltersSchema = dateRangeFiltersSchema.extend({
+  assignedMonth: z.coerce.date().optional(),
   jobId: z.preprocess((value) => (value === "" ? undefined : value), cuidSchema.optional()),
   statuses: z.array(paymentStatusSchema).optional(),
 });

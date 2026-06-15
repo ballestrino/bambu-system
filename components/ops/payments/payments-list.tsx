@@ -8,7 +8,7 @@ import { PaymentDialog } from "@/components/ops/payments/payment-dialog";
 import { PaymentStatusBadge } from "@/components/ops/payments/payment-status-badge";
 import { formatMoney, toMoneyNumber } from "@/components/ops/payments/payment-utils";
 import type { OpsJobClientPayment, OpsJobListItem } from "@/components/ops/types";
-import { formatDate } from "@/components/ops/utils";
+import { formatDate, formatUtcMonth } from "@/components/ops/utils";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
@@ -39,9 +39,14 @@ export const PaymentsList = ({
               <div className="flex flex-wrap items-center gap-2">
                 <PaymentStatusBadge status={payment.status} />
                 <p className="font-medium">{formatMoney(toMoneyNumber(payment.amount))}</p>
-                <p className="text-muted-foreground">{formatDate(payment.paymentDate)}</p>
+                <p className="text-muted-foreground">
+                  Asignado: {formatUtcMonth(payment.assignedMonth)}
+                </p>
               </div>
               <p>{payment.job.name}</p>
+              <p className="text-muted-foreground">
+                Fecha de cobro: {formatDate(payment.paymentDate)}
+              </p>
               <p className="text-muted-foreground">
                 {payment.reference || "Sin referencia"} · {payment.notes || "Sin notas"}
               </p>

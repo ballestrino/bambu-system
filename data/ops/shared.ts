@@ -21,3 +21,15 @@ export const buildDateTimeRange = (
     lte: endDate,
   };
 };
+
+export const buildAssignedMonthRange = (assignedMonth: Date) =>
+  buildDateTimeRange(
+    new Date(Date.UTC(assignedMonth.getUTCFullYear(), assignedMonth.getUTCMonth(), 1)),
+    new Date(
+      Date.UTC(
+        assignedMonth.getUTCFullYear(),
+        assignedMonth.getUTCMonth() + 1,
+        1
+      ) - 1
+    )
+  );

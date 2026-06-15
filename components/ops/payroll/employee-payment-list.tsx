@@ -4,6 +4,7 @@ import Link from "next/link";
 
 import { dashboardSecondaryActionClass } from "@/components/dashboard/dashboard-styles";
 import DeleteDialog from "@/components/ui/delete-dialog";
+import { getSummaryPeriodHref } from "@/components/ops/employees/employee-summary-utils";
 import { PaymentStatusBadge } from "@/components/ops/payments/payment-status-badge";
 import { PayrollDialog } from "@/components/ops/payroll/payroll-dialog";
 import { formatPayrollMoney, toPayrollNumber } from "@/components/ops/payroll/payroll-utils";
@@ -53,6 +54,11 @@ export const EmployeePaymentList = ({
                   <Link href={`/dashboard/employees/${payment.employeeId}`}>Empleado</Link>
                 </Button>
               ) : null}
+              <Button asChild size="sm" variant="outline" className={dashboardSecondaryActionClass}>
+                <Link href={getSummaryPeriodHref(payment.employeeId, payment.periodStart, payment.periodEnd)}>
+                  Resumen de empleado
+                </Link>
+              </Button>
               <PayrollDialog employees={employees} payment={payment} />
               {payment.status === "RECORDED" ? (
                 <DeleteDialog

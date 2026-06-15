@@ -12,9 +12,10 @@ import {
   OpsFormBody, OpsFormDialogContent, OpsFormField, OpsFormFooter,
   OpsFormGrid, OpsFormHeader, opsFormControlClass,
   opsFormSelectTriggerClass, opsFormTextareaClass,
+  useOpsSelectedMonth,
 } from "@/components/ops/shared";
 import type { OpsJobClientPayment, OpsJobListItem } from "@/components/ops/types";
-import { toDateInputValue } from "@/components/ops/utils";
+import { getUtcMonthKey, parseUtcMonthKey, toDateInputValue } from "@/components/ops/utils";
 import { toMoneyNumber } from "@/components/ops/payments/payment-utils";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
@@ -22,7 +23,14 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 
-const getInitialState = (payment?: OpsJobClientPayment, jobId?: string) => ({
+const getInitialState = (
+  defaultMonthKey: string,
+  payment?: OpsJobClientPayment,
+  jobId?: string
+) => ({
+  assignedMonth: payment?.assignedMonth
+    ? getUtcMonthKey(new Date(payment.assignedMonth))
+    : defaultMonthKey,
   jobId: payment?.jobId ?? jobId ?? "",
   paymentDate: toDateInputValue(payment?.paymentDate ?? new Date()),
   amount: payment ? String(toMoneyNumber(payment.amount)) : "",
@@ -39,18 +47,25 @@ export const PaymentDialog = ({
   jobs: OpsJobListItem[];
   payment?: OpsJobClientPayment;
 }) => {
+  const { monthKey } = useOpsSelectedMonth();
   const [open, setOpen] = useState(false);
-  const [formState, setFormState] = useState(getInitialState(payment, jobId));
+  const [formState, setFormState] = useState(
+    getInitialState(monthKey, payment, jobId)
+  );
   const { createPaymentAsync, updatePaymentAsync, isCreating, isUpdating } =
     useJobClientPaymentMutations(jobId ?? payment?.jobId);
   const isPending = isCreating || isUpdating;
   const amount = toMoneyNumber(formState.amount);
 
   const handleSubmit = async () => {
+    const assignedMonth = parseUtcMonthKey(formState.assignedMonth);
+    if (!assignedMonth) return;
+
     if (payment) {
       await updatePaymentAsync({
         paymentId: payment.id,
         values: {
+          assignedMonth,
           paymentDate: new Date(`${formState.paymentDate}T00:00:00`),
           amount,
           reference: formState.reference,
@@ -60,6 +75,7 @@ export const PaymentDialog = ({
     } else {
       await createPaymentAsync({
         jobId: formState.jobId,
+        assignedMonth,
         paymentDate: new Date(`${formState.paymentDate}T00:00:00`),
         amount,
         reference: formState.reference || undefined,
@@ -75,7 +91,7 @@ export const PaymentDialog = ({
     <Dialog
       open={open}
       onOpenChange={(nextOpen) => {
-        if (nextOpen) setFormState(getInitialState(payment, jobId));
+        if (nextOpen) setFormState(getInitialState(monthKey, payment, jobId));
         setOpen(nextOpen);
       }}
     >
@@ -108,9 +124,14 @@ export const PaymentDialog = ({
             </OpsFormField>
           ) : null}
           <OpsFormGrid>
-            <OpsFormField label="Fecha">
+            <OpsFormField label="Mes asignado">
+              <Input className={opsFormControlClass} type="month" value={formState.assignedMonth} onChange={(event) => setFormState((current) => ({ ...current, assignedMonth: event.target.value }))} />
+            </OpsFormField>
+            <OpsFormField label="Fecha de cobro">
               <Input className={opsFormControlClass} type="date" value={formState.paymentDate} onChange={(event) => setFormState((current) => ({ ...current, paymentDate: event.target.value }))} />
             </OpsFormField>
+          </OpsFormGrid>
+          <OpsFormGrid>
             <OpsFormField label="Monto">
               <Input className={opsFormControlClass} min="0.01" step="0.01" type="number" value={formState.amount} onChange={(event) => setFormState((current) => ({ ...current, amount: event.target.value }))} />
             </OpsFormField>
@@ -124,7 +145,7 @@ export const PaymentDialog = ({
         </OpsFormBody>
         <OpsFormFooter>
           <Button variant="outline" onClick={() => setOpen(false)}>Cancelar</Button>
-          <Button disabled={isPending || !formState.paymentDate || amount <= 0 || (!payment && !formState.jobId)} onClick={handleSubmit}>
+          <Button disabled={isPending || !formState.assignedMonth || !formState.paymentDate || amount <= 0 || (!payment && !formState.jobId)} onClick={handleSubmit}>
             {isPending ? <LoaderCircle className="h-4 w-4 animate-spin" /> : null}
             Guardar cobro
           </Button>

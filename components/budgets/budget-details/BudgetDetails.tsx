@@ -85,7 +85,7 @@ export const BudgetDetails = ({ option, title }: BudgetDetailsProps) => {
                     </div>
                     <div>
                         <p className="text-muted-foreground">Horas Totales</p>
-                        <p className="font-medium">{totalHours.toFixed(1)} hrs</p>
+                        <p className="font-medium">{totalHours.toFixed(2)} hrs</p>
                     </div>
                     <div>
                         <p className="text-muted-foreground">Transporte</p>

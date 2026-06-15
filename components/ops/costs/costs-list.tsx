@@ -19,7 +19,7 @@ import type {
   OpsOperationalCost,
   OpsOperationalCostCategory,
 } from "@/components/ops/types";
-import { formatDate } from "@/components/ops/utils";
+import { formatDate, formatUtcMonth } from "@/components/ops/utils";
 import { Button } from "@/components/ui/button";
 import DeleteDialog from "@/components/ui/delete-dialog";
 
@@ -63,7 +63,8 @@ export const CostsList = ({
           description={cost.notes || cost.reference || "Sin notas"}
           meta={
             <>
-              <span>{formatDate(cost.costDate)}</span>
+              <span>Asignado: {formatUtcMonth(cost.assignedMonth)}</span>
+              <span>Fecha: {formatDate(cost.costDate)}</span>
               <span>{cost.job?.name ?? "Sin trabajo"}</span>
               <span>{cost.employee?.name ?? "Sin empleada"}</span>
             </>

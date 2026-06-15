@@ -1,8 +1,10 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { ChevronLeft } from "lucide-react";
 import type { PaymentStatus } from "@prisma/client";
 
+import { dashboardSecondaryActionClass } from "@/components/dashboard/dashboard-styles";
 import { useEmployeePaymentMutations } from "@/components/ops/hooks/useEmployeePaymentMutations";
 import { useEmployeePayments } from "@/components/ops/hooks/useEmployeePayments";
 import { useEmployees } from "@/components/ops/hooks/useEmployees";
@@ -13,18 +15,27 @@ import { PayrollFilters } from "@/components/ops/payroll/payroll-filters";
 import { PayrollRowsPanel } from "@/components/ops/payroll/payroll-rows-panel";
 import { PayrollSummary } from "@/components/ops/payroll/payroll-summary";
 import { buildPayrollRows, getPayrollSummary } from "@/components/ops/payroll/payroll-utils";
-import { getMonthRange, toDateInputValue } from "@/components/ops/utils";
+import { useOpsSelectedMonth } from "@/components/ops/shared";
+import { formatMonth, toDateInputValue } from "@/components/ops/utils";
+import { Button } from "@/components/ui/button";
 
 export const PayrollPage = () => {
-  const currentMonth = getMonthRange(new Date());
-  const [startDate, setStartDate] = useState(toDateInputValue(currentMonth.start));
-  const [endDate, setEndDate] = useState(toDateInputValue(currentMonth.end));
+  const {
+    goToPreviousMonth,
+    month,
+    monthKey,
+    monthRange,
+    resetToCurrentMonth,
+  } = useOpsSelectedMonth();
   const [status, setStatus] = useState("RECORDED");
   const [employeeId, setEmployeeId] = useState("ALL");
+  const startDate = toDateInputValue(monthRange.start);
+  const endDate = toDateInputValue(monthRange.end);
+  const monthLabel = formatMonth(month);
 
   const rangeFilters = {
-    startDate: startDate ? new Date(`${startDate}T00:00:00`) : undefined,
-    endDate: endDate ? new Date(`${endDate}T23:59:59`) : undefined,
+    startDate: monthRange.start,
+    endDate: monthRange.end,
   };
   const selectedEmployeeId = employeeId === "ALL" ? undefined : employeeId;
 
@@ -47,7 +58,7 @@ export const PayrollPage = () => {
       ...rangeFilters,
       statuses: status === "ALL" ? undefined : [status as PaymentStatus],
     },
-    `payroll-${employeeId}-${startDate}-${endDate}-${status}`
+    `payroll-${employeeId}-${monthKey}-${status}`
   );
   const {
     occurrences,
@@ -60,7 +71,7 @@ export const PayrollPage = () => {
       includeArchived: false,
       statuses: ["DONE"],
     },
-    `payroll-occurrences-${employeeId}-${startDate}-${endDate}`
+    `payroll-occurrences-${employeeId}-${monthKey}`
   );
   const { voidPaymentAsync } = useEmployeePaymentMutations();
 
@@ -75,9 +86,7 @@ export const PayrollPage = () => {
     await Promise.all([refetchEmployees(), refetchOccurrences(), refetchPayments()]);
   };
   const clearFilters = () => {
-    const nextMonth = getMonthRange(new Date());
-    setStartDate(toDateInputValue(nextMonth.start));
-    setEndDate(toDateInputValue(nextMonth.end));
+    resetToCurrentMonth();
     setStatus("RECORDED");
     setEmployeeId("ALL");
   };
@@ -89,24 +98,33 @@ export const PayrollPage = () => {
           <h1 className="text-3xl font-bold tracking-tight">Pagos</h1>
           <p className="text-muted-foreground">Pagos a empleadas por periodo trabajado.</p>
         </div>
-        <PayrollDialog
-          employees={employees}
-          periodEnd={endDate}
-          periodStart={startDate}
-        />
+        <div className="flex flex-wrap gap-2">
+          <Button
+            className={dashboardSecondaryActionClass}
+            onClick={goToPreviousMonth}
+            size="sm"
+            type="button"
+            variant="outline"
+          >
+            <ChevronLeft className="h-4 w-4" />
+            Mes anterior
+          </Button>
+          <PayrollDialog
+            employees={employees}
+            periodEnd={endDate}
+            periodStart={startDate}
+          />
+        </div>
       </div>
       <PayrollFilters
         employeeId={employeeId}
         employees={employees}
-        endDate={endDate}
         isRefreshing={isRefreshing}
+        monthLabel={monthLabel}
         onClear={clearFilters}
         onEmployeeIdChange={setEmployeeId}
-        onEndDateChange={setEndDate}
         onRefresh={refreshPayrollData}
-        onStartDateChange={setStartDate}
         onStatusChange={setStatus}
-        startDate={startDate}
         status={status}
       />
       <PayrollSummary {...summary} showVoided={status !== "RECORDED"} />

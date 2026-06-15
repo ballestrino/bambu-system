@@ -1,6 +1,7 @@
 import Link from "next/link";
 
 import { dashboardSecondaryActionClass } from "@/components/dashboard/dashboard-styles";
+import { getSummaryPeriodHref } from "@/components/ops/employees/employee-summary-utils";
 import { PayrollDialog } from "@/components/ops/payroll/payroll-dialog";
 import { formatPayrollMoney } from "@/components/ops/payroll/payroll-utils";
 import type { OpsEmployee } from "@/components/ops/types";
@@ -52,6 +53,11 @@ export const PayrollRowsPanel = ({
             <div className="flex flex-wrap gap-2">
               <Button asChild size="sm" variant="outline" className={dashboardSecondaryActionClass}>
                 <Link href={`/dashboard/employees/${row.employeeId}`}>Detalle</Link>
+              </Button>
+              <Button asChild size="sm" variant="outline" className={dashboardSecondaryActionClass}>
+                <Link href={getSummaryPeriodHref(row.employeeId, periodStart, periodEnd)}>
+                  Resumen de empleado
+                </Link>
               </Button>
               <PayrollDialog
                 employeeId={row.employeeId}

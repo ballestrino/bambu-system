@@ -1,7 +1,9 @@
+import { OpsSelectedMonthProvider } from "@/components/ops/shared";
+
 export default function OpsLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  return children;
+  return <OpsSelectedMonthProvider>{children}</OpsSelectedMonthProvider>;
 }

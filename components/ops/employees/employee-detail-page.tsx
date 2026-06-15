@@ -116,7 +116,16 @@ export const EmployeeDetailPage = ({ employeeId }: { employeeId: string }) => {
     <OpsPageShell>
       <div ref={heroRef}>
         <OpsDetailHero
-          actions={<EmployeeFormDialog employee={employee} />}
+          actions={
+            <>
+              <Button asChild size="sm" variant="outline" className={dashboardSecondaryActionClass}>
+                <Link href={`/dashboard/employees/${employee.id}/summary`}>
+                  Resumen mensual
+                </Link>
+              </Button>
+              <EmployeeFormDialog employee={employee} />
+            </>
+          }
           backHref="/dashboard/employees"
           backLabel="Empleados"
           description="Ficha operativa para revisar contacto, visitas, pagos y trabajos vinculados."
