@@ -3,8 +3,9 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { BudgetHourlyPrice } from "@/components/budgets/common/BudgetHourlyPrice";
 import { cn } from "@/lib/utils";
-import { calculateBudgetTotals, PRODUCT_MARGIN_PCT } from "@/lib/budget-calculations";
+import { calculateBudgetTotals } from "@/lib/budget-calculations";
 import { BudgetFormValues, defaultBudgetValues } from "@/schemas/BudgetSchema";
+import { BudgetProductProfitRow } from "@/components/budgets/common/BudgetProductProfitRow";
 
 type BudgetDetailsOption = Partial<BudgetFormValues> & {
     has_products?: boolean;
@@ -16,7 +17,6 @@ interface BudgetDetailsProps {
 }
 
 export const BudgetDetails = ({ option, title }: BudgetDetailsProps) => {
-    // Merge with defaults to ensure calculation safety
     const values: BudgetFormValues = {
         ...defaultBudgetValues,
         ...option,
@@ -24,7 +24,6 @@ export const BudgetDetails = ({ option, title }: BudgetDetailsProps) => {
 
     const totals = calculateBudgetTotals(values);
 
-    // Destructure for easier usage
     const {
         totalHours,
         transport,
@@ -35,6 +34,7 @@ export const BudgetDetails = ({ option, title }: BudgetDetailsProps) => {
         totalContribsExtra,
         costBasisNoProducts,
         revenueAmountService,
+        productRevenuePct,
         priceNoTaxService,
         ivaAmountService,
         finalPriceService,
@@ -50,7 +50,6 @@ export const BudgetDetails = ({ option, title }: BudgetDetailsProps) => {
     const ivaPct = Number(values.iva) || 0;
     const hasProducts = option.has_products;
 
-    // Determine what to show as the final price at the bottom
     const finalPricePreTax = hasProducts ? totalPreTaxWithProducts : priceNoTaxService;
     const finalHourlyPricePreTax = hasProducts ? hourlyPriceNoTaxWithProducts : hourlyPriceNoTaxService;
 
@@ -166,10 +165,10 @@ export const BudgetDetails = ({ option, title }: BudgetDetailsProps) => {
                                     <span>Costo Productos</span>
                                     <span>${products.toFixed(2)}</span>
                                 </div>
-                                <div className="flex justify-between text-sm text-green-600">
-                                    <span>Ganancia Prod. ({PRODUCT_MARGIN_PCT}%)</span>
-                                    <span>${revenueAmountProducts.toFixed(2)}</span>
-                                </div>
+                                <BudgetProductProfitRow
+                                    amount={revenueAmountProducts}
+                                    percentage={productRevenuePct}
+                                />
 
                                 <div className="flex justify-between text-sm text-muted-foreground">
                                     <span>IVA ({ivaPct}%)</span>

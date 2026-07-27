@@ -5,6 +5,8 @@ import { BudgetDetailsSection } from "./BudgetDetailsSection";
 import { BudgetCostsSection } from "./BudgetCostsSection";
 import { BudgetContributionsSection } from "./BudgetContributionsSection";
 import { BudgetFormValues } from "@/schemas/BudgetSchema";
+import { useFormContext } from "react-hook-form";
+import { useBudgetHourlyPricing } from "@/components/budgets/hooks/useBudgetHourlyPricing";
 
 interface EditBudgetFormProps {
     slug: string;
@@ -25,6 +27,8 @@ export const EditBudgetForm = ({
     onAutoCalculateTransport,
     onAutoCalculateProducts
 }: EditBudgetFormProps) => {
+    const form = useFormContext<BudgetFormValues>();
+    const hourlyPricing = useBudgetHourlyPricing(form);
 
     return (
         <div className="space-y-6">
@@ -48,6 +52,7 @@ export const EditBudgetForm = ({
                 values={values as BudgetFormValues}
                 onAutoCalculateTransport={onAutoCalculateTransport}
                 onAutoCalculateProducts={onAutoCalculateProducts}
+                hourlyPricing={hourlyPricing}
             />
 
             <BudgetContributionsSection

@@ -12,6 +12,8 @@ import { Input } from "@/components/ui/input";
 import { BudgetFormValues } from "@/schemas/BudgetSchema";
 import { BudgetSection } from "./BudgetSection";
 import { AutoCalculateButton } from "../common/AutoCalculateButton";
+import { BudgetRevenueFields } from "../common/BudgetRevenueFields";
+import type { BudgetHourlyPricingState } from "../hooks/useBudgetHourlyPricing";
 
 interface BudgetCostsSectionProps {
     isOpen: boolean;
@@ -19,6 +21,7 @@ interface BudgetCostsSectionProps {
     values: BudgetFormValues;
     onAutoCalculateTransport: () => void;
     onAutoCalculateProducts: () => void;
+    hourlyPricing: BudgetHourlyPricingState;
 }
 
 export const BudgetCostsSection = ({
@@ -26,7 +29,8 @@ export const BudgetCostsSection = ({
     onToggle,
     values,
     onAutoCalculateTransport,
-    onAutoCalculateProducts
+    onAutoCalculateProducts,
+    hourlyPricing
 }: BudgetCostsSectionProps) => {
     const { control } = useFormContext<BudgetFormValues>();
 
@@ -48,6 +52,14 @@ export const BudgetCostsSection = ({
                     <div>
                         <span className="text-muted-foreground block text-xs">Ganancia</span>
                         <span className="font-medium text-foreground">{values.revenue_percent || 0}%</span>
+                    </div>
+                    <div>
+                        <span className="text-muted-foreground block text-xs">Ganancia Productos</span>
+                        <span className="font-medium text-foreground">
+                            {Number(values.products_revenue_percent) > 0
+                                ? `${values.products_revenue_percent}%`
+                                : "No"}
+                        </span>
                     </div>
                     <div>
                         <span className="text-muted-foreground block text-xs">IVA</span>
@@ -89,32 +101,7 @@ export const BudgetCostsSection = ({
                         </FormItem>
                     )}
                 />
-                <FormField
-                    control={control}
-                    name="revenue_percent"
-                    render={({ field }) => (
-                        <FormItem>
-                            <FormLabel>Ganancia (%)</FormLabel>
-                            <FormControl>
-                                <Input type="number" {...field} />
-                            </FormControl>
-                            <FormMessage />
-                        </FormItem>
-                    )}
-                />
-                <FormField
-                    control={control}
-                    name="iva"
-                    render={({ field }) => (
-                        <FormItem>
-                            <FormLabel>IVA (%)</FormLabel>
-                            <FormControl>
-                                <Input type="number" {...field} />
-                            </FormControl>
-                            <FormMessage />
-                        </FormItem>
-                    )}
-                />
+                <BudgetRevenueFields pricing={hourlyPricing} />
             </div>
         </BudgetSection>
     );

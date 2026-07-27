@@ -6,8 +6,9 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ChevronDown, ChevronUp } from "lucide-react";
 import { BudgetFormValues } from "@/schemas/BudgetSchema";
 import { cn } from "@/lib/utils";
-import { calculateBudgetTotals, PRODUCT_MARGIN_PCT } from "@/lib/budget-calculations";
-import { BudgetHourlyPrice } from "@/components/budgets/common/BudgetHourlyPrice";
+import { calculateBudgetTotals } from "@/lib/budget-calculations";
+import { BudgetHourlyPriceComparison } from "@/components/budgets/common/BudgetHourlyPriceComparison";
+import { BudgetProductProfitRow } from "@/components/budgets/common/BudgetProductProfitRow";
 
 type BudgetPreviewValues = BudgetFormValues & {
     has_products?: boolean;
@@ -28,6 +29,7 @@ export const BudgetPreview = () => {
         totalContribsExtra,
         costBasisNoProducts,
         revenueAmountService,
+        productRevenuePct,
         priceNoTaxService,
         ivaAmountService,
         finalPriceService,
@@ -41,8 +43,6 @@ export const BudgetPreview = () => {
 
     const revenuePct = Number(values.revenue_percent) || 0;
     const ivaPct = Number(values.iva) || 0;
-    const previewHourlyPriceNoTax = values.has_products || Number(values.products_price) > 0 ? hourlyPriceNoTaxWithProducts : hourlyPriceNoTaxService;
-
     return (
         <Card className="pt-4 mb-0 gap-2 h-full border-l-4 border-l-blue-500 shadow-lg overflow-y-auto max-h-[calc(92vh)]">
             <CardHeader className="">
@@ -80,9 +80,12 @@ export const BudgetPreview = () => {
                         <p className="text-muted-foreground">Transporte</p>
                         <p className="font-medium">${transport.toFixed(2)}</p>
                     </div>
-                    <BudgetHourlyPrice amount={previewHourlyPriceNoTax} />
+                    <BudgetHourlyPriceComparison
+                        hourlyPriceWithoutProducts={hourlyPriceNoTaxService}
+                        hourlyPriceWithProducts={hourlyPriceNoTaxWithProducts}
+                        hasProducts={products > 0}
+                    />
                 </div>
-
                 <hr className="my-2 border-t" />
 
                 <div className="space-y-2">
@@ -106,7 +109,6 @@ export const BudgetPreview = () => {
                         <span>${totalContribsExtra.toFixed(2)}</span>
                     </div>
                 </div>
-
                 <hr className="my-2 border-t" />
 
                 <div className="space-y-2 pt-2">
@@ -166,10 +168,10 @@ export const BudgetPreview = () => {
                                     <span>Ganancia Servicio ({revenuePct}%)</span>
                                     <span>${revenueAmountService.toFixed(2)}</span>
                                 </div>
-                                <div className="flex justify-between text-sm text-green-600">
-                                    <span>Ganancia Prod. ({PRODUCT_MARGIN_PCT}%)</span>
-                                    <span>${revenueAmountProducts.toFixed(2)}</span>
-                                </div>
+                                <BudgetProductProfitRow
+                                    amount={revenueAmountProducts}
+                                    percentage={productRevenuePct}
+                                />
 
                                 <div className="flex justify-between text-sm text-muted-foreground">
                                     <span>IVA ({ivaPct}%)</span>

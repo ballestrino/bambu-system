@@ -23,10 +23,13 @@ import { calculateBudgetTotals, calculateEstimates } from "@/lib/budget-calculat
 import { BudgetFormValues } from "@/schemas/BudgetSchema";
 import { NominalHourSelector } from "../common/NominalHourSelector";
 import { AutoCalculateButton } from "../common/AutoCalculateButton";
+import { BudgetRevenueFields } from "../common/BudgetRevenueFields";
+import { useBudgetHourlyPricing } from "../hooks/useBudgetHourlyPricing";
 
 export const CreateBudgetForm = () => {
     const form = useFormContext<BudgetFormValues>();
     const { setValue, control } = form;
+    const hourlyPricing = useBudgetHourlyPricing(form);
 
     // Watch all relevant fields
     const values = useWatch({ control });
@@ -271,6 +274,14 @@ export const CreateBudgetForm = () => {
                             <span className="font-medium text-foreground">{values.revenue_percent || 0}%</span>
                         </div>
                         <div>
+                            <span className="text-muted-foreground block text-xs">Ganancia Productos</span>
+                            <span className="font-medium text-foreground">
+                                {Number(values.products_revenue_percent) > 0
+                                    ? `${values.products_revenue_percent}%`
+                                    : "No"}
+                            </span>
+                        </div>
+                        <div>
                             <span className="text-muted-foreground block text-xs">IVA</span>
                             <span className="font-medium text-foreground">{values.iva || 0}%</span>
                         </div>
@@ -310,32 +321,7 @@ export const CreateBudgetForm = () => {
                             </FormItem>
                         )}
                     />
-                    <FormField
-                        control={form.control}
-                        name="revenue_percent"
-                        render={({ field }) => (
-                            <FormItem>
-                                <FormLabel>Ganancia (%)</FormLabel>
-                                <FormControl>
-                                    <Input type="number" {...field} />
-                                </FormControl>
-                                <FormMessage />
-                            </FormItem>
-                        )}
-                    />
-                    <FormField
-                        control={form.control}
-                        name="iva"
-                        render={({ field }) => (
-                            <FormItem>
-                                <FormLabel>IVA (%)</FormLabel>
-                                <FormControl>
-                                    <Input type="number" {...field} />
-                                </FormControl>
-                                <FormMessage />
-                            </FormItem>
-                        )}
-                    />
+                    <BudgetRevenueFields pricing={hourlyPricing} />
                 </div>
             </BudgetSection>
 

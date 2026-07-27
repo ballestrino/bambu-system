@@ -1,6 +1,68 @@
 import { BudgetFormValues } from "@/schemas/BudgetSchema";
 
 export const PRODUCT_MARGIN_PCT = 15;
+const REVENUE_PERCENT_PRECISION = 6;
+
+const roundRevenuePercent = (value: number) => {
+    const factor = 10 ** REVENUE_PERCENT_PRECISION;
+    return Math.round(value * factor) / factor;
+};
+
+export type HourlyTargetResult = {
+    canCalculate: boolean;
+    minimumHourlyPrice: number;
+    minimumServicePrice: number;
+    normalizedHourlyPrice: number;
+    normalizedServicePrice: number;
+    revenuePercent: number;
+    wasClamped: boolean;
+};
+
+export const calculateRevenuePercentForHourlyTarget = (
+    targetHourlyPrice: number,
+    totalHours: number,
+    serviceCost: number
+): HourlyTargetResult => {
+    if (totalHours <= 0 || serviceCost <= 0) {
+        return {
+            canCalculate: false,
+            minimumHourlyPrice: 0,
+            minimumServicePrice: 0,
+            normalizedHourlyPrice: 0,
+            normalizedServicePrice: 0,
+            revenuePercent: 0,
+            wasClamped: false,
+        };
+    }
+
+    const minimumHourlyPrice = serviceCost / totalHours;
+    const safeTarget = Number.isFinite(targetHourlyPrice) ? targetHourlyPrice : 0;
+    const normalizedHourlyPrice = Math.max(safeTarget, minimumHourlyPrice);
+    const revenuePercent = Math.max(
+        0,
+        ((normalizedHourlyPrice * totalHours) / serviceCost - 1) * 100
+    );
+
+    return {
+        canCalculate: true,
+        minimumHourlyPrice,
+        minimumServicePrice: serviceCost,
+        normalizedHourlyPrice,
+        normalizedServicePrice: normalizedHourlyPrice * totalHours,
+        revenuePercent: roundRevenuePercent(revenuePercent),
+        wasClamped: safeTarget < minimumHourlyPrice,
+    };
+};
+
+export const calculateRevenuePercentForServiceTarget = (
+    targetServicePrice: number,
+    totalHours: number,
+    serviceCost: number
+) => calculateRevenuePercentForHourlyTarget(
+    totalHours > 0 ? targetServicePrice / totalHours : 0,
+    totalHours,
+    serviceCost
+);
 
 export const calculateEffectiveVisits = (visits: number, type: string) => {
     if (type === "week") {
@@ -40,6 +102,7 @@ export const calculateBudgetTotals = (values: Partial<BudgetFormValues>) => {
     const transport = Number(values.transportation_cost) || 0;
     const products = Number(values.products_price) || 0;
     const revenuePct = Number(values.revenue_percent) || 0;
+    const productRevenuePct = Number(values.products_revenue_percent) || 0;
     const ivaPct = Number(values.iva) || 22; // Default to 22 if not set
 
     // 2. Base Calculations
@@ -81,7 +144,7 @@ export const calculateBudgetTotals = (values: Partial<BudgetFormValues>) => {
     const finalPriceService = priceNoTaxService + ivaAmountService;
 
     // 6. Product Calculations
-    const revenueAmountProducts = products * (PRODUCT_MARGIN_PCT / 100);
+    const revenueAmountProducts = products * (productRevenuePct / 100);
     const priceNoTaxProducts = products + revenueAmountProducts;
     
     // 7. Totals (Service + Products)
@@ -102,6 +165,7 @@ export const calculateBudgetTotals = (values: Partial<BudgetFormValues>) => {
         totalContribsExtra,
         costBasisNoProducts,
         revenueAmountService,
+        productRevenuePct,
         priceNoTaxService,
         ivaAmountService,
         finalPriceService,

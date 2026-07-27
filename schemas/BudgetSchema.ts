@@ -57,7 +57,7 @@ export const defaultBudgetValues: BudgetFormValues = {
   transportation_cost: 224.64,
   products_price: 756,
   products_iva: 0,
-  products_revenue_percent: 15,
+  products_revenue_percent: 0,
   revenue_percent: 45,
   price: 7273.46,
   iva: 22, // Default IVA
