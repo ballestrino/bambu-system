@@ -61,13 +61,17 @@ const CalendarAgendaItem = ({ occurrence }: { occurrence: OpsOccurrence }) => (
 
 export const CalendarAgendaPanel = ({
   allOccurrences,
+  hasActiveFilters,
   isLoading,
   occurrences,
+  onClearFilters,
   selectedDate,
 }: {
   allOccurrences: OpsOccurrence[];
+  hasActiveFilters: boolean;
   isLoading: boolean;
   occurrences: OpsOccurrence[];
+  onClearFilters: () => void;
   selectedDate?: Date;
 }) => {
   const { needsAttentionCount } = getCalendarStats(allOccurrences);
@@ -96,9 +100,25 @@ export const CalendarAgendaPanel = ({
       ) : (
         <OpsEmptyState
           icon={AlertCircle}
-          title="No hay visitas para este día"
-          description="Crea una visita manual o cambia de día para revisar la agenda."
-          action={<JobOccurrenceDialog triggerLabel="Nueva visita" />}
+          title={
+            hasActiveFilters
+              ? "No hay visitas que coincidan"
+              : "No hay visitas para este día"
+          }
+          description={
+            hasActiveFilters
+              ? "Quita algún filtro o selecciona otro día para ampliar la agenda."
+              : "Crea una visita manual o cambia de día para revisar la agenda."
+          }
+          action={
+            hasActiveFilters ? (
+              <Button type="button" variant="outline" onClick={onClearFilters}>
+                Limpiar filtros
+              </Button>
+            ) : (
+              <JobOccurrenceDialog triggerLabel="Nueva visita" />
+            )
+          }
         />
       )}
     </section>

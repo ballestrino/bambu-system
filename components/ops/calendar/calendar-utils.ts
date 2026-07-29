@@ -21,22 +21,24 @@ export const getVisitActionLabel = (occurrence: OpsOccurrence) => {
   return "Editar";
 };
 
+export const needsOccurrenceAttention = (occurrence: OpsOccurrence) =>
+  !hasOccurrenceEmployees(occurrence) ||
+  ["CANCELED", "SKIPPED"].includes(occurrence.status);
+
 export const getCalendarStats = (occurrences: OpsOccurrence[]) => {
   const done = occurrences.filter((occurrence) => occurrence.status === "DONE");
   const scheduled = occurrences.filter(
     (occurrence) => occurrence.status === "SCHEDULED"
   );
-  const attention = occurrences.filter((occurrence) =>
-    ["CANCELED", "SKIPPED"].includes(occurrence.status)
-  );
+  const needsAttention = occurrences.filter(needsOccurrenceAttention);
 
   return {
-    attentionDates: attention.map((occurrence) => new Date(occurrence.scheduledStartAt)),
+    attentionDates: needsAttention.map(
+      (occurrence) => new Date(occurrence.scheduledStartAt)
+    ),
     doneCount: done.length,
     doneDates: done.map((occurrence) => new Date(occurrence.scheduledStartAt)),
-    needsAttentionCount: occurrences.filter(
-      (occurrence) => !hasOccurrenceEmployees(occurrence) || attention.includes(occurrence)
-    ).length,
+    needsAttentionCount: needsAttention.length,
     pendingCount: scheduled.length,
     scheduledDates: scheduled.map(
       (occurrence) => new Date(occurrence.scheduledStartAt)

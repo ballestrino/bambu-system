@@ -38,14 +38,14 @@ export const CalendarMonthPanel = ({
         selected={selectedDate}
         onSelect={onSelectDate}
         modifiers={{
-          attention: stats.attentionDates,
-          done: stats.doneDates,
           scheduled: stats.scheduledDates,
+          done: stats.doneDates,
+          attention: stats.attentionDates,
         }}
         modifiersClassNames={{
-          attention: "bg-amber-100 text-amber-900 font-semibold dark:bg-amber-500/20 dark:text-amber-100",
-          done: "bg-emerald-100 text-emerald-800 font-semibold dark:bg-emerald-500/20 dark:text-emerald-100",
           scheduled: "bg-[#EAF5EC] text-[#244C2D] font-semibold dark:bg-[#244C2D]/80 dark:text-[#EAF5EC]",
+          done: "bg-emerald-100 text-emerald-800 font-semibold dark:bg-emerald-500/20 dark:text-emerald-100",
+          attention: "bg-amber-100 text-amber-900 font-semibold dark:bg-amber-500/20 dark:text-amber-100",
         }}
         className="mx-auto rounded-md bg-transparent p-0 [--cell-size:2.75rem] sm:[--cell-size:3rem]"
       />
