@@ -81,7 +81,10 @@ function BudgetsPageContent() {
 
             <div className="flex items-center space-x-2">
                 <div className="flex-1">
-                    <SearchBar placeholder="Buscar presupuestos..." />
+                    <SearchBar
+                        placeholder="Buscar presupuestos..."
+                        recentSearchesStorageKey="bambu:budget-recent-searches"
+                    />
                 </div>
                 <Button
                     type="button"
