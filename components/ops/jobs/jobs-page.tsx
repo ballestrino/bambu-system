@@ -15,7 +15,7 @@ import {
   useOpsDebouncedValue,
   useOpsPersistedState,
 } from "@/components/ops/shared";
-import { jobStatusValues } from "@/schemas/ops";
+import { jobStatusValues, type JobFilters as JobFiltersInput } from "@/schemas/ops";
 
 type JobStatusFilter = (typeof jobStatusValues)[number] | "all";
 type JobVisibilityFilter = "DEFAULT" | "PUNCTUAL" | "ALL";
@@ -41,12 +41,16 @@ export const JobsPage = () => {
   );
   const debouncedQuery = useOpsDebouncedValue(filterState.query, 1500);
 
-  const filters = {
+  const filters: JobFiltersInput = {
     query: debouncedQuery || undefined,
     statuses:
       filterState.status !== "all" ? [filterState.status] : undefined,
     visibility: filterState.visibility,
     includeArchived: filterState.includeArchived,
+  };
+  const exportFilters: JobFiltersInput = {
+    ...filters,
+    query: filterState.query.trim() || undefined,
   };
 
   const { jobs, isFetching, isLoading, refetch } = useJobs(filters);
@@ -57,7 +61,7 @@ export const JobsPage = () => {
 
   return (
     <OpsPageShell>
-      <JobsHeader count={jobs.length} />
+      <JobsHeader count={jobs.length} filters={exportFilters} />
       <JobFilters
         query={filterState.query}
         status={filterState.status}

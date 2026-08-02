@@ -52,6 +52,22 @@ export const getJobs = async (filters?: unknown) => {
         : visibility === "PUNCTUAL"
           ? { jobType: "PUNCTUAL" as const }
           : {};
+    const andFilters: Prisma.JobWhereInput[] = [
+      ...(includeArchived ? [] : [{ status: { not: "ARCHIVED" as const } }]),
+      ...(query
+        ? [
+            {
+              OR: [
+                { name: { contains: query, mode: "insensitive" as const } },
+                { description: { contains: query, mode: "insensitive" as const } },
+                { serviceAddress: { contains: query, mode: "insensitive" as const } },
+                { serviceLocation: { contains: query, mode: "insensitive" as const } },
+                { operationalNotes: { contains: query, mode: "insensitive" as const } },
+              ],
+            },
+          ]
+        : []),
+    ];
 
     const where: Prisma.JobWhereInput = {
       ...visibilityFilter,
@@ -60,19 +76,7 @@ export const getJobs = async (filters?: unknown) => {
       sourceBudgetId,
       sourceBudgetOptionId,
       createdAt: buildDateTimeRange(startDate, endDate),
-      AND: query
-        ? [
-            {
-              OR: [
-                { name: { contains: query, mode: "insensitive" } },
-                { description: { contains: query, mode: "insensitive" } },
-                { serviceAddress: { contains: query, mode: "insensitive" } },
-                { serviceLocation: { contains: query, mode: "insensitive" } },
-                { operationalNotes: { contains: query, mode: "insensitive" } },
-              ],
-            },
-          ]
-        : undefined,
+      AND: andFilters.length ? andFilters : undefined,
     };
 
     const jobs = await db.job.findMany({
