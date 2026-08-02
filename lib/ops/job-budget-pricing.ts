@@ -48,6 +48,16 @@ export const getJobBudgetTaxModeLabel = (budgetIncludesIva: boolean) =>
 export const formatJobBudgetPrice = (amount: number | null) =>
   amount === null ? "Sin opcion" : `$${amount.toFixed(2)}`;
 
+export const getBudgetOptionPriceWithoutIva = (option: unknown) => {
+  const pricing = getOptionPricing(toRecord(option));
+
+  if (!pricing) {
+    return null;
+  }
+
+  return roundMoney(removeIva(pricing.grossPrice, pricing.ivaRate));
+};
+
 export const getJobBudgetPrice = ({
   budgetIncludesIva,
   budgetSnapshot,
@@ -62,9 +72,7 @@ export const getJobBudgetPrice = ({
     return null;
   }
 
-  return roundMoney(
-    budgetIncludesIva
-      ? pricing.grossPrice
-      : removeIva(pricing.grossPrice, pricing.ivaRate)
-  );
+  return budgetIncludesIva
+    ? roundMoney(pricing.grossPrice)
+    : getBudgetOptionPriceWithoutIva(snapshotOption ?? fallbackOption);
 };

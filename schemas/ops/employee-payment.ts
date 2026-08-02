@@ -22,6 +22,7 @@ export const employeePaymentFilterBasisSchema = z.enum(
 const employeePaymentBaseSchema = z
   .object({
     employeeId: cuidSchema,
+    assignedMonth: z.coerce.date(),
     periodStart: z.coerce.date(),
     periodEnd: z.coerce.date(),
     paymentDate: z.coerce.date(),
@@ -44,6 +45,7 @@ export const CreateEmployeePaymentSchema = employeePaymentBaseSchema;
 
 export const UpdateEmployeePaymentSchema = z
   .object({
+    assignedMonth: z.coerce.date().optional(),
     periodStart: z.coerce.date().optional(),
     periodEnd: z.coerce.date().optional(),
     paymentDate: z.coerce.date().optional(),
@@ -67,6 +69,7 @@ export const UpdateEmployeePaymentSchema = z
   });
 
 export const EmployeePaymentFiltersSchema = dateRangeFiltersSchema.extend({
+  assignedMonth: z.coerce.date().optional(),
   basis: employeePaymentFilterBasisSchema.optional(),
   employeeId: z.preprocess(
     (value) => (value === "" ? undefined : value),

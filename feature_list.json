@@ -1,0 +1,262 @@
+{
+  "project": "bambu-system",
+  "description": "Budget management platform for service businesses. This file is the durable feature queue for the multi-agent harness.",
+  "rules": {
+    "one_feature_at_a_time": true,
+    "require_verification_to_close": true,
+    "valid_status": ["pending", "in_progress", "done", "blocked"],
+    "windows_init": ".\\init.ps1",
+    "posix_init": "./init.sh"
+  },
+  "features": [
+    {
+      "id": 1,
+      "name": "harness_bootstrap",
+      "title": "Bootstrap multi-agent harness",
+      "description": "Add the repository harness inspired by betta-tech/ejemplo-harness-subagentes and adapt it to Bambu System.",
+      "acceptance": [
+        "AGENTS.md acts as the progressive-disclosure map for agents",
+        "feature_list.json tracks one feature at a time with valid statuses",
+        "progress/current.md and progress/history.md persist session state",
+        "docs/architecture.md, docs/conventions.md, and docs/verification.md define project-specific standards",
+        "CHECKPOINTS.md gives reviewers objective final-state criteria",
+        ".codex/agents contains leader, implementer, and reviewer roles",
+        "init.ps1/init.sh run harness validation plus repository checks"
+      ],
+      "status": "done"
+    },
+    {
+      "id": 2,
+      "name": "codex_subagents",
+      "title": "Replace Claude harness entrypoint with Codex subagents",
+      "description": "Remove CLAUDE.md and make Codex subagent profiles the required orchestration roles.",
+      "acceptance": [
+        "CLAUDE.md is removed because Codex reads AGENTS.md directly",
+        ".codex/agents contains leader, implementer, and reviewer profiles",
+        "Harness validation requires .codex/agents instead of Claude-specific files",
+        "No repository harness files reference Claude-specific entrypoints"
+      ],
+      "status": "done"
+    },
+    {
+      "id": 3,
+      "name": "budget_authorization_contracts",
+      "title": "Harden budget ownership and category authorization",
+      "description": "Refactor budgets and budget categories so reads and mutations enforce authenticated ownership or admin contracts before later UI work.",
+      "acceptance": [
+        "getBudgets, getBudgetBySlug, getBudgetById, duplicate, update, and delete only expose or mutate budgets owned by the authenticated user",
+        "Budget mutations call auth() first, validate input with schemas, verify ownership before writing, and return consistent { error } results",
+        "BudgetCategory actions are explicitly admin-only through requireAdminSession() or converted to a documented user-owned model",
+        "Budget create/update/delete flows have no debug console.log statements",
+        "Manual smoke covers budget list, detail, create, edit, duplicate, delete, and budget categories"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": 4,
+      "name": "settings_server_action_auth",
+      "title": "Secure settings server actions",
+      "description": "Make settings mutations derive identity from the authenticated session instead of trusting client-sent user ids.",
+      "acceptance": [
+        "updateName, updateEmail, updatePassword, enable2FA, disable2FA, and updateProfileImage call auth() and do not trust a client-provided user id",
+        "Account, email, password, 2FA, and profile image inputs validate through schemas/settings.ts",
+        "Settings actions are split by account and security responsibility with read helpers kept separate from mutations",
+        "The settings page keeps a server-side shell where viable and scopes client components to forms, dialogs, or interactive controls",
+        "Manual smoke covers account updates, email or password changes, profile image updates, and 2FA enable or disable flows"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": 5,
+      "name": "runtime_lazy_sdk_initialization",
+      "title": "Lazy initialize runtime SDK clients",
+      "description": "Move OpenAI, Resend, Cloudinary, and runtime URL configuration out of module scope so Next.js build and runtime contexts load safely.",
+      "acceptance": [
+        "OpenAI, Resend, and Cloudinary clients are created through lazy getters or one-time configuration helpers",
+        "Environment variables and base URLs are read close to use and fail with clear errors when required values are missing",
+        "The AI chat streaming route imports domain helpers and keeps route-handler logic focused on request parsing, auth, and streaming response",
+        "No runtime SDK performs network-client initialization solely because a module was imported",
+        "Verification includes init.ps1 and pnpm build when the environment permits, plus focused smoke for affected AI, email, or upload paths"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": 6,
+      "name": "platform_dependency_patch_review",
+      "title": "Review and patch Next and React dependencies",
+      "description": "Run a controlled platform upgrade for Next.js, React, and React DOM to patched compatible versions.",
+      "acceptance": [
+        "Next.js, React, and React DOM target versions are checked against the current patched release line before editing package files",
+        "package.json and the lockfile are updated together with no unrelated dependency churn",
+        "Any migration notes or breaking changes are documented in progress/current.md or a feature report",
+        "Verification includes init.ps1 and pnpm build when environment variables permit",
+        "Manual smoke covers auth, dashboard navigation, and AI chat after the upgrade"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": 7,
+      "name": "ai_chat_modularization",
+      "title": "Split AI chat UI, streaming, history, and upload responsibilities",
+      "description": "Reduce the AI chat monolith by moving chat state, history, image upload, rendering, and server message construction into focused modules.",
+      "acceptance": [
+        "AIChat.tsx is reduced to a small shell or orchestrator under the repository file-size guidance",
+        "Session state, history, and image upload live in focused hooks that can be reasoned about independently",
+        "Message list, input, history panel, and chat actions are separate components with clear props",
+        "OpenAI client access and chat message construction live in server/domain helpers while the stream route stays thin",
+        "BudgetContext coupling is isolated behind an adapter instead of being buried throughout reusable UI",
+        "Manual smoke covers streaming, abort or error handling, image upload, save history, rename, and delete"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": 8,
+      "name": "budget_form_and_cache_refactor",
+      "title": "Refactor budget forms, filters, preview, and query cache",
+      "description": "Split the budget create/edit flow into focused sections and centralize filter parsing, query keys, invalidation, and domain helpers.",
+      "acceptance": [
+        "Budget query keys and invalidation helpers are centralized for budgets and budget categories",
+        "Budget list filter parsing and URL/query-state handling live in focused filter helpers or hooks",
+        "Create and edit flows share a BudgetFormShell where behavior overlaps",
+        "Details, labor or time, contributions, costs or products, price, and preview are separated into focused form sections",
+        "Slug, option, and ownership helper logic lives under lib/budgets or an equivalent scoped domain location",
+        "Authored budget form files stay under 200 lines unless an exception is explicitly justified",
+        "Manual smoke covers create, edit, duplicate, delete, category selection, preview, and filtering"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": 9,
+      "name": "ops_occurrence_scheduling_refactor",
+      "title": "Separate ops occurrence reads, generation, and scheduling UI",
+      "description": "Make job occurrence reads and generation commands explicit, then split the occurrence dialog and scheduling helpers by responsibility.",
+      "acceptance": [
+        "getJobOccurrences is read-only or the generation side effect is moved behind an explicitly named command",
+        "Occurrence generation, persistence, employees, and recurrence math have clear module ownership",
+        "JobOccurrenceDialog is split into dialog shell, form, form state, and submit helpers where useful",
+        "Scheduling-related authored files stay under 200 lines unless an exception is explicitly justified",
+        "Manual smoke covers monthly calendar load, create visit, edit visit, split occurrence, and archive flows"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": 10,
+      "name": "ops_finance_domain_refactor",
+      "title": "Unify operational finance management and monthly rules",
+      "description": "Create a unified Finance workspace for client payments, operational costs, and employee payments while centralizing shared summaries and assigned-month rules.",
+      "acceptance": [
+        "The operations nav replaces Cobros, Costes, and Pagos with one Finanzas entry at /dashboard/financial while the three legacy routes remain functional",
+        "Finance shows one monthly recorded-only summary plus independently filtered sections for client payments, operational costs, and employee payments",
+        "Finance supports create, edit, void, payroll suggestions, employee attribution, cost categories, and BPS settings without leaving the page",
+        "Employee payments have a required assigned month, existing rows are backfilled from paymentDate, and financial screens use it without double-counting cross-month work periods",
+        "Monthly summary, payment status, and assigned-month logic live under lib/ops/finance and are reused by dashboard, costs, payroll, and Finance",
+        "Loading, empty, error, retry, responsive UI, focused calculations, lint, build when available, and authenticated browser smoke are recorded"
+      ],
+      "status": "done"
+    },
+    {
+      "id": 11,
+      "name": "client_boundaries_and_cleanup",
+      "title": "Reduce client-heavy pages and clean cross-cutting debug debt",
+      "description": "Push client components lower where practical and remove remaining debug logging, generic errors, and inconsistent cache/action wrapper patterns.",
+      "acceptance": [
+        "Full-page use client boundaries in budgets and settings are reduced where server components can own the shell safely",
+        "Non-productive console.log statements are removed from budget, form-hook, dropdown, and user-data paths",
+        "Action wrappers touched by the refactor throw or return typed errors consistently with local patterns",
+        "Any intentionally client-heavy page documents the reason in the feature progress report",
+        "Verification includes init.ps1 and manual smoke for each affected route"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": 12,
+      "name": "budget_hourly_target_product_margin",
+      "title": "Add hourly price targeting and optional product margin",
+      "description": "Let budget authors target a total or hourly service selling price, derive the required service margin, disable product margin by default, and compare hourly prices with and without products.",
+      "acceptance": [
+        "Create and edit forms expose a numeric service hourly-price target that derives the service revenue percentage",
+        "Create and edit forms expose a total service price target that derives the hourly target from total hours",
+        "Targets below the service cost per hour clamp to zero service margin",
+        "Product margin is disabled by default and products remain billed at cost when disabled",
+        "Product margin can be enabled at the existing 15 percent default and persists through create and edit",
+        "The live preview shows hourly prices both without and with products, excluding IVA",
+        "Focused calculation checks, lint, build when available, and browser smoke are recorded"
+      ],
+      "status": "done"
+    },
+    {
+      "id": 13,
+      "name": "budget_recent_searches",
+      "title": "Remember recent budget searches",
+      "description": "Persist and expose the five most recent budget search terms in the browser.",
+      "acceptance": [
+        "Non-empty budget searches are saved in localStorage",
+        "At most five unique searches are kept in most-recent-first order",
+        "Recent searches appear from the budget search input and can be selected to search again",
+        "Lint and a browser smoke check pass"
+      ],
+      "status": "done"
+    },
+    {
+      "id": 14,
+      "name": "calendar_operational_filters",
+      "title": "Filter the operational calendar",
+      "description": "Let users narrow the monthly calendar and daily agenda by job, employee, visit status, and visits that need attention.",
+      "acceptance": [
+        "The calendar can be filtered by job and employee using options from the loaded month",
+        "Users can additionally filter by visit status or show only visits that need attention",
+        "Job, employee, status, and attention filters compose over the same visible result set",
+        "Calendar markers, monthly metrics, and the selected-day agenda reflect the filtered visits",
+        "Active filters are summarized and can be cleared together",
+        "The empty state explains when filters hide all visits and offers a reset action",
+        "Lint and a browser smoke check pass"
+      ],
+      "status": "done"
+    },
+    {
+      "id": 15,
+      "name": "job_budget_option_net_price",
+      "title": "Show budget option prices without IVA when creating jobs",
+      "description": "Display the net price for each linked budget option in the job form instead of the stored IVA-inclusive price.",
+      "acceptance": [
+        "The budget option selector displays each option price without IVA",
+        "The selected option summary uses the same net amount and labels it as excluding IVA",
+        "The change reuses shared job budget pricing rules",
+        "Focused calculation checks, lint, and a browser smoke check pass"
+      ],
+      "status": "done"
+    },
+    {
+      "id": 16,
+      "name": "job_excel_export",
+      "title": "Export filtered jobs to Excel",
+      "description": "Add a jobs-page export that downloads the jobs matching the current filters with linked price, hourly price, and relevant operational details.",
+      "acceptance": [
+        "The jobs page exposes a clear Excel export button with pending and error feedback",
+        "The export contains exactly the jobs matching the current search, status, visibility, and archived filters",
+        "When archived jobs are excluded, records with archived status or an archived date are both omitted",
+        "Linked job price reuses the shared snapshot-aware IVA pricing rule and hourly price is derived from the option workload",
+        "The workbook keeps only relevant operational fields, the budget name, product inclusion and included-product price, without status, reference, budget identifiers, pricing internals, archive metadata, audit identities, or technical ids",
+        "The workbook is readable in Excel with a styled frozen header, filters, and practical column widths",
+        "Focused export checks, lint, build when available, and a browser smoke check are recorded"
+      ],
+      "status": "done"
+    },
+    {
+      "id": 17,
+      "name": "visits_multi_view_infinite_history",
+      "title": "Add multi-view visits history with weekly infinite scroll",
+      "description": "Turn the operational calendar into a Visits surface with calendar, compact list, and card views backed by weekly TanStack Query pagination.",
+      "acceptance": [
+        "The dashboard navigation and calendar route present the operational surface as Visits while retaining the monthly calendar and agenda",
+        "Users can switch between Calendar, List, and Cards, with Calendar as the first default and the last selected mode persisted locally",
+        "List and Cards share a newest-first weekly infinite query that loads older matching visits without duplicate requests",
+        "Job, employee including unassigned, status, and attention filters compose consistently across all views and reset when the operational month changes",
+        "Filter options are available independently of the weeks already loaded and visit-related mutations invalidate the infinite feed safely",
+        "Initial loading, another-week loading, retryable error, empty result, and end-of-history states are explicit",
+        "Focused boundary checks, TypeScript, lint, build when available, and authenticated browser smoke are recorded"
+      ],
+      "status": "done"
+    }
+  ]
+}

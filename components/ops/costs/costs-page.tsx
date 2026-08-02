@@ -65,9 +65,8 @@ export const CostsPage = () => {
   );
   const employeePaymentsQuery = useEmployeePayments(
     {
-      basis: "PERIOD",
+      assignedMonth: month,
       employeeId: selectedEmployeeId,
-      ...rangeFilters,
       statuses: selectedStatus,
     },
     `costs-payroll-${filters.employeeId}-${monthKey}-${filters.status}`

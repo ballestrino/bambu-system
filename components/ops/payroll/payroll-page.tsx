@@ -54,8 +54,8 @@ export const PayrollPage = () => {
     refetch: refetchPayments,
   } = useEmployeePayments(
     {
+      assignedMonth: month,
       employeeId: selectedEmployeeId,
-      ...rangeFilters,
       statuses: status === "ALL" ? undefined : [status as PaymentStatus],
     },
     `payroll-${employeeId}-${monthKey}-${status}`

@@ -57,6 +57,11 @@ export const updateEmployeePayment = async (
 
     const mergedValues = {
       employeeId: existingEmployeePayment.employeeId,
+      assignedMonth: getPatchedValue(
+        parsedValues.data,
+        "assignedMonth",
+        existingEmployeePayment.assignedMonth
+      ),
       periodStart: getPatchedValue(
         parsedValues.data,
         "periodStart",
@@ -104,6 +109,7 @@ export const updateEmployeePayment = async (
         id: employeePaymentId,
       },
       data: {
+        assignedMonth: validatedValues.data.assignedMonth,
         periodStart: validatedValues.data.periodStart,
         periodEnd: validatedValues.data.periodEnd,
         paymentDate: validatedValues.data.paymentDate,

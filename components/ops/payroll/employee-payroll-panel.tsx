@@ -40,7 +40,7 @@ export const EmployeePayrollPanel = ({
   };
 
   const { payments, isLoading } = useEmployeePayments(
-    { employeeId: employee.id, ...rangeFilters, statuses: ["RECORDED"] },
+    { assignedMonth: month, employeeId: employee.id, statuses: ["RECORDED"] },
     `employee-payroll-${employee.id}-${monthKey}`
   );
   const { occurrences } = useJobOccurrences(

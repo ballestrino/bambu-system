@@ -27,6 +27,7 @@ import {
   type MutationErrorAction,
 } from "@/components/ops/cache/mutation-toast";
 import { opsQueryKeys } from "@/components/ops/query-keys";
+import { invalidateVisitScopes } from "@/components/ops/hooks/useOpsInvalidation";
 import type { OpsOccurrence } from "@/components/ops/types";
 import type {
   CreateJobOccurrenceInput,
@@ -59,6 +60,7 @@ export const useJobOccurrenceMutations = (_jobId?: string) => {
         sort: sortOccurrences,
         tempId: context?.optimisticId,
       });
+      void invalidateVisitScopes(queryClient);
       toast.success("Ocurrencia creada");
     },
     onError: (error, values, context) => {
@@ -87,6 +89,7 @@ export const useJobOccurrenceMutations = (_jobId?: string) => {
         matches: matchesOccurrenceFilters,
         sort: sortOccurrences,
       });
+      void invalidateVisitScopes(queryClient);
       toast.success("Ocurrencia actualizada");
     },
     onError: (error, values, context) => {
@@ -115,6 +118,7 @@ export const useJobOccurrenceMutations = (_jobId?: string) => {
         matches: matchesOccurrenceFilters,
         sort: sortOccurrences,
       });
+      void invalidateVisitScopes(queryClient);
       toast.success("Ocurrencia separada");
     },
     onError: (error, values, context) => {
@@ -142,6 +146,7 @@ export const useJobOccurrenceMutations = (_jobId?: string) => {
         matches: matchesOccurrenceFilters,
         sort: sortOccurrences,
       });
+      void invalidateVisitScopes(queryClient);
       toast.success("Ocurrencia archivada");
     },
     onError: (error, _occurrenceId, context) => {

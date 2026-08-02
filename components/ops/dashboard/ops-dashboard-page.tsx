@@ -27,7 +27,7 @@ import {
 import type { JobOccurrenceFilters } from "@/schemas/ops";
 
 export const OpsDashboardPage = () => {
-  const { monthKey, monthRange } = useOpsSelectedMonth();
+  const { month, monthKey, monthRange } = useOpsSelectedMonth();
   const occurrenceFilters = useMemo<JobOccurrenceFilters>(() => {
     const { endDate } = getPendingVisitsRange();
 
@@ -100,7 +100,7 @@ export const OpsDashboardPage = () => {
     isLoading: areEmployeePaymentsLoading,
     refetch: refetchEmployeePayments,
   } = useEmployeePayments(
-    { ...financialDateFilters, basis: "PAYMENT_DATE" },
+    { assignedMonth: month, statuses: ["RECORDED"] },
     `dashboard-recorded-employee-payments-${monthKey}`
   );
   const {

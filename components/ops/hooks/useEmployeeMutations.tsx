@@ -25,6 +25,7 @@ import {
   type MutationErrorAction,
 } from "@/components/ops/cache/mutation-toast";
 import { opsQueryKeys } from "@/components/ops/query-keys";
+import { invalidateVisitScopes } from "@/components/ops/hooks/useOpsInvalidation";
 import type { OpsEmployee } from "@/components/ops/types";
 import type { CreateEmployeeInput, UpdateEmployeeInput } from "@/schemas/ops";
 
@@ -81,6 +82,7 @@ export const useEmployeeMutations = () => {
         tempId: context?.optimisticId,
       });
       upsertDetail(queryClient, opsQueryKeys.employee(employee.id), employee);
+      void invalidateVisitScopes(queryClient);
       toast.success("Empleada creada");
     },
     onError: (error, values, context) => {
@@ -116,6 +118,7 @@ export const useEmployeeMutations = () => {
         sort: sortEmployees,
       });
       upsertDetail(queryClient, opsQueryKeys.employee(employee.id), employee);
+      void invalidateVisitScopes(queryClient);
       toast.success("Empleada actualizada");
     },
     onError: (error, values, context) => {
@@ -150,6 +153,7 @@ export const useEmployeeMutations = () => {
         sort: sortEmployees,
       });
       upsertDetail(queryClient, opsQueryKeys.employee(employee.id), employee);
+      void invalidateVisitScopes(queryClient);
       toast.success("Empleada archivada");
     },
     onError: (error, _employeeId, context) => {

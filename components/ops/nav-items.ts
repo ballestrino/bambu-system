@@ -1,11 +1,9 @@
 import {
   BriefcaseBusiness,
   CalendarDays,
-  CircleDollarSign,
-  HandCoins,
   LayoutDashboard,
-  ReceiptText,
   UsersRound,
+  WalletCards,
 } from "lucide-react";
 
 export const opsNavItems = [
@@ -22,8 +20,8 @@ export const opsNavItems = [
     icon: BriefcaseBusiness,
   },
   {
-    title: "Calendario",
-    description: "Agenda y visitas del equipo",
+    title: "Visitas",
+    description: "Calendario e historial del equipo",
     url: "/dashboard/calendar",
     icon: CalendarDays,
   },
@@ -34,22 +32,10 @@ export const opsNavItems = [
     icon: UsersRound,
   },
   {
-    title: "Cobros",
-    description: "Ingresos recibidos de clientes",
-    url: "/dashboard/payments",
-    icon: CircleDollarSign,
-  },
-  {
-    title: "Costes",
-    description: "Gastos reales y ganancia de caja",
-    url: "/dashboard/costs",
-    icon: ReceiptText,
-  },
-  {
-    title: "Pagos",
-    description: "Pagos y periodos de empleadas",
-    url: "/dashboard/payroll",
-    icon: HandCoins,
+    title: "Finanzas",
+    description: "Cobros, costes y pagos a empleadas",
+    url: "/dashboard/financial",
+    icon: WalletCards,
   },
 ] as const;
 

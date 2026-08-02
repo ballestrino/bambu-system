@@ -12,6 +12,7 @@ export * from "@/components/ops/actions/jobs/get-job-occurrences.action";
 export * from "@/components/ops/actions/jobs/get-job-schedule-rules.action";
 export * from "@/components/ops/actions/jobs/get-job.action";
 export * from "@/components/ops/actions/jobs/get-jobs.action";
+export * from "@/components/ops/actions/jobs/get-visits.action";
 export * from "@/components/ops/actions/jobs/update-job-employee-assignment.action";
 export * from "@/components/ops/actions/jobs/update-job-occurrence.action";
 export * from "@/components/ops/actions/jobs/update-job-schedule-rule.action";

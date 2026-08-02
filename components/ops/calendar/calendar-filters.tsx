@@ -1,5 +1,4 @@
 "use client";
-
 import {
   ALL_CALENDAR_FILTER,
   UNASSIGNED_EMPLOYEE_FILTER,
@@ -24,6 +23,7 @@ import { Switch } from "@/components/ui/switch";
 import { occurrenceStatusValues } from "@/schemas/ops";
 
 type CalendarFiltersProps = {
+  countLabel?: string;
   employeeOptions: CalendarFilterOption[];
   filters: CalendarFilters;
   jobOptions: CalendarFilterOption[];
@@ -32,8 +32,8 @@ type CalendarFiltersProps = {
   totalCount: number;
   visibleCount: number;
 };
-
 export const CalendarFiltersBar = ({
+  countLabel,
   employeeOptions,
   filters,
   jobOptions,
@@ -88,15 +88,15 @@ export const CalendarFiltersBar = ({
         <div className="flex flex-wrap items-center justify-between gap-2">
           <div>
             <h2 className="text-sm font-semibold text-[#18251D] dark:text-[#EAF5EC]">
-              Filtrar agenda
+              Filtrar visitas
             </h2>
             <p className="text-xs text-muted-foreground">
-              Los filtros se aplican al mes operativo.
+              Los filtros se aplican a la visualización activa.
             </p>
           </div>
           <div className="flex items-center gap-2 text-sm text-muted-foreground">
             <span>
-              {visibleCount} de {totalCount} visita(s)
+              {countLabel ?? `${visibleCount} de ${totalCount} visita(s)`}
             </span>
             {hasFilters ? (
               <Button type="button" size="sm" variant="ghost" onClick={onClear}>
@@ -161,7 +161,7 @@ export const CalendarFiltersBar = ({
           <OpsFilterField label="Estado">
             <Select
               value={filters.status}
-              onValueChange={(status) => onChange({ status })}
+              onValueChange={(status) => onChange({ status: status as CalendarFilters["status"] })}
             >
               <SelectTrigger
                 aria-label="Filtrar por estado"

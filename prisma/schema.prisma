@@ -453,6 +453,7 @@ model EmployeePayment {
   id          String        @id @default(cuid())
   employeeId  String
   employee    Employee      @relation(fields: [employeeId], references: [id], onDelete: Restrict)
+  assignedMonth DateTime
   periodStart DateTime
   periodEnd   DateTime
   paymentDate DateTime
@@ -467,7 +468,10 @@ model EmployeePayment {
   createdAt   DateTime      @default(now())
   updatedAt   DateTime      @updatedAt
 
+  @@index([employeeId, assignedMonth])
+  @@index([employeeId, status, assignedMonth])
   @@index([employeeId, paymentDate])
+  @@index([status, assignedMonth])
   @@index([status, paymentDate])
   @@index([createdById])
   @@index([updatedById])

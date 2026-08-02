@@ -4,10 +4,10 @@ import { db } from "@/lib/db";
 import { requireAdminSession } from "@/lib/require-admin-session";
 import { JobClientPaymentFiltersSchema } from "@/schemas/ops";
 import {
-  buildAssignedMonthRange,
   buildDateTimeRange,
   opsAuditUserSelect,
 } from "@/data/ops/shared";
+import { getAssignedMonthRange } from "@/lib/ops/finance";
 
 export const getJobClientPayments = async (filters?: unknown) => {
   try {
@@ -21,7 +21,7 @@ export const getJobClientPayments = async (filters?: unknown) => {
     const { assignedMonth, jobId, statuses, startDate, endDate } =
       parsedFilters.data;
     const assignedMonthRange = assignedMonth
-      ? buildAssignedMonthRange(assignedMonth)
+      ? getAssignedMonthRange(assignedMonth)
       : buildDateTimeRange(startDate, endDate);
 
     const clientPayments = await db.jobClientPayment.findMany({

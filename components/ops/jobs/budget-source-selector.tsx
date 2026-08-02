@@ -14,6 +14,10 @@ import {
 } from "@/components/ops/shared";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  formatJobBudgetPrice,
+  getBudgetOptionPriceWithoutIva,
+} from "@/lib/ops/job-budget-pricing";
 
 interface BudgetSourceSelectorProps {
   sourceBudgetId: string;
@@ -45,6 +49,8 @@ export const BudgetSourceSelector = ({
   const selectedOption = selectedBudget?.budgetOptions.find(
     (option) => option.id === sourceBudgetOptionId
   );
+  const getNetPriceLabel = (option: unknown) =>
+    formatJobBudgetPrice(getBudgetOptionPriceWithoutIva(option));
 
   return (
     <div className={opsFormPanelClass}>
@@ -78,7 +84,7 @@ export const BudgetSourceSelector = ({
             <SelectItem value="none">Sin opción</SelectItem>
             {selectedBudget?.budgetOptions.map((option, index) => (
               <SelectItem key={option.id} value={option.id}>
-                Opción {index + 1} · ${option.price}
+                Opción {index + 1} · {getNetPriceLabel(option)} sin IVA
               </SelectItem>
             ))}
           </SelectContent>
@@ -101,7 +107,7 @@ export const BudgetSourceSelector = ({
                 Opción vinculada
               </div>
               <p className="text-muted-foreground">
-                ${selectedOption.price} · {selectedOption.visits} visitas ·{" "}
+                {getNetPriceLabel(selectedOption)} sin IVA · {selectedOption.visits} visitas ·{" "}
                 {selectedOption.hours_per_visit} hs/visita
               </p>
             </div>

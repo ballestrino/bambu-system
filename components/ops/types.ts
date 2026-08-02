@@ -83,6 +83,24 @@ export type OpsOccurrence = Prisma.JobOccurrenceGetPayload<{
   };
 }>;
 
+export type VisitFilterOption = {
+  id: string;
+  name: string;
+};
+
+export type VisitFilterOptions = {
+  employees: VisitFilterOption[];
+  jobs: VisitFilterOption[];
+};
+
+export type VisitWeekPage = {
+  hasNextPage: boolean;
+  nextCursor: string | null;
+  occurrences: OpsOccurrence[];
+  weekEnd: string;
+  weekStart: string;
+};
+
 export type OpsBudgetSource = Prisma.BudgetGetPayload<{
   include: {
     budgetOptions: true;

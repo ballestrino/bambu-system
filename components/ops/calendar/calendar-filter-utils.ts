@@ -9,7 +9,7 @@ export type CalendarFilters = {
   attentionOnly: boolean;
   employeeId: string;
   jobId: string;
-  status: string;
+  status: OpsOccurrence["status"] | typeof ALL_CALENDAR_FILTER;
 };
 
 export type CalendarFilterOption = {

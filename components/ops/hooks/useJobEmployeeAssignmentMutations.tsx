@@ -19,6 +19,7 @@ import {
 import { matchesAssignmentFilters, sortAssignments } from "@/components/ops/cache/optimistic-filters";
 import { showMutationError, stripMutationErrorAction, type MutationErrorAction } from "@/components/ops/cache/mutation-toast";
 import { opsQueryKeys } from "@/components/ops/query-keys";
+import { invalidateVisitScopes } from "@/components/ops/hooks/useOpsInvalidation";
 import type {
   OpsEmployee,
   OpsJobEmployeeAssignment,
@@ -110,6 +111,7 @@ export const useJobEmployeeAssignmentMutations = (_jobId?: string, _employeeId?:
         sort: sortAssignments,
         tempId: context?.optimisticId,
       });
+      void invalidateVisitScopes(queryClient);
       toast.success("Empleada asignada");
     },
     onError: (error, values, context) => {
@@ -143,6 +145,7 @@ export const useJobEmployeeAssignmentMutations = (_jobId?: string, _employeeId?:
         matches: matchesAssignmentFilters,
         sort: sortAssignments,
       });
+      void invalidateVisitScopes(queryClient);
       toast.success("Asignacion actualizada");
     },
     onError: (error, values, context) => {
@@ -176,6 +179,7 @@ export const useJobEmployeeAssignmentMutations = (_jobId?: string, _employeeId?:
         sort: sortAssignments,
       });
       removeArchivedEmployeeFromFutureVisits(queryClient, assignment);
+      void invalidateVisitScopes(queryClient);
       toast.success("Empleada desasignada");
     },
     onError: (error, _assignmentId, context) => {

@@ -5,9 +5,11 @@
   "scripts": {
     "dev": "next dev",
     "build": "pnpm exec prisma generate && next build",
+    "check:finance": "tsx scripts/check-finance.ts",
     "check:job-export": "tsx scripts/check-job-excel-export.ts",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "harness": "node scripts/harness-validate.mjs"
   },
   "dependencies": {
     "@auth/prisma-adapter": "^2.4.2",

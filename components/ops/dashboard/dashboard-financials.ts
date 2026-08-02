@@ -4,7 +4,7 @@ import type {
   OpsJobListItem,
   OpsOperationalCost,
 } from "@/components/ops/types";
-import { getCostsSummary } from "@/components/ops/costs/cost-utils";
+import { getFinancialSummary } from "@/lib/ops/finance";
 import { getJobBudgetPrice } from "@/lib/ops/job-budget-pricing";
 
 const moneyFormat = new Intl.NumberFormat("es-UY", {
@@ -61,7 +61,7 @@ export const getDashboardFinancials = ({
       }) ?? 0),
     0
   );
-  const costsSummary = getCostsSummary({
+  const costsSummary = getFinancialSummary({
     bpsEstimatePercent,
     clientPayments,
     employeePayments,

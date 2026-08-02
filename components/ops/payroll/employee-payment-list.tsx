@@ -9,7 +9,7 @@ import { PaymentStatusBadge } from "@/components/ops/payments/payment-status-bad
 import { PayrollDialog } from "@/components/ops/payroll/payroll-dialog";
 import { formatPayrollMoney, toPayrollNumber } from "@/components/ops/payroll/payroll-utils";
 import type { OpsEmployee, OpsEmployeePayment } from "@/components/ops/types";
-import { formatDate } from "@/components/ops/utils";
+import { formatDate, formatUtcMonth } from "@/components/ops/utils";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
@@ -38,9 +38,10 @@ export const EmployeePaymentList = ({
               <div className="flex flex-wrap items-center gap-2">
                 <PaymentStatusBadge status={payment.status} />
                 <p className="font-medium">{formatPayrollMoney(toPayrollNumber(payment.amount))}</p>
-                <p className="text-muted-foreground">{formatDate(payment.paymentDate)}</p>
+                <p className="text-muted-foreground">Asignado: {formatUtcMonth(payment.assignedMonth)}</p>
               </div>
               <p>{payment.employee.name}</p>
+              <p className="text-muted-foreground">Fecha de pago: {formatDate(payment.paymentDate)}</p>
               <p className="text-muted-foreground">
                 Periodo {formatDate(payment.periodStart)} - {formatDate(payment.periodEnd)}
               </p>

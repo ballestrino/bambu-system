@@ -9,10 +9,10 @@ import {
   OperationalCostFiltersSchema,
 } from "@/schemas/ops";
 import {
-  buildAssignedMonthRange,
   buildDateTimeRange,
   opsAuditUserSelect,
 } from "@/data/ops/shared";
+import { getAssignedMonthRange } from "@/lib/ops/finance";
 
 const defaultCategories = [
   { name: "BPS", kind: "BPS", color: "#3B82F6" },
@@ -82,7 +82,7 @@ export const getOperationalCosts = async (filters?: unknown) => {
       endDate,
     } = parsedFilters.data;
     const assignedMonthRange = assignedMonth
-      ? buildAssignedMonthRange(assignedMonth)
+      ? getAssignedMonthRange(assignedMonth)
       : buildDateTimeRange(startDate, endDate);
     const where: Prisma.OperationalCostWhereInput = {
       categoryId,

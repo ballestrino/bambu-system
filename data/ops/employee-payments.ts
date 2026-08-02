@@ -3,7 +3,8 @@ import "server-only";
 import { db } from "@/lib/db";
 import { requireAdminSession } from "@/lib/require-admin-session";
 import { EmployeePaymentFiltersSchema } from "@/schemas/ops";
-import { buildDateTimeRange, opsAuditUserSelect } from "@/data/ops/shared";
+import { opsAuditUserSelect } from "@/data/ops/shared";
+import { getEmployeePaymentDateFilter } from "@/lib/ops/finance";
 
 export const getEmployeePayments = async (filters?: unknown) => {
   try {
@@ -14,20 +15,14 @@ export const getEmployeePayments = async (filters?: unknown) => {
       return { error: "Filtros de pagos invalidos" };
     }
 
-    const { basis, employeeId, statuses, startDate, endDate } =
+    const { assignedMonth, basis, employeeId, statuses, startDate, endDate } =
       parsedFilters.data;
-    const dateFilter =
-      (basis ?? "PERIOD") === "PAYMENT_DATE"
-        ? { paymentDate: buildDateTimeRange(startDate, endDate) }
-        : {
-            AND:
-              startDate || endDate
-                ? [
-                    endDate ? { periodStart: { lte: endDate } } : {},
-                    startDate ? { periodEnd: { gte: startDate } } : {},
-                  ]
-                : undefined,
-          };
+    const dateFilter = getEmployeePaymentDateFilter({
+      assignedMonth,
+      basis,
+      endDate,
+      startDate,
+    });
 
     const employeePayments = await db.employeePayment.findMany({
       where: {
@@ -44,7 +39,11 @@ export const getEmployeePayments = async (filters?: unknown) => {
           select: opsAuditUserSelect,
         },
       },
-      orderBy: [{ paymentDate: "desc" }, { createdAt: "desc" }],
+      orderBy: [
+        { assignedMonth: "desc" },
+        { paymentDate: "desc" },
+        { createdAt: "desc" },
+      ],
     });
 
     return { employeePayments };

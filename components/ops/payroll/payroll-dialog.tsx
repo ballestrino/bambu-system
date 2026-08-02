@@ -13,9 +13,14 @@ import {
   OpsFormBody, OpsFormDialogContent, OpsFormField, OpsFormFooter,
   OpsFormGrid, OpsFormHeader, opsFormControlClass, opsFormPanelClass,
   opsFormSelectTriggerClass, opsFormTextareaClass,
+  useOpsSelectedMonth,
 } from "@/components/ops/shared";
 import type { OpsEmployee, OpsEmployeePayment } from "@/components/ops/types";
-import { toDateInputValue } from "@/components/ops/utils";
+import {
+  getUtcMonthKey,
+  parseUtcMonthKey,
+  toDateInputValue,
+} from "@/components/ops/utils";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
@@ -24,14 +29,21 @@ import { Textarea } from "@/components/ui/textarea";
 
 const getInitialState = (
   payment?: OpsEmployeePayment,
-  defaults?: { employeeId?: string; periodEnd?: string; periodStart?: string; suggestedAmount?: number | null }
+  defaults?: { assignedMonth?: string; employeeId?: string; periodEnd?: string; periodStart?: string; suggestedAmount?: number | null }
 ) => ({
+  assignedMonth: payment?.assignedMonth
+    ? getUtcMonthKey(new Date(payment.assignedMonth))
+    : defaults?.assignedMonth ?? "",
   amount: payment ? String(toPayrollNumber(payment.amount)) : defaults?.suggestedAmount ? String(defaults.suggestedAmount) : "",
   employeeId: payment?.employeeId ?? defaults?.employeeId ?? "",
   notes: payment?.notes ?? "",
   paymentDate: toDateInputValue(payment?.paymentDate ?? new Date()),
-  periodEnd: toDateInputValue(payment?.periodEnd ?? defaults?.periodEnd),
-  periodStart: toDateInputValue(payment?.periodStart ?? defaults?.periodStart),
+  periodEnd: payment
+    ? toDateInputValue(payment.periodEnd)
+    : defaults?.periodEnd ?? "",
+  periodStart: payment
+    ? toDateInputValue(payment.periodStart)
+    : defaults?.periodStart ?? "",
   reference: payment?.reference ?? "",
 });
 
@@ -50,7 +62,14 @@ export const PayrollDialog = ({
   periodStart?: string;
   suggestedAmount?: number | null;
 }) => {
-  const defaults = { employeeId, periodEnd, periodStart, suggestedAmount };
+  const { monthKey } = useOpsSelectedMonth();
+  const defaults = {
+    assignedMonth: monthKey,
+    employeeId,
+    periodEnd,
+    periodStart,
+    suggestedAmount,
+  };
   const [open, setOpen] = useState(false);
   const [formState, setFormState] = useState(getInitialState(payment, defaults));
   const { createPaymentAsync, updatePaymentAsync, isCreating, isUpdating } =
@@ -59,10 +78,14 @@ export const PayrollDialog = ({
   const amount = toPayrollNumber(formState.amount);
 
   const handleSubmit = async () => {
+    const assignedMonth = parseUtcMonthKey(formState.assignedMonth);
+    if (!assignedMonth) return;
+
     if (payment) {
       await updatePaymentAsync({
         paymentId: payment.id,
         values: {
+          assignedMonth,
           amount,
           notes: formState.notes,
           paymentDate: new Date(`${formState.paymentDate}T00:00:00`),
@@ -73,6 +96,7 @@ export const PayrollDialog = ({
       });
     } else {
       await createPaymentAsync({
+        assignedMonth,
         amount,
         employeeId: formState.employeeId,
         notes: formState.notes || undefined,
@@ -123,19 +147,20 @@ export const PayrollDialog = ({
             </p>
           ) : null}
           <OpsFormGrid>
+            <OpsFormField label="Mes asignado"><Input className={opsFormControlClass} type="month" value={formState.assignedMonth} onChange={(event) => setFormState((current) => ({ ...current, assignedMonth: event.target.value }))} /></OpsFormField>
+            <OpsFormField label="Fecha de pago"><Input className={opsFormControlClass} type="date" value={formState.paymentDate} onChange={(event) => setFormState((current) => ({ ...current, paymentDate: event.target.value }))} /></OpsFormField>
+          </OpsFormGrid>
+          <OpsFormGrid>
             <OpsFormField label="Periodo desde"><Input className={opsFormControlClass} type="date" value={formState.periodStart} onChange={(event) => setFormState((current) => ({ ...current, periodStart: event.target.value }))} /></OpsFormField>
             <OpsFormField label="Periodo hasta"><Input className={opsFormControlClass} type="date" value={formState.periodEnd} onChange={(event) => setFormState((current) => ({ ...current, periodEnd: event.target.value }))} /></OpsFormField>
           </OpsFormGrid>
-          <OpsFormGrid>
-            <OpsFormField label="Fecha de pago"><Input className={opsFormControlClass} type="date" value={formState.paymentDate} onChange={(event) => setFormState((current) => ({ ...current, paymentDate: event.target.value }))} /></OpsFormField>
-            <OpsFormField label="Monto"><Input className={opsFormControlClass} min="0.01" step="0.01" type="number" value={formState.amount} onChange={(event) => setFormState((current) => ({ ...current, amount: event.target.value }))} /></OpsFormField>
-          </OpsFormGrid>
+          <OpsFormField label="Monto"><Input className={opsFormControlClass} min="0.01" step="0.01" type="number" value={formState.amount} onChange={(event) => setFormState((current) => ({ ...current, amount: event.target.value }))} /></OpsFormField>
           <OpsFormField label="Referencia"><Input className={opsFormControlClass} value={formState.reference} onChange={(event) => setFormState((current) => ({ ...current, reference: event.target.value }))} /></OpsFormField>
           <OpsFormField label="Notas"><Textarea className={opsFormTextareaClass} value={formState.notes} onChange={(event) => setFormState((current) => ({ ...current, notes: event.target.value }))} /></OpsFormField>
         </OpsFormBody>
         <OpsFormFooter>
           <Button variant="outline" onClick={() => setOpen(false)}>Cancelar</Button>
-          <Button disabled={isPending || amount <= 0 || !formState.employeeId || !formState.paymentDate || !formState.periodStart || !formState.periodEnd} onClick={handleSubmit}>
+          <Button disabled={isPending || amount <= 0 || !formState.assignedMonth || !formState.employeeId || !formState.paymentDate || !formState.periodStart || !formState.periodEnd} onClick={handleSubmit}>
             {isPending ? <LoaderCircle className="h-4 w-4 animate-spin" /> : null}
             Guardar pago
           </Button>

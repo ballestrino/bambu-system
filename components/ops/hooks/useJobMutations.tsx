@@ -25,6 +25,7 @@ import {
   type MutationErrorAction,
 } from "@/components/ops/cache/mutation-toast";
 import { opsQueryKeys } from "@/components/ops/query-keys";
+import { invalidateVisitScopes } from "@/components/ops/hooks/useOpsInvalidation";
 import type { OpsJobListItem } from "@/components/ops/types";
 import type { CreateJobInput, UpdateJobInput } from "@/schemas/ops";
 
@@ -78,6 +79,7 @@ export const useJobMutations = () => {
         tempId: context?.optimisticId,
       });
       upsertDetail(queryClient, opsQueryKeys.job(job.id), job);
+      void invalidateVisitScopes(queryClient);
       toast.success("Trabajo creado");
     },
     onError: (error, values, context) => {
@@ -108,6 +110,7 @@ export const useJobMutations = () => {
         sort: sortJobs,
       });
       upsertDetail(queryClient, opsQueryKeys.job(job.id), job);
+      void invalidateVisitScopes(queryClient);
       toast.success("Trabajo actualizado");
     },
     onError: (error, values, context) => {
@@ -142,6 +145,7 @@ export const useJobMutations = () => {
         sort: sortJobs,
       });
       upsertDetail(queryClient, opsQueryKeys.job(job.id), job);
+      void invalidateVisitScopes(queryClient);
       toast.success("Trabajo archivado");
     },
     onError: (error, _jobId, context) => {

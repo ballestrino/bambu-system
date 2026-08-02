@@ -12,6 +12,12 @@ type ScopeOptions = {
 const invalidateRoot = (queryClient: QueryClient, queryKey: readonly string[]) =>
   queryClient.invalidateQueries({ queryKey });
 
+export const invalidateVisitScopes = (queryClient: QueryClient) =>
+  Promise.all([
+    invalidateRoot(queryClient, opsQueryKeys.visitFeedRoot),
+    invalidateRoot(queryClient, opsQueryKeys.visitFilterOptions),
+  ]);
+
 export const invalidateJobScopes = async (
   queryClient: QueryClient,
   { jobId }: ScopeOptions = {}
@@ -23,6 +29,7 @@ export const invalidateJobScopes = async (
     invalidateRoot(queryClient, opsQueryKeys.clientPayments),
     invalidateRoot(queryClient, opsQueryKeys.costs),
     invalidateRoot(queryClient, opsQueryKeys.calendarRoot),
+    invalidateVisitScopes(queryClient),
     jobId
       ? queryClient.invalidateQueries({ queryKey: opsQueryKeys.job(jobId) })
       : Promise.resolve(),
@@ -40,6 +47,7 @@ export const invalidateEmployeeScopes = async (
     invalidateRoot(queryClient, opsQueryKeys.employeePayments),
     invalidateRoot(queryClient, opsQueryKeys.costs),
     invalidateRoot(queryClient, opsQueryKeys.calendarRoot),
+    invalidateVisitScopes(queryClient),
     employeeId
       ? queryClient.invalidateQueries({
           queryKey: opsQueryKeys.employee(employeeId),

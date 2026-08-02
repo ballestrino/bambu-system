@@ -34,7 +34,7 @@ export default function NavDashboard() {
                                     <Link href="/dashboard">
                                         <div className="font-medium">Operaciones</div>
                                         <div className="text-muted-foreground text-sm">
-                                            Resumen, trabajos y calendario operativo
+                                            Resumen, trabajos y visitas operativas
                                         </div>
                                     </Link>
                                 </NavigationMenuLink>
