@@ -137,7 +137,7 @@
         "Scheduling-related authored files stay under 200 lines unless an exception is explicitly justified",
         "Manual smoke covers monthly calendar load, create visit, edit visit, split occurrence, and archive flows"
       ],
-      "status": "pending"
+      "status": "in_progress"
     },
     {
       "id": 10,

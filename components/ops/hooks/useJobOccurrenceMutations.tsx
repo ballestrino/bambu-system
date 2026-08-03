@@ -37,6 +37,13 @@ import type {
 
 const occurrenceRoots = [opsQueryKeys.occurrenceRoot, opsQueryKeys.calendarRoot];
 
+type ArchiveOccurrenceArgs =
+  | string
+  | { occurrenceId: string; successMessage?: string };
+
+const getArchiveOccurrenceId = (args: ArchiveOccurrenceArgs) =>
+  typeof args === "string" ? args : args.occurrenceId;
+
 export const useJobOccurrenceMutations = (_jobId?: string) => {
   void _jobId;
   const queryClient = useQueryClient();
@@ -128,8 +135,10 @@ export const useJobOccurrenceMutations = (_jobId?: string) => {
   });
 
   const archiveMutation = useMutation({
-    mutationFn: (occurrenceId: string) => archiveJobOccurrenceAction(occurrenceId),
-    onMutate: async (occurrenceId) => {
+    mutationFn: (args: ArchiveOccurrenceArgs) =>
+      archiveJobOccurrenceAction(getArchiveOccurrenceId(args)),
+    onMutate: async (args) => {
+      const occurrenceId = getArchiveOccurrenceId(args);
       const snapshots = await snapshotQueries(queryClient, occurrenceRoots);
       patchListItem<OpsOccurrence>(
         queryClient,
@@ -140,14 +149,18 @@ export const useJobOccurrenceMutations = (_jobId?: string) => {
       );
       return { snapshots };
     },
-    onSuccess: (occurrence) => {
+    onSuccess: (occurrence, args) => {
       if (!occurrence) return;
       reconcileListItem(queryClient, opsQueryKeys.occurrenceRoot, occurrence, {
         matches: matchesOccurrenceFilters,
         sort: sortOccurrences,
       });
       void invalidateVisitScopes(queryClient);
-      toast.success("Ocurrencia archivada");
+      toast.success(
+        typeof args === "string"
+          ? "Ocurrencia archivada"
+          : args.successMessage ?? "Ocurrencia archivada"
+      );
     },
     onError: (error, _occurrenceId, context) => {
       restoreSnapshots(queryClient, context?.snapshots);

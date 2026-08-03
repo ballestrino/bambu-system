@@ -1,6 +1,8 @@
 import { opsFrequencyLabels } from "@/components/ops/shared";
 
-type RuleForLabel = {
+export type JobScheduleRuleOption = {
+  id: string;
+  jobId: string;
   dayOfMonth: number | null;
   durationMinutes: number;
   frequency: "DAILY" | "MONTHLY" | "WEEKLY";
@@ -17,7 +19,7 @@ const toClockLabel = (minutes: number) =>
     minutes % 60
   ).padStart(2, "0")}`;
 
-const describeRule = (rule: RuleForLabel) => {
+const describeRule = (rule: JobScheduleRuleOption) => {
   if (rule.frequency === "WEEKLY") {
     return rule.weekdays.map((day) => weekdayLabels[day - 1]).join(", ");
   }
@@ -29,7 +31,7 @@ const describeRule = (rule: RuleForLabel) => {
   return `Cada ${rule.interval} dia(s)`;
 };
 
-export const getJobScheduleRuleOptionLabel = (rule: RuleForLabel) => {
+export const getJobScheduleRuleOptionLabel = (rule: JobScheduleRuleOption) => {
   const activityLabel = rule.isActive ? "" : " · inactiva";
 
   return `${opsFrequencyLabels[rule.frequency]} · ${describeRule(rule)} · ${toClockLabel(

@@ -2,8 +2,9 @@
 
 import { UsersRound } from "lucide-react";
 
+import type { JobOccurrenceEmployeeOption } from "@/components/ops/jobs/job-occurrence-dialog-utils";
 import { OpsFormField, opsFormPanelClass } from "@/components/ops/shared";
-import type { OpsEmployee } from "@/components/ops/types";
+import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
 import { cn } from "@/lib/utils";
 
@@ -12,7 +13,7 @@ export const JobOccurrenceEmployeeField = ({
   onChange,
   selectedEmployeeIds,
 }: {
-  employees: OpsEmployee[];
+  employees: JobOccurrenceEmployeeOption[];
   onChange: (employeeIds: string[]) => void;
   selectedEmployeeIds: string[];
 }) => {
@@ -28,7 +29,7 @@ export const JobOccurrenceEmployeeField = ({
 
   return (
     <OpsFormField
-      description="Puede quedar sin equipo asignado para resolverlo desde la agenda."
+      description="Las empleadas archivadas o inactivas solo aparecen si ya estaban asignadas y pueden quitarse."
       label="Equipo"
     >
       <div className={cn(opsFormPanelClass, "space-y-3")}>
@@ -47,6 +48,15 @@ export const JobOccurrenceEmployeeField = ({
               <span className="min-w-0 flex-1 truncate font-medium">
                 {employee.name}
               </span>
+              {employee.archivedAt ? (
+                <Badge variant="outline" className="shrink-0 text-muted-foreground">
+                  Archivada
+                </Badge>
+              ) : !employee.isActive ? (
+                <Badge variant="outline" className="shrink-0 text-muted-foreground">
+                  Inactiva
+                </Badge>
+              ) : null}
             </label>
           ))
         ) : (

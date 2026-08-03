@@ -7,6 +7,7 @@
     "build": "pnpm exec prisma generate && next build",
     "check:finance": "tsx scripts/check-finance.ts",
     "check:job-export": "tsx scripts/check-job-excel-export.ts",
+    "check:occurrence-dialog": "tsx scripts/check-occurrence-dialog.ts",
     "start": "next start",
     "lint": "eslint",
     "harness": "node scripts/harness-validate.mjs"

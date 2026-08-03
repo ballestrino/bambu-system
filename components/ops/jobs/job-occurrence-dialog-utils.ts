@@ -37,6 +37,77 @@ export const getInitialOccurrenceState = (
 
 export type OccurrenceFormState = ReturnType<typeof getInitialOccurrenceState>;
 
+export type JobOccurrenceEmployeeOption = {
+  archivedAt: Date | null;
+  id: string;
+  isActive: boolean;
+  name: string;
+};
+
+export const getJobOccurrenceEmployeeOptions = (
+  activeEmployees: JobOccurrenceEmployeeOption[],
+  assignedEmployees: JobOccurrenceEmployeeOption[] = []
+) => {
+  const options = [...activeEmployees];
+
+  assignedEmployees.forEach((employee) => {
+    if (!options.some((option) => option.id === employee.id)) {
+      options.push(employee);
+    }
+  });
+
+  return options;
+};
+
+export type DateTimePart = "date" | "time";
+
+export const getDateTimePart = (value: string, part: DateTimePart) => {
+  const [date = "", time = ""] = value.split("T");
+  return part === "date" ? date : time;
+};
+
+const setDateTimePart = (
+  value: string,
+  part: DateTimePart,
+  nextPart: string
+) => {
+  const date = part === "date" ? nextPart : getDateTimePart(value, "date");
+  const time = part === "time" ? nextPart : getDateTimePart(value, "time");
+  return date || time ? `${date}T${time}` : "";
+};
+
+export const updateOccurrenceDateTimeRange = ({
+  endValue,
+  field,
+  nextPart,
+  part,
+  startValue,
+}: {
+  endValue: string;
+  field: "end" | "start";
+  nextPart: string;
+  part: DateTimePart;
+  startValue: string;
+}) => {
+  const nextStartValue =
+    field === "start"
+      ? setDateTimePart(startValue, part, nextPart)
+      : startValue;
+  let nextEndValue =
+    field === "end" ? setDateTimePart(endValue, part, nextPart) : endValue;
+
+  if (
+    field === "start" &&
+    part === "date" &&
+    nextPart &&
+    !getDateTimePart(endValue, "date")
+  ) {
+    nextEndValue = setDateTimePart(endValue, "date", nextPart);
+  }
+
+  return { endValue: nextEndValue, startValue: nextStartValue };
+};
+
 export const syncOccurrenceActualTimes = (
   formState: OccurrenceFormState
 ) => ({
