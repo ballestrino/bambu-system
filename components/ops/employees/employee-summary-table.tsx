@@ -13,7 +13,7 @@ export const EmployeeSummaryTable = ({
   >
     {rows.length ? (
       <div className="overflow-hidden rounded-md border border-[#53985E]/15">
-        <div className="grid grid-cols-[1.4fr_0.7fr_0.7fr_0.9fr_0.9fr] gap-3 bg-[#EAF5EC] p-3 text-xs font-semibold uppercase tracking-wide text-[#244C2D] dark:bg-[#223326] dark:text-[#A7D8AE]">
+        <div className="grid grid-cols-[1.4fr_0.7fr_0.7fr_0.9fr_0.9fr] gap-3 bg-[#EAF5EC] p-3 text-xs font-semibold uppercase tracking-wide text-[#244C2D] dark:bg-[#2B3629] dark:text-[#D4E3B8]">
           <span>Trabajo</span>
           <span>Horas</span>
           <span>Visitas</span>

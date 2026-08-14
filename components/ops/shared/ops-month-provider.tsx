@@ -146,7 +146,7 @@ export const OpsSelectedMonthSelector = () => {
   } = useOpsSelectedMonth();
 
   return (
-    <div className="flex flex-wrap items-center gap-2 rounded-lg border border-[#53985E]/15 bg-white/80 px-3 py-2 shadow-sm shadow-[#244C2D]/5 dark:bg-[#132016] dark:ring-white/10">
+    <div className="flex flex-wrap items-center gap-2 rounded-lg border border-[#53985E]/15 bg-white/80 px-3 py-2 shadow-sm shadow-[#244C2D]/5 dark:bg-[#1A211A] dark:ring-white/10">
       <CalendarDays className="h-4 w-4 text-[#53985E]" />
       <span className="min-w-32 text-sm font-medium capitalize">
         {formatMonth(month)}

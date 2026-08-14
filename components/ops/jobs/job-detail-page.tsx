@@ -21,6 +21,7 @@ import { JobScheduleRuleDialog } from "@/components/ops/jobs/job-schedule-rule-d
 import { JobSummaryCard } from "@/components/ops/jobs/job-summary-card";
 import { JobStatusBadge } from "@/components/ops/jobs/status-badges";
 import { PaymentDialog } from "@/components/ops/payments/payment-dialog";
+import { JobProfitabilityPanel } from "@/components/ops/profitability/job-profitability-panel";
 import { JobClientPaymentsPanel } from "@/components/ops/payments/job-client-payments-panel";
 import { useJob } from "@/components/ops/hooks/useJob";
 import { useJobEmployeeAssignmentMutations } from "@/components/ops/hooks/useJobEmployeeAssignmentMutations";
@@ -29,10 +30,11 @@ import { useJobOccurrences } from "@/components/ops/hooks/useJobOccurrences";
 import { useJobScheduleRuleMutations } from "@/components/ops/hooks/useJobScheduleRuleMutations";
 import { useJobScheduleRules } from "@/components/ops/hooks/useJobScheduleRules";
 import { useJobs } from "@/components/ops/hooks/useJobs";
-import { OpsDetailHero, OpsDetailStat, OpsNextAction, OpsPageShell } from "@/components/ops/shared";
+import { OpsDetailHero, OpsDetailStat, OpsNextAction, OpsPageShell, useOpsSelectedMonth } from "@/components/ops/shared";
 import { Card, CardContent } from "@/components/ui/card";
 
 export const JobDetailPage = ({ jobId }: { jobId: string }) => {
+  const { month } = useOpsSelectedMonth();
   const { job, isLoading, error } = useJob(jobId);
   const { jobs } = useJobs({ includeArchived: false });
   const { scheduleRules } = useJobScheduleRules({ jobId });
@@ -80,6 +82,8 @@ export const JobDetailPage = ({ jobId }: { jobId: string }) => {
         <OpsDetailStat icon={CalendarCheck2} label="Visitas hechas" value={completedOccurrences.length} helper="con estado realizado" />
         <OpsDetailStat icon={MapPin} label="Ubicacion" value={location === "Sin ubicacion cargada" ? "Pendiente" : "Cargada"} helper={location} />
       </OpsDetailHero>
+
+      <JobProfitabilityPanel jobId={jobId} month={month} />
 
       {!activeAssignments.length ? (
         <OpsNextAction

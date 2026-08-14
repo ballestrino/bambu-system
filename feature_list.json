@@ -137,7 +137,7 @@
         "Scheduling-related authored files stay under 200 lines unless an exception is explicitly justified",
         "Manual smoke covers monthly calendar load, create visit, edit visit, split occurrence, and archive flows"
       ],
-      "status": "in_progress"
+      "status": "pending"
     },
     {
       "id": 10,
@@ -257,6 +257,38 @@
         "Focused boundary checks, TypeScript, lint, build when available, and authenticated browser smoke are recorded"
       ],
       "status": "done"
+    },
+    {
+      "id": 18,
+      "name": "job_profitability_alerts",
+      "title": "Alert on service losses and material profit shortfalls",
+      "description": "Compare budget snapshots with attributable operational costs and surface severity-aware profitability alerts across the operational workspace.",
+      "acceptance": [
+        "Profitability uses budget revenue and profit without IVA, completed-visit labor and transportation, and recorded job-linked operational costs without treating collection timing as profitability",
+        "Positive projected profit more than 20 percent below target, losses up to 10 percent of expected revenue, larger critical losses, and incomplete data have distinct reusable states",
+        "The operational dashboard shows the highest-priority monthly alerts and a compact healthy state",
+        "Finance shows the complete searchable and severity-filterable monthly profitability view",
+        "Jobs show profitability badges and an attention filter while job detail shows monthly and historical breakdowns",
+        "Profitability queries are batch-oriented, authenticated, cached, and invalidated after relevant operational mutations",
+        "Focused calculations, TypeScript, lint, build when available, and authenticated responsive browser smoke are recorded"
+      ],
+      "status": "done"
+    },
+    {
+      "id": 19,
+      "name": "shared_mail_ai_agent",
+      "title": "Add a shared inbox with an AI reply agent",
+      "description": "Add an admin-only shared Hostinger mailbox workspace that drafts replies with OpenAI, learns through approved memory, and can safely automate confirmed similar messages.",
+      "acceptance": [
+        "The admin-only /dashboard/email workspace provides thread search and filters, Inbox, Sent, and Archive views, read or unread and archive controls, compose, reply, reply-all, forward, and attachment handling without becoming a full webmail",
+        "A resumable three-month IMAP import and bounded incremental sync exclude Spam, Trash, and Drafts, deduplicate messages, use leases, expose a manual refresh, and support a bearer-protected cron-job.org trigger every 15 minutes on Vercel Hobby",
+        "SMTP delivery records auditable outbound state and appends sent mail to Hostinger Sent; attachments are capped at 4 MB total, larger files fall back to Hostinger metadata and handoff, and attachment messages never enter AI or automatic-send workflows",
+        "OpenAI Responses uses gpt-5.6-terra with structured high-effort triage and drafting, escalates complex replies to xhigh, keeps complex replies manual, sends store false and a stable safety identifier, and fails clearly when configuration is missing",
+        "Approved historical replies and administrator-approved memory provide retrieval context; extracted memories remain pending until approved and feedback records accepted, edited, rejected, and manually sent outcomes",
+        "Administrators can confirm, pause, and remove similar-message automation rules; exact or semantic matching, Terra intent and safety gates, protected literals, known-sender and recipient restrictions, business-hour queuing, cancellation on follow-up, and a master switch prevent unsafe sends",
+        "The initial automatic-send master switch is off, all sync, draft, review, rule, queue, send, failure, and cancellation events are auditable, and loading, empty, retryable error, responsive, authorization, focused checks, lint, build, migration, and authenticated browser evidence are recorded"
+      ],
+      "status": "in_progress"
     }
   ]
 }

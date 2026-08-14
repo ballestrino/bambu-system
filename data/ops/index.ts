@@ -6,3 +6,4 @@ export * from "@/data/ops/job-occurrences";
 export * from "@/data/ops/jobs";
 export * from "@/data/ops/time-entries";
 export * from "@/data/ops/visit-feed";
+export * from "@/data/ops/profitability";

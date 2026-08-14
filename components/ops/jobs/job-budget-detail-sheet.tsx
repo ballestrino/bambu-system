@@ -19,7 +19,7 @@ const SummaryItem = ({
 }) => (
   <div className={className ?? "rounded-xl border border-black/5 bg-white p-3 text-sm dark:bg-background/70"}>
     <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">{label}</p>
-    <p className="mt-1 break-words font-medium text-[#18251D] dark:text-[#EAF5EC]">{value || "-"}</p>
+    <p className="mt-1 break-words font-medium text-[#18251D] dark:text-[#F0F3E8]">{value || "-"}</p>
   </div>
 );
 
@@ -82,7 +82,7 @@ export const JobBudgetDetailSheet = ({
       <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
         Notas operativas
       </p>
-      <p className="mt-2 text-sm font-medium text-[#18251D] dark:text-[#EAF5EC]">
+      <p className="mt-2 text-sm font-medium text-[#18251D] dark:text-[#F0F3E8]">
         {job.operationalNotes || "Sin notas"}
       </p>
     </div>
@@ -92,7 +92,7 @@ export const JobBudgetDetailSheet = ({
         <p className="text-xs font-medium uppercase tracking-wide text-[#8D6420] dark:text-[#F5D28C]">
           Presupuesto vinculado
         </p>
-        <p className="text-base font-semibold text-[#18251D] dark:text-[#EAF5EC]">
+        <p className="text-base font-semibold text-[#18251D] dark:text-[#F0F3E8]">
           {job.sourceBudget?.name || snapshotBudget?.name?.toString() || "Sin vinculo"}
         </p>
         <p className="text-sm text-muted-foreground">

@@ -111,7 +111,7 @@ export const JobSummaryCard = ({ job }: { job: OpsJobDetail }) => {
             <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
               Servicio
             </p>
-            <p className="mt-1 text-sm font-medium text-[#18251D] dark:text-[#EAF5EC]">
+            <p className="mt-1 text-sm font-medium text-[#18251D] dark:text-[#F0F3E8]">
               {job.description || "Sin descripcion"}
             </p>
             <p className="mt-2 text-sm text-muted-foreground">
@@ -128,7 +128,7 @@ export const JobSummaryCard = ({ job }: { job: OpsJobDetail }) => {
                 <p className="text-xs font-medium uppercase tracking-wide text-[#8D6420] dark:text-[#F5D28C]">
                   Presupuesto vinculado
                 </p>
-                <p className="mt-1 truncate text-sm font-semibold text-[#18251D] dark:text-[#EAF5EC]">
+                <p className="mt-1 truncate text-sm font-semibold text-[#18251D] dark:text-[#F0F3E8]">
                   {job.sourceBudget?.name || "Sin vinculo"}
                 </p>
                 <p className="text-sm text-muted-foreground">
@@ -141,7 +141,7 @@ export const JobSummaryCard = ({ job }: { job: OpsJobDetail }) => {
             <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
               Imagen
             </p>
-            <p className="mt-1 break-words font-medium text-[#18251D] dark:text-[#EAF5EC]">
+            <p className="mt-1 break-words font-medium text-[#18251D] dark:text-[#F0F3E8]">
               {imageDate}
             </p>
           </div>

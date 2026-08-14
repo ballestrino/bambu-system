@@ -26,14 +26,14 @@ export const EmployeePaymentList = ({
   payments: OpsEmployeePayment[];
   showEmployeeLink?: boolean;
 }) => (
-  <Card className="border-0 bg-white/80 shadow-sm ring-1 ring-black/5 dark:bg-[#132016] dark:ring-white/10">
+  <Card className="border-0 bg-white/80 shadow-sm ring-1 ring-black/5 dark:bg-[#1A211A] dark:ring-white/10">
     <CardHeader><CardTitle>Pagos registrados</CardTitle></CardHeader>
     <CardContent className="space-y-3">
       {isLoading ? (
         <div className="min-h-40 animate-pulse rounded-lg bg-muted/40" />
       ) : payments.length ? (
         payments.map((payment) => (
-          <div key={payment.id} className="flex flex-col gap-3 rounded-lg border border-black/5 bg-white p-4 lg:flex-row lg:items-center lg:justify-between dark:border-white/10 dark:bg-[#1B2A1E]">
+          <div key={payment.id} className="flex flex-col gap-3 rounded-lg border border-black/5 bg-white p-4 lg:flex-row lg:items-center lg:justify-between dark:border-white/10 dark:bg-[#242D23]">
             <div className="space-y-1 text-sm">
               <div className="flex flex-wrap items-center gap-2">
                 <PaymentStatusBadge status={payment.status} />

@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { Home, List } from "lucide-react";
+import { Home, List, Mail } from "lucide-react";
 import { usePathname } from "next/navigation";
 
 import { isOpsNavItemActive, opsNavItems } from "@/components/ops/nav-items";
@@ -52,6 +52,18 @@ const groups = [
       match: (pathname: string) => isOpsNavItemActive(pathname, item.url),
     })),
   },
+  {
+    label: "Comunicaciones",
+    items: [
+      {
+        title: "Correo",
+        description: "Bandeja compartida y agente",
+        url: "/dashboard/email",
+        icon: Mail,
+        match: (pathname: string) => pathname.startsWith("/dashboard/email"),
+      },
+    ],
+  },
 ] as const;
 
 export function DashboardSidebar() {
@@ -59,7 +71,7 @@ export function DashboardSidebar() {
   const { isMobile, setOpenMobile } = useSidebar();
 
   return (
-    <Sidebar className="z-20 border-r border-[#53985E]/15 bg-[#F7FBF7]/90 backdrop-blur-xl dark:bg-[#101811]/90">
+    <Sidebar className="z-20 border-r border-[#53985E]/15 bg-[#F7FBF7]/90 backdrop-blur-xl dark:bg-[#121811]/90">
       <SidebarContent className={isMobile ? "" : "pt-16"}>
         <SidebarGroup>
           <div className="mb-3 flex items-center justify-between px-2 py-4">
@@ -67,17 +79,17 @@ export function DashboardSidebar() {
               <SidebarGroupLabel className="h-auto px-0 text-xs font-bold uppercase tracking-wider text-[#53985E]">
                 Bambu Dashboard
               </SidebarGroupLabel>
-              <p className="mt-1 truncate text-xs text-[#244C2D]/70 dark:text-[#A7D8AE]/70">
+              <p className="mt-1 truncate text-xs text-[#244C2D]/70 dark:text-[#D4E3B8]/70">
                 Presupuestos y operaciones
               </p>
             </div>
-            <SidebarTrigger className="text-[#244C2D] hover:bg-[#EAF5EC] dark:text-[#A7D8AE] dark:hover:bg-[#53985E]/15" />
+            <SidebarTrigger className="text-[#244C2D] hover:bg-[#EAF5EC] dark:text-[#D4E3B8] dark:hover:bg-[#2B3A28]" />
           </div>
         </SidebarGroup>
 
         {groups.map((group) => (
           <SidebarGroup key={group.label} className="pt-0">
-            <SidebarGroupLabel className="px-2 text-[11px] font-semibold uppercase tracking-wider text-[#244C2D]/55 dark:text-[#A7D8AE]/55">
+            <SidebarGroupLabel className="px-2 text-[11px] font-semibold uppercase tracking-wider text-[#244C2D]/55 dark:text-[#D4E3B8]/55">
               {group.label}
             </SidebarGroupLabel>
             <SidebarGroupContent>
@@ -89,7 +101,7 @@ export function DashboardSidebar() {
                       isActive={item.match(pathname)}
                       onClick={() => isMobile && setOpenMobile(false)}
                       tooltip={item.title}
-                      className="h-11 font-medium text-[#244C2D] transition-all duration-200 hover:bg-[#EAF5EC] hover:text-[#244C2D] data-[active=true]:bg-[#244C2D] data-[active=true]:text-white data-[active=true]:shadow-md data-[active=true]:shadow-[#244C2D]/20 dark:text-[#D8EBDD] dark:hover:bg-[#53985E]/15 dark:data-[active=true]:bg-[#53985E]"
+                      className="h-11 font-medium text-[#244C2D] transition-all duration-200 hover:bg-[#EAF5EC] hover:text-[#244C2D] data-[active=true]:bg-[#244C2D] data-[active=true]:text-white data-[active=true]:shadow-md data-[active=true]:shadow-[#244C2D]/20 dark:text-[#E1EAD3] dark:hover:bg-[#2B3A28] dark:data-[active=true]:bg-[#4C653F]"
                     >
                       <Link href={item.url}>
                         <item.icon className="size-5!" />
@@ -117,7 +129,7 @@ export function DashboardSidebarFloatingTrigger() {
 
   return (
     <div className="fixed left-3 top-24 z-30 md:left-4">
-      <SidebarTrigger className="border border-[#53985E]/20 bg-background/90 text-[#244C2D] shadow-sm hover:bg-[#EAF5EC] dark:text-[#A7D8AE]" />
+      <SidebarTrigger className="border border-[#53985E]/20 bg-background/90 text-[#244C2D] shadow-sm hover:bg-[#EAF5EC] dark:text-[#D4E3B8]" />
     </div>
   );
 }

@@ -22,11 +22,13 @@ interface JobFiltersProps {
   visibility: string;
   query: string;
   status: string;
+  profitability: string;
   includeArchived: boolean;
   onVisibilityChange: (value: string) => void;
   onQueryChange: (value: string) => void;
   onRefresh: () => Promise<unknown> | void;
   onStatusChange: (value: string) => void;
+  onProfitabilityChange: (value: string) => void;
   onIncludeArchivedChange: (value: boolean) => void;
   onClear: () => void;
   isRefreshing?: boolean;
@@ -34,12 +36,14 @@ interface JobFiltersProps {
 
 export const JobFilters = ({
   query,
+  profitability,
   status,
   visibility,
   includeArchived,
   isRefreshing,
   onClear,
   onQueryChange,
+  onProfitabilityChange,
   onRefresh,
   onStatusChange,
   onVisibilityChange,
@@ -59,6 +63,9 @@ export const JobFilters = ({
       : null,
     visibility !== "DEFAULT"
       ? { label: visibility === "PUNCTUAL" ? "Puntuales" : "Todos", onRemove: () => onVisibilityChange("DEFAULT") }
+      : null,
+    profitability === "attention"
+      ? { label: "Requiere atención", onRemove: () => onProfitabilityChange("all") }
       : null,
   ].filter(Boolean) as OpsFilterChip[];
 
@@ -100,6 +107,19 @@ export const JobFilters = ({
     </label>
   );
 
+  const profitabilityField = (
+    <div className="space-y-2 md:w-56 md:space-y-0">
+      <Label className="md:hidden">Rentabilidad</Label>
+      <Select value={profitability} onValueChange={onProfitabilityChange}>
+        <SelectTrigger className={opsFilterControlClass}><SelectValue /></SelectTrigger>
+        <SelectContent>
+          <SelectItem value="all">Toda rentabilidad</SelectItem>
+          <SelectItem value="attention">Requiere atención</SelectItem>
+        </SelectContent>
+      </Select>
+    </div>
+  );
+
   const visibilityField = (
     <div className="space-y-2 md:w-56 md:space-y-0">
       <Label className="md:hidden">Vista</Label>
@@ -128,6 +148,7 @@ export const JobFilters = ({
           >
             {statusField}
             {visibilityField}
+            {profitabilityField}
             {archivedField}
           </OpsFilterSheet>
           <OpsRefreshButton
@@ -144,6 +165,7 @@ export const JobFilters = ({
           {searchField}
           {statusField}
           {visibilityField}
+          {profitabilityField}
           {archivedField}
           <OpsRefreshButton
             isRefreshing={isRefreshing}

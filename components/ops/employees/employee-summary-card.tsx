@@ -16,8 +16,8 @@ const EmployeeSummaryItem = ({
   label: string;
   value: string;
 }) => (
-  <div className="rounded-xl border border-[#53985E]/10 bg-[#F8FBF8] p-3 text-sm dark:bg-[#132016]">
-    <p className="flex items-center gap-2 font-medium text-[#244C2D] dark:text-[#A7D8AE]">
+  <div className="rounded-xl border border-[#53985E]/10 bg-[#F8FBF8] p-3 text-sm dark:bg-[#1A211A]">
+    <p className="flex items-center gap-2 font-medium text-[#244C2D] dark:text-[#D4E3B8]">
       <Icon className="h-4 w-4" />
       {label}
     </p>

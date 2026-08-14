@@ -12,7 +12,7 @@ import { PaymentsList } from "@/components/ops/payments/payments-list";
 import { PaymentsSummary } from "@/components/ops/payments/payments-summary";
 import { buildEmployeeGeneratedPay, getPaymentSummary } from "@/components/ops/payments/payment-utils";
 import { EmployeeGeneratedPayPanel } from "@/components/ops/payments/revenue-attribution-panel";
-import { OpsSection } from "@/components/ops/shared";
+import { OpsScrollContainer, OpsSection } from "@/components/ops/shared";
 import { formatMonth } from "@/components/ops/utils";
 
 export const FinancialPaymentsSection = ({ workspace }: { workspace: FinancialWorkspace }) => {
@@ -55,15 +55,19 @@ export const FinancialPaymentsSection = ({ workspace }: { workspace: FinancialWo
             <div className="space-y-5">
               <PaymentsSummary {...summary} showVoided={status !== "RECORDED"} />
               <div className="grid gap-5 xl:grid-cols-2">
-                <PaymentsList
-                  isLoading={workspace.loading.payments}
-                  jobs={workspace.jobs}
-                  onVoid={async (paymentId) => {
-                    await voidPaymentAsync(paymentId);
-                  }}
-                  payments={visiblePayments}
-                />
-                <EmployeeGeneratedPayPanel {...buildEmployeeGeneratedPay(visibleOccurrences)} />
+                <OpsScrollContainer>
+                  <PaymentsList
+                    isLoading={workspace.loading.payments}
+                    jobs={workspace.jobs}
+                    onVoid={async (paymentId) => {
+                      await voidPaymentAsync(paymentId);
+                    }}
+                    payments={visiblePayments}
+                  />
+                </OpsScrollContainer>
+                <OpsScrollContainer>
+                  <EmployeeGeneratedPayPanel {...buildEmployeeGeneratedPay(visibleOccurrences)} />
+                </OpsScrollContainer>
               </div>
             </div>
           )}

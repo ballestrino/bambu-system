@@ -40,7 +40,7 @@ export const EmployeeSummaryChart = ({
                     <span className="font-semibold">{formatHours(row.hours)} hs</span>
                   </div>
                 </div>
-                <div className="h-4 overflow-hidden rounded-full bg-[#EAF5EC] dark:bg-[#223326]">
+                <div className="h-4 overflow-hidden rounded-full bg-[#EAF5EC] dark:bg-[#2B3629]">
                   <div
                     className="h-full rounded-full bg-[#53985E]"
                     style={{ width }}
@@ -53,8 +53,8 @@ export const EmployeeSummaryChart = ({
               </div>
             );
           })}
-          <div className="rounded-md border border-[#53985E]/15 bg-[#F8FBF8] p-3 text-sm dark:bg-[#132016]">
-            <p className="font-medium text-[#244C2D] dark:text-[#A7D8AE]">
+          <div className="rounded-md border border-[#53985E]/15 bg-[#F8FBF8] p-3 text-sm dark:bg-[#1A211A]">
+            <p className="font-medium text-[#244C2D] dark:text-[#D4E3B8]">
               Boleto
             </p>
             <p className="text-muted-foreground">

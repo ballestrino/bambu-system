@@ -28,7 +28,7 @@ export const VisitViewSwitcher = ({
     className={`${opsSurface.toolbar} flex flex-wrap items-center justify-between gap-3`}
   >
     <div>
-      <h2 className="text-sm font-semibold text-[#18251D] dark:text-[#EAF5EC]">
+      <h2 className="text-sm font-semibold text-[#18251D] dark:text-[#F0F3E8]">
         Visualización
       </h2>
       <p className="text-xs text-muted-foreground">

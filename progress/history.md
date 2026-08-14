@@ -124,3 +124,27 @@
   direct Next production build, harness validation, and authenticated desktop
   and mobile smoke passed. The final post-migration smoke loaded all four
   sections with zero data-load errors and the expected August financial total.
+
+## 2026-08-06 - ops_finance_domain_refactor follow-up
+
+- Added informational generated aguinaldo and the fixed personal plus employer
+  BPS base to monthly and per-employee payroll summaries without changing
+  recorded costs, outgoings, or profit.
+- Improved payroll card layout and kept recorded payments in a separate panel.
+- Made visit completion preload real times consistently and preserve manually
+  adjusted times when scheduled dates move.
+- Verification: focused finance and occurrence checks, TypeScript, ESLint,
+  production build, harness validation, and authenticated Finance smoke passed.
+
+## 2026-08-13 - job_profitability_alerts
+
+- Added reusable monthly and historical service-profitability calculations
+  using net budget economics, attributable completed-visit labor and transport,
+  and job-linked operational costs while reporting collection separately.
+- Added batch reads and cache invalidation plus severity-aware alerts on the
+  dashboard, the full Finance section, job cards and filters, and job detail.
+- Verification: focused profitability, finance, and occurrence checks,
+  TypeScript, ESLint, Prisma validation, direct Next production build, and the
+  final `\.\init.ps1` passed.
+- Authenticated desktop and 390-by-844 browser smoke passed on dashboard,
+  Finance, jobs, and job detail with no console errors or horizontal overflow.

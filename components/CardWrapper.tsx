@@ -16,7 +16,7 @@ export default function CardWrapper({
     return (
         <div
             className={cn(
-                'flex flex-col items-center justify-center gap-8 rounded-2xl bg-gradient-to-br from-gray-50 to-brand/5 p-10 shadow-xl dark:from-slate-900 dark:to-blue-950',
+                'flex flex-col items-center justify-center gap-8 rounded-2xl bg-gradient-to-br from-gray-50 to-brand/5 p-10 shadow-xl dark:from-[#1A211A] dark:to-[#293529]',
                 className,
             )}
         >

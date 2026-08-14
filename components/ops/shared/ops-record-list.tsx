@@ -46,7 +46,7 @@ export const OpsRecordItem = ({
     <div className="min-w-0 space-y-2">
       <div className="flex flex-wrap items-start gap-2">
         <div className="min-w-0 flex-1">
-          <h3 className="truncate text-base font-semibold text-[#18251D] dark:text-[#EAF5EC]">
+          <h3 className="truncate text-base font-semibold text-[#18251D] dark:text-[#F0F3E8]">
             {title}
           </h3>
           {subtitle ? (

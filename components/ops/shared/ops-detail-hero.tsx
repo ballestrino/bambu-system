@@ -35,7 +35,7 @@ type OpsNextActionProps = {
 
 const nextActionTone = {
   active:
-    "border-[#53985E]/20 bg-[#F3FAF4] text-[#244C2D] dark:border-[#53985E]/35 dark:bg-[#53985E]/10 dark:text-[#A7D8AE]",
+    "border-[#53985E]/20 bg-[#F3FAF4] text-[#244C2D] dark:border-[#70895D]/35 dark:bg-[#91AD71]/10 dark:text-[#D4E3B8]",
   money:
     "border-[#C58A2A]/25 bg-[#FFF7E6] text-[#6F4B12] dark:border-[#C58A2A]/40 dark:bg-[#C58A2A]/15 dark:text-[#F5D28C]",
   warning:
@@ -52,8 +52,8 @@ export const OpsDetailHero = ({
   meta,
   title,
 }: OpsDetailHeroProps) => (
-  <section className="relative overflow-hidden rounded-2xl border border-[#53985E]/15 bg-white p-4 shadow-sm shadow-[#244C2D]/5 dark:bg-[#101811] md:p-5">
-    <div className="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-[#244C2D] via-[#53985E] to-[#C58A2A]" />
+  <section className="relative overflow-hidden rounded-2xl border border-[#53985E]/15 bg-white p-4 shadow-sm shadow-[#244C2D]/5 dark:bg-[#121811] md:p-5">
+    <div className="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-[#244C2D] via-[#53985E] to-[#C58A2A] dark:from-[#4C653F] dark:via-[#91AD71] dark:to-[#D0A85F]" />
     <div className="flex flex-col gap-5 lg:flex-row lg:items-start lg:justify-between">
       <div className="min-w-0 space-y-4">
         <Button
@@ -73,7 +73,7 @@ export const OpsDetailHero = ({
           </span>
           <div className="min-w-0 space-y-2">
             <div className="flex flex-wrap items-center gap-2">
-              <h1 className="break-words text-2xl font-semibold tracking-tight text-[#18251D] dark:text-[#EAF5EC] md:text-3xl">
+              <h1 className="break-words text-2xl font-semibold tracking-tight text-[#18251D] dark:text-[#F0F3E8] md:text-3xl">
                 {title}
               </h1>
               {meta}
@@ -100,12 +100,12 @@ export const OpsDetailStat = ({
   label,
   value,
 }: OpsDetailStatProps) => (
-  <div className="rounded-xl border border-[#53985E]/15 bg-[#F8FBF8] p-3 dark:bg-[#132016]">
+  <div className="rounded-xl border border-[#53985E]/15 bg-[#F8FBF8] p-3 dark:bg-[#1A211A]">
     <div className="flex items-center gap-2 text-xs font-medium uppercase tracking-wide text-muted-foreground">
       <Icon className="h-4 w-4 text-[#53985E]" />
       {label}
     </div>
-    <p className="mt-2 text-xl font-semibold text-[#18251D] dark:text-[#EAF5EC]">
+    <p className="mt-2 text-xl font-semibold text-[#18251D] dark:text-[#F0F3E8]">
       {value}
     </p>
     {helper ? <p className="mt-1 text-xs text-muted-foreground">{helper}</p> : null}

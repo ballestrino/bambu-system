@@ -1,4 +1,5 @@
 "use client";
+import { CalendarFilterFields } from "@/components/ops/calendar/calendar-filter-fields";
 import {
   ALL_CALENDAR_FILTER,
   UNASSIGNED_EMPLOYEE_FILTER,
@@ -9,36 +10,33 @@ import {
 import {
   getOpsStatusConfig,
   OpsFilterChips,
-  OpsFilterField,
-  opsFilterControlClass,
-  opsFilterToggleClass,
   opsOccurrenceStatus,
   opsSurface,
-  opsSwitchClass,
   type OpsFilterChip,
 } from "@/components/ops/shared";
 import { Button } from "@/components/ui/button";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Switch } from "@/components/ui/switch";
-import { occurrenceStatusValues } from "@/schemas/ops";
 
 type CalendarFiltersProps = {
   countLabel?: string;
   employeeOptions: CalendarFilterOption[];
+  exactDate?: string;
   filters: CalendarFilters;
   jobOptions: CalendarFilterOption[];
   onChange: (changes: Partial<CalendarFilters>) => void;
   onClear: () => void;
+  onExactDateChange?: (date: string) => void;
   totalCount: number;
   visibleCount: number;
 };
 export const CalendarFiltersBar = ({
   countLabel,
   employeeOptions,
+  exactDate,
   filters,
   jobOptions,
   onChange,
   onClear,
+  onExactDateChange,
   totalCount,
   visibleCount,
 }: CalendarFiltersProps) => {
@@ -80,14 +78,20 @@ export const CalendarFiltersBar = ({
           onRemove: () => onChange({ attentionOnly: false }),
         }
       : null,
+    exactDate
+      ? {
+          label: `Fecha: ${new Date(`${exactDate}T12:00:00`).toLocaleDateString("es-UY")}`,
+          onRemove: () => onExactDateChange?.(""),
+        }
+      : null,
   ].filter(Boolean) as OpsFilterChip[];
-  const hasFilters = hasActiveCalendarFilters(filters);
+  const hasFilters = hasActiveCalendarFilters(filters) || Boolean(exactDate);
   return (
     <div className="space-y-3">
       <section className={`${opsSurface.toolbar} space-y-3`}>
         <div className="flex flex-wrap items-center justify-between gap-2">
           <div>
-            <h2 className="text-sm font-semibold text-[#18251D] dark:text-[#EAF5EC]">
+            <h2 className="text-sm font-semibold text-[#18251D] dark:text-[#F0F3E8]">
               Filtrar visitas
             </h2>
             <p className="text-xs text-muted-foreground">
@@ -106,93 +110,14 @@ export const CalendarFiltersBar = ({
           </div>
         </div>
 
-        <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-          <OpsFilterField label="Trabajo">
-            <Select
-              value={filters.jobId}
-              onValueChange={(jobId) => onChange({ jobId })}
-            >
-              <SelectTrigger
-                aria-label="Filtrar por trabajo"
-                className={opsFilterControlClass}
-              >
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value={ALL_CALENDAR_FILTER}>
-                  Todos los trabajos
-                </SelectItem>
-                {jobOptions.map((job) => (
-                  <SelectItem key={job.id} value={job.id}>
-                    {job.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </OpsFilterField>
-
-          <OpsFilterField label="Empleada">
-            <Select
-              value={filters.employeeId}
-              onValueChange={(employeeId) => onChange({ employeeId })}
-            >
-              <SelectTrigger
-                aria-label="Filtrar por empleada"
-                className={opsFilterControlClass}
-              >
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value={ALL_CALENDAR_FILTER}>
-                  Todas las empleadas
-                </SelectItem>
-                <SelectItem value={UNASSIGNED_EMPLOYEE_FILTER}>
-                  Sin asignar
-                </SelectItem>
-                {employeeOptions.map((employee) => (
-                  <SelectItem key={employee.id} value={employee.id}>
-                    {employee.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </OpsFilterField>
-
-          <OpsFilterField label="Estado">
-            <Select
-              value={filters.status}
-              onValueChange={(status) => onChange({ status: status as CalendarFilters["status"] })}
-            >
-              <SelectTrigger
-                aria-label="Filtrar por estado"
-                className={opsFilterControlClass}
-              >
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value={ALL_CALENDAR_FILTER}>
-                  Todos los estados
-                </SelectItem>
-                {occurrenceStatusValues.map((status) => (
-                  <SelectItem key={status} value={status}>
-                    {getOpsStatusConfig(opsOccurrenceStatus, status).label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </OpsFilterField>
-
-          <OpsFilterField label="Seguimiento">
-            <label className={`${opsFilterToggleClass} md:w-full`}>
-              Solo requieren atención
-              <Switch
-                checked={filters.attentionOnly}
-                className={opsSwitchClass}
-                onCheckedChange={(attentionOnly) => onChange({ attentionOnly })}
-              />
-            </label>
-          </OpsFilterField>
-        </div>
+        <CalendarFilterFields
+          employeeOptions={employeeOptions}
+          exactDate={exactDate}
+          filters={filters}
+          jobOptions={jobOptions}
+          onChange={onChange}
+          onExactDateChange={onExactDateChange}
+        />
       </section>
       <OpsFilterChips chips={chips} onClear={onClear} />
     </div>

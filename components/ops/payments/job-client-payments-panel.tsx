@@ -28,21 +28,21 @@ export const JobClientPaymentsPanel = ({
 
   return (
     <div className="space-y-4">
-      <Card className="border-0 bg-white/80 shadow-sm ring-1 ring-black/5 dark:bg-[#132016] dark:ring-white/10">
+      <Card className="border-0 bg-white/80 shadow-sm ring-1 ring-black/5 dark:bg-[#1A211A] dark:ring-white/10">
         <CardHeader className="flex flex-row items-center justify-between">
           <CardTitle>Cobros del trabajo</CardTitle>
           <PaymentDialog jobId={job.id} jobs={jobs} />
         </CardHeader>
         <CardContent className="grid gap-3 md:grid-cols-3">
-          <div className="rounded-lg border border-black/5 bg-white p-4 dark:border-white/10 dark:bg-[#1B2A1E]">
+          <div className="rounded-lg border border-black/5 bg-white p-4 dark:border-white/10 dark:bg-[#242D23]">
             <p className="text-sm text-muted-foreground">Registrado</p>
             <p className="text-xl font-semibold">{formatMoney(summary.recordedTotal)}</p>
           </div>
-          <div className="rounded-lg border border-black/5 bg-white p-4 dark:border-white/10 dark:bg-[#1B2A1E]">
+          <div className="rounded-lg border border-black/5 bg-white p-4 dark:border-white/10 dark:bg-[#242D23]">
             <p className="text-sm text-muted-foreground">Esperado</p>
             <p className="text-xl font-semibold">{expectedPrice === null ? "-" : formatMoney(expectedPrice)}</p>
           </div>
-          <div className="rounded-lg border border-black/5 bg-white p-4 dark:border-white/10 dark:bg-[#1B2A1E]">
+          <div className="rounded-lg border border-black/5 bg-white p-4 dark:border-white/10 dark:bg-[#242D23]">
             <p className="text-sm text-muted-foreground">Saldo</p>
             <p className="text-xl font-semibold">{balance === null ? "-" : formatMoney(balance)}</p>
           </div>

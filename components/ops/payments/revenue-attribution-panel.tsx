@@ -21,14 +21,14 @@ export const EmployeeGeneratedPayPanel = ({
 }: {
   rows: AttributionRow[];
 }) => (
-  <Card className="border-0 bg-white/80 shadow-sm ring-1 ring-black/5 dark:bg-[#132016] dark:ring-white/10">
+  <Card className="border-0 bg-white/80 shadow-sm ring-1 ring-black/5 dark:bg-[#1A211A] dark:ring-white/10">
     <CardHeader>
       <CardTitle>Pago generado por empleado</CardTitle>
     </CardHeader>
     <CardContent className="space-y-3">
       {rows.length ? (
         rows.map((row) => (
-          <div key={row.employeeId} className="flex flex-col gap-2 rounded-lg border border-black/5 bg-white p-4 md:flex-row md:items-center md:justify-between dark:border-white/10 dark:bg-[#1B2A1E]">
+          <div key={row.employeeId} className="flex flex-col gap-2 rounded-lg border border-black/5 bg-white p-4 md:flex-row md:items-center md:justify-between dark:border-white/10 dark:bg-[#242D23]">
             <div className="space-y-1">
               <p className="font-medium">{row.employeeName}</p>
               <p className="text-sm text-muted-foreground">

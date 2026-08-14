@@ -37,7 +37,7 @@ export const JobOccurrenceEmployeeField = ({
           employees.map((employee) => (
             <label
               key={employee.id}
-              className="flex min-h-11 cursor-pointer items-center gap-3 rounded-md px-2 text-sm text-[#244C2D] transition-colors hover:bg-white dark:text-[#EAF5EC] dark:hover:bg-[#1B2A1E]"
+              className="flex min-h-11 cursor-pointer items-center gap-3 rounded-md px-2 text-sm text-[#244C2D] transition-colors hover:bg-white dark:text-[#F0F3E8] dark:hover:bg-[#242D23]"
             >
               <Checkbox
                 checked={selectedIds.has(employee.id)}

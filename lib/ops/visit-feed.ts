@@ -28,6 +28,30 @@ export const getVisitWeekRange = (
   };
 };
 
+export const getVisitExactDateRange = (
+  exactDate: string,
+  timeZone = DEFAULT_OPS_TIMEZONE
+) => {
+  const [year, month, day] = exactDate.split("-").map(Number);
+  const localDate = { day, month, year };
+
+  return {
+    end: zonedTimeToUtc(
+      { ...localDate, hour: 23, millisecond: 999, minute: 59, second: 59 },
+      timeZone
+    ),
+    start: zonedTimeToUtc(localDate, timeZone),
+  };
+};
+
+export const getVisitExactDateAnchor = (
+  exactDate: string,
+  timeZone = DEFAULT_OPS_TIMEZONE
+) => {
+  const [year, month, day] = exactDate.split("-").map(Number);
+  return zonedTimeToUtc({ day, hour: 12, month, year }, timeZone);
+};
+
 export const getVisitFeedAnchor = (
   selectedMonth: Date,
   now = new Date(),

@@ -44,7 +44,7 @@ export const OpsMetricCard = ({
         </p>
         <div
           className={cn(
-            "font-semibold tracking-tight text-[#18251D] dark:text-[#EAF5EC]",
+            "font-semibold tracking-tight text-[#18251D] dark:text-[#F0F3E8]",
             size === "compact" ? "text-xl" : "text-2xl"
           )}
         >

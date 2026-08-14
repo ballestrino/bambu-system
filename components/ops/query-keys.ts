@@ -1,4 +1,6 @@
 export const opsQueryKeys = {
+  profitabilityRoot: ["ops", "profitability"] as const,
+  profitability: (scope: unknown) => ["ops", "profitability", scope] as const,
   jobs: ["ops", "jobs"] as const,
   job: (jobId: string) => ["ops", "job", jobId] as const,
   scheduleRuleRoot: ["ops", "schedule-rules"] as const,

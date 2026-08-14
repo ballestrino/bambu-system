@@ -13,11 +13,8 @@ export const getInitialOccurrenceState = (
   const scheduledEndAt = toDateTimeLocalValue(occurrence?.scheduledEndAt);
   const actualStartAt = toDateTimeLocalValue(occurrence?.actualStartAt);
   const actualEndAt = toDateTimeLocalValue(occurrence?.actualEndAt);
-  const shouldPrefillActualTimes =
-    completeOnSave &&
-    occurrence?.status === "SCHEDULED" &&
-    !actualStartAt &&
-    !actualEndAt;
+  const shouldPrefillActualStart = completeOnSave && !actualStartAt;
+  const shouldPrefillActualEnd = completeOnSave && !actualEndAt;
 
   return {
     jobId: occurrence?.jobId ?? "",
@@ -25,8 +22,8 @@ export const getInitialOccurrenceState = (
     scheduleRuleId: occurrence?.scheduleRuleId ?? "",
     scheduledStartAt,
     scheduledEndAt,
-    actualStartAt: shouldPrefillActualTimes ? scheduledStartAt : actualStartAt,
-    actualEndAt: shouldPrefillActualTimes ? scheduledEndAt : actualEndAt,
+    actualStartAt: shouldPrefillActualStart ? scheduledStartAt : actualStartAt,
+    actualEndAt: shouldPrefillActualEnd ? scheduledEndAt : actualEndAt,
     status:
       completeOnSave && occurrence?.status === "SCHEDULED"
         ? "DONE"
@@ -100,7 +97,9 @@ export const updateOccurrenceDateTimeRange = ({
     field === "start" &&
     part === "date" &&
     nextPart &&
-    !getDateTimePart(endValue, "date")
+    (!getDateTimePart(endValue, "date") ||
+      getDateTimePart(endValue, "date") ===
+        getDateTimePart(startValue, "date"))
   ) {
     nextEndValue = setDateTimePart(endValue, "date", nextPart);
   }
@@ -140,13 +139,9 @@ export const updateOccurrenceScheduledTime = ({
     [field]: value,
   };
 
-  if (occurrence) {
-    return nextFormState;
-  }
-
   if (
     field === "scheduledStartAt" &&
-    (!formState.actualStartAt ||
+    ((!occurrence && !formState.actualStartAt) ||
       formState.actualStartAt === formState.scheduledStartAt)
   ) {
     nextFormState.actualStartAt = value;
@@ -154,7 +149,8 @@ export const updateOccurrenceScheduledTime = ({
 
   if (
     field === "scheduledEndAt" &&
-    (!formState.actualEndAt || formState.actualEndAt === formState.scheduledEndAt)
+    ((!occurrence && !formState.actualEndAt) ||
+      formState.actualEndAt === formState.scheduledEndAt)
   ) {
     nextFormState.actualEndAt = value;
   }

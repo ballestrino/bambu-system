@@ -30,7 +30,7 @@ import {
   VisitViewSwitcher,
   type VisitView,
 } from "@/components/ops/visits/visit-view-switcher";
-import { getVisitFeedAnchor } from "@/lib/ops/visit-feed";
+import { getVisitExactDateAnchor, getVisitFeedAnchor } from "@/lib/ops/visit-feed";
 
 const defaultViewState = { view: "calendar" as VisitView };
 const mergeOptions = <T extends { id: string; name: string }>(
@@ -46,6 +46,7 @@ export const VisitsPage = () => {
     defaultViewState
   );
   const [filterSession, setFilterSession] = useState({
+    exactDate: "",
     filters: { ...DEFAULT_CALENDAR_FILTERS },
     monthKey,
   });
@@ -53,6 +54,7 @@ export const VisitsPage = () => {
   const filters = filterSession.monthKey === monthKey
     ? filterSession.filters
     : DEFAULT_CALENDAR_FILTERS;
+  const exactDate = filterSession.monthKey === monthKey ? filterSession.exactDate : "";
   const visibleSelectedDate = selectedDate &&
     selectedDate.getFullYear() === month.getFullYear() &&
     selectedDate.getMonth() === month.getMonth()
@@ -84,25 +86,34 @@ export const VisitsPage = () => {
     [filteredOccurrences, visibleSelectedDate]
   );
   const anchor = useMemo(() => {
+    if (exactDate) return getVisitExactDateAnchor(exactDate);
     const [year, monthNumber] = monthKey.split("-").map(Number);
     return getVisitFeedAnchor(new Date(year, monthNumber - 1, 1));
-  }, [monthKey]);
+  }, [exactDate, monthKey]);
   const feedQuery = useInfiniteVisits({
     anchor,
     enabled: view !== "calendar",
-    filters,
+    filters: { ...filters, exactDate: exactDate || undefined },
   });
 
   const clearFilters = () => setFilterSession({
+    exactDate: "",
     filters: { ...DEFAULT_CALENDAR_FILTERS },
     monthKey,
   });
   const updateFilters = (changes: Partial<CalendarFilters>) =>
     setFilterSession((current) => ({
+      exactDate: current.monthKey === monthKey ? current.exactDate : "",
       filters: {
         ...(current.monthKey === monthKey ? current.filters : DEFAULT_CALENDAR_FILTERS),
         ...changes,
       },
+      monthKey,
+    }));
+  const updateExactDate = (nextDate: string) =>
+    setFilterSession((current) => ({
+      exactDate: nextDate,
+      filters: current.monthKey === monthKey ? current.filters : { ...DEFAULT_CALENDAR_FILTERS },
       monthKey,
     }));
   const isCalendar = view === "calendar";
@@ -126,10 +137,12 @@ export const VisitsPage = () => {
       <CalendarFiltersBar
         countLabel={isCalendar ? undefined : `${feedQuery.occurrences.length} visita(s) cargadas`}
         employeeOptions={employeeOptions}
+        exactDate={isCalendar ? undefined : exactDate}
         filters={filters}
         jobOptions={jobOptions}
         onChange={updateFilters}
         onClear={clearFilters}
+        onExactDateChange={isCalendar ? undefined : updateExactDate}
         totalCount={calendarQuery.occurrences.length}
         visibleCount={isCalendar ? filteredOccurrences.length : feedQuery.occurrences.length}
       />

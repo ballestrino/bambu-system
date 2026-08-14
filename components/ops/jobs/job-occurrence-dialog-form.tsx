@@ -116,7 +116,7 @@ export const JobOccurrenceDialogForm = ({
         endValue={formState.scheduledEndAt}
         onChange={updateScheduledRange}
       />
-      <div className="flex items-center justify-between gap-3 rounded-md border border-[#53985E]/15 bg-[#F7FBF7] px-3 py-2 text-sm text-[#244C2D] dark:bg-[#132016] dark:text-[#EAF5EC]">
+      <div className="flex items-center justify-between gap-3 rounded-md border border-[#53985E]/15 bg-[#F7FBF7] px-3 py-2 text-sm text-[#244C2D] dark:bg-[#1A211A] dark:text-[#F0F3E8]">
         <span>Horario real</span>
         <div className="flex items-center gap-2">
           <Button type="button" variant="outline" size="sm" className="h-9" onClick={() => setFormState(clearOccurrenceActualTimes(formState))}>Limpiar</Button>

@@ -59,7 +59,7 @@ export const OpsPageHeader = ({
         </p>
       ) : null}
       <div className="flex flex-wrap items-center gap-3">
-        <h1 className="text-2xl font-semibold tracking-tight text-[#18251D] dark:text-[#EAF5EC] md:text-3xl">
+        <h1 className="text-2xl font-semibold tracking-tight text-[#18251D] dark:text-[#F0F3E8] md:text-3xl">
           {title}
         </h1>
         {meta}

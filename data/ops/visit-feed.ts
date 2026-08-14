@@ -5,7 +5,7 @@ import type { Prisma } from "@prisma/client";
 import { opsOccurrenceInclude } from "@/data/ops/includes";
 import { db } from "@/lib/db";
 import { ensureJobOccurrencesForRange } from "@/lib/ops/job-occurrence-generator";
-import { getVisitWeekRange } from "@/lib/ops/visit-feed";
+import { getVisitExactDateRange, getVisitWeekRange } from "@/lib/ops/visit-feed";
 import { requireAdminSession } from "@/lib/require-admin-session";
 import {
   VisitFeedFiltersSchema,
@@ -55,7 +55,9 @@ export const getVisitWeek = async (input: unknown) => {
     if (!parsed.success) return { error: "Filtros de visitas invalidos" };
 
     const filters = parsed.data;
-    const range = getVisitWeekRange(filters.cursor);
+    const range = filters.exactDate
+      ? getVisitExactDateRange(filters.exactDate)
+      : getVisitWeekRange(filters.cursor);
     const where = buildFeedWhere(filters);
 
     await ensureJobOccurrencesForRange({
@@ -74,11 +76,13 @@ export const getVisitWeek = async (input: unknown) => {
         include: opsOccurrenceInclude,
         orderBy: [{ scheduledStartAt: "desc" }],
       }),
-      db.jobOccurrence.findFirst({
-        where: { ...where, scheduledStartAt: { lt: range.start } },
-        orderBy: [{ scheduledStartAt: "desc" }],
-        select: { scheduledStartAt: true },
-      }),
+      filters.exactDate
+        ? null
+        : db.jobOccurrence.findFirst({
+            where: { ...where, scheduledStartAt: { lt: range.start } },
+            orderBy: [{ scheduledStartAt: "desc" }],
+            select: { scheduledStartAt: true },
+          }),
     ]);
     const nextCursor = previousOccurrence
       ? getVisitWeekRange(previousOccurrence.scheduledStartAt).start

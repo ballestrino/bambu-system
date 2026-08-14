@@ -14,7 +14,7 @@ import { CostsList } from "@/components/ops/costs/costs-list";
 import { FinancialErrorState } from "@/components/ops/financial/financial-error-state";
 import type { FinancialWorkspace } from "@/components/ops/financial/use-financial-workspace";
 import { useOperationalCostMutations } from "@/components/ops/hooks/useOperationalCostMutations";
-import { OpsSection } from "@/components/ops/shared";
+import { OpsScrollContainer, OpsSection } from "@/components/ops/shared";
 import { formatMonth } from "@/components/ops/utils";
 
 const defaultFilters: CostsFilterState = {
@@ -65,20 +65,22 @@ export const FinancialCostsSection = ({ workspace }: { workspace: FinancialWorks
           ) : (
             <div className="grid gap-5 xl:grid-cols-[minmax(0,1.25fr)_minmax(340px,0.75fr)]">
               <OpsSection title="Costes registrados">
-                <CostsList
-                  categories={workspace.categories}
-                  costs={visibleCosts}
-                  employees={workspace.employees}
-                  isLoading={workspace.loading.costs}
-                  jobs={workspace.jobs}
-                  onVoid={async (costId) => {
-                    await voidCostAsync(costId);
-                  }}
-                />
+                <OpsScrollContainer>
+                  <CostsList
+                    categories={workspace.categories}
+                    costs={visibleCosts}
+                    employees={workspace.employees}
+                    isLoading={workspace.loading.costs}
+                    jobs={workspace.jobs}
+                    onVoid={async (costId) => {
+                      await voidCostAsync(costId);
+                    }}
+                  />
+                </OpsScrollContainer>
               </OpsSection>
               <div className="grid content-start gap-5">
                 <BpsSettingsPanel settings={workspace.settings} />
-                <CostCategoriesPanel categories={workspace.categories} />
+                <CostCategoriesPanel categories={workspace.categories} scrollable />
               </div>
             </div>
           )}

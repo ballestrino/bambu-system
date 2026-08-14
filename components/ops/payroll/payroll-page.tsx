@@ -128,7 +128,7 @@ export const PayrollPage = () => {
         status={status}
       />
       <PayrollSummary {...summary} showVoided={status !== "RECORDED"} />
-      <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
+      <div className="grid gap-6 xl:grid-cols-[minmax(0,1.65fr)_minmax(20rem,0.75fr)]">
         <PayrollRowsPanel
           employees={employees}
           periodEnd={endDate}

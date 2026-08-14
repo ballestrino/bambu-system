@@ -16,6 +16,7 @@ export const invalidateVisitScopes = (queryClient: QueryClient) =>
   Promise.all([
     invalidateRoot(queryClient, opsQueryKeys.visitFeedRoot),
     invalidateRoot(queryClient, opsQueryKeys.visitFilterOptions),
+    invalidateRoot(queryClient, opsQueryKeys.profitabilityRoot),
   ]);
 
 export const invalidateJobScopes = async (

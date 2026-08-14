@@ -9,13 +9,13 @@ export const opsBrand = {
 
 export const opsSurface = {
   shell:
-    "bg-[linear-gradient(180deg,#F7FBF7_0%,#FFFFFF_44%,#F2F7F1_100%)] dark:bg-[linear-gradient(180deg,#101811_0%,#111827_100%)]",
+    "bg-[linear-gradient(180deg,#F7FBF7_0%,#FFFFFF_44%,#F2F7F1_100%)] dark:bg-[linear-gradient(180deg,#121811_0%,#1A211A_100%)]",
   panel:
     "rounded-md border border-[#53985E]/15 bg-background/95 shadow-sm shadow-[#244C2D]/5",
   panelSoft:
-    "rounded-md border border-[#53985E]/15 bg-[#F7FBF7] shadow-sm shadow-[#244C2D]/5 dark:bg-[#132016]",
+    "rounded-md border border-[#53985E]/15 bg-[#F7FBF7] shadow-sm shadow-[#244C2D]/5 dark:bg-[#1A211A]",
   headerAccent:
-    "before:absolute before:left-0 before:top-1 before:h-10 before:w-1 before:rounded-full before:bg-[#53985E]",
+    "before:absolute before:left-0 before:top-1 before:h-10 before:w-1 before:rounded-full before:bg-[#53985E] dark:before:bg-[#91AD71]",
   toolbar:
     "rounded-md bg-background/70 p-3 shadow-sm shadow-[#244C2D]/5",
 } as const;
@@ -24,7 +24,7 @@ export const opsToneClasses = {
   neutral:
     "border-slate-200 bg-slate-50 text-slate-700 dark:border-slate-700 dark:bg-slate-900/50 dark:text-slate-200",
   active:
-    "border-[#53985E]/25 bg-[#EAF5EC] text-[#244C2D] dark:border-[#53985E]/40 dark:bg-[#53985E]/15 dark:text-[#A7D8AE]",
+    "border-[#53985E]/25 bg-[#EAF5EC] text-[#244C2D] dark:border-[#70895D]/40 dark:bg-[#91AD71]/15 dark:text-[#D4E3B8]",
   warning:
     "border-amber-300 bg-amber-50 text-amber-800 dark:border-amber-500/40 dark:bg-amber-500/15 dark:text-amber-200",
   success:

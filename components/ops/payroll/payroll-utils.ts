@@ -10,6 +10,7 @@ import {
   getEmployeeHourlyRate,
   isCompletedEmployeeVisit,
 } from "@/components/ops/compensation-utils";
+import { getPayrollAccruals } from "@/lib/ops/finance";
 
 const moneyFormat = new Intl.NumberFormat("es-UY", {
   currency: "UYU",
@@ -51,10 +52,14 @@ export const buildPayrollRows = (
 ) => {
   const rows = new Map<string, {
     balance: number | null;
+    aguinaldoGenerated: number | null;
+    bpsGenerated: number | null;
+    employerBpsGenerated: number | null;
     employeeId: string;
     employeeName: string;
     hours: number;
     hourlyRate: number | null;
+    personalBpsGenerated: number | null;
     recordedTotal: number;
     suggestedAmount: number | null;
     transportationAmount: number;
@@ -68,10 +73,14 @@ export const buildPayrollRows = (
 
     const row = {
       balance: null,
+      aguinaldoGenerated: null,
+      bpsGenerated: null,
+      employerBpsGenerated: null,
       employeeId: employee.id,
       employeeName: employee.name,
       hours: 0,
       hourlyRate: getEmployeeRate(employee),
+      personalBpsGenerated: null,
       recordedTotal: 0,
       suggestedAmount: null,
       transportationAmount: 0,
@@ -115,12 +124,14 @@ export const buildPayrollRows = (
 
   return Array.from(rows.values())
     .map((row) => {
-      const suggestedAmount =
-        row.hourlyRate === null
-          ? null
-          : row.hours * row.hourlyRate + row.transportationAmount;
+      const laborAmount =
+        row.hourlyRate === null ? null : row.hours * row.hourlyRate;
+      const suggestedAmount = laborAmount === null
+        ? null
+        : laborAmount + row.transportationAmount;
       return {
         ...row,
+        ...getPayrollAccruals(laborAmount),
         balance: suggestedAmount === null ? null : suggestedAmount - row.recordedTotal,
         suggestedAmount,
       };
@@ -144,10 +155,20 @@ export const getPayrollSummary = (
     (sum, row) => sum + (row.suggestedAmount ?? 0),
     0
   );
+  const aguinaldoGeneratedTotal = rows.reduce(
+    (sum, row) => sum + (row.aguinaldoGenerated ?? 0),
+    0
+  );
+  const bpsGeneratedTotal = rows.reduce(
+    (sum, row) => sum + (row.bpsGenerated ?? 0),
+    0
+  );
 
   return {
     ...paymentSummary,
+    aguinaldoGeneratedTotal,
     balanceTotal: suggestedTotal - paymentSummary.recordedTotal,
+    bpsGeneratedTotal,
     suggestedTotal,
   };
 };

@@ -44,7 +44,7 @@ export const JobOccurrenceStatusField = ({
                   "flex min-h-14 items-center justify-center rounded-md border px-2 py-2 text-center text-xs font-medium transition-all",
                   isSelected
                     ? cn(opsToneClasses[config.tone], "ring-2 ring-current/20")
-                    : "border-border bg-background text-muted-foreground hover:border-[#53985E]/30 hover:bg-[#F7FBF7] dark:hover:bg-[#132016]"
+                    : "border-border bg-background text-muted-foreground hover:border-[#53985E]/30 hover:bg-[#F7FBF7] dark:hover:bg-[#1A211A]"
                 )}
               >
                 {config.label}

@@ -8,14 +8,20 @@ import { OpsRefreshButton } from "@/components/ops/shared";
 import { toDateInputValue } from "@/components/ops/utils";
 
 export const FinancialActions = ({
+  isProfitabilityFetching,
+  onRefreshProfitability,
   workspace,
 }: {
+  isProfitabilityFetching: boolean;
+  onRefreshProfitability: () => Promise<unknown> | void;
   workspace: FinancialWorkspace;
 }) => (
   <>
     <OpsRefreshButton
-      isRefreshing={workspace.isFetching}
-      onRefresh={workspace.refresh.all}
+      isRefreshing={workspace.isFetching || isProfitabilityFetching}
+      onRefresh={async () => {
+        await Promise.all([workspace.refresh.all(), onRefreshProfitability()]);
+      }}
     />
     <PaymentDialog jobs={workspace.jobs} />
     <CostDialog

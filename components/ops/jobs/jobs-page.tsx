@@ -7,6 +7,8 @@ import { JobFilters } from "@/components/ops/jobs/job-filters";
 import { JobsHeader } from "@/components/ops/jobs/jobs-header";
 import { useJobMutations } from "@/components/ops/hooks/useJobMutations";
 import { useJobs } from "@/components/ops/hooks/useJobs";
+import { useJobProfitability } from "@/components/ops/hooks/useJobProfitability";
+import { profitabilityNeedsAttention } from "@/components/ops/profitability/profitability-status";
 import {
   OpsEmptyState,
   OpsPageShell,
@@ -14,6 +16,7 @@ import {
   OpsRecordSkeleton,
   useOpsDebouncedValue,
   useOpsPersistedState,
+  useOpsSelectedMonth,
 } from "@/components/ops/shared";
 import { jobStatusValues, type JobFilters as JobFiltersInput } from "@/schemas/ops";
 
@@ -25,6 +28,7 @@ type JobFilterState = {
   status: JobStatusFilter;
   visibility: JobVisibilityFilter;
   includeArchived: boolean;
+  profitability: "all" | "attention";
 };
 
 const defaultJobFilters: JobFilterState = {
@@ -32,9 +36,11 @@ const defaultJobFilters: JobFilterState = {
   status: "all",
   visibility: "DEFAULT",
   includeArchived: false,
+  profitability: "all",
 };
 
 export const JobsPage = () => {
+  const { month } = useOpsSelectedMonth();
   const [filterState, setFilterState] = useOpsPersistedState(
     "bambu:ops:jobs:filters",
     defaultJobFilters
@@ -54,6 +60,16 @@ export const JobsPage = () => {
   };
 
   const { jobs, isFetching, isLoading, refetch } = useJobs(filters);
+  const profitabilityQuery = useJobProfitability({ mode: "MONTH", month });
+  const profitabilityByJob = new Map(
+    profitabilityQuery.profitability.map((result) => [result.jobId, result])
+  );
+  const visibleJobs = filterState.profitability === "attention"
+    ? jobs.filter((job) => {
+        const result = profitabilityByJob.get(job.id);
+        return result ? profitabilityNeedsAttention(result.severity) : false;
+      })
+    : jobs;
   const { archiveJobAsync } = useJobMutations();
   const updateFilters = (values: Partial<JobFilterState>) => {
     setFilterState((current) => ({ ...current, ...values }));
@@ -61,15 +77,23 @@ export const JobsPage = () => {
 
   return (
     <OpsPageShell>
-      <JobsHeader count={jobs.length} filters={exportFilters} />
+      <JobsHeader
+        count={visibleJobs.length}
+        filters={exportFilters}
+        jobIds={filterState.profitability === "attention" ? visibleJobs.map(({ id }) => id) : undefined}
+      />
       <JobFilters
         query={filterState.query}
         status={filterState.status}
+        profitability={filterState.profitability}
         visibility={filterState.visibility}
         includeArchived={filterState.includeArchived}
-        isRefreshing={isFetching}
+        isRefreshing={isFetching || profitabilityQuery.isFetching}
         onQueryChange={(query) => updateFilters({ query })}
-        onRefresh={refetch}
+        onRefresh={async () => { await Promise.all([refetch(), profitabilityQuery.refetch()]); }}
+        onProfitabilityChange={(profitability) =>
+          updateFilters({ profitability: profitability as JobFilterState["profitability"] })
+        }
         onStatusChange={(status) =>
           updateFilters({ status: status as JobStatusFilter })
         }
@@ -81,14 +105,15 @@ export const JobsPage = () => {
         }
         onClear={() => setFilterState(defaultJobFilters)}
       />
-      {isLoading ? (
+      {isLoading || profitabilityQuery.isLoading ? (
         <OpsRecordSkeleton count={6} />
-      ) : jobs.length ? (
+      ) : visibleJobs.length ? (
         <OpsRecordList>
-          {jobs.map((job) => (
+          {visibleJobs.map((job) => (
             <JobCard
               key={job.id}
               job={job}
+              profitability={profitabilityByJob.get(job.id)}
               onArchive={async (nextJobId) => {
                 await archiveJobAsync(nextJobId);
               }}

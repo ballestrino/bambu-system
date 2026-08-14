@@ -13,7 +13,7 @@ export const OpsDetailRow = ({
 }) => (
   <div
     className={cn(
-      "flex flex-col gap-4 rounded-2xl border border-[#53985E]/12 bg-[#F8FBF8] p-4 shadow-sm shadow-[#244C2D]/5 dark:bg-[#132016]",
+      "flex flex-col gap-4 rounded-2xl border border-[#53985E]/12 bg-[#F8FBF8] p-4 shadow-sm shadow-[#244C2D]/5 dark:bg-[#1A211A]",
       className
     )}
   >
@@ -33,7 +33,7 @@ export const OpsDetailInset = ({
 }) => (
   <div
     className={cn(
-      "rounded-2xl border border-[#53985E]/12 bg-[#F8FBF8]/80 p-3 dark:bg-[#132016]/80",
+      "rounded-2xl border border-[#53985E]/12 bg-[#F8FBF8]/80 p-3 dark:bg-[#1A211A]/80",
       className
     )}
   >

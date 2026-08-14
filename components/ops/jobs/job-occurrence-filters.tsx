@@ -155,7 +155,7 @@ export const JobOccurrenceFilters = ({
                 Navegacion mensual
               </Label>
               <div className="flex flex-wrap items-center gap-3 md:justify-end">
-                <div className="flex items-center gap-2 rounded-full border border-[#53985E]/15 bg-white px-2 py-1 shadow-sm shadow-[#244C2D]/5 dark:bg-[#132016]">
+                <div className="flex items-center gap-2 rounded-full border border-[#53985E]/15 bg-white px-2 py-1 shadow-sm shadow-[#244C2D]/5 dark:bg-[#1A211A]">
                   <Button type="button" size="icon-sm" variant="ghost" onClick={onPreviousMonth}>
                     <ChevronLeft className="h-4 w-4" />
                   </Button>

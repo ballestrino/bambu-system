@@ -9,6 +9,7 @@ export * from "@/components/ops/shared/ops-month-provider";
 export * from "@/components/ops/shared/ops-page-shell";
 export * from "@/components/ops/shared/ops-record-list";
 export * from "@/components/ops/shared/ops-refresh-button";
+export * from "@/components/ops/shared/ops-scroll-container";
 export * from "@/components/ops/shared/ops-theme";
 export * from "@/components/ops/shared/use-ops-debounced-value";
 export * from "@/components/ops/shared/use-ops-persisted-state";

@@ -14,6 +14,7 @@ export const VisitFeedFiltersSchema = z.object({
   employeeId: z
     .union([allSelectionSchema, z.literal("UNASSIGNED"), cuidSchema])
     .default("ALL"),
+  exactDate: z.iso.date().optional(),
   jobId: z.union([allSelectionSchema, cuidSchema]).default("ALL"),
   status: z.union([allSelectionSchema, occurrenceStatusSchema]).default("ALL"),
 });

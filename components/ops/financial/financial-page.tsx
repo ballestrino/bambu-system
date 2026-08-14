@@ -5,16 +5,22 @@ import { useMemo } from "react";
 import { FinancialActions } from "@/components/ops/financial/financial-actions";
 import { FinancialCostsSection } from "@/components/ops/financial/financial-costs-section";
 import { FinancialPaymentsSection } from "@/components/ops/financial/financial-payments-section";
+import { FinancialProfitabilitySection } from "@/components/ops/financial/financial-profitability-section";
 import { FinancialPayrollSection } from "@/components/ops/financial/financial-payroll-section";
 import { FinancialSectionNav } from "@/components/ops/financial/financial-section-nav";
 import { FinancialSummary } from "@/components/ops/financial/financial-summary";
 import { useFinancialWorkspace } from "@/components/ops/financial/use-financial-workspace";
+import { useJobProfitability } from "@/components/ops/hooks/useJobProfitability";
 import { OpsPageHeader, OpsPageShell, OpsSection } from "@/components/ops/shared";
 import { formatMonth } from "@/components/ops/utils";
 import { getFinancialSummary } from "@/lib/ops/finance";
 
 export const FinancialPage = () => {
   const workspace = useFinancialWorkspace();
+  const profitabilityQuery = useJobProfitability({
+    mode: "MONTH",
+    month: workspace.month,
+  });
   const summary = useMemo(
     () =>
       getFinancialSummary({
@@ -34,11 +40,17 @@ export const FinancialPage = () => {
   return (
     <OpsPageShell>
       <OpsPageHeader
-        actions={<FinancialActions workspace={workspace} />}
+        actions={
+          <FinancialActions
+            isProfitabilityFetching={profitabilityQuery.isFetching}
+            onRefreshProfitability={profitabilityQuery.refetch}
+            workspace={workspace}
+          />
+        }
         description="Cobros, costes y pagos a empleadas en un único espacio mensual."
         eyebrow="Operaciones"
         meta={
-          <span className="rounded-full bg-[#EAF5EC] px-3 py-1 text-xs font-semibold capitalize text-[#244C2D] dark:bg-[#53985E]/15 dark:text-[#A7D8AE]">
+          <span className="rounded-full bg-[#EAF5EC] px-3 py-1 text-xs font-semibold capitalize text-[#244C2D] dark:bg-[#91AD71]/15 dark:text-[#D4E3B8]">
             {formatMonth(workspace.month)}
           </span>
         }
@@ -58,6 +70,12 @@ export const FinancialPage = () => {
           />
         </OpsSection>
       </div>
+      <FinancialProfitabilitySection
+        error={profitabilityQuery.error}
+        isLoading={profitabilityQuery.isLoading}
+        onRetry={profitabilityQuery.refetch}
+        results={profitabilityQuery.profitability}
+      />
       <FinancialPaymentsSection workspace={workspace} />
       <FinancialCostsSection workspace={workspace} />
       <FinancialPayrollSection workspace={workspace} />

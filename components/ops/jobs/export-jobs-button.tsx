@@ -9,15 +9,17 @@ import { downloadJobsWorkbook } from "@/components/ops/jobs/job-excel-export";
 import { Button } from "@/components/ui/button";
 import type { JobFilters } from "@/schemas/ops";
 
-export const ExportJobsButton = ({ filters }: { filters: JobFilters }) => {
+export const ExportJobsButton = ({ filters, jobIds }: { filters: JobFilters; jobIds?: string[] }) => {
   const [isExporting, setIsExporting] = useState(false);
 
   const exportJobs = async () => {
     setIsExporting(true);
 
     try {
-      const jobs =
-        (await getJobsAction(filters)) ?? [];
+      const loadedJobs = (await getJobsAction(filters)) ?? [];
+      const jobs = jobIds
+        ? loadedJobs.filter((job) => jobIds.includes(job.id))
+        : loadedJobs;
       await downloadJobsWorkbook(jobs);
       toast.success(`${jobs.length} trabajo(s) exportado(s) a Excel`);
     } catch (error) {

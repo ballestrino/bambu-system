@@ -5,6 +5,7 @@ import { dashboardSecondaryActionClass } from "@/components/dashboard/dashboard-
 import {
   getCalendarStats,
   getVisitActionLabel,
+  shouldCompleteOccurrenceOnSave,
 } from "@/components/ops/calendar/calendar-utils";
 import { JobOccurrenceDialog } from "@/components/ops/jobs/job-occurrence-dialog";
 import { getOccurrenceEmployeesLabel } from "@/components/ops/jobs/occurrence-employees";
@@ -16,17 +17,17 @@ import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
 const CalendarAgendaItem = ({ occurrence }: { occurrence: OpsOccurrence }) => (
-  <article className="rounded-md border border-[#53985E]/15 bg-white p-4 shadow-sm shadow-[#244C2D]/5 dark:bg-[#132016]">
+  <article className="rounded-md border border-[#53985E]/15 bg-white p-4 shadow-sm shadow-[#244C2D]/5 dark:bg-[#1A211A]">
     <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
       <div className="min-w-0 space-y-3">
         <div className="flex flex-wrap items-center gap-2">
           <OccurrenceStatusBadge status={occurrence.status} />
-          <span className="rounded-full bg-[#F7FBF7] px-3 py-1 text-xs font-medium text-[#244C2D] dark:bg-[#53985E]/15 dark:text-[#A7D8AE]">
+          <span className="rounded-full bg-[#F7FBF7] px-3 py-1 text-xs font-medium text-[#244C2D] dark:bg-[#91AD71]/15 dark:text-[#D4E3B8]">
             {formatTime(occurrence.scheduledStartAt)} - {formatTime(occurrence.scheduledEndAt)}
           </span>
         </div>
         <div>
-          <h3 className="font-semibold text-[#18251D] dark:text-[#EAF5EC]">
+          <h3 className="font-semibold text-[#18251D] dark:text-[#F0F3E8]">
             {occurrence.job.name}
           </h3>
           <p className="mt-1 flex items-center gap-1 text-sm text-muted-foreground">
@@ -51,6 +52,7 @@ const CalendarAgendaItem = ({ occurrence }: { occurrence: OpsOccurrence }) => (
           </Link>
         </Button>
         <JobOccurrenceDialog
+          completeOnSave={shouldCompleteOccurrenceOnSave(occurrence)}
           occurrence={occurrence}
           triggerLabel={getVisitActionLabel(occurrence)}
         />
@@ -80,7 +82,7 @@ export const CalendarAgendaPanel = ({
     <section className={cn(opsSurface.panel, "p-4 md:p-5")}>
       <div className="mb-4 flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
         <div>
-          <h2 className="text-lg font-semibold text-[#18251D] dark:text-[#EAF5EC]">
+          <h2 className="text-lg font-semibold text-[#18251D] dark:text-[#F0F3E8]">
             Agenda del {selectedDate ? formatDate(selectedDate) : "día seleccionado"}
           </h2>
           <p className="text-sm text-muted-foreground">

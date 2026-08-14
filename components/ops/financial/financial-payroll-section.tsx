@@ -16,7 +16,7 @@ import {
   getPaymentSummary,
   getPayrollSummary,
 } from "@/components/ops/payroll/payroll-utils";
-import { OpsSection } from "@/components/ops/shared";
+import { OpsScrollContainer, OpsSection } from "@/components/ops/shared";
 import { formatMonth, toDateInputValue } from "@/components/ops/utils";
 
 export const FinancialPayrollSection = ({ workspace }: { workspace: FinancialWorkspace }) => {
@@ -54,7 +54,7 @@ export const FinancialPayrollSection = ({ workspace }: { workspace: FinancialWor
             periodStart={periodStart}
           />
         }
-        description="Importes sugeridos por el trabajo realizado y pagos asignados al mes."
+        description="Importes sugeridos, pagos y devengamientos. El BPS usa Fonasa personal base de 3%; adicionales y CCM no están incluidos."
         title="Pagos a empleadas"
       >
         <PayrollFilters
@@ -74,21 +74,25 @@ export const FinancialPayrollSection = ({ workspace }: { workspace: FinancialWor
           ) : (
             <div className="space-y-5">
               <PayrollSummary {...summary} showVoided={status !== "RECORDED"} />
-              <div className="grid gap-5 xl:grid-cols-2">
-                <PayrollRowsPanel
-                  employees={workspace.employees}
-                  periodEnd={periodEnd}
-                  periodStart={periodStart}
-                  rows={rows}
-                />
-                <EmployeePaymentList
-                  employees={workspace.employees}
-                  isLoading={workspace.loading.payroll}
-                  onVoid={async (paymentId) => {
-                    await voidPaymentAsync(paymentId);
-                  }}
-                  payments={visiblePayments}
-                />
+              <div className="grid gap-5 xl:grid-cols-[minmax(0,1.65fr)_minmax(20rem,0.75fr)]">
+                <OpsScrollContainer>
+                  <PayrollRowsPanel
+                    employees={workspace.employees}
+                    periodEnd={periodEnd}
+                    periodStart={periodStart}
+                    rows={rows}
+                  />
+                </OpsScrollContainer>
+                <OpsScrollContainer>
+                  <EmployeePaymentList
+                    employees={workspace.employees}
+                    isLoading={workspace.loading.payroll}
+                    onVoid={async (paymentId) => {
+                      await voidPaymentAsync(paymentId);
+                    }}
+                    payments={visiblePayments}
+                  />
+                </OpsScrollContainer>
               </div>
             </div>
           )}

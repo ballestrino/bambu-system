@@ -4,7 +4,10 @@
  * @type {string[]}
  */
 
-export const publicRoutes = ["/public"] // now is empty
+export const publicRoutes = [
+  "/public",
+  "/api/mail/cron", // External cron; the route enforces its own bearer secret.
+]
 
 /**
  * An array of routes that are used for authentication

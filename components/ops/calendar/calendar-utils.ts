@@ -9,12 +9,16 @@ export const sameDay = (date: Date | string, selectedDate?: Date) =>
     ? new Date(date).toDateString() === selectedDate.toDateString()
     : false;
 
+export const shouldCompleteOccurrenceOnSave = (occurrence: OpsOccurrence) =>
+  hasOccurrenceEmployees(occurrence) &&
+  (!occurrence.actualStartAt || !occurrence.actualEndAt);
+
 export const getVisitActionLabel = (occurrence: OpsOccurrence) => {
   if (!hasOccurrenceEmployees(occurrence)) {
     return "Asignar";
   }
 
-  if (!occurrence.actualStartAt || !occurrence.actualEndAt) {
+  if (shouldCompleteOccurrenceOnSave(occurrence)) {
     return "Registrar horario";
   }
 

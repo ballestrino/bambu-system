@@ -35,22 +35,22 @@ type OpsFormGridProps = {
 };
 
 export const opsFormControlClass =
-  "min-h-11 w-full rounded-md border-[#53985E]/15 bg-white px-3 text-[#244C2D] shadow-sm shadow-[#244C2D]/5 transition-colors placeholder:text-[#244C2D]/45 hover:bg-[#F7FBF7] focus-visible:ring-[#53985E]/15 disabled:bg-muted/60 dark:bg-[#132016] dark:text-[#EAF5EC] dark:placeholder:text-[#A7D8AE]/45";
+  "min-h-11 w-full rounded-md border-[#53985E]/15 bg-white px-3 text-[#244C2D] shadow-sm shadow-[#244C2D]/5 transition-colors placeholder:text-[#244C2D]/45 hover:bg-[#F7FBF7] focus-visible:ring-[#53985E]/15 disabled:bg-muted/60 dark:bg-[#1A211A] dark:text-[#F0F3E8] dark:placeholder:text-[#D4E3B8]/45";
 
 export const opsFormSelectTriggerClass =
-  "h-11! min-h-11 w-full rounded-md border-[#53985E]/15 bg-white px-3 text-[#244C2D] shadow-sm shadow-[#244C2D]/5 transition-colors hover:bg-[#F7FBF7] focus:ring-[#53985E]/15 data-[size=default]:h-11! dark:bg-[#132016] dark:text-[#EAF5EC]";
+  "h-11! min-h-11 w-full rounded-md border-[#53985E]/15 bg-white px-3 text-[#244C2D] shadow-sm shadow-[#244C2D]/5 transition-colors hover:bg-[#F7FBF7] focus:ring-[#53985E]/15 data-[size=default]:h-11! dark:bg-[#1A211A] dark:text-[#F0F3E8]";
 
 export const opsFormTextareaClass =
-  "min-h-24 w-full rounded-md border-[#53985E]/15 bg-white px-3 py-2 text-[#244C2D] shadow-sm shadow-[#244C2D]/5 transition-colors placeholder:text-[#244C2D]/45 hover:bg-[#F7FBF7] focus-visible:ring-[#53985E]/15 dark:bg-[#132016] dark:text-[#EAF5EC] dark:placeholder:text-[#A7D8AE]/45";
+  "min-h-24 w-full rounded-md border-[#53985E]/15 bg-white px-3 py-2 text-[#244C2D] shadow-sm shadow-[#244C2D]/5 transition-colors placeholder:text-[#244C2D]/45 hover:bg-[#F7FBF7] focus-visible:ring-[#53985E]/15 dark:bg-[#1A211A] dark:text-[#F0F3E8] dark:placeholder:text-[#D4E3B8]/45";
 
 export const opsFormToggleClass =
-  "flex min-h-12 w-full items-center justify-between gap-3 rounded-md border border-[#53985E]/15 bg-white px-3 py-2 text-sm text-[#244C2D] shadow-sm shadow-[#244C2D]/5 dark:bg-[#132016] dark:text-[#EAF5EC]";
+  "flex min-h-12 w-full items-center justify-between gap-3 rounded-md border border-[#53985E]/15 bg-white px-3 py-2 text-sm text-[#244C2D] shadow-sm shadow-[#244C2D]/5 dark:bg-[#1A211A] dark:text-[#F0F3E8]";
 
 export const opsFormSwitchClass =
-  "data-[state=checked]:bg-[#53985E] data-[state=unchecked]:bg-[#E2EADF] dark:data-[state=unchecked]:bg-[#2A3A2D]";
+  "data-[state=checked]:bg-[#53985E] data-[state=unchecked]:bg-[#E2EADF] dark:data-[state=unchecked]:bg-[#2D372C]";
 
 export const opsFormPanelClass =
-  "rounded-md border border-[#53985E]/15 bg-[#F7FBF7] p-4 shadow-sm shadow-[#244C2D]/5 dark:bg-[#132016]";
+  "rounded-md border border-[#53985E]/15 bg-[#F7FBF7] p-4 shadow-sm shadow-[#244C2D]/5 dark:bg-[#1A211A]";
 
 export const OpsFormDialogContent = ({
   children,

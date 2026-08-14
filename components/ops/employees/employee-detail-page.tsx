@@ -52,7 +52,7 @@ const EmployeeStickySummaryBar = ({
   >
     <div className="flex flex-wrap items-center justify-center gap-x-3 gap-y-1 text-[13px] text-[#244C2D] md:justify-between">
       <div className="flex min-w-0 items-center gap-2">
-        <p className="truncate text-sm font-semibold text-[#18251D] dark:text-[#EAF5EC]">
+        <p className="truncate text-sm font-semibold text-[#18251D] dark:text-[#F0F3E8]">
           {employee.name}
         </p>
         <Badge variant={employee.isActive ? "default" : "secondary"} className="h-6 hidden sm:block rounded-full text-[11px]">

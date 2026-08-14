@@ -20,6 +20,7 @@ import type {
   OpsOperationalCostCategory,
 } from "@/components/ops/types";
 import { formatDate, formatUtcMonth } from "@/components/ops/utils";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import DeleteDialog from "@/components/ui/delete-dialog";
 
@@ -58,7 +59,20 @@ export const CostsList = ({
         <OpsRecordItem
           key={cost.id}
           title={formatCostMoney(toCostNumber(cost.amount))}
-          subtitle={cost.category.name}
+          subtitle={
+            <Badge
+              className="gap-1.5 border-border/80 bg-muted/30 text-foreground"
+              style={{ borderColor: cost.category.color }}
+              variant="outline"
+            >
+              <span
+                aria-hidden="true"
+                className="h-2 w-2 rounded-full"
+                style={{ backgroundColor: cost.category.color }}
+              />
+              {cost.category.name}
+            </Badge>
+          }
           status={<PaymentStatusBadge status={cost.status} />}
           description={cost.notes || cost.reference || "Sin notas"}
           meta={

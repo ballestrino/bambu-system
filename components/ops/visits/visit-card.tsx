@@ -15,7 +15,7 @@ export const VisitCard = ({ occurrence }: { occurrence: OpsOccurrence }) => (
         <p className="text-xs font-medium uppercase tracking-wide text-[#53985E]">
           {formatDate(occurrence.scheduledStartAt)}
         </p>
-        <h3 className="truncate text-lg font-semibold text-[#18251D] dark:text-[#EAF5EC]">
+        <h3 className="truncate text-lg font-semibold text-[#18251D] dark:text-[#F0F3E8]">
           {occurrence.job.name}
         </h3>
       </div>
@@ -23,7 +23,7 @@ export const VisitCard = ({ occurrence }: { occurrence: OpsOccurrence }) => (
     </div>
 
     <div className="grid gap-3 text-sm sm:grid-cols-2">
-      <div className="rounded-md bg-[#F7FBF7] p-3 dark:bg-[#53985E]/10">
+      <div className="rounded-md bg-[#F7FBF7] p-3 dark:bg-[#91AD71]/10">
         <p className="flex items-center gap-1 text-xs text-muted-foreground">
           <CalendarClock className="h-3.5 w-3.5" /> Planificado
         </p>

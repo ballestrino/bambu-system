@@ -28,12 +28,12 @@ export const OpsEmptyState = ({
     )}
   >
     {Icon ? (
-      <div className="rounded-md border border-[#53985E]/20 bg-[#EAF5EC] p-3 text-[#244C2D] dark:bg-[#53985E]/15 dark:text-[#A7D8AE]">
+      <div className="rounded-md border border-[#53985E]/20 bg-[#EAF5EC] p-3 text-[#244C2D] dark:bg-[#91AD71]/15 dark:text-[#D4E3B8]">
         <Icon className="h-5 w-5" />
       </div>
     ) : null}
     <div className="max-w-md space-y-1">
-      <h2 className="text-lg font-semibold text-[#18251D] dark:text-[#EAF5EC]">
+      <h2 className="text-lg font-semibold text-[#18251D] dark:text-[#F0F3E8]">
         {title}
       </h2>
       {description ? (

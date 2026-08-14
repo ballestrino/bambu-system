@@ -15,7 +15,10 @@ import type {
 export const useOperationalCostMutations = () => {
   const queryClient = useQueryClient();
   const invalidateCosts = async () => {
-    await queryClient.invalidateQueries({ queryKey: opsQueryKeys.costs });
+    await Promise.all([
+      queryClient.invalidateQueries({ queryKey: opsQueryKeys.costs }),
+      queryClient.invalidateQueries({ queryKey: opsQueryKeys.profitabilityRoot }),
+    ]);
   };
 
   const createCostMutation = useMutation({

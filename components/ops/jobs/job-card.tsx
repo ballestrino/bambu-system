@@ -8,10 +8,12 @@ import DeleteDialog from "@/components/ui/delete-dialog";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { JobStatusBadge } from "@/components/ops/jobs/status-badges";
+import { ProfitabilityBadge } from "@/components/ops/profitability/profitability-badge";
 import { JobFormDialog } from "@/components/ops/jobs/job-form-dialog";
 import { OpsRecordItem } from "@/components/ops/shared";
 import { formatDate, formatDateTime } from "@/components/ops/utils";
 import type { OpsJobListItem } from "@/components/ops/types";
+import type { JobProfitability } from "@/lib/ops/profitability";
 import {
   formatJobBudgetPrice,
   getJobBudgetPrice,
@@ -21,9 +23,11 @@ import {
 export const JobCard = ({
   job,
   onArchive,
+  profitability,
 }: {
   job: OpsJobListItem;
   onArchive: (jobId: string) => Promise<void>;
+  profitability?: JobProfitability;
 }) => {
   const location = job.serviceLocation || job.serviceAddress || "Sin ubicación cargada";
   const option = formatJobBudgetPrice(getJobBudgetPrice(job));
@@ -49,6 +53,7 @@ export const JobCard = ({
             <Badge variant="outline">Puntual</Badge>
           ) : null}
           <JobStatusBadge status={job.status} />
+          {profitability ? <ProfitabilityBadge severity={profitability.severity} /> : null}
         </div>
       }
       description={job.description}

@@ -67,13 +67,13 @@ export const PendingVisitsPanel = ({
             <span className="text-xs font-semibold uppercase tracking-wide text-[#53985E]">
               Siguiente acción
             </span>
-            <span className="block text-base font-semibold text-[#18251D] dark:text-[#EAF5EC]">
+            <span className="block text-base font-semibold text-[#18251D] dark:text-[#F0F3E8]">
               {title}
             </span>
             <span className="block text-sm text-muted-foreground">{description}</span>
           </span>
         </span>
-        <span className="flex items-center gap-2 text-sm font-medium text-[#244C2D] dark:text-[#A7D8AE]">
+        <span className="flex items-center gap-2 text-sm font-medium text-[#244C2D] dark:text-[#D4E3B8]">
           {isLoading ? "Cargando" : `${visits.length} ${resolvedCountLabel}`}
           <ChevronDown className={cn("h-4 w-4 transition-transform", isOpen && "rotate-180")} />
         </span>
@@ -90,12 +90,12 @@ export const PendingVisitsPanel = ({
               );
 
               return (
-                <article key={occurrence.id} className="rounded-md border border-[#53985E]/15 bg-white p-4 shadow-sm shadow-[#244C2D]/5 dark:bg-[#132016]">
+                <article key={occurrence.id} className="rounded-md border border-[#53985E]/15 bg-white p-4 shadow-sm shadow-[#244C2D]/5 dark:bg-[#1A211A]">
                   <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
                     <div className="min-w-0 space-y-3">
                       <div className="flex flex-wrap items-center gap-2">
                         <OccurrenceStatusBadge status={occurrence.status} />
-                        <span className="rounded-full bg-[#F7FBF7] px-3 py-1 text-xs font-medium text-[#244C2D] dark:bg-[#53985E]/15 dark:text-[#A7D8AE]">
+                        <span className="rounded-full bg-[#F7FBF7] px-3 py-1 text-xs font-medium text-[#244C2D] dark:bg-[#91AD71]/15 dark:text-[#D4E3B8]">
                           {formatDate(occurrence.scheduledStartAt)}
                         </span>
                       </div>

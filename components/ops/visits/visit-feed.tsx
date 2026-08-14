@@ -19,13 +19,15 @@ const WeekGroup = ({
   view: Exclude<VisitView, "calendar">;
 }) => {
   if (!page.occurrences.length) return null;
+  const startLabel = formatDate(page.weekStart);
+  const endLabel = formatDate(page.weekEnd);
 
   return (
     <section className="space-y-3">
       <div className="flex items-center gap-3">
         <div className="h-px flex-1 bg-[#53985E]/15" />
         <h2 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-          {formatDate(page.weekStart)} - {formatDate(page.weekEnd)}
+          {startLabel === endLabel ? startLabel : `${startLabel} - ${endLabel}`}
         </h2>
         <div className="h-px flex-1 bg-[#53985E]/15" />
       </div>

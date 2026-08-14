@@ -5,12 +5,14 @@ import type { PaymentStatus } from "@prisma/client";
 
 import { getDashboardFinancials } from "@/components/ops/dashboard/dashboard-financials";
 import { DashboardMetricGrid } from "@/components/ops/dashboard/dashboard-metric-grid";
+import { DashboardProfitabilityAlerts } from "@/components/ops/dashboard/dashboard-profitability-alerts";
 import { DashboardQuickActions } from "@/components/ops/dashboard/dashboard-quick-actions";
 import { DashboardVisitsPanel } from "@/components/ops/dashboard/dashboard-visits-panel";
 import { useEmployees } from "@/components/ops/hooks/useEmployees";
 import { useEmployeePayments } from "@/components/ops/hooks/useEmployeePayments";
 import { useJobClientPayments } from "@/components/ops/hooks/useJobClientPayments";
 import { useJobOccurrences } from "@/components/ops/hooks/useJobOccurrences";
+import { useJobProfitability } from "@/components/ops/hooks/useJobProfitability";
 import { useJobScheduleRules } from "@/components/ops/hooks/useJobScheduleRules";
 import { useJobs } from "@/components/ops/hooks/useJobs";
 import { useOperationalCosts } from "@/components/ops/hooks/useOperationalCosts";
@@ -123,6 +125,7 @@ export const OpsDashboardPage = () => {
     isFetching: areRulesFetching,
     refetch: refetchScheduleRules,
   } = useJobScheduleRules({ isActive: true });
+  const profitabilityQuery = useJobProfitability({ mode: "MONTH", month });
 
   const pendingVisitCount = useMemo(
     () => getPendingRegistrationVisits(occurrences).length,
@@ -149,6 +152,7 @@ export const OpsDashboardPage = () => {
     areRulesFetching ||
     areSettingsFetching ||
     areVisitsFetching;
+  const isDashboardRefreshing = isRefreshing || profitabilityQuery.isFetching;
   const refreshDashboard = async () => {
     await Promise.all([
       refetchCosts(),
@@ -160,6 +164,7 @@ export const OpsDashboardPage = () => {
       refetchScheduleRules(),
       refetchSettings(),
       refetchVisits(),
+      profitabilityQuery.refetch(),
     ]);
   };
 
@@ -168,13 +173,20 @@ export const OpsDashboardPage = () => {
       <OpsPageHeader
         actions={
           <DashboardQuickActions
-            isRefreshing={isRefreshing}
+            isRefreshing={isDashboardRefreshing}
             onRefresh={refreshDashboard}
           />
         }
         description="Accesos rápidos y visitas que necesitan atención para cerrar la operación diaria."
         eyebrow="Operaciones"
         title="Dashboard operativo"
+      />
+
+      <DashboardProfitabilityAlerts
+        error={profitabilityQuery.error}
+        isLoading={profitabilityQuery.isLoading}
+        onRetry={profitabilityQuery.refetch}
+        results={profitabilityQuery.profitability}
       />
 
       <DashboardMetricGrid

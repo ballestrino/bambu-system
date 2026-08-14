@@ -1,7 +1,11 @@
 import {
+  getInitialOccurrenceState,
   getJobOccurrenceEmployeeOptions,
   updateOccurrenceDateTimeRange,
+  updateOccurrenceScheduledTime,
 } from "@/components/ops/jobs/job-occurrence-dialog-utils";
+import { shouldCompleteOccurrenceOnSave } from "@/components/ops/calendar/calendar-utils";
+import type { OpsOccurrence } from "@/components/ops/types";
 
 const assert = (condition: boolean, message: string) => {
   if (!condition) throw new Error(message);
@@ -27,6 +31,72 @@ const preserved = updateOccurrenceDateTimeRange({
 });
 
 assert(preserved.endValue === "2026-08-11T14:00", "Existing end date was overwritten");
+
+const shiftedDay = updateOccurrenceDateTimeRange({
+  startValue: "2026-08-06T09:00",
+  endValue: "2026-08-06T11:00",
+  field: "start",
+  part: "date",
+  nextPart: "2026-08-05",
+});
+
+assert(shiftedDay.startValue === "2026-08-05T09:00", "Start day was not shifted");
+assert(shiftedDay.endValue === "2026-08-05T11:00", "Same-day end was not shifted");
+
+const occurrence = {
+  actualEndAt: null,
+  actualStartAt: null,
+  employees: [{ employee: { id: "employee" } }],
+  jobId: "job",
+  notes: null,
+  scheduleRuleId: null,
+  scheduledEndAt: new Date("2026-08-06T14:00:00Z"),
+  scheduledStartAt: new Date("2026-08-06T12:00:00Z"),
+  status: "SCHEDULED",
+} as unknown as OpsOccurrence;
+const completionState = getInitialOccurrenceState(occurrence, true);
+
+assert(
+  shouldCompleteOccurrenceOnSave(occurrence),
+  "Assigned visit without real times was not marked for completion"
+);
+assert(completionState.status === "DONE", "Register timing did not complete the visit");
+assert(
+  completionState.actualStartAt === completionState.scheduledStartAt &&
+    completionState.actualEndAt === completionState.scheduledEndAt,
+  "Register timing did not prefill actual times"
+);
+
+const shiftedStart = updateOccurrenceScheduledTime({
+  field: "scheduledStartAt",
+  formState: completionState,
+  occurrence,
+  value: "2026-08-05T09:00",
+});
+const shiftedCompletion = updateOccurrenceScheduledTime({
+  field: "scheduledEndAt",
+  formState: shiftedStart,
+  occurrence,
+  value: "2026-08-05T11:00",
+});
+
+assert(
+  shiftedCompletion.actualStartAt === "2026-08-05T09:00" &&
+    shiftedCompletion.actualEndAt === "2026-08-05T11:00",
+  "Actual times that mirrored the schedule were not shifted"
+);
+
+const customActualTime = updateOccurrenceScheduledTime({
+  field: "scheduledStartAt",
+  formState: { ...completionState, actualStartAt: "2026-08-06T09:15" },
+  occurrence,
+  value: "2026-08-05T09:00",
+});
+
+assert(
+  customActualTime.actualStartAt === "2026-08-06T09:15",
+  "A custom actual time was overwritten"
+);
 
 const activeEmployee = {
   archivedAt: null,
