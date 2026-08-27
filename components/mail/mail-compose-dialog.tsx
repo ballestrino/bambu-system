@@ -1,6 +1,6 @@
 "use client";
 
-import { Paperclip, Send } from "lucide-react";
+import { AlertTriangle, Paperclip, Send } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState, useTransition, type ReactNode } from "react";
 import { toast } from "sonner";
@@ -19,6 +19,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { getGroundedPriceMismatch } from "@/lib/mail-agent/price-grounding";
 
 type Props = {
   trigger: ReactNode;
@@ -26,10 +27,12 @@ type Props = {
   threadId?: string;
   inReplyToId?: string;
   suggestionId?: string;
+  draftRevisionId?: string;
   initialTo?: string;
   initialCc?: string;
   initialSubject?: string;
   initialBody?: string;
+  groundedPrices?: number[];
 };
 
 export function MailComposeDialog({
@@ -38,14 +41,18 @@ export function MailComposeDialog({
   threadId,
   inReplyToId,
   suggestionId,
+  draftRevisionId,
   initialTo = "",
   initialCc = "",
   initialSubject = "",
   initialBody = "",
+  groundedPrices = [],
 }: Props) {
   const [open, setOpen] = useState(false);
+  const [body, setBody] = useState(initialBody);
   const [pending, startTransition] = useTransition();
   const router = useRouter();
+  const priceMismatch = getGroundedPriceMismatch(body, groundedPrices);
 
   const submit = (formData: FormData) => {
     startTransition(async () => {
@@ -74,6 +81,7 @@ export function MailComposeDialog({
           <input type="hidden" name="threadId" value={threadId ?? ""} />
           <input type="hidden" name="inReplyToId" value={inReplyToId ?? ""} />
           <input type="hidden" name="suggestionId" value={suggestionId ?? ""} />
+          <input type="hidden" name="draftRevisionId" value={draftRevisionId ?? ""} />
           <div className="grid gap-2">
             <Label htmlFor="mail-to">Para</Label>
             <Input id="mail-to" name="to" defaultValue={initialTo} placeholder="cliente@ejemplo.com" required />
@@ -88,7 +96,13 @@ export function MailComposeDialog({
           </div>
           <div className="grid gap-2">
             <Label htmlFor="mail-body">Mensaje</Label>
-            <Textarea id="mail-body" name="body" defaultValue={initialBody} className="min-h-56" required />
+            <Textarea id="mail-body" name="body" value={body} onChange={(event) => setBody(event.target.value)} className="min-h-56" required />
+            {groundedPrices.length && priceMismatch.mismatch ? (
+              <p className="flex items-start gap-2 rounded-md border border-amber-500/40 bg-amber-500/10 p-2 text-xs text-amber-800 dark:text-amber-200">
+                <AlertTriangle className="mt-0.5 size-4 shrink-0" />
+                El importe editado no coincide con la fuente oficial. Revisalo antes de enviar.
+              </p>
+            ) : null}
           </div>
           <div className="grid gap-2">
             <Label htmlFor="mail-attachments" className="flex items-center gap-2">

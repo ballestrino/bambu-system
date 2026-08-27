@@ -80,7 +80,7 @@ export function MailSettingsPanel({
       <section className="rounded-lg border p-4">
         <h3 className="font-semibold">Memoria compartida</h3>
         <p className="mt-1 text-xs text-muted-foreground">
-          Lo extraído por Terra queda pendiente hasta que una administradora lo aprueba.
+          Lo extraído por Luna queda pendiente hasta que una administradora lo aprueba.
         </p>
         <div className="mt-4 max-h-72 space-y-2 overflow-y-auto">
           {memories.length ? memories.map((memory) => (

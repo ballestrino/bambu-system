@@ -4,7 +4,8 @@ import { db } from "@/lib/db"
 import { auth } from "@/auth"
 import { BudgetFilters } from "@/components/budgets/interfaces/budget-filters"
 
-import { Budget, Prisma, VisitType } from "@prisma/client"
+import { Prisma, VisitType } from "@prisma/client"
+import type { GeneratorBudgetListItem } from "@/components/budgets/interfaces/generator-budget"
 
 export const getBudgets = async (
     query?: string, 
@@ -12,7 +13,7 @@ export const getBudgets = async (
     limit: number = 9,
     filters?: Omit<BudgetFilters, 'query' | 'limit' | 'page'>
 ): Promise<{
-    budgets: Budget[];
+    budgets: GeneratorBudgetListItem[];
     totalCount: number;
     totalPages: number;
     currentPage: number;
@@ -172,8 +173,11 @@ export const getBudgets = async (
                 orderBy: {
                     updatedAt: 'desc'
                 },
-                include: { 
-                    budgetCategory: true
+                include: {
+                    budgetCategory: true,
+                    officialBudget: {
+                        select: { id: true, status: true, currentVersion: true }
+                    }
                 },
                 skip: (page - 1) * limit,
                 take: limit,

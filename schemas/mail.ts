@@ -29,6 +29,7 @@ export const mailSuggestionOutputSchema = z.object({
   protectedLiterals: z.array(z.string().max(100)).max(30),
   subject: z.string().min(1).max(300),
   body: z.string().min(1).max(50_000),
+  officialBudgetSourceOptionIds: z.array(z.string().min(1)).max(10),
   memories: z
     .array(
       z.object({
@@ -39,6 +40,34 @@ export const mailSuggestionOutputSchema = z.object({
       })
     )
     .max(8),
+});
+
+export const mailDraftContentSchema = z.object({
+  suggestionId: z.string().min(1),
+  subject: z.string().trim().min(1).max(300),
+  body: z.string().trim().min(1).max(50_000),
+});
+
+export const mailDraftRevisionRequestSchema = z.object({
+  suggestionId: z.string().min(1),
+  instruction: z.string().trim().min(3).max(1_000),
+});
+
+export const mailDraftRestoreSchema = z.object({
+  suggestionId: z.string().min(1),
+  revisionId: z.string().min(1),
+});
+
+export const mailDraftFeedbackSchema = z.object({
+  suggestionId: z.string().min(1),
+  revisionId: z.string().min(1),
+  outcome: z.enum(["USEFUL", "NOT_USEFUL", "COPIED", "EXTERNAL_SENT"]),
+  reason: z.enum(["incorrecto", "incompleto", "tono", "riesgoso", "otro"]).optional(),
+  comment: z.string().trim().max(1_000).optional(),
+}).superRefine((value, context) => {
+  if (value.outcome === "NOT_USEFUL" && !value.reason) {
+    context.addIssue({ code: "custom", path: ["reason"], message: "Indicá un motivo" });
+  }
 });
 
 export const mailMemoryReviewSchema = z.object({

@@ -1,6 +1,6 @@
 # Implementation Report - shared_mail_ai_agent
 
-Status: in_progress
+Status: done
 
 ## Implemented
 
@@ -19,9 +19,9 @@ Status: in_progress
   handoff, and new-follow-up queue cancellation.
 - Added SMTP delivery with pre-send persistence, sent or failed audit state,
   MIME copy to Hostinger Sent, and safe 4 MB attachment handling.
-- Added an OpenAI Responses workflow using `gpt-5.6-terra`, structured high
-  triage and draft, xhigh escalation for complexity, store false, and hashed
-  safety identifiers.
+- Added an OpenAI Responses workflow with store false and hashed safety
+  identifiers; Feature 22 later moved drafting to `gpt-5.6-luna` with xhigh
+  reasoning for every draft.
 - Added approved-memory and prior-sent retrieval, bounded historical embedding,
   pending memory review, feedback, exact and pgvector rule matching, protected
   literals, safety gates, sending windows, queue leases, and a default-off
@@ -49,9 +49,11 @@ Status: in_progress
   selection, Archive destination, 390-by-844 no-overflow, and zero console
   errors passed without moving live mail.
 
-## Remaining
+## Closure Boundary
 
-- Explicitly promote or discard the tested Neon migration.
-- Configure Hostinger and cron secrets.
-- Restart the user-owned dev server, complete full authenticated mailbox smoke,
-  then configure cron-job.org and enable rules only after manual evaluation.
+- The local implementation and its verification evidence are complete.
+- Production remains unchanged until the tested Neon migration is explicitly
+  promoted and the deployment environment is configured.
+- cron-job.org activation and enabling automatic rules remain deliberate
+  operational rollout actions, not implicit consequences of closing the local
+  feature.

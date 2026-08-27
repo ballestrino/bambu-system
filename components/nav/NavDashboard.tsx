@@ -22,9 +22,19 @@ export default function NavDashboard() {
                             <li>
                                 <NavigationMenuLink asChild>
                                     <Link href="/dashboard/budgets">
-                                        <div className="font-medium">Presupuestos</div>
+                                        <div className="font-medium">Generador de presupuestos</div>
                                         <div className="text-muted-foreground text-sm">
-                                            Crea presupuestos con IA
+                                            Calcula y edita escenarios
+                                        </div>
+                                    </Link>
+                                </NavigationMenuLink>
+                            </li>
+                            <li>
+                                <NavigationMenuLink asChild>
+                                    <Link href="/dashboard/official-budgets">
+                                        <div className="font-medium">Presupuestos oficiales</div>
+                                        <div className="text-muted-foreground text-sm">
+                                            Publicaciones y versiones comerciales
                                         </div>
                                     </Link>
                                 </NavigationMenuLink>

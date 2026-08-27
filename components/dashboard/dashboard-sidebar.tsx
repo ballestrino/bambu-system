@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { Home, List, Mail } from "lucide-react";
+import { BadgeDollarSign, Calculator, List, Mail } from "lucide-react";
 import { usePathname } from "next/navigation";
 
 import { isOpsNavItemActive, opsNavItems } from "@/components/ops/nav-items";
@@ -20,15 +20,23 @@ import {
 
 const budgetNavItems = [
   {
-    title: "Presupuestos",
-    description: "Estimaciones y escenarios",
+    title: "Generador",
+    description: "Cálculos y escenarios",
     url: "/dashboard/budgets",
-    icon: Home,
+    icon: Calculator,
     match: (pathname: string) =>
       pathname === "/dashboard/budgets" ||
       pathname.startsWith("/dashboard/budgets/create") ||
       pathname.startsWith("/dashboard/budgets/edit") ||
       pathname.startsWith("/dashboard/budgets/budget"),
+  },
+  {
+    title: "Presupuestos oficiales",
+    description: "Precios publicados y versiones",
+    url: "/dashboard/official-budgets",
+    icon: BadgeDollarSign,
+    match: (pathname: string) =>
+      pathname.startsWith("/dashboard/official-budgets"),
   },
   {
     title: "Categorías",
@@ -42,7 +50,7 @@ const budgetNavItems = [
 
 const groups = [
   {
-    label: "Presupuestos",
+    label: "Precios",
     items: budgetNavItems,
   },
   {

@@ -10,6 +10,11 @@ import {
 } from "@/lib/mail-agent/embedding";
 import { hashMailInput } from "@/lib/mail-agent/normalize";
 import { recordMailAudit } from "@/lib/mail-agent/audit";
+import {
+  getGroundedPriceMismatch,
+  getOfficialSourceAmounts,
+  hasUngroundedQuotedPrice,
+} from "@/lib/mail-agent/price-grounding";
 import { extractProtectedLiterals } from "@/lib/mail-agent/safety";
 import { requireAdminSession } from "@/lib/require-admin-session";
 import { mailMemoryReviewSchema, mailRuleReviewSchema } from "@/schemas/mail";
@@ -19,13 +24,34 @@ export const createMailAutomationRuleAction = async (suggestionId: string) => {
     const session = await requireAdminSession();
     const suggestion = await db.mailSuggestion.findUniqueOrThrow({
       where: { id: suggestionId },
-      include: { message: true },
+      include: {
+        message: true,
+        revisions: {
+          orderBy: { revision: "desc" },
+          take: 1,
+          include: { sources: { include: { officialBudgetOption: true } } },
+        },
+      },
     });
     if (!suggestion.body || !suggestion.subject || !suggestion.intent) {
       throw new Error("La sugerencia todavía no está lista");
     }
     if (suggestion.isComplex) {
       throw new Error("Las respuestas complejas no pueden automatizarse");
+    }
+    if (hasUngroundedQuotedPrice(
+      `${suggestion.subject}\n${suggestion.body}`,
+      suggestion.revisions[0]?.sources.length ?? 0
+    )) {
+      throw new Error("Un precio sin fuente oficial no puede automatizarse");
+    }
+    const currentRevision = suggestion.revisions[0];
+    const officialAmounts = getOfficialSourceAmounts(currentRevision?.sources ?? []);
+    if (officialAmounts.length && getGroundedPriceMismatch(
+      `${suggestion.subject}\n${suggestion.body}`,
+      officialAmounts
+    ).mismatch) {
+      throw new Error("El precio editado no coincide con la fuente oficial");
     }
     const input = `${suggestion.message.subject}\n${suggestion.message.bodyText}`;
     const embedding = await createMailEmbedding(input);
@@ -59,7 +85,7 @@ export const createMailAutomationRuleAction = async (suggestionId: string) => {
       action: "rule.created",
       entityType: "MailAutoReplyRule",
       entityId: rule.id,
-      metadata: { sourceSuggestionId: suggestion.id },
+      metadata: { sourceSuggestionId: suggestion.id, sourceRevisionId: currentRevision?.id },
     });
     revalidatePath("/dashboard/email");
     return { success: true };

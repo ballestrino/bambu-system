@@ -6,12 +6,14 @@ const protectedPatterns = [
   /\b\d+(?:[.,]\d+)?\b/g,
 ] as const;
 
-const manualTopicPattern = new RegExp(
+const priceTopicPattern = /pago|precio|presupuesto|cotiz|payment|price/i;
+
+const nonPriceManualTopicPattern = new RegExp(
   [
-    "pago", "precio", "presupuesto", "cotiz", "reclamo", "queja",
+    "reclamo", "queja",
     "abog", "legal", "contrato", "despido", "sueldo", "recursos humanos",
     "cancel", "baja", "devoluci", "reembolso", "compromiso", "garant",
-    "payment", "price", "complaint", "legal", "cancel", "refund",
+    "complaint", "legal", "cancel", "refund",
   ].join("|"),
   "i"
 );
@@ -31,7 +33,8 @@ export const extractProtectedLiterals = (value: string) => {
 };
 
 export const hasAlwaysManualTopic = (subject: string, body: string) =>
-  manualTopicPattern.test(`${subject}\n${body}`);
+  priceTopicPattern.test(`${subject}\n${body}`) ||
+  nonPriceManualTopicPattern.test(`${subject}\n${body}`);
 
 export const isAutomatedSender = (address: string) =>
   automatedSenderPattern.test(address);
@@ -50,6 +53,7 @@ type AutoReplyGateInput = {
   subject: string;
   body: string;
   knownSender: boolean;
+  allowGroundedPrice?: boolean;
 };
 
 export const getAutoReplyBlockReasons = (input: AutoReplyGateInput) => {
@@ -62,6 +66,11 @@ export const getAutoReplyBlockReasons = (input: AutoReplyGateInput) => {
     reasons.push("mensaje_automatico");
   }
   if (isAutomatedSender(input.fromAddress)) reasons.push("remitente_automatico");
-  if (hasAlwaysManualTopic(input.subject, input.body)) reasons.push("tema_sensible");
+  const content = `${input.subject}\n${input.body}`;
+  if (nonPriceManualTopicPattern.test(content)) {
+    reasons.push("tema_sensible");
+  } else if (priceTopicPattern.test(content) && !input.allowGroundedPrice) {
+    reasons.push("precio_sin_fuente_oficial");
+  }
   return reasons;
 };

@@ -1,49 +1,20 @@
+import { Prisma } from "@prisma/client";
+
 import { db } from "@/lib/db";
 import { recordMailAudit } from "@/lib/mail-agent/audit";
 import {
   createMailEmbedding,
   storeMailMessageEmbedding,
 } from "@/lib/mail-agent/embedding";
-import {
-  MAIL_DRAFT_INSTRUCTIONS,
-  MAIL_DRAFT_JSON_SCHEMA,
-} from "@/lib/mail-agent/draft-prompt";
-import { getMailOpenAI } from "@/lib/mail-agent/openai-client";
+import { generateGroundedDraft } from "@/lib/mail-agent/draft-model";
+import { validateGroundedDraft } from "@/lib/mail-agent/grounded-draft";
+import { hasQuotedMoney } from "@/lib/mail-agent/price-grounding";
 import { getMailRetrievalContext } from "@/lib/mail-agent/retrieval";
 import {
   extractProtectedLiterals,
   hasAlwaysManualTopic,
 } from "@/lib/mail-agent/safety";
-import {
-  mailSuggestionOutputSchema,
-  type MailSuggestionOutput,
-} from "@/schemas/mail";
-
-type ReasoningEffort = "high" | "xhigh";
-
-const generateDraft = async (
-  input: string,
-  safetyIdentifier: string,
-  effort: ReasoningEffort
-) => {
-  const response = await getMailOpenAI().responses.create({
-    model: "gpt-5.6-terra" as never,
-    store: false,
-    safety_identifier: safetyIdentifier,
-    reasoning: { effort },
-    instructions: MAIL_DRAFT_INSTRUCTIONS,
-    input,
-    text: {
-      format: {
-        type: "json_schema",
-        name: "bambu_mail_reply",
-        strict: true,
-        schema: MAIL_DRAFT_JSON_SCHEMA,
-      },
-    },
-  });
-  return mailSuggestionOutputSchema.parse(JSON.parse(response.output_text));
-};
+import type { MailSuggestionOutput } from "@/schemas/mail";
 
 const buildInput = (
   message: { subject: string; bodyText: string; fromAddress: string },
@@ -56,9 +27,10 @@ const buildInput = (
     confirmedAutomationRules: context.rules,
   });
 
-const enforceSafety = (
+export const enforceMailDraftSafety = (
   draft: MailSuggestionOutput,
-  message: { subject: string; bodyText: string }
+  message: { subject: string; bodyText: string },
+  hasOfficialSources: boolean
 ) => {
   const literals = extractProtectedLiterals(`${message.subject}\n${message.bodyText}`);
   const sensitive = hasAlwaysManualTopic(message.subject, message.bodyText);
@@ -66,7 +38,12 @@ const enforceSafety = (
     ...draft,
     protectedLiterals: [...new Set([...draft.protectedLiterals, ...literals])],
     manualReviewRequired:
-      draft.manualReviewRequired || draft.isComplex || sensitive || draft.riskLevel !== "low",
+      draft.manualReviewRequired ||
+      draft.isComplex ||
+      sensitive ||
+      hasOfficialSources ||
+      hasQuotedMoney(draft.body) ||
+      draft.riskLevel !== "low",
   };
 };
 
@@ -99,27 +76,52 @@ export const generateAndStoreMailSuggestion = async (
       embedding,
     });
     const input = buildInput(message, context);
-    const highDraft = await generateDraft(input, safetyIdentifier, "high");
-    const modelDraft = highDraft.isComplex
-      ? await generateDraft(input, safetyIdentifier, "xhigh")
-      : highDraft;
-    const draft = enforceSafety(modelDraft, message);
-    const suggestion = await db.mailSuggestion.update({
-      where: { messageId },
-      data: {
-        status: "READY",
-        reasoningEffort: highDraft.isComplex ? "xhigh" : "high",
-        intent: draft.intent,
-        isComplex: draft.isComplex,
-        riskLevel: draft.riskLevel,
-        confidence: draft.confidence,
-        safetyConfidence: draft.safetyConfidence,
-        manualReviewRequired: draft.manualReviewRequired,
-        subject: draft.subject,
-        body: draft.body,
-        reasons: draft.reasons,
-        protectedLiterals: draft.protectedLiterals,
-      },
+    const result = await generateGroundedDraft(input, safetyIdentifier);
+    const grounding = validateGroundedDraft(result.draft, result.evidence);
+    const draft = enforceMailDraftSafety(result.draft, message, grounding.sources.length > 0);
+    const suggestion = await db.$transaction(async (tx) => {
+      await tx.$queryRaw(
+        Prisma.sql`SELECT "id" FROM "MailSuggestion" WHERE "messageId" = ${messageId} FOR UPDATE`
+      );
+      const previous = await tx.mailDraftRevision.findFirst({
+        where: { suggestion: { messageId } },
+        orderBy: { revision: "desc" },
+        select: { revision: true },
+      });
+      const updated = await tx.mailSuggestion.update({
+        where: { messageId },
+        data: {
+          status: "READY",
+          reasoningEffort: "xhigh",
+          intent: draft.intent,
+          isComplex: draft.isComplex,
+          riskLevel: draft.riskLevel,
+          confidence: draft.confidence,
+          safetyConfidence: draft.safetyConfidence,
+          manualReviewRequired: draft.manualReviewRequired,
+          subject: draft.subject,
+          body: draft.body,
+          reasons: draft.reasons,
+          protectedLiterals: draft.protectedLiterals,
+        },
+      });
+      await tx.mailDraftRevision.create({
+        data: {
+          suggestionId: updated.id,
+          revision: (previous?.revision ?? 0) + 1,
+          subject: draft.subject,
+          body: draft.body,
+          actorId,
+          manualReviewRequired: draft.manualReviewRequired,
+          sources: {
+            create: grounding.sources.map((source) => ({
+              officialBudgetVersionId: source.immutableVersion.id,
+              officialBudgetOptionId: source.sourceOptionId,
+            })),
+          },
+        },
+      });
+      return updated;
     });
     if (draft.memories.length) {
       await db.mailMemory.createMany({

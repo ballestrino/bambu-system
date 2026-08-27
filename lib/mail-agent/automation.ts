@@ -4,12 +4,18 @@ import { db } from "@/lib/db";
 import { recordMailAudit } from "@/lib/mail-agent/audit";
 import { findSemanticMailRules } from "@/lib/mail-agent/embedding";
 import { hashMailInput } from "@/lib/mail-agent/normalize";
-import { getNextMailSendAt, isMailSendWindowOpen } from "@/lib/mail-agent/schedule";
+import {
+  getGroundedPriceMismatch,
+  getOfficialSourceAmounts,
+  hasUngroundedQuotedPrice,
+} from "@/lib/mail-agent/price-grounding";
+import { getNextMailSendAt } from "@/lib/mail-agent/schedule";
 import {
   getAutoReplyBlockReasons,
   preservesProtectedLiterals,
 } from "@/lib/mail-agent/safety";
-import { sendSharedMail } from "@/lib/mail-agent/smtp";
+
+export { processMailAutoReplyQueue } from "@/lib/mail-agent/automation-queue";
 
 export const considerMailAutomation = async (
   messageId: string,
@@ -17,7 +23,17 @@ export const considerMailAutomation = async (
 ) => {
   const message = await db.mailMessage.findUniqueOrThrow({
     where: { id: messageId },
-    include: { suggestion: true },
+    include: {
+      suggestion: {
+        include: {
+          revisions: {
+            orderBy: { revision: "desc" },
+            take: 1,
+            include: { sources: { include: { officialBudgetOption: true } } },
+          },
+        },
+      },
+    },
   });
   const suggestion = message.suggestion;
   if (!suggestion || suggestion.status !== "READY" || !suggestion.body || !suggestion.intent) {
@@ -51,11 +67,25 @@ export const considerMailAutomation = async (
     subject: message.subject,
     body: message.bodyText,
     knownSender,
+    allowGroundedPrice: (suggestion.revisions[0]?.sources.length ?? 0) > 0,
   });
   if (suggestion.isComplex) reasons.push("respuesta_compleja");
   if (suggestion.intent !== rule.intent) reasons.push("intencion_distinta");
   if ((suggestion.confidence ?? 0) < 0.95) reasons.push("confianza_baja");
   if ((suggestion.safetyConfidence ?? 0) < 0.95) reasons.push("seguridad_baja");
+  if (!reasons.includes("precio_sin_fuente_oficial") && hasUngroundedQuotedPrice(
+    `${suggestion.subject ?? ""}\n${suggestion.body}`,
+    suggestion.revisions[0]?.sources.length ?? 0
+  )) {
+    reasons.push("precio_sin_fuente_oficial");
+  }
+  const officialAmounts = getOfficialSourceAmounts(suggestion.revisions[0]?.sources ?? []);
+  if (officialAmounts.length && getGroundedPriceMismatch(
+    `${suggestion.subject ?? ""}\n${suggestion.body}`,
+    officialAmounts
+  ).mismatch) {
+    reasons.push("precio_no_coincide_con_fuente_oficial");
+  }
   if (!preservesProtectedLiterals(rule.protectedLiterals, suggestion.body)) {
     reasons.push("literales_protegidos_modificados");
   }
@@ -96,79 +126,4 @@ export const considerMailAutomation = async (
     metadata: { ruleId: rule.id, similarity },
   });
   return { queued: true, reasons: [] };
-};
-
-export const processMailAutoReplyQueue = async () => {
-  const now = new Date();
-  const settings = await db.mailSettings.findUnique({ where: { id: "shared" } });
-  if (!settings?.autoSendEnabled || !isMailSendWindowOpen(now)) {
-    return { processed: 0, sent: 0 };
-  }
-  const candidates = await db.mailAutoReplyQueue.findMany({
-    where: {
-      status: "QUEUED",
-      scheduledFor: { lte: now },
-      OR: [{ leaseUntil: null }, { leaseUntil: { lt: now } }],
-    },
-    orderBy: { scheduledFor: "asc" },
-    take: 10,
-    include: { rule: true, suggestion: { include: { message: true } } },
-  });
-  let sent = 0;
-  for (const item of candidates) {
-    const claimed = await db.mailAutoReplyQueue.updateMany({
-      where: { id: item.id, status: "QUEUED" },
-      data: {
-        status: "PROCESSING",
-        leaseUntil: new Date(Date.now() + 10 * 60_000),
-        attempts: { increment: 1 },
-      },
-    });
-    if (!claimed.count) continue;
-    if (item.rule.status !== "ACTIVE") {
-      await db.mailAutoReplyQueue.update({
-        where: { id: item.id },
-        data: { status: "CANCELLED", cancelReason: "rule_not_active", leaseUntil: null },
-      });
-      continue;
-    }
-    const inbound = item.suggestion.message;
-    const latest = await db.mailMessage.findFirst({
-      where: { threadId: inbound.threadId, direction: "INBOUND" },
-      orderBy: [{ receivedAt: "desc" }, { createdAt: "desc" }],
-      select: { id: true },
-    });
-    if (latest?.id !== inbound.id) {
-      await db.mailAutoReplyQueue.update({
-        where: { id: item.id },
-        data: { status: "CANCELLED", cancelReason: "new_follow_up", leaseUntil: null },
-      });
-      continue;
-    }
-    try {
-      const outgoing = await sendSharedMail({
-        threadId: inbound.threadId,
-        inReplyToId: inbound.id,
-        to: [inbound.fromAddress],
-        subject: item.suggestion.subject || `Re: ${inbound.subject}`,
-        body: item.suggestion.body || "",
-        suggestionId: item.suggestion.id,
-      });
-      await db.mailAutoReplyQueue.update({
-        where: { id: item.id },
-        data: { status: "SENT", sentMessageId: outgoing.id, leaseUntil: null },
-      });
-      sent += 1;
-    } catch (error) {
-      await db.mailAutoReplyQueue.update({
-        where: { id: item.id },
-        data: {
-          status: "FAILED",
-          leaseUntil: null,
-          lastError: error instanceof Error ? error.message : "Error de envío",
-        },
-      });
-    }
-  }
-  return { processed: candidates.length, sent };
 };

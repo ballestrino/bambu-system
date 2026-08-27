@@ -4,9 +4,10 @@ import { Card, CardContent, CardDescription, CardHeader} from "@/components/ui/c
 import { Badge } from "@/components/ui/badge";
 import Link from "next/link";
 import { CalendarIcon } from "lucide-react";
-import { Budget } from "@prisma/client";
 import { BudgetDropdown } from "./BudgetDropdown";
 import { hexToRgba } from "@/lib/utils";
+import { GeneratorOfficialControl } from "@/components/official-budgets/official-budget-controls";
+import type { GeneratorBudgetListItem } from "@/components/budgets/interfaces/generator-budget";
 
 // If date-fns is not available, I'll use a helper.
 const formatDate = (date: Date) => {
@@ -18,39 +19,39 @@ const formatDate = (date: Date) => {
 };
 
 interface BudgetCardProps {
-    budget: Budget & {
-        budgetCategory?: Array<{
-            id: string;
-            name: string;
-            color?: string | null;
-        }>;
-    };
+    budget: GeneratorBudgetListItem;
 }
 
 export function BudgetCard({ budget }: BudgetCardProps) {
     return (
         <Card className="hover:bg-muted/50 transition-colors h-full relative group">
-            <Link href={`/dashboard/budgets/budget/${budget.slug}`}>
-                <span className="sr-only">Ver presupuesto</span>
-
-                <CardHeader className="space-y-1 pr-4 ">
-                    <div className="flex items-center justify-between">
+            <CardHeader className="space-y-1 pr-4 ">
+                    <div className="flex items-start justify-between gap-2">
+                        <Link href={`/dashboard/budgets/budget/${budget.slug}`} className="min-w-0 flex-1">
                         <h3 className="text-lg font-bold  leading-tight">
                             {budget.name}
                         </h3>
-                        <div onClick={(e) => e.preventDefault()}>
+                        {budget.description && (
+                            <CardDescription className="line-clamp-2 text-sm">
+                                {budget.description}
+                            </CardDescription>
+                        )}
+                        </Link>
+                        <div>
                             <BudgetDropdown budget={budget} />
                         </div>
                     </div>
-                    {budget.description && (
-                        <CardDescription className="line-clamp-2 text-sm">
-                            {budget.description}
-                        </CardDescription>
-                    )}
-                </CardHeader>
+            </CardHeader>
 
-                <CardContent>
+            <CardContent>
                     <div className="space-y-2">
+                        <div>
+                            <GeneratorOfficialControl
+                                sourceBudgetId={budget.id}
+                                officialBudget={budget.officialBudget}
+                                compact
+                            />
+                        </div>
                         <div className="flex items-center text-sm text-muted-foreground gap-4">
                             <div className="flex items-center gap-1">
                                 <CalendarIcon className="w-4 h-4" />
@@ -77,8 +78,7 @@ export function BudgetCard({ budget }: BudgetCardProps) {
                             </div>
                         )}
                     </div>
-                </CardContent>
-            </Link>
+            </CardContent>
         </Card>
     );
 }

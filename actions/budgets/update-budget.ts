@@ -5,6 +5,7 @@ import { db } from "@/lib/db";
 import { BudgetSchema, BudgetFormValues } from "@/schemas/BudgetSchema";
 import { calculateBudgetTotals } from "@/lib/budget-calculations";
 import { revalidatePath } from "next/cache";
+import { appendLinkedOfficialBudgetVersion } from "@/lib/official-budgets/versioning";
 
 export const updateBudget = async (id: string, newSlug: string, values: BudgetFormValues) => {
     const session = await auth();
@@ -12,6 +13,7 @@ export const updateBudget = async (id: string, newSlug: string, values: BudgetFo
     if (!session?.user?.id) {
         return { error: "No autorizado" };
     }
+    const actorId = session.user.id;
 
     const validatedFields = BudgetSchema.safeParse(values);
 
@@ -51,10 +53,18 @@ export const updateBudget = async (id: string, newSlug: string, values: BudgetFo
     try {
         const existingBudget = await db.budget.findUnique({
             where: { id },
+            include: {
+                officialBudget: { select: { id: true } },
+            },
         });
 
         if (!existingBudget) {
             return { error: "Presupuesto no encontrado" };
+        }
+        if (existingBudget.officialBudget && session.user.role !== "ADMIN") {
+            return {
+                error: "Solo un administrador puede editar un presupuesto oficial vinculado",
+            };
         }
 
         // Check if slug changed and is unique
@@ -140,12 +150,25 @@ export const updateBudget = async (id: string, newSlug: string, values: BudgetFo
                 ]
             });
 
-            return budget;
+            await appendLinkedOfficialBudgetVersion(tx, id, actorId);
+
+            return tx.budget.findUniqueOrThrow({
+                where: { id: budget.id },
+                include: {
+                    officialBudget: {
+                        select: { id: true, status: true, currentVersion: true },
+                    },
+                },
+            });
         });
 
         revalidatePath("/dashboard/budgets");
         revalidatePath(`/dashboard/budgets/budget/${existingBudget.slug}`); // Clear old cache
         revalidatePath(`/dashboard/budgets/budget/${newSlug}`);
+        revalidatePath("/dashboard/official-budgets");
+        if (updatedBudget.officialBudget) {
+            revalidatePath(`/dashboard/official-budgets/${updatedBudget.officialBudget.id}`);
+        }
 
         return { success: "Actualizado correctamente", slug: updatedBudget.slug, budget: updatedBudget };
     } catch (error) {

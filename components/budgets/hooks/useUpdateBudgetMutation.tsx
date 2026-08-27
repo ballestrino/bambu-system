@@ -3,6 +3,7 @@ import { updateBudgetAction } from "@/components/budgets/actions/update-budget.a
 import { toast } from "sonner"
 import { BudgetFormValues } from "@/schemas/BudgetSchema"
 import { Budget } from "@prisma/client"
+import { officialBudgetKeys } from "@/components/official-budgets/query-keys"
 
 type BudgetQueryFilters = {
     query?: string
@@ -70,6 +71,7 @@ export const useUpdateBudgetMutation = () => {
                     return !!filters?.query && filters.query !== ""
                 }
             })
+            queryClient.invalidateQueries({ queryKey: officialBudgetKeys.all })
 
             toast.success("Presupuesto actualizado correctamente")
         },

@@ -34,6 +34,29 @@ assert.deepEqual(
   buildThreadParticipants(["B@EXAMPLE.COM", "a@example.com", "b@example.com"]),
   ["a@example.com", "b@example.com"]
 );
+assert.deepEqual(
+  getAutoReplyBlockReasons({
+    fromAddress: "cliente@example.com",
+    recipientCount: 1,
+    hasAttachments: false,
+    subject: "Precio",
+    body: "¿Cuánto cuesta?",
+    knownSender: true,
+  }),
+  ["precio_sin_fuente_oficial"]
+);
+assert.deepEqual(
+  getAutoReplyBlockReasons({
+    fromAddress: "cliente@example.com",
+    recipientCount: 1,
+    hasAttachments: false,
+    subject: "Precio",
+    body: "¿Cuánto cuesta?",
+    knownSender: true,
+    allowGroundedPrice: true,
+  }),
+  []
+);
 
 const literals = extractProtectedLiterals("Total USD 290, seña 40% y entrega 15/08 a las 14:30");
 assert(literals.includes("USD 290"));

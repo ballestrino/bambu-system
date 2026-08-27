@@ -5,6 +5,7 @@ import { AIChat } from "@/components/ai/AIChat";
 import { BudgetDetails } from "@/components/budgets/budget-details/BudgetDetails";
 import useBudget from "../hooks/useBudget";
 import type { BudgetOption } from "@prisma/client";
+import { GeneratorOfficialControl } from "@/components/official-budgets/official-budget-controls";
 
 export default function BudgetDetailView({
     slug,
@@ -40,6 +41,15 @@ export default function BudgetDetailView({
                     <h1 className="text-3xl font-sans font-bold tracking-wider">{budget.name}</h1>
                     {budget.description && (
                         <p className="text-muted-foreground">{budget.description}</p>
+                    )}
+                    <GeneratorOfficialControl
+                        sourceBudgetId={budget.id}
+                        officialBudget={budget.officialBudget}
+                    />
+                    {budget.officialBudget && (
+                        <p className="max-w-xl text-center text-sm text-muted-foreground">
+                            Este generador está vinculado a un presupuesto oficial. Cada edición publica una nueva versión inmutable y no puede eliminarse hasta archivarlo.
+                        </p>
                     )}
                 </div>
             </div>

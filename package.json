@@ -10,6 +10,10 @@
     "check:occurrence-dialog": "tsx scripts/check-occurrence-dialog.ts",
     "check:profitability": "tsx scripts/check-profitability.ts",
     "check:mail-agent": "tsx scripts/check-mail-agent.ts",
+    "check:mail-official-budgets": "tsx scripts/check-mail-official-budget-sources.ts",
+    "check:mail-conversational-drafts": "tsx scripts/check-mail-conversational-drafts.ts",
+    "check:official-budgets": "tsx scripts/check-official-budgets.ts",
+    "check:official-budget-workspace": "tsx scripts/check-official-budget-workspace.ts",
     "start": "next start",
     "lint": "eslint",
     "harness": "node scripts/harness-validate.mjs"

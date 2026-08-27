@@ -16,7 +16,7 @@ import { useDuplicateBudgetMutation } from "./hooks/useDuplicateBudgetMutation"
 import Link from "next/link"
 
 interface BudgetDropdownProps {
-    budget: Budget
+    budget: Budget & { officialBudget?: { id: string } | null }
 }
 
 export function BudgetDropdown({ budget }: BudgetDropdownProps) {
@@ -66,19 +66,20 @@ export function BudgetDropdown({ budget }: BudgetDropdownProps) {
                     <DropdownMenuItem
                         variant="destructive"
                         className="text-destructive focus:text-destructive"
+                        disabled={Boolean(budget.officialBudget)}
                         onClick={(e: MouseEvent) => {
                             e.stopPropagation()
                             deleteTriggerRef.current?.click()
                         }}
                     >
                         <Trash2 className="mr-2 h-4 w-4" />
-                        <span>Eliminar presupuesto</span>
+                        <span>{budget.officialBudget ? "Vinculado: no se puede eliminar" : "Eliminar presupuesto"}</span>
                     </DropdownMenuItem>
                 </DropdownMenuContent>
             </DropdownMenu>
 
             {/* Hidden Delete Dialog */}
-            <div className="hidden">
+            {!budget.officialBudget && <div className="hidden">
                 <DeleteDialog
                     trigger={<button ref={deleteTriggerRef}>Trigger</button>}
                     title="Eliminar Presupuesto"
@@ -86,7 +87,7 @@ export function BudgetDropdown({ budget }: BudgetDropdownProps) {
                     onConfirm={handleDelete}
                     deleteButtonText="Eliminar"
                 />
-            </div>
+            </div>}
         </>
     )
 }

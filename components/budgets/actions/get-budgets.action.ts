@@ -3,10 +3,10 @@ import ValidationError from "@/instances/validation-error"
 import { BudgetFilters } from "../interfaces/budget-filters"
 
 
-import { Budget } from "@prisma/client"
+import type { GeneratorBudgetListItem } from "@/components/budgets/interfaces/generator-budget"
 
 export const getBudgetsAction = async (filters: BudgetFilters): Promise<{
-    budgets: Budget[];
+    budgets: GeneratorBudgetListItem[];
     totalCount: number;
     totalPages: number;
     currentPage: number;

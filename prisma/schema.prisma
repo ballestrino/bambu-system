@@ -19,46 +19,51 @@ enum OperationalCostCategoryKind {
 }
 
 model User {
-  id                               String                    @id @default(cuid())
+  id                               String                     @id @default(cuid())
   name                             String?
-  email                            String                    @unique
+  email                            String                     @unique
   emailVerified                    DateTime?
   image                            String?
   password                         String?
-  role                             UserRole                  @default(USER)
+  role                             UserRole                   @default(USER)
   accounts                         Account[]
-  isTwoFactorEnabled               Boolean                   @default(false)
+  isTwoFactorEnabled               Boolean                    @default(false)
   twoFactorConfirmation            TwoFactorConfirmation?
   budgets                          Budget[]
   chats                            Chat[]
-  createdJobs                      Job[]                     @relation("JobCreatedBy")
-  updatedJobs                      Job[]                     @relation("JobUpdatedBy")
-  createdJobScheduleRules          JobScheduleRule[]         @relation("JobScheduleRuleCreatedBy")
-  updatedJobScheduleRules          JobScheduleRule[]         @relation("JobScheduleRuleUpdatedBy")
-  createdJobOccurrences            JobOccurrence[]           @relation("JobOccurrenceCreatedBy")
-  updatedJobOccurrences            JobOccurrence[]           @relation("JobOccurrenceUpdatedBy")
-  createdEmployees                 Employee[]                @relation("EmployeeCreatedBy")
-  updatedEmployees                 Employee[]                @relation("EmployeeUpdatedBy")
-  createdJobEmployeeAssignments    JobEmployeeAssignment[]   @relation("JobEmployeeAssignmentCreatedBy")
-  updatedJobEmployeeAssignments    JobEmployeeAssignment[]   @relation("JobEmployeeAssignmentUpdatedBy")
-  createdTimeEntries               TimeEntry[]               @relation("TimeEntryCreatedBy")
-  updatedTimeEntries               TimeEntry[]               @relation("TimeEntryUpdatedBy")
-  approvedTimeEntries              TimeEntry[]               @relation("TimeEntryApprovedBy")
-  createdJobClientPayments         JobClientPayment[]        @relation("JobClientPaymentCreatedBy")
-  updatedJobClientPayments         JobClientPayment[]        @relation("JobClientPaymentUpdatedBy")
-  createdEmployeePayments          EmployeePayment[]         @relation("EmployeePaymentCreatedBy")
-  updatedEmployeePayments          EmployeePayment[]         @relation("EmployeePaymentUpdatedBy")
-  createdOperationalCostCategories OperationalCostCategory[] @relation("OperationalCostCategoryCreatedBy")
-  updatedOperationalCostCategories OperationalCostCategory[] @relation("OperationalCostCategoryUpdatedBy")
-  createdOperationalCosts          OperationalCost[]         @relation("OperationalCostCreatedBy")
-  updatedOperationalCosts          OperationalCost[]         @relation("OperationalCostUpdatedBy")
-  updatedOpsCostSettings           OpsCostSettings[]         @relation("OpsCostSettingsUpdatedBy")
-  updatedMailSettings              MailSettings[]            @relation("MailSettingsUpdatedBy")
-  reviewedMailSuggestions          MailSuggestion[]          @relation("MailSuggestionReviewedBy")
-  approvedMailMemories             MailMemory[]              @relation("MailMemoryApprovedBy")
-  createdMailRules                 MailAutoReplyRule[]       @relation("MailRuleCreatedBy")
-  mailFeedback                     MailDraftFeedback[]       @relation("MailFeedbackActor")
-  mailAuditEvents                  MailAuditEvent[]          @relation("MailAuditActor")
+  createdJobs                      Job[]                      @relation("JobCreatedBy")
+  updatedJobs                      Job[]                      @relation("JobUpdatedBy")
+  createdJobScheduleRules          JobScheduleRule[]          @relation("JobScheduleRuleCreatedBy")
+  updatedJobScheduleRules          JobScheduleRule[]          @relation("JobScheduleRuleUpdatedBy")
+  createdJobOccurrences            JobOccurrence[]            @relation("JobOccurrenceCreatedBy")
+  updatedJobOccurrences            JobOccurrence[]            @relation("JobOccurrenceUpdatedBy")
+  createdEmployees                 Employee[]                 @relation("EmployeeCreatedBy")
+  updatedEmployees                 Employee[]                 @relation("EmployeeUpdatedBy")
+  createdJobEmployeeAssignments    JobEmployeeAssignment[]    @relation("JobEmployeeAssignmentCreatedBy")
+  updatedJobEmployeeAssignments    JobEmployeeAssignment[]    @relation("JobEmployeeAssignmentUpdatedBy")
+  createdTimeEntries               TimeEntry[]                @relation("TimeEntryCreatedBy")
+  updatedTimeEntries               TimeEntry[]                @relation("TimeEntryUpdatedBy")
+  approvedTimeEntries              TimeEntry[]                @relation("TimeEntryApprovedBy")
+  createdJobClientPayments         JobClientPayment[]         @relation("JobClientPaymentCreatedBy")
+  updatedJobClientPayments         JobClientPayment[]         @relation("JobClientPaymentUpdatedBy")
+  createdEmployeePayments          EmployeePayment[]          @relation("EmployeePaymentCreatedBy")
+  updatedEmployeePayments          EmployeePayment[]          @relation("EmployeePaymentUpdatedBy")
+  createdOperationalCostCategories OperationalCostCategory[]  @relation("OperationalCostCategoryCreatedBy")
+  updatedOperationalCostCategories OperationalCostCategory[]  @relation("OperationalCostCategoryUpdatedBy")
+  createdOperationalCosts          OperationalCost[]          @relation("OperationalCostCreatedBy")
+  updatedOperationalCosts          OperationalCost[]          @relation("OperationalCostUpdatedBy")
+  updatedOpsCostSettings           OpsCostSettings[]          @relation("OpsCostSettingsUpdatedBy")
+  updatedMailSettings              MailSettings[]             @relation("MailSettingsUpdatedBy")
+  reviewedMailSuggestions          MailSuggestion[]           @relation("MailSuggestionReviewedBy")
+  approvedMailMemories             MailMemory[]               @relation("MailMemoryApprovedBy")
+  createdMailRules                 MailAutoReplyRule[]        @relation("MailRuleCreatedBy")
+  mailFeedback                     MailDraftFeedback[]        @relation("MailFeedbackActor")
+  mailDraftRevisions               MailDraftRevision[]        @relation("MailDraftRevisionActor")
+  mailAuditEvents                  MailAuditEvent[]           @relation("MailAuditActor")
+  createdOfficialBudgets           OfficialBudget[]           @relation("OfficialBudgetCreatedBy")
+  archivedOfficialBudgets          OfficialBudget[]           @relation("OfficialBudgetArchivedBy")
+  publishedOfficialBudgetVersions  OfficialBudgetVersion[]    @relation("OfficialBudgetVersionPublishedBy")
+  officialBudgetAuditEvents        OfficialBudgetAuditEvent[] @relation("OfficialBudgetAuditActor")
 }
 
 model Account {
@@ -135,8 +140,9 @@ model Budget {
   sourcedJobs    Job[]            @relation("JobSourceBudget")
 
   parentBudgetId String?
-  parentBudget   Budget?  @relation("BudgetHierarchy", fields: [parentBudgetId], references: [id], onDelete: Cascade)
-  childBudgets   Budget[] @relation("BudgetHierarchy")
+  parentBudget   Budget?         @relation("BudgetHierarchy", fields: [parentBudgetId], references: [id], onDelete: Cascade)
+  childBudgets   Budget[]        @relation("BudgetHierarchy")
+  officialBudget OfficialBudget?
 }
 
 model BudgetCategory {
@@ -199,6 +205,120 @@ model BudgetOption {
   updatedAt DateTime @updatedAt
 
   has_products Boolean @default(true)
+}
+
+enum OfficialBudgetStatus {
+  ACTIVE
+  ARCHIVED
+}
+
+model OfficialBudget {
+  id               String                     @id @default(cuid())
+  status           OfficialBudgetStatus       @default(ACTIVE)
+  sourceBudgetId   String?                    @unique
+  sourceBudget     Budget?                    @relation(fields: [sourceBudgetId], references: [id], onDelete: Restrict)
+  sourceBudgetName String
+  sourceBudgetSlug String
+  currentVersion   Int                        @default(1)
+  publishedAt      DateTime                   @default(now())
+  archivedAt       DateTime?
+  createdById      String
+  createdBy        User                       @relation("OfficialBudgetCreatedBy", fields: [createdById], references: [id], onDelete: Restrict)
+  archivedById     String?
+  archivedBy       User?                      @relation("OfficialBudgetArchivedBy", fields: [archivedById], references: [id], onDelete: Restrict)
+  versions         OfficialBudgetVersion[]
+  auditEvents      OfficialBudgetAuditEvent[]
+  createdAt        DateTime                   @default(now())
+  updatedAt        DateTime                   @updatedAt
+
+  @@index([status, publishedAt])
+  @@index([sourceBudgetSlug])
+}
+
+model OfficialBudgetVersion {
+  id                    String                        @id @default(cuid())
+  officialBudgetId      String
+  officialBudget        OfficialBudget                @relation(fields: [officialBudgetId], references: [id], onDelete: Restrict)
+  version               Int
+  serviceName           String
+  serviceDescription    String?                       @db.Text
+  serviceCategories     Json
+  currency              String                        @default("UYU")
+  sourceBudgetUpdatedAt DateTime
+  publishedAt           DateTime                      @default(now())
+  publishedById         String
+  publishedBy           User                          @relation("OfficialBudgetVersionPublishedBy", fields: [publishedById], references: [id], onDelete: Restrict)
+  options               OfficialBudgetVersionOption[]
+  mailDraftSources      MailDraftSource[]
+
+  @@unique([officialBudgetId, version])
+  @@index([publishedAt])
+}
+
+model OfficialBudgetVersionOption {
+  id                              String                @id @default(cuid())
+  versionId                       String
+  version                         OfficialBudgetVersion @relation(fields: [versionId], references: [id], onDelete: Restrict)
+  position                        Int
+  hasProducts                     Boolean
+  visits                          Int
+  visitType                       VisitType
+  hoursPerVisit                   Decimal               @db.Decimal(10, 4)
+  employees                       Int
+  effectiveMonthlyVisits          Decimal               @db.Decimal(12, 4)
+  monthlyWorkload                 Decimal               @db.Decimal(12, 4)
+  monthlyWorkloadIsEstimate       Boolean               @default(true)
+  weeklyMultiplier                Decimal               @default(4.32) @db.Decimal(4, 2)
+  nominalHour                     Decimal               @db.Decimal(14, 2)
+  nominalSalary                   Decimal               @db.Decimal(14, 2)
+  incidenceContributionPercent    Decimal               @db.Decimal(8, 4)
+  companyContributionPercent      Decimal               @db.Decimal(8, 4)
+  personalContributionPercent     Decimal               @db.Decimal(8, 4)
+  transportationCost              Decimal               @db.Decimal(14, 2)
+  productsCost                    Decimal               @db.Decimal(14, 2)
+  productsIvaPercent              Decimal               @db.Decimal(8, 4)
+  productsRevenuePercent          Decimal               @db.Decimal(8, 4)
+  serviceRevenuePercent           Decimal               @db.Decimal(8, 4)
+  ivaPercent                      Decimal               @db.Decimal(8, 4)
+  netPrice                        Decimal               @db.Decimal(14, 2)
+  ivaAmount                       Decimal               @db.Decimal(14, 2)
+  finalPrice                      Decimal               @db.Decimal(14, 2)
+  hourlyPrice                     Decimal               @db.Decimal(14, 2)
+  finalPriceIsAuthoritative       Boolean               @default(true)
+  calculatedPriceIsEstimate       Boolean               @default(true)
+  calculatedEffectiveNominalHour  Decimal               @db.Decimal(14, 4)
+  calculatedLaborCost             Decimal               @db.Decimal(14, 2)
+  calculatedPersonalContribution  Decimal               @db.Decimal(14, 2)
+  calculatedIncidenceContribution Decimal               @db.Decimal(14, 2)
+  calculatedCompanyContribution   Decimal               @db.Decimal(14, 2)
+  calculatedContributionsTotal    Decimal               @db.Decimal(14, 2)
+  calculatedServiceCostBasis      Decimal               @db.Decimal(14, 2)
+  calculatedServiceRevenue        Decimal               @db.Decimal(14, 2)
+  calculatedProductsRevenue       Decimal               @db.Decimal(14, 2)
+  calculatedProductsNetPrice      Decimal               @db.Decimal(14, 2)
+  calculatedNetPrice              Decimal               @db.Decimal(14, 2)
+  calculatedIvaAmount             Decimal               @db.Decimal(14, 2)
+  calculatedFinalPrice            Decimal               @db.Decimal(14, 2)
+  calculationMetadata             Json
+  mailDraftSources                MailDraftSource[]
+
+  @@unique([versionId, position])
+  @@index([hasProducts, visitType, visits, employees])
+}
+
+model OfficialBudgetAuditEvent {
+  id               String         @id @default(cuid())
+  officialBudgetId String
+  officialBudget   OfficialBudget @relation(fields: [officialBudgetId], references: [id], onDelete: Restrict)
+  actorId          String
+  actor            User           @relation("OfficialBudgetAuditActor", fields: [actorId], references: [id], onDelete: Restrict)
+  action           String
+  version          Int?
+  metadata         Json?
+  createdAt        DateTime       @default(now())
+
+  @@index([officialBudgetId, createdAt])
+  @@index([actorId, createdAt])
 }
 
 enum JobStatus {
@@ -637,6 +757,12 @@ enum MailFeedbackOutcome {
   EDITED
   REJECTED
   MANUAL_SENT
+  USEFUL
+  NOT_USEFUL
+  COPIED
+  SAVED
+  EXTERNAL_SENT
+  BAMBU_SENT
 }
 
 enum MailSyncRunStatus {
@@ -797,11 +923,49 @@ model MailSuggestion {
   reviewedAt           DateTime?
   feedback             MailDraftFeedback[]
   queueItems           MailAutoReplyQueue[]
+  revisions            MailDraftRevision[]
   createdAt            DateTime             @default(now())
   updatedAt            DateTime             @updatedAt
 
   @@index([status, createdAt])
   @@index([reviewedById])
+}
+
+model MailDraftRevision {
+  id                   String              @id @default(cuid())
+  suggestionId         String
+  suggestion           MailSuggestion      @relation(fields: [suggestionId], references: [id], onDelete: Restrict)
+  revision             Int
+  subject              String
+  body                 String              @db.Text
+  origin               String              @default("AI")
+  instruction          String?             @db.Text
+  actorId              String?
+  actor                User?               @relation("MailDraftRevisionActor", fields: [actorId], references: [id], onDelete: Restrict)
+  restoredFromRevision Int?
+  manualReviewRequired Boolean             @default(true)
+  sources              MailDraftSource[]
+  createdAt            DateTime            @default(now())
+  mailDraftFeedbacks   MailDraftFeedback[]
+
+  @@unique([suggestionId, revision])
+  @@index([suggestionId, createdAt])
+  @@index([actorId, createdAt])
+}
+
+model MailDraftSource {
+  id                      String                      @id @default(cuid())
+  revisionId              String
+  revision                MailDraftRevision           @relation(fields: [revisionId], references: [id], onDelete: Restrict)
+  officialBudgetVersionId String
+  officialBudgetVersion   OfficialBudgetVersion       @relation(fields: [officialBudgetVersionId], references: [id], onDelete: Restrict)
+  officialBudgetOptionId  String
+  officialBudgetOption    OfficialBudgetVersionOption @relation(fields: [officialBudgetOptionId], references: [id], onDelete: Restrict)
+  usedAt                  DateTime                    @default(now())
+
+  @@unique([revisionId, officialBudgetOptionId])
+  @@index([officialBudgetVersionId])
+  @@index([officialBudgetOptionId])
 }
 
 model MailMemory {
@@ -881,12 +1045,17 @@ model MailDraftFeedback {
   sourceMessage   MailMessage?        @relation(fields: [sourceMessageId], references: [id], onDelete: SetNull)
   actorId         String
   actor           User                @relation("MailFeedbackActor", fields: [actorId], references: [id], onDelete: Restrict)
+  revisionId      String?
+  revision        MailDraftRevision?  @relation(fields: [revisionId], references: [id], onDelete: Restrict)
   outcome         MailFeedbackOutcome
+  reason          String?
+  comment         String?             @db.Text
   originalBody    String?             @db.Text
   finalBody       String?             @db.Text
   createdAt       DateTime            @default(now())
 
   @@index([suggestionId])
+  @@index([revisionId, createdAt])
   @@index([sourceMessageId])
   @@index([actorId, createdAt])
 }

@@ -16,7 +16,7 @@ export default function Header({ onSave, isPending, onGenerateAI, form }: Header
     return (
         <div className="flex flex-col md:flex-row gap-4 items-start md:items-center justify-between w-full">
             <div className="flex flex-col">
-                <h1 className="text-3xl font-bold tracking-tight">Presupuestos</h1>
+                <h1 className="text-3xl font-bold tracking-tight">Generador de presupuestos</h1>
                 <p className="text-muted-foreground">
                     Crear y gestionar estimaciones de presupuesto.
                 </p>

@@ -33,9 +33,9 @@ This is the durable product and architecture contract for Feature 19.
 
 ## OpenAI Contract
 
-- API: Responses API with `gpt-5.6-terra`.
-- First pass: structured triage and reply draft with `reasoning.effort: high`.
-- Complex pass: the same model with `reasoning.effort: xhigh`.
+- API: Responses API with `gpt-5.6-luna`.
+- Every structured triage and reply draft uses `reasoning.effort: xhigh`.
+- Complex replies use the same model and effort and remain manual-review-only.
 - Complex replies always remain manual, even when a rule is similar.
 - Requests use `store: false` and a stable, pseudonymous safety identifier.
 - Structured output records intent, complexity, risk, confidence, reasons,
@@ -49,8 +49,9 @@ This is the durable product and architecture contract for Feature 19.
 - Approved memory contains shared style, policy, contact, and organization
   facts with source and validity metadata.
 - AI-extracted memory starts as `PENDING`; an administrator must approve it.
-- Accepted, edited, rejected, and manually sent drafts create explicit feedback
-  events for future retrieval and evaluation.
+- Usefulness, rejection reason, copying, saving, external use, Bambú sending,
+  and automation confirmation remain distinct events; copying never implies
+  approval or sending.
 - Embeddings plus Neon `pgvector` provide semantic retrieval; `pg_trgm` and
   normalized hashes support lexical and exact matching.
 
@@ -59,7 +60,7 @@ This is the durable product and architecture contract for Feature 19.
 - The global automatic-send switch starts off.
 - A rule is created only after an administrator marks a reply as perfect and
   confirms that identical or very similar messages may be answered directly.
-- A candidate needs exact or semantic similarity at or above 0.95 plus Terra
+- A candidate needs exact or semantic similarity at or above 0.95 plus Luna
   intent, safety, and confidence approval at or above 0.95.
 - Only known single senders qualify. Multi-recipient mail, lists, no-reply,
   attachments, and suspicious headers are excluded.
@@ -79,6 +80,25 @@ This is the durable product and architecture contract for Feature 19.
   idempotency keys so concurrent executions cannot duplicate mail.
 - UI exposes configuration, empty, loading, retry, partial-import, queued,
   failed, manual-review, and sent states without leaking credentials.
+
+## Conversational Drafts
+
+- `MailSuggestion` is the conversation root and `MailDraftRevision` is its
+  immutable history. Manual saves, Luna revisions, and restorations always
+  append a version instead of overwriting prior text.
+- Luna receives the incoming message, the current draft, at most three recent
+  revisions, the administrator instruction, and current official sources.
+  Responses remain `store: false`.
+- Every revision owns its bibliography. Restoring or manually editing a draft
+  copies those durable source relations; an edited price mismatch stays
+  visible and cannot become an automatic reply.
+- `Sirve` records usefulness only. `No sirve` requires a reason and permits an
+  optional comment. `Copiar`, `Guardar`, `Envié por mi cuenta`, and `Responder
+  desde Bambú` are separately audited against the exact revision.
+- Editing a draft cancels pending or processing automation queue rows. Only
+  the separate `Perfecta: automatizar similares` confirmation can create a
+  rule, and all sender, recipient, attachment, safety, protected-literal, and
+  official-price gates still run.
 
 ## Environment Contract
 

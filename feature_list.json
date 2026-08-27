@@ -283,12 +283,76 @@
         "The admin-only /dashboard/email workspace provides thread search and filters, Inbox, Sent, and Archive views, read or unread and archive controls, compose, reply, reply-all, forward, and attachment handling without becoming a full webmail",
         "A resumable three-month IMAP import and bounded incremental sync exclude Spam, Trash, and Drafts, deduplicate messages, use leases, expose a manual refresh, and support a bearer-protected cron-job.org trigger every 15 minutes on Vercel Hobby",
         "SMTP delivery records auditable outbound state and appends sent mail to Hostinger Sent; attachments are capped at 4 MB total, larger files fall back to Hostinger metadata and handoff, and attachment messages never enter AI or automatic-send workflows",
-        "OpenAI Responses uses gpt-5.6-terra with structured high-effort triage and drafting, escalates complex replies to xhigh, keeps complex replies manual, sends store false and a stable safety identifier, and fails clearly when configuration is missing",
+        "OpenAI Responses uses gpt-5.6-luna with structured xhigh-effort triage and drafting, keeps complex replies manual, sends store false and a stable safety identifier, and fails clearly when configuration is missing",
         "Approved historical replies and administrator-approved memory provide retrieval context; extracted memories remain pending until approved and feedback records accepted, edited, rejected, and manually sent outcomes",
-        "Administrators can confirm, pause, and remove similar-message automation rules; exact or semantic matching, Terra intent and safety gates, protected literals, known-sender and recipient restrictions, business-hour queuing, cancellation on follow-up, and a master switch prevent unsafe sends",
+        "Administrators can confirm, pause, and remove similar-message automation rules; exact or semantic matching, Luna intent and safety gates, protected literals, known-sender and recipient restrictions, business-hour queuing, cancellation on follow-up, and a master switch prevent unsafe sends",
         "The initial automatic-send master switch is off, all sync, draft, review, rule, queue, send, failure, and cancellation events are auditable, and loading, empty, retryable error, responsive, authorization, focused checks, lint, build, migration, and authenticated browser evidence are recorded"
       ],
-      "status": "in_progress"
+      "status": "done"
+    },
+    {
+      "id": 20,
+      "name": "official_budget_versioning",
+      "title": "Version official budgets from generator snapshots",
+      "description": "Create a shared official-budget domain that publishes immutable, auditable versions from the existing budget generator without reusing mutable BudgetOption rows as commercial sources.",
+      "acceptance": [
+        "OfficialBudget, OfficialBudgetVersion, and version-option persistence is separate from Budget and BudgetOption, uses Decimal for new monetary values, and is delivered through an additive migration",
+        "Publishing a generator budget creates version 1 atomically and every later edit of a linked generator budget creates a new immutable version without depending on recreated BudgetOption ids",
+        "Each version snapshots every option, including service metadata, frequency, visits, hours, employees, product inclusion, net price, IVA, final price, hourly price, monthly workload, and the internal calculation breakdown needed for audit",
+        "Weekly monthly workload uses visits times hours per visit times employees times 4.32; calculated monthly values are labeled as estimates while stored fixed official monthly prices remain authoritative",
+        "Archiving an official budget detaches it from the generator while preserving its complete version history, and an actively linked generator budget cannot be deleted through either the action layer or the database contract",
+        "Official-budget reads and mutations have explicit server-side authorization, validation, audit metadata, and transaction-safe error handling",
+        "Focused snapshot, calculation, versioning, archive, and deletion-guard checks plus Prisma validation, migration verification, TypeScript, lint, and build evidence are recorded"
+      ],
+      "status": "done"
+    },
+    {
+      "id": 21,
+      "name": "official_budget_workspace_separation",
+      "title": "Separate official budgets from the budget generator",
+      "description": "Present the current budget builder as Generador de presupuestos and add a distinct official-budget workspace for publishing, reviewing, and archiving commercial price sources.",
+      "acceptance": [
+        "The current /dashboard/budgets surface is labeled Generador de presupuestos without changing its existing calculation and editing purpose",
+        "A separate /dashboard/official-budgets surface lists active and archived official budgets with search, source generator, current version, publication date, and clear loading, empty, error, and retry states",
+        "Administrators can publish an eligible generator budget, inspect every immutable version and its full option breakdown, and archive or detach an official budget through guarded server actions",
+        "Generator list and detail views show a clear official indicator and link while a linked generator budget explains why deletion is unavailable",
+        "Official budgets and the generator appear as separate entries in desktop and mobile navigation with unambiguous names and routes",
+        "Query keys and invalidation keep generator badges, official lists, versions, publication, edits, and archive state coherent",
+        "Focused authorization and state checks, TypeScript, lint, build when available, and authenticated responsive browser smoke are recorded"
+      ],
+      "status": "done"
+    },
+    {
+      "id": 22,
+      "name": "mail_official_budget_search_and_sources",
+      "title": "Ground mail prices in official budgets with bibliography",
+      "description": "Give the mail drafting agent a strict application-side searchOfficialBudgets tool and preserve the exact official version used as an internal source for each draft revision.",
+      "acceptance": [
+        "searchOfficialBudgets accepts structured service, frequency, visits, hours, employees, and product criteria and searches only active official-budget versions",
+        "The tool distinguishes exact, partial, ambiguous, incomplete, and no-result searches; when products are unspecified it returns both applicable options and when evidence is insufficient Luna asks for missing data instead of inventing a price",
+        "Structured results include net, IVA, final and hourly prices, monthly workload, conditions, official-budget identity, immutable version, and calculation metadata",
+        "Each draft revision records its official-budget version through a durable source relation and renders an internal bibliography that never becomes part of the customer email",
+        "The source detail exposes the generator origin, frequency, 4.32 calculation when applicable, products, prices, version, and use date even if the official budget is later archived",
+        "Manual edits that make a quoted amount disagree with its source show a clear warning; price replies may be automated only through a confirmed matching rule with official source grounding, while ungrounded prices and other sensitive topics remain ineligible",
+        "Focused exact, partial, ambiguous, missing-data, no-invention, historical-source, mismatch, and automation-exclusion checks plus Prisma, TypeScript, lint, build, and authenticated browser evidence are recorded"
+      ],
+      "status": "done"
+    },
+    {
+      "id": 23,
+      "name": "mail_conversational_draft_editor",
+      "title": "Add conversational draft editing and explicit feedback",
+      "description": "Replace the rigid one-shot mail suggestion flow with versioned Luna revisions, direct manual editing, and feedback controls that distinguish usefulness, copying, external use, and sending.",
+      "acceptance": [
+        "Administrators can edit subject and body directly, ask Luna for a specific revision, review version history, and restore an earlier version without Luna overwriting manual text silently",
+        "Draft conversation state and revisions are stored in the application database while OpenAI requests keep store false and receive only the history needed for the current revision",
+        "Sirve records positive usefulness without sending or creating an automation rule, No sirve records a reason and optional comment, and Copiar has no implicit approval or sent meaning",
+        "Guardar, Envié por mi cuenta, and Responder desde Bambú remain distinct audited outcomes tied to the exact draft version used",
+        "Official-budget bibliography stays attached per revision and remains visible while conversational or manual edits continue",
+        "Perfecta: automatizar similares remains a separate explicit confirmation and official-price grounding, attachment, safety, sender, recipient, and protected-literal guardrails still apply",
+        "Focused revision, restore, manual-edit, feedback, copy, external-use, send, source-preservation, and automation-separation checks plus Prisma, TypeScript, lint, build, and authenticated responsive browser evidence are recorded"
+      ],
+      "status": "done"
     }
   ]
 }

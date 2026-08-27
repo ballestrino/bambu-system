@@ -12,6 +12,33 @@ type WorkspaceInput = {
   folderKey?: string;
 };
 
+const suggestionWithSources = {
+  include: {
+    revisions: {
+      orderBy: { revision: "desc" as const },
+      include: {
+        sources: {
+          include: {
+            officialBudgetOption: true,
+            officialBudgetVersion: {
+              include: {
+                officialBudget: {
+                  select: {
+                    id: true,
+                    sourceBudgetId: true,
+                    sourceBudgetName: true,
+                    sourceBudgetSlug: true,
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+    },
+  },
+} as const;
+
 const getViewWhere = (view: MailboxView, folderKey?: string) => {
   if (view === "folder" && folderKey) {
     return { messages: { some: { direction: "INBOUND" as const, folderKey } } };
@@ -81,7 +108,10 @@ export const getMailWorkspace = async (input: WorkspaceInput) => {
               where: { id: input.threadId },
               include: {
                 messages: {
-                  include: { attachments: true, suggestion: true },
+                  include: {
+                    attachments: true,
+                    suggestion: suggestionWithSources,
+                  },
                 },
               },
             })

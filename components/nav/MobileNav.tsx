@@ -7,7 +7,7 @@ import {
     SheetContent,
     SheetTrigger,
 } from "@/components/ui/sheet"
-import { Calculator, CircleDollarSign, Menu, LayoutDashboard, Settings } from "lucide-react"
+import { BadgeDollarSign, Calculator, CircleDollarSign, Menu, LayoutDashboard, Settings } from "lucide-react"
 import NavLogo from "./NavLogo"
 import Link from "next/link"
 import { useState } from "react"
@@ -57,7 +57,15 @@ export default function MobileNav({ admin, user }: MobileNavProps) {
                                     onClick={() => setOpen(false)}
                                 >
                                     <LayoutDashboard className="h-4 w-4" />
-                                    Presupuestos
+                                    Generador de presupuestos
+                                </Link>
+                                <Link
+                                    href="/dashboard/official-budgets"
+                                    className={getLinkClass(pathname.startsWith("/dashboard/official-budgets"))}
+                                    onClick={() => setOpen(false)}
+                                >
+                                    <BadgeDollarSign className="h-4 w-4" />
+                                    Presupuestos oficiales
                                 </Link>
                                 {opsNavItems.map((item) => (
                                     <Link

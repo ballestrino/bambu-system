@@ -16,7 +16,10 @@ export const getBudgetBySlug = async (slug: string) => {
             },
             include: {
                 budgetOptions: true, // Include details
-                budgetCategory: true
+                budgetCategory: true,
+                officialBudget: {
+                    select: { id: true, status: true, currentVersion: true }
+                }
             }
         });
 
