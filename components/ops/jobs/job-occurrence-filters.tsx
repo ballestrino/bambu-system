@@ -12,13 +12,7 @@ import {
 } from "@/components/ops/shared";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { SearchableSelect } from "@/components/ui/searchable-select";
 
 type EmployeeOption = {
   id: string;
@@ -98,19 +92,17 @@ export const JobOccurrenceFilters = ({
             />
           </OpsFilterField>
           <OpsFilterField label="Equipo">
-            <Select value={employeeId} onValueChange={onEmployeeIdChange}>
-              <SelectTrigger className={opsFilterControlClass}>
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="ALL">Todos</SelectItem>
-                {employeeOptions.map((employee) => (
-                  <SelectItem key={employee.id} value={employee.id}>
-                    {employee.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            <SearchableSelect
+              aria-label="Filtrar por equipo"
+              className={opsFilterControlClass}
+              onValueChange={onEmployeeIdChange}
+              options={[
+                { label: "Todos", value: "ALL" },
+                ...employeeOptions.map((employee) => ({ label: employee.name, value: employee.id })),
+              ]}
+              searchPlaceholder="Buscar empleada..."
+              value={employeeId}
+            />
           </OpsFilterField>
           </div>
 

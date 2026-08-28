@@ -29,6 +29,7 @@ import {
 import type { OpsOccurrence } from "@/components/ops/types";
 import { formatDate, formatTime, getMonthRange, toDateInputValue } from "@/components/ops/utils";
 import { Button } from "@/components/ui/button";
+import { SearchableSelect } from "@/components/ui/searchable-select";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { occurrenceStatusValues } from "@/schemas/ops";
 
@@ -97,15 +98,17 @@ export const EmployeeVisitsPanel = ({
             </Select>
           </OpsFilterField>
           <OpsFilterField label="Trabajo">
-            <Select value={jobId} onValueChange={setJobId}>
-              <SelectTrigger className={opsFilterControlClass}>
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="ALL">Todos</SelectItem>
-                {jobOptions.map((job) => <SelectItem key={job.id} value={job.id}>{job.name}</SelectItem>)}
-              </SelectContent>
-            </Select>
+            <SearchableSelect
+              aria-label="Filtrar por trabajo"
+              className={opsFilterControlClass}
+              onValueChange={setJobId}
+              options={[
+                { label: "Todos", value: "ALL" },
+                ...jobOptions.map((job) => ({ label: job.name, value: job.id })),
+              ]}
+              searchPlaceholder="Buscar trabajo..."
+              value={jobId}
+            />
           </OpsFilterField>
           <OpsFilterField label="Horario real">
             <Select value={realTiming} onValueChange={setRealTiming}>

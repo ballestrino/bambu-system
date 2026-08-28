@@ -39,12 +39,12 @@ export const OpsMetricCard = ({
   >
     <div className="flex items-start justify-between gap-3">
       <div className={cn("min-w-0", size === "compact" ? "space-y-1.5" : "space-y-2")}>
-        <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+        <p className="text-sm font-medium text-ops-text-muted">
           {label}
         </p>
         <div
           className={cn(
-            "font-semibold tracking-tight text-[#18251D] dark:text-[#F0F3E8]",
+            "font-semibold tracking-tight text-ops-text",
             size === "compact" ? "text-xl" : "text-2xl"
           )}
         >
@@ -54,7 +54,7 @@ export const OpsMetricCard = ({
       {Icon ? (
         <div
           className={cn(
-            "rounded-md border",
+            "rounded-[var(--ops-radius-control)] border",
             size === "compact" ? "p-1.5" : "p-2",
             opsToneClasses[tone]
           )}
@@ -66,7 +66,7 @@ export const OpsMetricCard = ({
     {helper ? (
       <div
         className={cn(
-          "text-muted-foreground",
+          "text-ops-text-muted",
           size === "compact" ? "mt-2 text-xs" : "mt-3 text-sm"
         )}
       >

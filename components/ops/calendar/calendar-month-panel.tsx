@@ -60,7 +60,12 @@ export const CalendarMonthPanel = ({
           Atención
         </span>
       </div>
-      <div className="grid gap-3 sm:grid-cols-3 xl:grid-cols-1">
+      <div className="grid grid-cols-3 gap-2 sm:hidden">
+        <OpsMetricCard className="min-w-0 p-2" label="Visitas" value={stats.total} size="compact" />
+        <OpsMetricCard className="min-w-0 p-2" label="Realizadas" value={stats.doneCount} size="compact" />
+        <OpsMetricCard className="min-w-0 p-2" label="Pendientes" value={stats.pendingCount} size="compact" />
+      </div>
+      <div className="hidden gap-3 sm:grid sm:grid-cols-3 xl:grid-cols-1">
         <OpsMetricCard label="Visitas" value={stats.total} icon={CalendarDays} tone="active" />
         <OpsMetricCard label="Realizadas" value={stats.doneCount} icon={CheckCircle2} tone="success" />
         <OpsMetricCard label="Pendientes" value={stats.pendingCount} icon={Clock3} tone="warning" />

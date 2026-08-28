@@ -117,7 +117,7 @@ export const OpsSelectedMonthProvider = ({
 
   return (
     <OpsSelectedMonthContext.Provider value={value}>
-      <div className="container mb-5 flex w-full justify-end">
+      <div className="container mb-5 flex w-full md:justify-end">
         <OpsSelectedMonthSelector />
       </div>
       {children}
@@ -146,15 +146,16 @@ export const OpsSelectedMonthSelector = () => {
   } = useOpsSelectedMonth();
 
   return (
-    <div className="flex flex-wrap items-center gap-2 rounded-lg border border-[#53985E]/15 bg-white/80 px-3 py-2 shadow-sm shadow-[#244C2D]/5 dark:bg-[#1A211A] dark:ring-white/10">
-      <CalendarDays className="h-4 w-4 text-[#53985E]" />
-      <span className="min-w-32 text-sm font-medium capitalize">
+    <div className="flex w-full min-w-0 flex-nowrap items-center gap-1 rounded-[var(--ops-radius-row)] bg-ops-surface-muted px-2 py-2 sm:w-auto sm:gap-2 sm:px-3">
+      <CalendarDays className="hidden h-4 w-4 text-ops-bamboo sm:block" />
+      <span className="hidden min-w-32 text-sm font-medium capitalize sm:inline">
         {formatMonth(month)}
       </span>
       <Button
         aria-label="Mes anterior"
+        className="size-11 sm:size-10"
         onClick={goToPreviousMonth}
-        size="icon-sm"
+        size="icon-lg"
         type="button"
         variant="ghost"
       >
@@ -162,7 +163,7 @@ export const OpsSelectedMonthSelector = () => {
       </Button>
       <Input
         aria-label="Mes operativo"
-        className="h-8 w-36"
+        className="h-11 min-w-0 flex-1 rounded-[var(--ops-radius-control)] border-ops-border bg-ops-surface shadow-none sm:w-36 sm:flex-none"
         onChange={(event) => {
           const nextMonth = parseMonthKey(event.target.value);
           if (nextMonth) setMonth(nextMonth);
@@ -172,8 +173,9 @@ export const OpsSelectedMonthSelector = () => {
       />
       <Button
         aria-label="Mes siguiente"
+        className="size-11 sm:size-10"
         onClick={goToNextMonth}
-        size="icon-sm"
+        size="icon-lg"
         type="button"
         variant="ghost"
       >
@@ -181,8 +183,9 @@ export const OpsSelectedMonthSelector = () => {
       </Button>
       <Button
         aria-label="Volver al mes actual"
+        className="size-11 sm:size-10"
         onClick={resetToCurrentMonth}
-        size="icon-sm"
+        size="icon-lg"
         type="button"
         variant="ghost"
       >

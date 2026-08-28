@@ -17,6 +17,7 @@ import type {
   OpsJobListItem,
   OpsOperationalCostCategory,
 } from "@/components/ops/types";
+import { SearchableSelect } from "@/components/ui/searchable-select";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 export type CostsFilterState = {
@@ -72,15 +73,17 @@ export const CostsFilters = ({
 
   const selectFields = (
     <>
-      <Select value={filters.categoryId} onValueChange={(categoryId) => onChange({ categoryId })}>
-        <SelectTrigger className={opsFilterControlClass}><SelectValue /></SelectTrigger>
-        <SelectContent>
-          <SelectItem value="ALL">Todas las categorias</SelectItem>
-          {categories.map((category) => (
-            <SelectItem key={category.id} value={category.id}>{category.name}</SelectItem>
-          ))}
-        </SelectContent>
-      </Select>
+      <SearchableSelect
+        aria-label="Filtrar por categoría"
+        className={opsFilterControlClass}
+        onValueChange={(categoryId) => onChange({ categoryId })}
+        options={[
+          { label: "Todas las categorías", value: "ALL" },
+          ...categories.map((category) => ({ label: category.name, value: category.id })),
+        ]}
+        searchPlaceholder="Buscar categoría..."
+        value={filters.categoryId}
+      />
       <Select value={filters.status} onValueChange={(status) => onChange({ status })}>
         <SelectTrigger className={opsFilterControlClass}><SelectValue /></SelectTrigger>
         <SelectContent>
@@ -94,22 +97,28 @@ export const CostsFilters = ({
 
   const relationFields = (
     <>
-      <Select value={filters.jobId} onValueChange={(jobId) => onChange({ jobId })}>
-        <SelectTrigger className={opsFilterControlClass}><SelectValue /></SelectTrigger>
-        <SelectContent>
-          <SelectItem value="ALL">Todos los trabajos</SelectItem>
-          {jobs.map((job) => <SelectItem key={job.id} value={job.id}>{job.name}</SelectItem>)}
-        </SelectContent>
-      </Select>
-      <Select value={filters.employeeId} onValueChange={(employeeId) => onChange({ employeeId })}>
-        <SelectTrigger className={opsFilterControlClass}><SelectValue /></SelectTrigger>
-        <SelectContent>
-          <SelectItem value="ALL">Todas las empleadas</SelectItem>
-          {employees.map((employee) => (
-            <SelectItem key={employee.id} value={employee.id}>{employee.name}</SelectItem>
-          ))}
-        </SelectContent>
-      </Select>
+      <SearchableSelect
+        aria-label="Filtrar por trabajo"
+        className={opsFilterControlClass}
+        onValueChange={(jobId) => onChange({ jobId })}
+        options={[
+          { label: "Todos los trabajos", value: "ALL" },
+          ...jobs.map((job) => ({ label: job.name, value: job.id })),
+        ]}
+        searchPlaceholder="Buscar trabajo..."
+        value={filters.jobId}
+      />
+      <SearchableSelect
+        aria-label="Filtrar por empleada"
+        className={opsFilterControlClass}
+        onValueChange={(employeeId) => onChange({ employeeId })}
+        options={[
+          { label: "Todas las empleadas", value: "ALL" },
+          ...employees.map((employee) => ({ label: employee.name, value: employee.id })),
+        ]}
+        searchPlaceholder="Buscar empleada..."
+        value={filters.employeeId}
+      />
     </>
   );
 

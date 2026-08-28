@@ -1,18 +1,33 @@
 "use client";
 
+import { DashboardSectionError } from "@/components/ops/dashboard/dashboard-section-error";
 import { PendingVisitsPanel } from "@/components/ops/jobs/pending-visits-panel";
 import { getPendingRegistrationVisits } from "@/components/ops/jobs/pending-visits-utils";
 import type { OpsOccurrence, OpsScheduleRule } from "@/components/ops/types";
 
 export const DashboardVisitsPanel = ({
+  error,
   isLoading,
+  onRetry,
   occurrences,
   scheduleRules,
 }: {
+  error: unknown;
   isLoading: boolean;
+  onRetry: () => Promise<unknown> | void;
   occurrences: OpsOccurrence[];
   scheduleRules: OpsScheduleRule[];
 }) => {
+  if (error) {
+    return (
+      <DashboardSectionError
+        description="No mostramos una agenda vacía porque no pudimos confirmar las visitas."
+        onRetry={onRetry}
+        title="No pudimos cargar las tareas del día"
+      />
+    );
+  }
+
   const hasPendingVisits = getPendingRegistrationVisits(occurrences).length > 0;
   const showTomorrow = !isLoading && !hasPendingVisits;
 

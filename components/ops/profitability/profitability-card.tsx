@@ -32,7 +32,7 @@ export const ProfitabilityCard = ({
 }) => {
   const status = profitabilityStatus[result.severity];
   return (
-    <article className={cn("rounded-xl border-l-4 bg-background p-4 shadow-sm ring-1 ring-black/5 dark:ring-white/10", status.className)}>
+    <article className={cn("rounded-[var(--ops-radius-row)] border-l-4 bg-ops-surface-muted p-4", status.className)}>
       <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
         <div className="min-w-0 space-y-1">
           <ProfitabilityBadge severity={result.severity} />

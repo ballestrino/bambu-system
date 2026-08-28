@@ -1,30 +1,26 @@
 export const opsBrand = {
-  bamboo: "#53985E",
-  bambooDark: "#244C2D",
-  bambooSoft: "#EAF5EC",
-  ink: "#18251D",
-  amber: "#C58A2A",
-  amberSoft: "#FFF4DA",
+  bamboo: "var(--ops-bamboo)",
+  bambooDark: "var(--ops-bamboo-strong)",
+  bambooSoft: "var(--ops-bamboo-soft)",
+  ink: "var(--ops-text)",
+  amber: "var(--ops-amber)",
 } as const;
 
 export const opsSurface = {
-  shell:
-    "bg-[linear-gradient(180deg,#F7FBF7_0%,#FFFFFF_44%,#F2F7F1_100%)] dark:bg-[linear-gradient(180deg,#121811_0%,#1A211A_100%)]",
+  shell: "bg-ops-canvas",
   panel:
-    "rounded-md border border-[#53985E]/15 bg-background/95 shadow-sm shadow-[#244C2D]/5",
+    "rounded-[var(--ops-radius-panel)] border border-ops-border bg-ops-surface",
   panelSoft:
-    "rounded-md border border-[#53985E]/15 bg-[#F7FBF7] shadow-sm shadow-[#244C2D]/5 dark:bg-[#1A211A]",
-  headerAccent:
-    "before:absolute before:left-0 before:top-1 before:h-10 before:w-1 before:rounded-full before:bg-[#53985E] dark:before:bg-[#91AD71]",
-  toolbar:
-    "rounded-md bg-background/70 p-3 shadow-sm shadow-[#244C2D]/5",
+    "rounded-[var(--ops-radius-row)] border border-ops-border bg-ops-surface-muted",
+  headerAccent: "border-b border-ops-border pb-4",
+  toolbar: "rounded-[var(--ops-radius-row)] bg-ops-surface-muted p-3",
 } as const;
 
 export const opsToneClasses = {
   neutral:
-    "border-slate-200 bg-slate-50 text-slate-700 dark:border-slate-700 dark:bg-slate-900/50 dark:text-slate-200",
+    "border-ops-border bg-ops-surface text-ops-text-muted",
   active:
-    "border-[#53985E]/25 bg-[#EAF5EC] text-[#244C2D] dark:border-[#70895D]/40 dark:bg-[#91AD71]/15 dark:text-[#D4E3B8]",
+    "border-ops-bamboo/35 bg-ops-bamboo-soft text-ops-bamboo-strong",
   warning:
     "border-amber-300 bg-amber-50 text-amber-800 dark:border-amber-500/40 dark:bg-amber-500/15 dark:text-amber-200",
   success:
@@ -34,7 +30,7 @@ export const opsToneClasses = {
   archived:
     "border-zinc-300 bg-zinc-100 text-zinc-700 dark:border-zinc-600 dark:bg-zinc-800 dark:text-zinc-200",
   money:
-    "border-[#C58A2A]/30 bg-[#FFF4DA] text-[#6F4B12] dark:border-[#C58A2A]/50 dark:bg-[#C58A2A]/15 dark:text-[#F5D28C]",
+    "border-amber-300 bg-amber-50 text-amber-800 dark:border-amber-500/40 dark:bg-amber-500/15 dark:text-amber-200",
 } as const;
 
 export type OpsTone = keyof typeof opsToneClasses;

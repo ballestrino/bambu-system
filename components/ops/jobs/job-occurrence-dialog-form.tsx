@@ -27,6 +27,7 @@ import type {
   OpsOccurrence,
 } from "@/components/ops/types";
 import { Button } from "@/components/ui/button";
+import { SearchableSelect } from "@/components/ui/searchable-select";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { occurrenceStatusValues } from "@/schemas/ops";
@@ -85,10 +86,15 @@ export const JobOccurrenceDialogForm = ({
     <>
       {showJobField ? (
         <OpsFormField label="Trabajo">
-          <Select value={formState.jobId} onValueChange={(jobId) => setFormState((current) => ({ ...current, jobId }))}>
-            <SelectTrigger className={opsFormSelectTriggerClass}><SelectValue placeholder="Seleccionar trabajo" /></SelectTrigger>
-            <SelectContent>{jobs.map((job) => <SelectItem key={job.id} value={job.id}>{job.name}</SelectItem>)}</SelectContent>
-          </Select>
+          <SearchableSelect
+            aria-label="Seleccionar trabajo"
+            className={opsFormSelectTriggerClass}
+            onValueChange={(jobId) => setFormState((current) => ({ ...current, jobId }))}
+            options={jobs.map((job) => ({ label: job.name, value: job.id }))}
+            placeholder="Seleccionar trabajo"
+            searchPlaceholder="Buscar trabajo..."
+            value={formState.jobId}
+          />
         </OpsFormField>
       ) : null}
       <JobOccurrenceEmployeeField

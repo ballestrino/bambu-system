@@ -30,13 +30,12 @@ const CalendarAgendaItem = ({ occurrence }: { occurrence: OpsOccurrence }) => (
           <h3 className="font-semibold text-[#18251D] dark:text-[#F0F3E8]">
             {occurrence.job.name}
           </h3>
-          <p className="mt-1 flex items-center gap-1 text-sm text-muted-foreground">
+          <p className="mt-1 flex items-center gap-1 text-sm font-medium text-muted-foreground">
             <UsersRound className="h-3.5 w-3.5" />
             {getOccurrenceEmployeesLabel(occurrence)}
           </p>
         </div>
         <div className="flex flex-wrap gap-x-4 gap-y-1 text-sm text-muted-foreground">
-          <span>Plan {formatTime(occurrence.scheduledStartAt)} - {formatTime(occurrence.scheduledEndAt)}</span>
           <span>Real {formatTime(occurrence.actualStartAt)} - {formatTime(occurrence.actualEndAt)}</span>
           <span>{occurrence.isDetached ? "Separada de regla" : "Ligada a regla"}</span>
         </div>

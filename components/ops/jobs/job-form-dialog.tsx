@@ -1,12 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { LoaderCircle, Pencil, Plus } from "lucide-react";
-
-import {
-  dashboardPrimaryActionClass,
-  dashboardSecondaryActionClass,
-} from "@/components/dashboard/dashboard-styles";
+import { LoaderCircle } from "lucide-react";
 import {
   getOpsStatusConfig, OpsFormBody, OpsFormDialogContent, OpsFormField,
   OpsFormFooter, OpsFormGrid, OpsFormHeader, opsFormControlClass,
@@ -16,6 +11,10 @@ import {
 import { JobBudgetTaxModeToggle } from "@/components/ops/jobs/job-budget-tax-mode-toggle";
 import { BudgetSourceSelector } from "@/components/ops/jobs/budget-source-selector";
 import { JobTypeFields } from "@/components/ops/jobs/job-type-fields";
+import {
+  JobFormTrigger,
+  type JobFormTriggerProps,
+} from "@/components/ops/jobs/job-form-trigger";
 import {
   getInitialJobFormState,
   type JobFormJob,
@@ -30,11 +29,10 @@ import { jobStatusValues } from "@/schemas/ops";
 
 export const JobFormDialog = ({
   job,
+  triggerClassName,
   triggerLabel,
-}: {
-  job?: JobFormJob;
-  triggerLabel?: string;
-}) => {
+  triggerVariant,
+}: JobFormTriggerProps & { job?: JobFormJob }) => {
   const [open, setOpen] = useState(false);
   const [formState, setFormState] = useState(getInitialJobFormState(job));
   const { createJobAsync, updateJobAsync, isCreating, isUpdating } = useJobMutations();
@@ -91,17 +89,12 @@ export const JobFormDialog = ({
       }}
     >
       <DialogTrigger asChild>
-        {job ? (
-          <Button variant="outline" size="sm" className={dashboardSecondaryActionClass}>
-            <Pencil className="h-4 w-4" />
-            {triggerLabel ?? "Editar"}
-          </Button>
-        ) : (
-          <Button className={dashboardPrimaryActionClass}>
-            <Plus className="h-4 w-4" />
-            {triggerLabel ?? "Nuevo trabajo"}
-          </Button>
-        )}
+        <JobFormTrigger
+          isEditing={Boolean(job)}
+          triggerClassName={triggerClassName}
+          triggerLabel={triggerLabel}
+          triggerVariant={triggerVariant}
+        />
       </DialogTrigger>
       <OpsFormDialogContent size="lg">
         <OpsFormHeader>

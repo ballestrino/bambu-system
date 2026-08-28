@@ -28,7 +28,7 @@ import { getUtcMonthKey, parseUtcMonthKey, toDateInputValue } from "@/components
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { SearchableSelect } from "@/components/ui/searchable-select";
 import { Textarea } from "@/components/ui/textarea";
 
 const noneValue = "NONE";
@@ -117,14 +117,15 @@ export const CostDialog = ({
         </OpsFormHeader>
         <OpsFormBody className="grid gap-4">
           <OpsFormField label="Categoria">
-            <Select value={formState.categoryId} onValueChange={(categoryId) => setFormState((current) => ({ ...current, categoryId }))}>
-              <SelectTrigger className={opsFormSelectTriggerClass}><SelectValue placeholder="Seleccionar categoria" /></SelectTrigger>
-              <SelectContent>
-                {categories.map((category) => (
-                  <SelectItem key={category.id} value={category.id}>{category.name}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            <SearchableSelect
+              aria-label="Seleccionar categoría"
+              className={opsFormSelectTriggerClass}
+              onValueChange={(categoryId) => setFormState((current) => ({ ...current, categoryId }))}
+              options={categories.map((category) => ({ label: category.name, value: category.id }))}
+              placeholder="Seleccionar categoría"
+              searchPlaceholder="Buscar categoría..."
+              value={formState.categoryId}
+            />
           </OpsFormField>
           <OpsFormGrid>
             <OpsFormField label="Mes asignado"><Input className={opsFormControlClass} type="month" value={formState.assignedMonth} onChange={(event) => setFormState((current) => ({ ...current, assignedMonth: event.target.value }))} /></OpsFormField>
@@ -135,22 +136,30 @@ export const CostDialog = ({
           </OpsFormGrid>
           <OpsFormGrid>
             <OpsFormField label="Trabajo">
-              <Select value={formState.jobId} onValueChange={(jobId) => setFormState((current) => ({ ...current, jobId }))}>
-                <SelectTrigger className={opsFormSelectTriggerClass}><SelectValue /></SelectTrigger>
-                <SelectContent>
-                  <SelectItem value={noneValue}>Sin trabajo</SelectItem>
-                  {jobs.map((job) => <SelectItem key={job.id} value={job.id}>{job.name}</SelectItem>)}
-                </SelectContent>
-              </Select>
+              <SearchableSelect
+                aria-label="Seleccionar trabajo"
+                className={opsFormSelectTriggerClass}
+                onValueChange={(jobId) => setFormState((current) => ({ ...current, jobId }))}
+                options={[
+                  { label: "Sin trabajo", value: noneValue },
+                  ...jobs.map((job) => ({ label: job.name, value: job.id })),
+                ]}
+                searchPlaceholder="Buscar trabajo..."
+                value={formState.jobId}
+              />
             </OpsFormField>
             <OpsFormField label="Empleada">
-              <Select value={formState.employeeId} onValueChange={(employeeId) => setFormState((current) => ({ ...current, employeeId }))}>
-                <SelectTrigger className={opsFormSelectTriggerClass}><SelectValue /></SelectTrigger>
-                <SelectContent>
-                  <SelectItem value={noneValue}>Sin empleada</SelectItem>
-                  {employees.map((employee) => <SelectItem key={employee.id} value={employee.id}>{employee.name}</SelectItem>)}
-                </SelectContent>
-              </Select>
+              <SearchableSelect
+                aria-label="Seleccionar empleada"
+                className={opsFormSelectTriggerClass}
+                onValueChange={(employeeId) => setFormState((current) => ({ ...current, employeeId }))}
+                options={[
+                  { label: "Sin empleada", value: noneValue },
+                  ...employees.map((employee) => ({ label: employee.name, value: employee.id })),
+                ]}
+                searchPlaceholder="Buscar empleada..."
+                value={formState.employeeId}
+              />
             </OpsFormField>
           </OpsFormGrid>
           <OpsFormField label="Referencia"><Input className={opsFormControlClass} value={formState.reference} onChange={(event) => setFormState((current) => ({ ...current, reference: event.target.value }))} /></OpsFormField>

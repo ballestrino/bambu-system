@@ -52,15 +52,14 @@ export const OpsDetailHero = ({
   meta,
   title,
 }: OpsDetailHeroProps) => (
-  <section className="relative overflow-hidden rounded-2xl border border-[#53985E]/15 bg-white p-4 shadow-sm shadow-[#244C2D]/5 dark:bg-[#121811] md:p-5">
-    <div className="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-[#244C2D] via-[#53985E] to-[#C58A2A] dark:from-[#4C653F] dark:via-[#91AD71] dark:to-[#D0A85F]" />
+  <section className="relative overflow-hidden rounded-[var(--ops-radius-panel)] border border-ops-border bg-ops-surface p-4 md:p-5">
     <div className="flex flex-col gap-5 lg:flex-row lg:items-start lg:justify-between">
       <div className="min-w-0 space-y-4">
         <Button
           asChild
           size="sm"
           variant="ghost"
-          className="-ml-2 w-fit rounded-full px-3 text-[#244C2D] hover:bg-[#EAF5EC] hover:text-[#244C2D]"
+          className="-ml-2 min-h-11 w-fit rounded-[var(--ops-radius-control)] px-3 text-ops-bamboo-strong hover:bg-ops-bamboo-soft hover:text-ops-bamboo-strong"
         >
           <Link href={backHref}>
             <ArrowLeft className="h-4 w-4" />
@@ -68,12 +67,12 @@ export const OpsDetailHero = ({
           </Link>
         </Button>
         <div className="flex min-w-0 items-start gap-3">
-          <span className="grid h-11 w-11 shrink-0 place-items-center rounded-full bg-[#EAF5EC] text-[#244C2D] ring-1 ring-[#53985E]/20">
+          <span className="grid h-11 w-11 shrink-0 place-items-center rounded-[var(--ops-radius-control)] bg-ops-bamboo-soft text-ops-bamboo-strong">
             <Icon className="h-5 w-5" />
           </span>
           <div className="min-w-0 space-y-2">
             <div className="flex flex-wrap items-center gap-2">
-              <h1 className="break-words text-2xl font-semibold tracking-tight text-[#18251D] dark:text-[#F0F3E8] md:text-3xl">
+              <h1 className="break-words text-2xl font-semibold tracking-tight text-ops-text md:text-3xl">
                 {title}
               </h1>
               {meta}
@@ -100,12 +99,12 @@ export const OpsDetailStat = ({
   label,
   value,
 }: OpsDetailStatProps) => (
-  <div className="rounded-xl border border-[#53985E]/15 bg-[#F8FBF8] p-3 dark:bg-[#1A211A]">
+  <div className="rounded-[var(--ops-radius-row)] bg-ops-surface-muted p-3">
     <div className="flex items-center gap-2 text-xs font-medium uppercase tracking-wide text-muted-foreground">
-      <Icon className="h-4 w-4 text-[#53985E]" />
+      <Icon className="h-4 w-4 text-ops-bamboo" />
       {label}
     </div>
-    <p className="mt-2 text-xl font-semibold text-[#18251D] dark:text-[#F0F3E8]">
+    <p className="mt-2 text-xl font-semibold text-ops-text">
       {value}
     </p>
     {helper ? <p className="mt-1 text-xs text-muted-foreground">{helper}</p> : null}
@@ -122,7 +121,7 @@ export const OpsNextAction = ({
 }: OpsNextActionProps) => (
   <section
     className={cn(
-      "flex flex-col gap-4 rounded-2xl border p-4 shadow-sm shadow-[#244C2D]/5 md:flex-row md:items-center md:justify-between",
+      "flex flex-col gap-4 rounded-[var(--ops-radius-panel)] border p-4 md:flex-row md:items-center md:justify-between",
       nextActionTone[tone]
     )}
   >

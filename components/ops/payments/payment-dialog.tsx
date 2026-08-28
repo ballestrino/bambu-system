@@ -20,7 +20,7 @@ import { toMoneyNumber } from "@/components/ops/payments/payment-utils";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { SearchableSelect } from "@/components/ui/searchable-select";
 import { Textarea } from "@/components/ui/textarea";
 
 const getInitialState = (
@@ -115,12 +115,15 @@ export const PaymentDialog = ({
         <OpsFormBody className="grid gap-4">
           {!jobId && !payment ? (
             <OpsFormField label="Trabajo">
-              <Select value={formState.jobId} onValueChange={(nextJobId) => setFormState((current) => ({ ...current, jobId: nextJobId }))}>
-                <SelectTrigger className={opsFormSelectTriggerClass}><SelectValue placeholder="Seleccionar trabajo" /></SelectTrigger>
-                <SelectContent>
-                  {jobs.map((job) => <SelectItem key={job.id} value={job.id}>{job.name}</SelectItem>)}
-                </SelectContent>
-              </Select>
+              <SearchableSelect
+                aria-label="Seleccionar trabajo"
+                className={opsFormSelectTriggerClass}
+                onValueChange={(nextJobId) => setFormState((current) => ({ ...current, jobId: nextJobId }))}
+                options={jobs.map((job) => ({ label: job.name, value: job.id }))}
+                placeholder="Seleccionar trabajo"
+                searchPlaceholder="Buscar trabajo..."
+                value={formState.jobId}
+              />
             </OpsFormField>
           ) : null}
           <OpsFormGrid>

@@ -1,139 +1,141 @@
 import {
-  BadgeDollarSign,
-  CalendarDays,
   CalendarClock,
+  CalendarDays,
   HandCoins,
-  Percent,
   ReceiptText,
   TrendingUp,
   UsersRound,
 } from "lucide-react";
 
+import { DashboardSectionError } from "@/components/ops/dashboard/dashboard-section-error";
 import { formatDashboardMoney } from "@/components/ops/dashboard/dashboard-financials";
-import { OpsMetricsGrid } from "@/components/ops/shared";
+import { OpsMetricCard, OpsSection } from "@/components/ops/shared";
 
-const loadingValue = "...";
+const loadingValue = "…";
+
+type DashboardFinancials = {
+  estimatedBpsTotal: number;
+  marginPercent: number;
+  projectedProfit: number;
+  projectedRevenue: number;
+  realBpsTotal: number;
+  realProfit: number;
+  recordedRevenue: number;
+  totalCosts: number;
+};
 
 export const DashboardMetricGrid = ({
   activeEmployeeCount,
-  areEmployeesLoading,
   areFinancialsLoading,
-  areMonthlyVisitsLoading,
-  areVisitsLoading,
+  areOperationsLoading,
+  financialError,
   financials,
   monthlyVisitCount,
+  onRetryFinancials,
+  onRetryOperations,
+  operationsError,
   pendingVisitCount,
 }: {
   activeEmployeeCount: number;
-  areEmployeesLoading: boolean;
   areFinancialsLoading: boolean;
-  areMonthlyVisitsLoading: boolean;
-  areVisitsLoading: boolean;
-  financials: {
-    estimatedBpsTotal: number;
-    marginPercent: number;
-    projectedProfit: number;
-    projectedRevenue: number;
-    realBpsTotal: number;
-    realProfit: number;
-    recordedRevenue: number;
-    totalCosts: number;
-  };
+  areOperationsLoading: boolean;
+  financialError: unknown;
+  financials: DashboardFinancials;
   monthlyVisitCount: number;
+  onRetryFinancials: () => Promise<unknown> | void;
+  onRetryOperations: () => Promise<unknown> | void;
+  operationsError: unknown;
   pendingVisitCount: number;
 }) => (
-  <OpsMetricsGrid
-    metrics={[
-      {
-        helper: "Vencidas o de hoy sin horario real completo",
-        icon: CalendarClock,
-        label: "Visitas pendientes",
-        tone: "warning",
-        value: areVisitsLoading ? loadingValue : pendingVisitCount,
-      },
-      {
-        helper: "Activos y no archivados",
-        icon: UsersRound,
-        label: "Empleados activos",
-        tone: "active",
-        value: areEmployeesLoading ? loadingValue : activeEmployeeCount,
-      },
-      {
-        helper: "Programadas dentro del mes seleccionado",
-        icon: CalendarDays,
-        label: "Visitas del mes",
-        tone: "neutral",
-        value: areMonthlyVisitsLoading ? loadingValue : monthlyVisitCount,
-      },
-      {
-        helper: areFinancialsLoading ? "Calculando ganancia real" : (
-          <span className="flex flex-col gap-1">
-            <span>
-              Proyectada: {formatDashboardMoney(financials.projectedProfit)}
-            </span>
-            <span>
-              Costes: {formatDashboardMoney(financials.totalCosts)}
-            </span>
-          </span>
-        ),
-        icon: TrendingUp,
-        label: "Ganancias",
-        tone: financials.realProfit >= 0 ? "money" : "danger",
-        value: areFinancialsLoading
-          ? loadingValue
-          : formatDashboardMoney(financials.realProfit),
-      },
-      {
-        helper: "Empleadas + costes registrados",
-        icon: HandCoins,
-        label: "Costes",
-        tone: "warning",
-        value: areFinancialsLoading
-          ? loadingValue
-          : formatDashboardMoney(financials.totalCosts),
-      },
-      {
-        helper: areFinancialsLoading ? "Calculando facturación" : (
-          <span className="flex flex-col gap-1">
-            <span>
-              Proyectado: {formatDashboardMoney(financials.projectedRevenue)}
-            </span>
-            <span>
-              Recaudado: {formatDashboardMoney(financials.recordedRevenue)}
-            </span>
-          </span>
-        ),
-        icon: ReceiptText,
-        label: "Facturación total",
-        tone: "neutral",
-        value: areFinancialsLoading
-          ? loadingValue
-          : formatDashboardMoney(financials.recordedRevenue),
-      },
-      {
-        helper: areFinancialsLoading ? "Calculando BPS" : (
-          <span className="flex flex-col gap-1">
-            <span>
-              Estimado: {formatDashboardMoney(financials.estimatedBpsTotal)}
-            </span>
-          </span>
-        ),
-        icon: BadgeDollarSign,
-        label: "BPS",
-        tone: "active",
-        value: areFinancialsLoading
-          ? loadingValue
-          : formatDashboardMoney(financials.realBpsTotal),
-      },
-      {
-        helper: "Ganancia real sobre cobrado",
-        icon: Percent,
-        label: "Margen",
-        tone: financials.marginPercent >= 0 ? "success" : "danger",
-        value: areFinancialsLoading
-          ? loadingValue
-          : `${financials.marginPercent.toFixed(1)}%`,
-      },
-    ]}
-  />
+  <div className="grid gap-4 xl:grid-cols-2">
+    <OpsSection
+      description="Carga de trabajo y capacidad del mes seleccionado."
+      title="Resumen operativo"
+    >
+      {operationsError ? (
+        <DashboardSectionError
+          description="No mostramos ceros porque faltan datos de visitas o personal."
+          onRetry={onRetryOperations}
+          title="No pudimos cargar el resumen operativo"
+        />
+      ) : (
+        <div className="grid gap-3 sm:grid-cols-3">
+          <OpsMetricCard
+            helper="Vencidas o de hoy"
+            icon={CalendarClock}
+            label="Pendientes"
+            size="compact"
+            tone="warning"
+            value={areOperationsLoading ? loadingValue : pendingVisitCount}
+          />
+          <OpsMetricCard
+            helper="Programadas este mes"
+            icon={CalendarDays}
+            label="Visitas"
+            size="compact"
+            value={areOperationsLoading ? loadingValue : monthlyVisitCount}
+          />
+          <OpsMetricCard
+            helper="Disponibles y activos"
+            icon={UsersRound}
+            label="Empleados"
+            size="compact"
+            tone="active"
+            value={areOperationsLoading ? loadingValue : activeEmployeeCount}
+          />
+        </div>
+      )}
+    </OpsSection>
+
+    <OpsSection
+      description="Importes registrados y proyección del mes seleccionado."
+      title="Resumen financiero"
+    >
+      {financialError ? (
+        <DashboardSectionError
+          description="Los importes quedan ocultos hasta recuperar las consultas necesarias."
+          onRetry={onRetryFinancials}
+          title="No pudimos calcular el resumen financiero"
+        />
+      ) : (
+        <div className="grid gap-3 sm:grid-cols-3">
+          <OpsMetricCard
+            helper={
+              areFinancialsLoading
+                ? "Calculando proyección"
+                : `Proyectado: ${formatDashboardMoney(financials.projectedRevenue)}`
+            }
+            icon={ReceiptText}
+            label="Cobrado"
+            size="compact"
+            value={areFinancialsLoading ? loadingValue : formatDashboardMoney(financials.recordedRevenue)}
+          />
+          <OpsMetricCard
+            helper={
+              areFinancialsLoading
+                ? "Calculando BPS"
+                : `BPS: ${formatDashboardMoney(financials.realBpsTotal)} · est. ${formatDashboardMoney(financials.estimatedBpsTotal)}`
+            }
+            icon={HandCoins}
+            label="Costes"
+            size="compact"
+            tone="warning"
+            value={areFinancialsLoading ? loadingValue : formatDashboardMoney(financials.totalCosts)}
+          />
+          <OpsMetricCard
+            helper={
+              areFinancialsLoading
+                ? "Calculando resultado"
+                : `Proyectado: ${formatDashboardMoney(financials.projectedProfit)} · margen ${financials.marginPercent.toFixed(1)}%`
+            }
+            icon={TrendingUp}
+            label="Resultado"
+            size="compact"
+            tone={financials.realProfit >= 0 ? "success" : "danger"}
+            value={areFinancialsLoading ? loadingValue : formatDashboardMoney(financials.realProfit)}
+          />
+        </div>
+      )}
+    </OpsSection>
+  </div>
 );

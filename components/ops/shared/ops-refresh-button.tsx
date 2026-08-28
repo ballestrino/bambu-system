@@ -18,7 +18,7 @@ export const OpsRefreshButton = ({
     type="button"
     variant="outline"
     className={cn(
-      "h-12 rounded-full border-[#53985E]/25 px-4 text-[#244C2D] dark:text-[#D4E3B8]",
+      "min-h-11 rounded-[var(--ops-radius-control)] border-ops-border px-4 text-ops-text shadow-none",
       className
     )}
     disabled={isRefreshing}

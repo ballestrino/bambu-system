@@ -19,7 +19,7 @@ import { toDateTimeLocalValue } from "@/components/ops/utils";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { SearchableSelect } from "@/components/ui/searchable-select";
 
 const getInitialState = (assignment?: OpsJobEmployeeAssignment) => ({
   employeeId: assignment?.employeeId ?? "",
@@ -97,18 +97,15 @@ export const JobAssignmentDialog = ({
             {assignment ? (
               <Input className={opsFormControlClass} value={assignment.employee.name} disabled />
             ) : (
-              <Select value={formState.employeeId} onValueChange={(employeeId) => setFormState((current) => ({ ...current, employeeId }))}>
-                <SelectTrigger className={opsFormSelectTriggerClass}>
-                  <SelectValue placeholder="Seleccionar empleado activo" />
-                </SelectTrigger>
-                <SelectContent>
-                  {employees.map((employee) => (
-                    <SelectItem key={employee.id} value={employee.id}>
-                      {employee.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <SearchableSelect
+                aria-label="Seleccionar empleado activo"
+                className={opsFormSelectTriggerClass}
+                onValueChange={(employeeId) => setFormState((current) => ({ ...current, employeeId }))}
+                options={employees.map((employee) => ({ label: employee.name, value: employee.id }))}
+                placeholder="Seleccionar empleado activo"
+                searchPlaceholder="Buscar empleado..."
+                value={formState.employeeId}
+              />
             )}
           </OpsFormField>
           <OpsFormField label="Rol">

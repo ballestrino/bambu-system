@@ -1,215 +1,59 @@
 "use client";
 
-import { useMemo } from "react";
-import type { PaymentStatus } from "@prisma/client";
-
-import { getDashboardFinancials } from "@/components/ops/dashboard/dashboard-financials";
 import { DashboardMetricGrid } from "@/components/ops/dashboard/dashboard-metric-grid";
 import { DashboardProfitabilityAlerts } from "@/components/ops/dashboard/dashboard-profitability-alerts";
 import { DashboardQuickActions } from "@/components/ops/dashboard/dashboard-quick-actions";
 import { DashboardVisitsPanel } from "@/components/ops/dashboard/dashboard-visits-panel";
-import { useEmployees } from "@/components/ops/hooks/useEmployees";
-import { useEmployeePayments } from "@/components/ops/hooks/useEmployeePayments";
-import { useJobClientPayments } from "@/components/ops/hooks/useJobClientPayments";
-import { useJobOccurrences } from "@/components/ops/hooks/useJobOccurrences";
-import { useJobProfitability } from "@/components/ops/hooks/useJobProfitability";
-import { useJobScheduleRules } from "@/components/ops/hooks/useJobScheduleRules";
-import { useJobs } from "@/components/ops/hooks/useJobs";
-import { useOperationalCosts } from "@/components/ops/hooks/useOperationalCosts";
-import { useOpsCostSettings } from "@/components/ops/hooks/useOpsCostSettings";
-import {
-  getPendingRegistrationVisits,
-  getPendingVisitsRange,
-} from "@/components/ops/jobs/pending-visits-utils";
-import {
-  OpsPageHeader,
-  OpsPageShell,
-  useOpsSelectedMonth,
-} from "@/components/ops/shared";
-import type { JobOccurrenceFilters } from "@/schemas/ops";
+import { useOpsDashboard } from "@/components/ops/dashboard/use-ops-dashboard";
+import { OpsPageHeader, OpsPageShell } from "@/components/ops/shared";
 
 export const OpsDashboardPage = () => {
-  const { month, monthKey, monthRange } = useOpsSelectedMonth();
-  const occurrenceFilters = useMemo<JobOccurrenceFilters>(() => {
-    const { endDate } = getPendingVisitsRange();
-
-    return {
-      endDate,
-      includeArchived: false,
-      statuses: ["SCHEDULED"],
-    };
-  }, []);
-  const financialDateFilters = useMemo<{
-    endDate: Date;
-    startDate: Date;
-    statuses: PaymentStatus[];
-  }>(() => {
-    return {
-      endDate: monthRange.end,
-      startDate: monthRange.start,
-      statuses: ["RECORDED"],
-    };
-  }, [monthRange.end, monthRange.start]);
-
-  const {
-    occurrences,
-    isFetching: areVisitsFetching,
-    isLoading: areVisitsLoading,
-    refetch: refetchVisits,
-  } = useJobOccurrences(occurrenceFilters, "dashboard-visits");
-  const {
-    occurrences: monthlyOccurrences,
-    isFetching: areMonthlyVisitsFetching,
-    isLoading: areMonthlyVisitsLoading,
-    refetch: refetchMonthlyVisits,
-  } = useJobOccurrences(
-    {
-      endDate: financialDateFilters.endDate,
-      includeArchived: false,
-      startDate: financialDateFilters.startDate,
-    },
-    `dashboard-month-visits-${monthKey}`
-  );
-  const {
-    employees,
-    isFetching: areEmployeesFetching,
-    isLoading: areEmployeesLoading,
-    refetch: refetchEmployees,
-  } = useEmployees({
-    includeArchived: false,
-    isActive: true,
-  });
-  const {
-    jobs,
-    isFetching: areJobsFetching,
-    isLoading: areJobsLoading,
-    refetch: refetchJobs,
-  } = useJobs({
-    includeArchived: false,
-  });
-  const {
-    payments,
-    isFetching: arePaymentsFetching,
-    isLoading: arePaymentsLoading,
-    refetch: refetchPayments,
-  } = useJobClientPayments(
-    financialDateFilters,
-    `dashboard-recorded-payments-${monthKey}`
-  );
-  const {
-    payments: employeePayments,
-    isFetching: areEmployeePaymentsFetching,
-    isLoading: areEmployeePaymentsLoading,
-    refetch: refetchEmployeePayments,
-  } = useEmployeePayments(
-    { assignedMonth: month, statuses: ["RECORDED"] },
-    `dashboard-recorded-employee-payments-${monthKey}`
-  );
-  const {
-    costs,
-    isFetching: areCostsFetching,
-    isLoading: areCostsLoading,
-    refetch: refetchCosts,
-  } = useOperationalCosts(
-    financialDateFilters,
-    `dashboard-recorded-costs-${monthKey}`
-  );
-  const {
-    settings,
-    isFetching: areSettingsFetching,
-    isLoading: areSettingsLoading,
-    refetch: refetchSettings,
-  } = useOpsCostSettings();
-  const {
-    scheduleRules,
-    isFetching: areRulesFetching,
-    refetch: refetchScheduleRules,
-  } = useJobScheduleRules({ isActive: true });
-  const profitabilityQuery = useJobProfitability({ mode: "MONTH", month });
-
-  const pendingVisitCount = useMemo(
-    () => getPendingRegistrationVisits(occurrences).length,
-    [occurrences]
-  );
-  const financials = useMemo(
-    () =>
-      getDashboardFinancials({
-        bpsEstimatePercent: Number(settings?.bpsEstimatePercent ?? 0),
-        clientPayments: payments,
-        employeePayments,
-        jobs,
-        operationalCosts: costs,
-      }),
-    [costs, employeePayments, jobs, payments, settings?.bpsEstimatePercent]
-  );
-  const isRefreshing =
-    areCostsFetching ||
-    areEmployeePaymentsFetching ||
-    areEmployeesFetching ||
-    areJobsFetching ||
-    areMonthlyVisitsFetching ||
-    arePaymentsFetching ||
-    areRulesFetching ||
-    areSettingsFetching ||
-    areVisitsFetching;
-  const isDashboardRefreshing = isRefreshing || profitabilityQuery.isFetching;
-  const refreshDashboard = async () => {
-    await Promise.all([
-      refetchCosts(),
-      refetchEmployeePayments(),
-      refetchEmployees(),
-      refetchJobs(),
-      refetchMonthlyVisits(),
-      refetchPayments(),
-      refetchScheduleRules(),
-      refetchSettings(),
-      refetchVisits(),
-      profitabilityQuery.refetch(),
-    ]);
-  };
+  const dashboard = useOpsDashboard();
 
   return (
     <OpsPageShell>
       <OpsPageHeader
         actions={
           <DashboardQuickActions
-            isRefreshing={isDashboardRefreshing}
-            onRefresh={refreshDashboard}
+            isRefreshing={dashboard.isRefreshing}
+            onRefresh={dashboard.refreshDashboard}
           />
         }
-        description="Accesos rápidos y visitas que necesitan atención para cerrar la operación diaria."
+        description="Organizá las visitas que requieren atención y revisá el estado del mes."
         eyebrow="Operaciones"
-        title="Dashboard operativo"
-      />
-
-      <DashboardProfitabilityAlerts
-        error={profitabilityQuery.error}
-        isLoading={profitabilityQuery.isLoading}
-        onRetry={profitabilityQuery.refetch}
-        results={profitabilityQuery.profitability}
-      />
-
-      <DashboardMetricGrid
-        activeEmployeeCount={employees.length}
-        areEmployeesLoading={areEmployeesLoading}
-        areFinancialsLoading={
-          areCostsLoading ||
-          areEmployeePaymentsLoading ||
-          areJobsLoading ||
-          arePaymentsLoading ||
-          areSettingsLoading
-        }
-        areMonthlyVisitsLoading={areMonthlyVisitsLoading}
-        areVisitsLoading={areVisitsLoading}
-        financials={financials}
-        monthlyVisitCount={monthlyOccurrences.length}
-        pendingVisitCount={pendingVisitCount}
+        title="Hoy en Bambú"
       />
 
       <DashboardVisitsPanel
-        isLoading={areVisitsLoading}
-        occurrences={occurrences}
-        scheduleRules={scheduleRules}
+        error={dashboard.visitsError}
+        isLoading={dashboard.visits.isLoading || dashboard.scheduleRules.isLoading}
+        occurrences={dashboard.visits.occurrences}
+        onRetry={dashboard.refreshVisits}
+        scheduleRules={dashboard.scheduleRules.scheduleRules}
+      />
+
+      <DashboardMetricGrid
+        activeEmployeeCount={dashboard.employees.employees.length}
+        areFinancialsLoading={dashboard.isFinancialsLoading}
+        areOperationsLoading={
+          dashboard.visits.isLoading ||
+          dashboard.monthlyVisits.isLoading ||
+          dashboard.employees.isLoading
+        }
+        financialError={dashboard.financialError}
+        financials={dashboard.financials}
+        monthlyVisitCount={dashboard.monthlyVisits.occurrences.length}
+        onRetryFinancials={dashboard.refreshFinancials}
+        onRetryOperations={dashboard.refreshOperations}
+        operationsError={dashboard.operationsError}
+        pendingVisitCount={dashboard.pendingVisitCount}
+      />
+
+      <DashboardProfitabilityAlerts
+        error={dashboard.profitability.error}
+        isLoading={dashboard.profitability.isLoading}
+        onRetry={dashboard.profitability.refetch}
+        results={dashboard.profitability.profitability}
       />
     </OpsPageShell>
   );

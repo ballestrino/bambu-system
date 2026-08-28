@@ -16,6 +16,16 @@
   --color-sidebar-primary: var(--sidebar-primary);
   --color-sidebar-foreground: var(--sidebar-foreground);
   --color-sidebar: var(--sidebar);
+  --color-ops-amber: var(--ops-amber);
+  --color-ops-bamboo: var(--ops-bamboo);
+  --color-ops-bamboo-soft: var(--ops-bamboo-soft);
+  --color-ops-bamboo-strong: var(--ops-bamboo-strong);
+  --color-ops-border: var(--ops-border);
+  --color-ops-canvas: var(--ops-canvas);
+  --color-ops-surface: var(--ops-surface);
+  --color-ops-surface-muted: var(--ops-surface-muted);
+  --color-ops-text: var(--ops-text);
+  --color-ops-text-muted: var(--ops-text-muted);
   --color-chart-5: var(--chart-5);
   --color-chart-4: var(--chart-4);
   --color-chart-3: var(--chart-3);
@@ -48,6 +58,21 @@
 
 :root {
   --radius: 0.625rem;
+  --ops-amber: #b7791f;
+  --ops-bamboo: #53985e;
+  --ops-bamboo-soft: #eaf5ec;
+  --ops-bamboo-strong: #244c2d;
+  --ops-border: #dce4d9;
+  --ops-canvas: #f5f7f3;
+  --ops-surface: #ffffff;
+  --ops-surface-muted: #eff3ed;
+  --ops-text: #18251d;
+  --ops-text-muted: #667269;
+  --ops-radius-control: 0.625rem;
+  --ops-radius-dialog: 1rem;
+  --ops-radius-panel: 0.875rem;
+  --ops-radius-row: 0.75rem;
+  --ops-shadow-elevated: 0 20px 45px rgb(24 37 29 / 0.14);
   --background: oklch(1 0 0);
   --foreground: oklch(0.145 0 0);
   --card: oklch(1 0 0);
@@ -82,6 +107,17 @@
 }
 
 .dark {
+  --ops-amber: #d0a85f;
+  --ops-bamboo: #91ad71;
+  --ops-bamboo-soft: rgb(145 173 113 / 0.14);
+  --ops-bamboo-strong: #d4e3b8;
+  --ops-border: rgb(145 173 113 / 0.22);
+  --ops-canvas: #121811;
+  --ops-surface: #1a211a;
+  --ops-surface-muted: #202920;
+  --ops-text: #f0f3e8;
+  --ops-text-muted: #abb6a5;
+  --ops-shadow-elevated: 0 22px 50px rgb(0 0 0 / 0.32);
   --background: oklch(0.18 0.012 130);
   --foreground: oklch(0.95 0.025 115);
   --card: oklch(0.225 0.017 130);

@@ -64,23 +64,23 @@ export const PendingVisitsPanel = ({
             <CalendarCheck2 className="h-5 w-5" />
           </span>
           <span className="min-w-0">
-            <span className="text-xs font-semibold uppercase tracking-wide text-[#53985E]">
+            <span className="text-xs font-semibold tracking-wide text-ops-bamboo-strong">
               Siguiente acción
             </span>
-            <span className="block text-base font-semibold text-[#18251D] dark:text-[#F0F3E8]">
+            <span className="block text-base font-semibold text-ops-text">
               {title}
             </span>
             <span className="block text-sm text-muted-foreground">{description}</span>
           </span>
         </span>
-        <span className="flex items-center gap-2 text-sm font-medium text-[#244C2D] dark:text-[#D4E3B8]">
+        <span className="flex items-center gap-2 text-sm font-medium text-ops-bamboo-strong">
           {isLoading ? "Cargando" : `${visits.length} ${resolvedCountLabel}`}
           <ChevronDown className={cn("h-4 w-4 transition-transform", isOpen && "rotate-180")} />
         </span>
       </button>
 
       {isOpen ? (
-        <div className="space-y-3 border-t border-[#53985E]/15 p-4 md:p-5">
+        <div className="space-y-3 border-t border-ops-border p-4 md:p-5">
           {isLoading ? (
             <div className="min-h-32 animate-pulse rounded-md bg-muted/40" />
           ) : visits.length ? (
@@ -90,12 +90,12 @@ export const PendingVisitsPanel = ({
               );
 
               return (
-                <article key={occurrence.id} className="rounded-md border border-[#53985E]/15 bg-white p-4 shadow-sm shadow-[#244C2D]/5 dark:bg-[#1A211A]">
+                <article key={occurrence.id} className="rounded-[var(--ops-radius-row)] bg-ops-surface-muted p-4">
                   <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
                     <div className="min-w-0 space-y-3">
                       <div className="flex flex-wrap items-center gap-2">
                         <OccurrenceStatusBadge status={occurrence.status} />
-                        <span className="rounded-full bg-[#F7FBF7] px-3 py-1 text-xs font-medium text-[#244C2D] dark:bg-[#91AD71]/15 dark:text-[#D4E3B8]">
+                        <span className="rounded-full bg-ops-bamboo-soft px-3 py-1 text-xs font-medium text-ops-bamboo-strong">
                           {formatDate(occurrence.scheduledStartAt)}
                         </span>
                       </div>

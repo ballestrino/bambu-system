@@ -12,6 +12,7 @@ import {
   type OpsFilterChip,
 } from "@/components/ops/shared";
 import type { OpsJobListItem } from "@/components/ops/types";
+import { SearchableSelect } from "@/components/ui/searchable-select";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 type PaymentsFiltersProps = {
@@ -63,19 +64,17 @@ export const PaymentsFilters = ({
 
   const jobField = (
     <OpsFilterField label="Trabajo">
-      <Select value={jobId} onValueChange={onJobIdChange}>
-        <SelectTrigger className={opsFilterControlClass}>
-          <SelectValue />
-        </SelectTrigger>
-        <SelectContent>
-          <SelectItem value="ALL">Todos</SelectItem>
-          {jobs.map((job) => (
-            <SelectItem key={job.id} value={job.id}>
-              {job.name}
-            </SelectItem>
-          ))}
-        </SelectContent>
-      </Select>
+      <SearchableSelect
+        aria-label="Filtrar por trabajo"
+        className={opsFilterControlClass}
+        onValueChange={onJobIdChange}
+        options={[
+          { label: "Todos", value: "ALL" },
+          ...jobs.map((job) => ({ label: job.name, value: job.id })),
+        ]}
+        searchPlaceholder="Buscar trabajo..."
+        value={jobId}
+      />
     </OpsFilterField>
   );
 

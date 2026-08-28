@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, type ComponentProps } from "react";
 import { LoaderCircle, Pencil, Plus } from "lucide-react";
 
 import {
@@ -27,6 +27,7 @@ import { Dialog, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
+import { cn } from "@/lib/utils";
 
 type EditableEmployee = Pick<
   OpsEmployee | OpsEmployeeDetail,
@@ -47,8 +48,14 @@ const getInitialState = (employee?: EditableEmployee) => ({
 
 export const EmployeeFormDialog = ({
   employee,
+  triggerClassName,
+  triggerLabel,
+  triggerVariant,
 }: {
   employee?: EditableEmployee;
+  triggerClassName?: string;
+  triggerLabel?: string;
+  triggerVariant?: ComponentProps<typeof Button>["variant"];
 }) => {
   const [open, setOpen] = useState(false);
   const [formState, setFormState] = useState(getInitialState(employee));
@@ -102,14 +109,26 @@ export const EmployeeFormDialog = ({
     >
       <DialogTrigger asChild>
         {employee ? (
-          <Button variant="outline" size="sm" className={dashboardSecondaryActionClass}>
+          <Button
+            variant={triggerVariant ?? "outline"}
+            size="sm"
+            className={cn(dashboardSecondaryActionClass, triggerClassName)}
+          >
             <Pencil className="h-4 w-4" />
-            Editar
+            {triggerLabel ?? "Editar"}
           </Button>
         ) : (
-          <Button className={dashboardPrimaryActionClass}>
+          <Button
+            variant={triggerVariant ?? "default"}
+            className={cn(
+              triggerVariant === "outline"
+                ? dashboardSecondaryActionClass
+                : dashboardPrimaryActionClass,
+              triggerClassName
+            )}
+          >
             <Plus className="h-4 w-4" />
-            Nuevo empleado
+            {triggerLabel ?? "Nuevo empleado"}
           </Button>
         )}
       </DialogTrigger>

@@ -13,9 +13,9 @@ export const DashboardQuickActions = ({
   onRefresh: () => Promise<unknown> | void;
 }) => (
   <div className="flex flex-wrap gap-2">
-    <OpsRefreshButton isRefreshing={isRefreshing} onRefresh={onRefresh} />
-    <JobFormDialog />
     <JobOccurrenceDialog triggerLabel="Nueva visita" />
-    <EmployeeFormDialog />
+    <JobFormDialog triggerVariant="outline" />
+    <EmployeeFormDialog triggerVariant="outline" />
+    <OpsRefreshButton isRefreshing={isRefreshing} onRefresh={onRefresh} />
   </div>
 );

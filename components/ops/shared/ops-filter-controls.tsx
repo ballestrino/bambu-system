@@ -24,13 +24,13 @@ export type OpsFilterChip = {
 };
 
 export const opsFilterControlClass =
-  "h-12! min-h-12 w-full rounded-full border-[#53985E]/15 bg-white px-4 py-0 text-[#244C2D] shadow-sm shadow-[#244C2D]/5 transition-colors hover:bg-[#F7FBF7] focus:ring-[#53985E]/15 data-[size=default]:h-12! dark:bg-[#1A211A] dark:text-[#D4E3B8]";
+  "h-11! min-h-11 w-full rounded-[var(--ops-radius-control)] border-ops-border bg-ops-surface px-3 py-0 text-ops-text shadow-none transition-colors hover:bg-ops-surface-muted focus:border-ops-bamboo focus:ring-ops-bamboo/20 data-[size=default]:h-11!";
 
 export const opsFilterInputClass =
-  "h-12 min-h-12 w-full rounded-full border-[#53985E]/15 bg-white px-4 py-0 text-sm text-[#244C2D] shadow-sm shadow-[#244C2D]/5 transition-colors hover:bg-[#F7FBF7] focus-visible:ring-[#53985E]/15 dark:bg-[#1A211A] dark:text-[#D4E3B8]";
+  "h-11 min-h-11 w-full rounded-[var(--ops-radius-control)] border-ops-border bg-ops-surface px-3 py-0 text-sm text-ops-text shadow-none transition-colors hover:bg-ops-surface-muted focus-visible:border-ops-bamboo focus-visible:ring-ops-bamboo/20";
 
 export const opsFilterToggleClass =
-  "flex h-12 min-h-12 w-full items-center justify-between gap-3 rounded-full border border-[#53985E]/15 bg-white px-4 py-0 text-sm text-[#244C2D] shadow-sm shadow-[#244C2D]/5 md:w-56 dark:bg-[#1A211A] dark:text-[#D4E3B8]";
+  "flex h-11 min-h-11 w-full items-center justify-between gap-3 rounded-[var(--ops-radius-control)] border border-ops-border bg-ops-surface px-3 py-0 text-sm text-ops-text shadow-none md:w-56";
 
 export const opsSwitchClass =
   "data-[state=checked]:bg-[#53985E] data-[state=unchecked]:bg-[#E2EADF] dark:data-[state=unchecked]:bg-[#2D372C]";
@@ -72,21 +72,21 @@ export const OpsSearchInput = ({
 }) => (
   <div
     className={cn(
-      "group flex h-12 min-w-0 flex-1 items-center gap-2 rounded-full border border-[#53985E]/15 bg-white px-4 text-[#244C2D] shadow-sm shadow-[#244C2D]/5 transition-all focus-within:ring-2 focus-within:ring-[#53985E]/15 dark:bg-[#1A211A] dark:text-[#D4E3B8]",
+      "group flex h-11 min-w-0 flex-1 items-center gap-2 rounded-[var(--ops-radius-control)] border border-ops-border bg-ops-surface px-3 text-ops-text shadow-none transition-all focus-within:border-ops-bamboo focus-within:ring-2 focus-within:ring-ops-bamboo/20",
       className
     )}
   >
-    <Search className="h-4 w-4 shrink-0 text-[#53985E] transition-colors group-focus-within:text-[#244C2D] dark:group-focus-within:text-[#D4E3B8]" />
+    <Search className="h-4 w-4 shrink-0 text-ops-bamboo transition-colors group-focus-within:text-ops-bamboo-strong" />
     <Input
       value={value}
       onChange={(event) => onChange(event.target.value)}
       placeholder={placeholder}
-      className="h-full min-w-0 border-0 bg-transparent px-0 py-0 text-sm leading-none shadow-none outline-none placeholder:text-[#244C2D]/45 focus-visible:border-0 focus-visible:ring-0 focus-visible:ring-offset-0 dark:placeholder:text-[#D4E3B8]/45"
+      className="h-full min-w-0 border-0 bg-transparent px-0 py-0 text-sm leading-none shadow-none outline-none placeholder:text-ops-text-muted focus-visible:border-0 focus-visible:ring-0 focus-visible:ring-offset-0"
     />
     {value ? (
       <button
         type="button"
-        className="rounded-full p-1 text-muted-foreground transition-colors hover:bg-[#53985E]/10 hover:text-[#244C2D] dark:hover:text-[#D4E3B8]"
+        className="rounded-full p-1 text-muted-foreground transition-colors hover:bg-ops-bamboo-soft hover:text-ops-bamboo-strong"
         onClick={() => onChange("")}
       >
         <X className="h-3.5 w-3.5" />
@@ -121,7 +121,7 @@ export const OpsFilterChips = ({
           {chip.onRemove ? (
             <button
               type="button"
-              className="rounded-full p-0.5 hover:bg-[#53985E]/10"
+          className="rounded-full p-0.5 hover:bg-ops-bamboo-soft"
               onClick={chip.onRemove}
             >
               <X className="h-3 w-3" />
@@ -158,11 +158,11 @@ export const OpsFilterSheet = ({
 }) => (
   <Sheet>
     <SheetTrigger asChild>
-      <Button variant="outline" className="shrink-0 border-[#53985E]/25">
+      <Button variant="outline" className="min-h-11 shrink-0 border-ops-border shadow-none">
         <SlidersHorizontal className="h-4 w-4" />
         Filtros
         {activeCount ? (
-          <Badge className="ml-1 bg-[#244C2D] text-white">{activeCount}</Badge>
+          <Badge className="ml-1 bg-ops-bamboo-strong text-white dark:text-[#18251D]">{activeCount}</Badge>
         ) : null}
       </Button>
     </SheetTrigger>

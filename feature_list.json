@@ -129,11 +129,13 @@
       "id": 9,
       "name": "ops_occurrence_scheduling_refactor",
       "title": "Separate ops occurrence reads, generation, and scheduling UI",
-      "description": "Make job occurrence reads and generation commands explicit, then split the occurrence dialog and scheduling helpers by responsibility.",
+      "description": "Make job occurrence reads and generation commands explicit, split the occurrence dialog and scheduling helpers by responsibility, and improve measured Visits loading under the current infrastructure.",
       "acceptance": [
-        "getJobOccurrences is read-only or the generation side effect is moved behind an explicitly named command",
+        "getJobOccurrences is strictly read-only and occurrence generation or persistence is moved behind an explicitly named idempotent command",
         "Occurrence generation, persistence, employees, and recurrence math have clear module ownership",
         "JobOccurrenceDialog is split into dialog shell, form, form state, and submit helpers where useful",
+        "Jobs and employees required by JobOccurrenceDialog load on demand instead of during every Visits page load",
+        "Three equivalent authenticated Visits loads are measured under the same infrastructure and the main-content median is at most 4 seconds, or the remaining external bottleneck is documented with evidence",
         "Scheduling-related authored files stay under 200 lines unless an exception is explicitly justified",
         "Manual smoke covers monthly calendar load, create visit, edit visit, split occurrence, and archive flows"
       ],
@@ -351,6 +353,118 @@
         "Official-budget bibliography stays attached per revision and remains visible while conversational or manual edits continue",
         "Perfecta: automatizar similares remains a separate explicit confirmation and official-price grounding, attachment, safety, sender, recipient, and protected-literal guardrails still apply",
         "Focused revision, restore, manual-edit, feedback, copy, external-use, send, source-preservation, and automation-separation checks plus Prisma, TypeScript, lint, build, and authenticated responsive browser evidence are recorded"
+      ],
+      "status": "done"
+    },
+    {
+      "id": 24,
+      "name": "ops_visual_foundation_daily_dashboard",
+      "title": "Create the operations visual foundation and daily dashboard",
+      "description": "Reduce decorative green borders and shadows, establish accessible operations tokens, and reorganize the dashboard around the administrator's daily work.",
+      "acceptance": [
+        "Shared --ops-* tokens define canvas, surfaces, neutral borders, text, bamboo interaction colors, attention, focus, radii, and elevation for light and dark themes",
+        "Static panels and toolbars use neutral borders or spacing without permanent decorative shadows, and nested content avoids double-card borders",
+        "Primary buttons use one solid bamboo treatment without gradients, secondary and ghost actions are visually distinct, and each section exposes at most one primary action",
+        "The dashboard shows today's actionable visits and coordination work before monthly summaries and profitability, including useful content in the first 390x844 viewport",
+        "Related metrics are grouped by meaning instead of rendered as equal-priority cards",
+        "Dashboard sections expose retryable errors without presenting failed queries as real zero values",
+        "Contrast, visible focus, 44-pixel touch targets, light and dark themes, lint, build when available, and authenticated desktop/mobile browser smoke are recorded"
+      ],
+      "status": "done"
+    },
+    {
+      "id": 25,
+      "name": "ops_contextual_period_locale",
+      "title": "Make operations period controls contextual and localize dates",
+      "description": "Show the monthly period control only where it affects data, remove duplicate calendar navigation, and make operational dates consistently Spanish for Uruguay.",
+      "acceptance": [
+        "OpsPeriodControl is rendered only on routes or sections whose data depends on the selected month and Employees does not show an irrelevant period selector",
+        "Visits has one coherent monthly navigation instead of a global month input plus separate calendar navigation",
+        "The selected period is synchronized with the URL where it improves navigation, sharing, or return behavior",
+        "The document language, calendar locale, month labels, weekdays, and week start use es-UY conventions",
+        "Visits selects today by default in the current month and uses the first visible day only for another month",
+        "Desktop and 390x844 browser smoke confirms no duplicated controls, overflow, or English date labels"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": 26,
+      "name": "ops_visits_guided_workflow",
+      "title": "Guide visit planning and completion workflows",
+      "description": "Simplify Visits filters and separate scheduling intent from completion intent without changing the approved occurrence data model or behavior.",
+      "acceptance": [
+        "Calendar remains the initial Visits view and Cards is presented to users as Tarjetas",
+        "Mobile keeps quick filter chips visible and moves advanced filters into a sheet without hiding active-filter state or clear-all",
+        "JobOccurrenceDialog exposes explicit schedule and complete intents while persisting through the existing occurrence contracts",
+        "Creating or editing a visit below the md breakpoint opens a shadcn bottom Sheet matching the Visits filter sheet, while desktop uses a centered dialog",
+        "The visit sheet has a rounded top, bounded viewport height, safe-area padding, an internally scrollable form body, and a stable action footer with Cancelar, Guardar visita, and the existing confirmed delete flow when editing",
+        "Dialog and sheet presentations share one occurrence form, state initialization, validation, submit, and remove behavior so responsive rendering cannot change persistence outcomes",
+        "Separate date and time inputs, automatic end-date copy, four status cards, and the current archived-assigned-employee behavior are preserved",
+        "The exact-date filter remains available only in List and Tarjetas views",
+        "Loading, error, retry, empty, long-dialog, keyboard, desktop, and 390x844 browser states are verified"
+      ],
+      "status": "in_progress"
+    },
+    {
+      "id": 27,
+      "name": "ops_coordination_lists",
+      "title": "Turn jobs and employees into coordination-first lists",
+      "description": "Make Jobs and Employees faster to scan by prioritizing the next operational action, shared query state, responsive density, and explicit failures.",
+      "acceptance": [
+        "Jobs and Employees share an OpsQueryState contract for search, filters, active chips, URL behavior, and clear state",
+        "Search feedback begins after approximately 350 milliseconds rather than the current long delay",
+        "Desktop uses compact scannable rows and mobile uses compact cards without horizontal overflow",
+        "Jobs prioritize next occurrence, team coverage, attention, and profitability while Employees prioritize status, next assignment, and contact details",
+        "Each record exposes one primary action and moves secondary actions into an accessible overflow menu",
+        "The jobs list DTO provides nextOccurrence and activeAssignmentCount without per-row queries",
+        "Loading, retryable error, true empty, filtered empty, lint, build when available, and authenticated responsive browser smoke are recorded"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": 28,
+      "name": "ops_finance_task_navigation",
+      "title": "Organize Finance around the active task",
+      "description": "Replace the long all-sections Finance page with direct section navigation and contextual actions while preserving established calculations and list behavior.",
+      "acceptance": [
+        "Finance shows one active Summary, Profitability, Receivables, Costs, or Payroll section at a time with desktop tabs and a mobile-native selector",
+        "Existing hashes or equivalent direct links open the requested Finance section and browser back or forward navigation remains coherent",
+        "Each section exposes one contextual primary action and cost configuration remains a secondary action",
+        "Internal list scrolling, status badges, and the local Profitability collapse behavior are preserved",
+        "Operational cost categories and settings are read without upserts or other writes, using explicit initialization or a non-mutating fallback",
+        "Financial rules, calculations, permissions, and persistence contracts do not change",
+        "Loading, retryable error, empty, direct-link, keyboard, desktop, and 390x844 browser states plus lint and build when available are verified"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": 29,
+      "name": "ops_visits_mobile_controls_compaction",
+      "title": "Compact Visits controls and cards on mobile",
+      "description": "Keep the monthly selector usable above Visits, move the remaining mobile filters into a bottom sheet, and compact visit summaries without changing operational behavior.",
+      "acceptance": [
+        "The monthly selector remains visible above Visits and fits one 390-pixel-wide row without horizontal overflow",
+        "Mobile Visits shows the result count and active chips outside a shadcn bottom sheet containing the contextual filters, clear-all, and close actions",
+        "Desktop keeps the expanded filter fields and existing monthly selector presentation",
+        "Exact-date filtering remains available only in List and Cards views and all filters continue to apply immediately",
+        "Visits, Realizadas, and Pendientes render as one compact horizontal mobile row while larger breakpoints keep the current metric cards",
+        "Calendar agenda cards show the planned time once and strengthen the employee label without changing its color",
+        "Harness, lint, and authenticated 390x844 plus desktop browser smoke are recorded"
+      ],
+      "status": "done"
+    },
+    {
+      "id": 30,
+      "name": "ops_searchable_entity_selects",
+      "title": "Add search to long operational selectors",
+      "description": "Provide one shared shadcn searchable selector for long entity lists across Operations without changing short enumerated selects or data contracts.",
+      "acceptance": [
+        "A shared single-value SearchableSelect uses the existing shadcn Popover and Command primitives with keyboard navigation, empty feedback, and a bounded scroll area",
+        "Search is case- and accent-insensitive and matches the visible entity label without changing stored values",
+        "Long job, employee, and cost-category selectors across Visits, Finance, assignments, and employee visit history use the shared control",
+        "Special choices such as Todos, Sin asignar, and Sin trabajo remain selectable while short status and frequency selectors remain unchanged",
+        "The searchable control works inside the mobile Visits filter bottom sheet and in desktop forms without horizontal overflow",
+        "Harness, lint, Prisma validation, and authenticated desktop plus 390x844 browser smoke are recorded"
       ],
       "status": "done"
     }

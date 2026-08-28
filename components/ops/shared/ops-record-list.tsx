@@ -38,7 +38,7 @@ export const OpsRecordItem = ({
   <article
     className={cn(
       opsSurface.panel,
-      "grid gap-4 p-4 transition-colors hover:border-[#53985E]/35 md:grid-cols-[auto_minmax(0,1fr)_auto]",
+      "grid gap-4 p-4 transition-colors hover:bg-ops-surface-muted md:grid-cols-[auto_minmax(0,1fr)_auto]",
       className
     )}
   >
@@ -46,7 +46,7 @@ export const OpsRecordItem = ({
     <div className="min-w-0 space-y-2">
       <div className="flex flex-wrap items-start gap-2">
         <div className="min-w-0 flex-1">
-          <h3 className="truncate text-base font-semibold text-[#18251D] dark:text-[#F0F3E8]">
+          <h3 className="truncate text-base font-semibold text-ops-text">
             {title}
           </h3>
           {subtitle ? (

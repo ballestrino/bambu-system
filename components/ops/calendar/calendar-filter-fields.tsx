@@ -16,6 +16,7 @@ import {
   opsSwitchClass,
 } from "@/components/ops/shared";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { SearchableSelect } from "@/components/ui/searchable-select";
 import { Switch } from "@/components/ui/switch";
 import { occurrenceStatusValues } from "@/schemas/ops";
 
@@ -45,23 +46,31 @@ export const CalendarFilterFields = ({
       </OpsFilterField>
     ) : null}
     <OpsFilterField label="Trabajo">
-      <Select value={filters.jobId} onValueChange={(jobId) => onChange({ jobId })}>
-        <SelectTrigger aria-label="Filtrar por trabajo" className={opsFilterControlClass}><SelectValue /></SelectTrigger>
-        <SelectContent>
-          <SelectItem value={ALL_CALENDAR_FILTER}>Todos los trabajos</SelectItem>
-          {jobOptions.map((job) => <SelectItem key={job.id} value={job.id}>{job.name}</SelectItem>)}
-        </SelectContent>
-      </Select>
+      <SearchableSelect
+        aria-label="Filtrar por trabajo"
+        className={opsFilterControlClass}
+        onValueChange={(jobId) => onChange({ jobId })}
+        options={[
+          { label: "Todos los trabajos", value: ALL_CALENDAR_FILTER },
+          ...jobOptions.map((job) => ({ label: job.name, value: job.id })),
+        ]}
+        searchPlaceholder="Buscar trabajo..."
+        value={filters.jobId}
+      />
     </OpsFilterField>
     <OpsFilterField label="Empleada">
-      <Select value={filters.employeeId} onValueChange={(employeeId) => onChange({ employeeId })}>
-        <SelectTrigger aria-label="Filtrar por empleada" className={opsFilterControlClass}><SelectValue /></SelectTrigger>
-        <SelectContent>
-          <SelectItem value={ALL_CALENDAR_FILTER}>Todas las empleadas</SelectItem>
-          <SelectItem value={UNASSIGNED_EMPLOYEE_FILTER}>Sin asignar</SelectItem>
-          {employeeOptions.map((employee) => <SelectItem key={employee.id} value={employee.id}>{employee.name}</SelectItem>)}
-        </SelectContent>
-      </Select>
+      <SearchableSelect
+        aria-label="Filtrar por empleada"
+        className={opsFilterControlClass}
+        onValueChange={(employeeId) => onChange({ employeeId })}
+        options={[
+          { label: "Todas las empleadas", value: ALL_CALENDAR_FILTER },
+          { label: "Sin asignar", value: UNASSIGNED_EMPLOYEE_FILTER },
+          ...employeeOptions.map((employee) => ({ label: employee.name, value: employee.id })),
+        ]}
+        searchPlaceholder="Buscar empleada..."
+        value={filters.employeeId}
+      />
     </OpsFilterField>
     <OpsFilterField label="Estado">
       <Select value={filters.status} onValueChange={(status) => onChange({ status: status as CalendarFilters["status"] })}>

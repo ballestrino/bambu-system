@@ -225,3 +225,47 @@
   and authenticated desktop/mobile fixture smoke passed without console errors
   or horizontal overflow. Temporary QA assets were removed; no email was sent
   and no draft, rule, or queue record was left behind.
+
+## 2026-08-27 - Feature 24 operations visual foundation and daily dashboard
+
+- Added light/dark Operations tokens and replaced decorative green borders,
+  static shadows, gradients, and pill-shaped controls with neutral surfaces,
+  consistent radii, solid primary actions, and accessible focus treatments.
+- Reordered the dashboard around daily visits, grouped operational and
+  financial summaries, and secondary profitability information.
+- Added retryable section errors so query failures cannot appear as real zero
+  values, and split dashboard query orchestration into a focused hook.
+- Lint, production build/TypeScript, final init, contrast checks, and
+  authenticated desktop/mobile browser smoke passed in light and dark themes.
+- No database, permission, business-rule, commit, push, deploy, or production
+  change was made. Feature 25 remains pending and was not started.
+
+## 2026-08-28 - Feature 29 Visits mobile controls and card compaction
+
+- Kept the monthly selector visible in one mobile row and moved only the other
+  Visits filters into a shadcn bottom sheet with immediate state, active chips,
+  clear-all, `Listo`, and Escape behavior.
+- Compacted Visitas, Realizadas, and Pendientes into one mobile row, removed the
+  duplicated planned time from agenda cards, and strengthened employee text
+  without changing its color.
+- Final init passed harness, Prisma validation, and lint. Authenticated 390x844
+  and desktop browser smoke passed with no horizontal overflow or console
+  errors; Lista/Cards kept exact date and Calendario did not expose it.
+- No query, schema, persistence, database, permission, commit, push, deploy, or
+  production change was made. Features 25 through 28 remain pending.
+
+## 2026-08-28 - Feature 30 searchable operational entity selectors
+
+- Added one shared shadcn Popover + Command single selector with bounded
+  scrolling, keyboard selection, empty feedback, and case- plus
+  accent-insensitive search.
+- Migrated long work, employee, and cost-category choices throughout Visits,
+  Finance, assignments, and employee visit history while leaving short status
+  and frequency enumerations unchanged.
+- Final init passed harness, Prisma validation, and lint. Authenticated 390x844
+  and desktop browser smoke passed inside the Visits filter sheet, the Create
+  visit dialog, and Receivables with no overflow or console errors.
+- Planned the Edit visit mobile bottom sheet in pending Feature 26 with a shared
+  form/state contract, scrollable body, stable footer, safe-area handling, and
+  unchanged desktop/create presentations. No database, commit, push, deploy, or
+  production change was made.
