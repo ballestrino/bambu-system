@@ -44,6 +44,7 @@ export const FinancialPage = () => {
           <FinancialActions
             isProfitabilityFetching={profitabilityQuery.isFetching}
             onRefreshProfitability={profitabilityQuery.refetch}
+            summary={summary}
             workspace={workspace}
           />
         }

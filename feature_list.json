@@ -403,7 +403,7 @@
         "The exact-date filter remains available only in List and Tarjetas views",
         "Loading, error, retry, empty, long-dialog, keyboard, desktop, and 390x844 browser states are verified"
       ],
-      "status": "in_progress"
+      "status": "pending"
     },
     {
       "id": 27,
@@ -465,6 +465,21 @@
         "Special choices such as Todos, Sin asignar, and Sin trabajo remain selectable while short status and frequency selectors remain unchanged",
         "The searchable control works inside the mobile Visits filter bottom sheet and in desktop forms without horizontal overflow",
         "Harness, lint, Prisma validation, and authenticated desktop plus 390x844 browser smoke are recorded"
+      ],
+      "status": "done"
+    },
+    {
+      "id": 31,
+      "name": "ops_finance_pdf_export",
+      "title": "Export monthly Finance data to PDF",
+      "description": "Export the selected Finance month as a polished PDF with recorded income, expenses, result, and movement detail.",
+      "acceptance": [
+        "Finance exposes a clear PDF export action for the currently selected month",
+        "The PDF summarizes recorded income, recorded expenses, net result, and margin using the same calculations as the Finance page",
+        "The PDF details client payments, operational costs, and employee payments with useful business labels, dates, references, amounts, and statuses",
+        "Voided movements remain visible as history but are clearly marked and excluded from totals",
+        "The document uses a polished multi-page layout with period, generation date, page numbers, stable filename, and readable empty states",
+        "Focused PDF content checks, TypeScript, lint, render inspection, and a Finance UI smoke are recorded"
       ],
       "status": "done"
     },

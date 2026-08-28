@@ -280,3 +280,18 @@
 - TypeScript, full lint, harness, `git diff --check`, and final init passed.
 - Feature 31 Finance PDF work remains preserved and pending. No database,
   commit, push, deploy, or production change was made.
+
+## 2026-08-28 - Feature 31 monthly Finance PDF export
+
+- Added a visible `Exportar PDF` action for the currently selected Finance
+  month using the workspace data and the same recorded totals as the screen.
+- The branded multi-page report summarizes income, expenses, result, and
+  margin, then details client payments, operational costs, and employee
+  payments with dates, references, notes, statuses, and payroll periods.
+- Voided movements remain visible in a distinct historical treatment and are
+  excluded from totals. Long labels wrap, table headers repeat, and every page
+  has period context and numbering.
+- Focused checks, TypeScript, lint, harness, production build, authenticated
+  browser smoke, and visual Poppler inspection of one- and four-page reports
+  passed. Temporary render artifacts were removed; no database, commit, push,
+  deploy, or production change was made.
