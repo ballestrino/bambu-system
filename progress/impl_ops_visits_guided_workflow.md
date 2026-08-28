@@ -15,14 +15,20 @@ Status: in progress
   status, schedule-rule, employee, and note behavior.
 - Edit keeps the confirmed delete flow. Mobile places the destructive action
   below the primary Cancelar/Guardar row to reduce accidental taps.
-- Corrected the mobile status-selection regression shown in follow-up evidence:
-  the Sheet now uses explicit handle/header/body/footer grid rows, overrides the
+- The Sheet uses explicit handle/header/body/footer grid rows, overrides the
   base `h-auto`, and no longer inherits `SheetFooter`'s `mt-auto`. The form body
   remains the only flexible, scrollable row and the actions stay at the bottom.
+- A later user report confirmed the status-selection jump already existed
+  before this Sheet. Its actual focus target was the clipped 1 px `sr-only`
+  radio; mobile browsers could reanchor the nested scroller when it received
+  focus. The radio now fills the visible card while remaining transparent and
+  native, with its focus ring delegated to the card through `peer` styles.
 
 ## Verification
 
 - PASS: `pnpm check:occurrence-dialog`.
+- PASS: focused regression assertion requires the native status radio to cover
+  its visible card and rejects a clipped `sr-only` focus target.
 - PASS: `.\node_modules\.bin\tsc.cmd --noEmit`.
 - PASS: focused ESLint for the three changed occurrence shell files.
 - PASS: full `pnpm lint`.
@@ -41,6 +47,8 @@ Status: in progress
 - The temporary public smoke route, Playwright browser session, and generated
   browser artifacts were removed.
 - No visit was created, edited, deleted, or submitted during verification.
-- No database, commit, push, deploy, or production state was changed.
+- Approved Operations work was committed locally in `80b21d6`; the focus fix
+  is intentionally isolated in its own follow-up commit.
+- No database write, push, deploy, or production state was changed.
 - Feature 26 remains `in_progress` because its broader guided-workflow scope
   and required authenticated responsive smoke are not yet closed.

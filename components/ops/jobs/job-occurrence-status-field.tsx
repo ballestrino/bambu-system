@@ -13,6 +13,9 @@ import { occurrenceStatusValues } from "@/schemas/ops";
 
 type OccurrenceStatus = (typeof occurrenceStatusValues)[number];
 
+export const occurrenceStatusInputClass =
+  "peer absolute inset-0 z-10 h-full w-full cursor-pointer opacity-0";
+
 export const JobOccurrenceStatusField = ({
   onChange,
   value,
@@ -30,10 +33,10 @@ export const JobOccurrenceStatusField = ({
           const isSelected = value === status;
 
           return (
-            <label key={status} className="cursor-pointer">
+            <label key={status} className="relative block cursor-pointer">
               <input
                 checked={isSelected}
-                className="sr-only"
+                className={occurrenceStatusInputClass}
                 name={groupName}
                 type="radio"
                 value={status}
@@ -41,7 +44,7 @@ export const JobOccurrenceStatusField = ({
               />
               <span
                 className={cn(
-                  "flex min-h-14 items-center justify-center rounded-md border px-2 py-2 text-center text-xs font-medium transition-all",
+                  "flex min-h-14 items-center justify-center rounded-md border px-2 py-2 text-center text-xs font-medium transition-colors peer-focus-visible:ring-2 peer-focus-visible:ring-ops-bamboo/50 peer-focus-visible:ring-offset-2 peer-focus-visible:ring-offset-ops-canvas",
                   isSelected
                     ? cn(opsToneClasses[config.tone], "ring-2 ring-current/20")
                     : "border-border bg-background text-muted-foreground hover:border-[#53985E]/30 hover:bg-[#F7FBF7] dark:hover:bg-[#1A211A]"

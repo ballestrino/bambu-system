@@ -30,12 +30,17 @@ Status: active
 - Temporary smoke route, browser session, and generated artifacts were removed.
 - Final `.\init.ps1` passed harness validation, Prisma validation, and full
   ESLint with exactly Feature 26 in progress.
-- Follow-up mobile correction: replaced the competing Sheet flex/`h-auto` and
-  footer `mt-auto` layout with an explicit four-row grid and a non-growing
-  footer so status selection cannot leave unused space below the actions.
-- Follow-up verification passed occurrence-dialog checks, focused ESLint,
-  TypeScript, and final `.\init.ps1` (harness, Prisma, and full lint).
-- No database, commit, push, deploy, or production change is in scope.
+- The four-row Sheet grid keeps the actions stable, but the reported status
+  selection issue predates the responsive Sheet and was not caused by it.
+- Root correction: the native status radio now covers its visible card instead
+  of using a clipped 1 px `sr-only` focus target. Mobile focus therefore stays
+  on the tapped card and cannot reanchor the nested form scroller.
+- Existing approved Operations work was consolidated locally in commit
+  `80b21d6`; the status focus correction is being kept in a separate fix commit.
+- Focus correction verification passed `pnpm check:occurrence-dialog`, targeted
+  ESLint, TypeScript, and final `.\init.ps1` (harness, Prisma, full lint).
+- Local commits are authorized for this correction. No database write, push,
+  deploy, or production change is in scope.
 
 ## Last Closed Feature
 

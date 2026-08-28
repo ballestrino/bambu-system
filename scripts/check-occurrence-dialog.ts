@@ -4,12 +4,26 @@ import {
   updateOccurrenceDateTimeRange,
   updateOccurrenceScheduledTime,
 } from "@/components/ops/jobs/job-occurrence-dialog-utils";
+import { occurrenceStatusInputClass } from "@/components/ops/jobs/job-occurrence-status-field";
 import { shouldCompleteOccurrenceOnSave } from "@/components/ops/calendar/calendar-utils";
 import type { OpsOccurrence } from "@/components/ops/types";
 
 const assert = (condition: boolean, message: string) => {
   if (!condition) throw new Error(message);
 };
+
+const statusInputClassTokens = new Set(occurrenceStatusInputClass.split(/\s+/));
+
+assert(
+  ["absolute", "inset-0", "h-full", "w-full", "opacity-0"].every((token) =>
+    statusInputClassTokens.has(token)
+  ),
+  "Status radio does not cover its visible card"
+);
+assert(
+  !statusInputClassTokens.has("sr-only"),
+  "Status radio still uses a clipped focus target"
+);
 
 const synchronized = updateOccurrenceDateTimeRange({
   startValue: "",
