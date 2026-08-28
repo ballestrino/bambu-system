@@ -56,7 +56,15 @@ export const OpsDateFilterInput = ({
   className,
   ...props
 }: ComponentProps<typeof Input>) => (
-  <Input {...props} type="date" className={cn(opsFilterInputClass, className)} />
+  <Input
+    {...props}
+    type="date"
+    className={cn(
+      opsFilterInputClass,
+      "min-w-0 max-w-full [color-scheme:light] dark:[color-scheme:dark]",
+      className
+    )}
+  />
 );
 
 export const OpsSearchInput = ({

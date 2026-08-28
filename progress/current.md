@@ -39,8 +39,23 @@ Status: active
   `80b21d6`; the status focus correction is being kept in a separate fix commit.
 - Focus correction verification passed `pnpm check:occurrence-dialog`, targeted
   ESLint, TypeScript, and final `.\init.ps1` (harness, Prisma, full lint).
-- Local commits are authorized for this correction. No database write, push,
-  deploy, or production change is in scope.
+- The responsive Operations work and status-focus correction were published in
+  commits `80b21d6` and `0ba4b79` before this follow-up slice.
+- Follow-up for small and medium iPhones: the shared searchable entity selector
+  now opens as a viewport-bounded nested bottom Sheet below `md`, while desktop
+  retains the Popover. This covers create, edit, and Visits filters without
+  letting the iOS keyboard clip the search field or option list.
+- Visit date/time controls now stack structurally on mobile, expose visible
+  `Fecha` and `Hora` sublabels, and constrain Safari native controls to the
+  available width. Exact-date filters receive the same native-input width and
+  color-scheme safeguards.
+- PASS: targeted ESLint, TypeScript, `pnpm check:occurrence-dialog`,
+  `git diff --check`, and final `.\init.ps1` (harness, Prisma, full lint).
+- NOT COMPLETED: real mobile browser smoke. The Playwright CLI package resolver
+  stalled before opening its browser session and was stopped; no visual result
+  is being claimed.
+- These iPhone corrections remain local and uncommitted. No database write,
+  push, deploy, or production change is in scope for this slice.
 
 ## Last Closed Feature
 
