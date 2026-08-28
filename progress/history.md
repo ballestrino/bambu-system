@@ -269,3 +269,14 @@
   form/state contract, scrollable body, stable footer, safe-area handling, and
   unchanged desktop/create presentations. No database, commit, push, deploy, or
   production change was made.
+
+## 2026-08-28 - Feature 32 job form dialog trigger fix
+
+- Restored the shared create/edit job dialog trigger by forwarding the Radix
+  event, accessibility, and ref props through `JobFormTrigger` to `Button`.
+- Authenticated browser evidence first reproduced the inert button and then
+  confirmed both the complete Create dialog and a populated Edit dialog open
+  with no client console errors. The temporary Edit fixture was removed.
+- TypeScript, full lint, harness, `git diff --check`, and final init passed.
+- Feature 31 Finance PDF work remains preserved and pending. No database,
+  commit, push, deploy, or production change was made.

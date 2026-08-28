@@ -467,6 +467,19 @@
         "Harness, lint, Prisma validation, and authenticated desktop plus 390x844 browser smoke are recorded"
       ],
       "status": "done"
+    },
+    {
+      "id": 32,
+      "name": "job_form_dialog_trigger_fix",
+      "title": "Restore job form dialog triggers",
+      "description": "Fix the shared job form trigger so create and edit buttons open their dialog again.",
+      "acceptance": [
+        "Nuevo trabajo opens the job form dialog from the Jobs page",
+        "Editar and Editar trabajo open the populated job form dialog from list and detail surfaces",
+        "The shared trigger forwards Radix dialog event, accessibility, and ref props to the underlying button",
+        "Focused browser smoke and lint pass without changing job persistence contracts"
+      ],
+      "status": "done"
     }
   ]
 }
