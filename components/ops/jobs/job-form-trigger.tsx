@@ -13,19 +13,24 @@ export type JobFormTriggerProps = {
   triggerClassName?: string;
   triggerLabel?: string;
   triggerVariant?: ComponentProps<typeof Button>["variant"];
-};
+} & Omit<
+  ComponentProps<typeof Button>,
+  "children" | "className" | "size" | "variant"
+>;
 
 export const JobFormTrigger = ({
   isEditing = false,
   triggerClassName,
   triggerLabel,
   triggerVariant,
+  ...buttonProps
 }: JobFormTriggerProps) => {
   const Icon = isEditing ? Pencil : Plus;
   const useSecondaryStyle = isEditing || triggerVariant === "outline";
 
   return (
     <Button
+      {...buttonProps}
       className={cn(
         useSecondaryStyle
           ? dashboardSecondaryActionClass
