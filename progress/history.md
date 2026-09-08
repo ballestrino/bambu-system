@@ -295,3 +295,17 @@
   browser smoke, and visual Poppler inspection of one- and four-page reports
   passed. Temporary render artifacts were removed; no database, commit, push,
   deploy, or production change was made.
+
+## 2026-09-08 - Feature 33 payroll vacation salary counter
+
+- Added `vacationSalaryGenerated` to the shared payroll accruals: 1/12 of the
+  labor amount net of the base personal BPS contributions, exposed as
+  `VACATION_SALARY_ACCRUAL_DIVISOR` and `URUGUAY_VACATION_SALARY_NET_FACTOR`.
+- The employee view payroll summary now shows `Salario vacacional generado`
+  next to `Aguinaldo generado`, and the Pagos per-employee card shows the same
+  metric so the summary total keeps a breakdown.
+- Extended `scripts/check-finance.ts` with the new accrual, the null case, the
+  payroll row, and the summary total.
+- PASS: `pnpm check:finance`, TypeScript, full lint, and `next build`.
+- NOT RUN: authenticated browser smoke, which needs a signed-in session.
+- No database, deploy, or production state changed.

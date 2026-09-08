@@ -63,6 +63,7 @@ export const buildPayrollRows = (
     recordedTotal: number;
     suggestedAmount: number | null;
     transportationAmount: number;
+    vacationSalaryGenerated: number | null;
     visits: number;
     voidedTotal: number;
   }>();
@@ -84,6 +85,7 @@ export const buildPayrollRows = (
       recordedTotal: 0,
       suggestedAmount: null,
       transportationAmount: 0,
+      vacationSalaryGenerated: null,
       visits: 0,
       voidedTotal: 0,
     };
@@ -163,6 +165,10 @@ export const getPayrollSummary = (
     (sum, row) => sum + (row.bpsGenerated ?? 0),
     0
   );
+  const vacationSalaryGeneratedTotal = rows.reduce(
+    (sum, row) => sum + (row.vacationSalaryGenerated ?? 0),
+    0
+  );
 
   return {
     ...paymentSummary,
@@ -170,5 +176,6 @@ export const getPayrollSummary = (
     balanceTotal: suggestedTotal - paymentSummary.recordedTotal,
     bpsGeneratedTotal,
     suggestedTotal,
+    vacationSalaryGeneratedTotal,
   };
 };

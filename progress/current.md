@@ -8,26 +8,23 @@ Status: idle
 
 ## Last Closed Feature
 
-- Feature 31 - `ops_finance_pdf_export`.
-- Added `Exportar PDF` to the selected Finance month with the existing summary
-  calculations and already loaded cobros, costes, and employee payments.
-- The branded A4 report includes income, expenses, net result, margin, detailed
-  movements, voided-history treatment, page headers/footers, wrapping, and
-  stable `finanzas-YYYY-MM.pdf` naming.
-- PASS: focused Finance and Finance PDF checks, TypeScript, focused/full lint,
-  harness, production build, `git diff --check`, one-page and four-page Poppler
-  render review, and authenticated Finance browser smoke.
-- Browser smoke confirmed the action visible and enabled, the success toast
-  after click, and no console errors. No database, commit, push, deploy, or
-  production state changed.
+- Feature 33 - `ops_payroll_vacation_salary_counter`.
+- Added a `Salario vacacional generado` counter next to `Aguinaldo generado` in
+  the employee view payroll summary, plus the matching per-employee metric on
+  the Pagos page so the new total keeps a breakdown.
+- The accrual is 1/12 of the labor amount net of the base personal BPS
+  contributions (8,33% x 0,819 = 6,825% of the hours worked).
+- PASS: focused Finance checks (`pnpm check:finance`), TypeScript, full lint,
+  and `next build`.
+- NOT RUN: authenticated browser smoke. The change needs a signed-in session and
+  the agent does not enter credentials; the counter is otherwise covered by the
+  focused calculation checks.
+- `pnpm build` first failed on a Windows `prisma generate` file lock unrelated
+  to this change; `pnpm exec next build` then compiled every route.
 
 ## Paused Feature
 
-- Feature 26 - `ops_visits_guided_workflow` returned to `pending` without code
-  changes or reversions when the user explicitly requested Finance export work.
-- Its responsive visit shell, native status focus correction, and iPhone
-  selector/date controls had passed focused checks, TypeScript, lint, harness,
-  and Prisma validation; real mobile browser smoke remained pending.
-- Published commits `80b21d6` and `0ba4b79` remain intact. The worktree was
-  clean at this transition, despite the prior session note saying the final
-  iPhone corrections were uncommitted.
+- Feature 26 - `ops_visits_guided_workflow` remains `pending` without code
+  changes. Its responsive visit shell, native status focus correction, and
+  iPhone selector/date controls had passed focused checks, TypeScript, lint,
+  harness, and Prisma validation; real mobile browser smoke remains pending.

@@ -21,6 +21,7 @@ type PayrollRow = {
   recordedTotal: number;
   suggestedAmount: number | null;
   transportationAmount: number;
+  vacationSalaryGenerated: number | null;
   visits: number;
 };
 
@@ -94,6 +95,11 @@ export const PayrollRowsPanel = ({
               <PayrollRowMetric label="Pagos registrados" value={formatPayrollMoney(row.recordedTotal)} />
               <PayrollRowMetric label="Saldo" value={formatNullableMoney(row.balance)} />
               <PayrollRowMetric label="Aguinaldo generado" value={formatNullableMoney(row.aguinaldoGenerated)} />
+              <PayrollRowMetric
+                helper="1/12 de licencia menos 18,10% personal"
+                label="Salario vacacional generado"
+                value={formatNullableMoney(row.vacationSalaryGenerated)}
+              />
               <PayrollRowMetric
                 helper={row.bpsGenerated === null
                   ? undefined

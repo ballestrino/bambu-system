@@ -24,6 +24,13 @@ export const URUGUAY_TOTAL_BPS_BASE_PERCENT =
 
 export const AGUINALDO_ACCRUAL_DIVISOR = 12;
 
+export const VACATION_SALARY_ACCRUAL_DIVISOR = 12;
+
+// El salario vacacional se genera sobre la licencia liquida: el nominal de los
+// dias de licencia menos los aportes personales base.
+export const URUGUAY_VACATION_SALARY_NET_FACTOR =
+  1 - URUGUAY_PERSONAL_BPS_BASE_PERCENT / 100;
+
 export const getPayrollAccruals = (laborAmount: number | null) => {
   if (laborAmount === null) {
     return {
@@ -31,6 +38,7 @@ export const getPayrollAccruals = (laborAmount: number | null) => {
       bpsGenerated: null,
       employerBpsGenerated: null,
       personalBpsGenerated: null,
+      vacationSalaryGenerated: null,
     };
   }
 
@@ -44,5 +52,8 @@ export const getPayrollAccruals = (laborAmount: number | null) => {
     bpsGenerated: employerBpsGenerated + personalBpsGenerated,
     employerBpsGenerated,
     personalBpsGenerated,
+    vacationSalaryGenerated:
+      (laborAmount / VACATION_SALARY_ACCRUAL_DIVISOR) *
+      URUGUAY_VACATION_SALARY_NET_FACTOR,
   };
 };

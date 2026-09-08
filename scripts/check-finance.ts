@@ -8,6 +8,7 @@ import {
   URUGUAY_EMPLOYER_BPS_PERCENT,
   URUGUAY_PERSONAL_BPS_BASE_PERCENT,
   URUGUAY_TOTAL_BPS_BASE_PERCENT,
+  URUGUAY_VACATION_SALARY_NET_FACTOR,
 } from "../lib/ops/finance";
 import { toDateInputValue } from "../components/ops/utils";
 import {
@@ -45,16 +46,19 @@ assert.equal(summary.bpsDifference, 20);
 assert.equal(URUGUAY_EMPLOYER_BPS_PERCENT, 12.625);
 assert.equal(URUGUAY_PERSONAL_BPS_BASE_PERCENT, 18.1);
 assert.equal(URUGUAY_TOTAL_BPS_BASE_PERCENT, 30.725);
+assert.ok(Math.abs(URUGUAY_VACATION_SALARY_NET_FACTOR - 0.819) < 0.000_001);
 const accruals = getPayrollAccruals(1_200);
 assert.equal(accruals.aguinaldoGenerated, 100);
 assert.equal(accruals.employerBpsGenerated, 151.5);
 assert.ok(Math.abs((accruals.personalBpsGenerated ?? 0) - 217.2) < 0.000_001);
 assert.ok(Math.abs((accruals.bpsGenerated ?? 0) - 368.7) < 0.000_001);
+assert.ok(Math.abs((accruals.vacationSalaryGenerated ?? 0) - 81.9) < 0.000_001);
 assert.deepEqual(getPayrollAccruals(null), {
   aguinaldoGenerated: null,
   bpsGenerated: null,
   employerBpsGenerated: null,
   personalBpsGenerated: null,
+  vacationSalaryGenerated: null,
 });
 
 const employee = {
@@ -75,10 +79,19 @@ assert.ok(Math.abs((payrollRows[0].aguinaldoGenerated ?? 0) - 200 / 12) < 0.000_
 assert.equal(payrollRows[0].employerBpsGenerated, 25.25);
 assert.ok(Math.abs((payrollRows[0].personalBpsGenerated ?? 0) - 36.2) < 0.000_001);
 assert.ok(Math.abs((payrollRows[0].bpsGenerated ?? 0) - 61.45) < 0.000_001);
+assert.ok(
+  Math.abs((payrollRows[0].vacationSalaryGenerated ?? 0) - (200 / 12) * 0.819) <
+  0.000_001
+);
 const payrollSummary = getPayrollSummary(payrollRows, []);
 assert.equal(payrollSummary.suggestedTotal, 252);
 assert.ok(Math.abs(payrollSummary.bpsGeneratedTotal - 61.45) < 0.000_001);
 assert.ok(Math.abs(payrollSummary.aguinaldoGeneratedTotal - 200 / 12) < 0.000_001);
+assert.ok(
+  Math.abs(
+    payrollSummary.vacationSalaryGeneratedTotal - (200 / 12) * 0.819
+  ) < 0.000_001
+);
 
 const empty = getFinancialSummary({
   bpsEstimatePercent: 20,

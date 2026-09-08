@@ -4,7 +4,12 @@
   "rules": {
     "one_feature_at_a_time": true,
     "require_verification_to_close": true,
-    "valid_status": ["pending", "in_progress", "done", "blocked"],
+    "valid_status": [
+      "pending",
+      "in_progress",
+      "done",
+      "blocked"
+    ],
     "windows_init": ".\\init.ps1",
     "posix_init": "./init.sh"
   },
@@ -493,6 +498,20 @@
         "Editar and Editar trabajo open the populated job form dialog from list and detail surfaces",
         "The shared trigger forwards Radix dialog event, accessibility, and ref props to the underlying button",
         "Focused browser smoke and lint pass without changing job persistence contracts"
+      ],
+      "status": "done"
+    },
+    {
+      "id": 33,
+      "name": "ops_payroll_vacation_salary_counter",
+      "title": "Add vacation salary counter to the employee view",
+      "description": "Show a generated vacation salary (salario vacacional) counter next to the aguinaldo counter on the employee payroll surfaces.",
+      "acceptance": [
+        "The employee view shows a Salario vacacional generado counter next to Aguinaldo generado",
+        "The counter accrues 1/12 of the labor amount net of the base personal BPS contributions",
+        "The payroll per-employee card shows the same counter so the summary total has a breakdown",
+        "Focused finance calculation checks cover the new accrual and totals",
+        "TypeScript, lint, harness, and a production build pass"
       ],
       "status": "done"
     }

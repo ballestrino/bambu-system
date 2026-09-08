@@ -3,6 +3,7 @@ import {
   Building2,
   CircleDollarSign,
   Gift,
+  Palmtree,
   ReceiptText,
   Undo2,
 } from "lucide-react";
@@ -17,6 +18,7 @@ export const PayrollSummary = ({
   recordedTotal,
   showVoided = true,
   suggestedTotal,
+  vacationSalaryGeneratedTotal,
   voidedTotal,
 }: {
   aguinaldoGeneratedTotal: number;
@@ -25,6 +27,7 @@ export const PayrollSummary = ({
   recordedTotal: number;
   showVoided?: boolean;
   suggestedTotal: number;
+  vacationSalaryGeneratedTotal: number;
   voidedTotal: number;
 }) => {
   const metrics: OpsMetric[] = [
@@ -55,6 +58,13 @@ export const PayrollSummary = ({
       label: "Aguinaldo generado",
       tone: "active",
       value: formatPayrollMoney(aguinaldoGeneratedTotal),
+    },
+    {
+      helper: "1/12 de licencia menos 18,10% personal",
+      icon: Palmtree,
+      label: "Salario vacacional generado",
+      tone: "active",
+      value: formatPayrollMoney(vacationSalaryGeneratedTotal),
     },
     {
       helper: "30,725% base: 18,10% personal + 12,625% patronal",
