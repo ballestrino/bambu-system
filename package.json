@@ -5,6 +5,7 @@
   "scripts": {
     "dev": "next dev",
     "build": "pnpm exec prisma generate && next build",
+    "check:employee-accruals": "tsx scripts/check-employee-accruals.ts",
     "check:finance": "tsx scripts/check-finance.ts",
     "check:finance-pdf": "tsx scripts/check-finance-pdf.ts",
     "check:job-export": "tsx scripts/check-job-excel-export.ts",

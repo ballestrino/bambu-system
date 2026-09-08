@@ -44,7 +44,7 @@ export type EmployeeMonthlySummary = {
   voidedTotal: number;
 };
 
-const isValidDateInput = (value?: string) =>
+export const isValidDateInput = (value?: string) =>
   Boolean(value && /^\d{4}-\d{2}-\d{2}$/.test(value) && !Number.isNaN(new Date(`${value}T00:00:00`).getTime()));
 
 export const getInitialEmployeeSummaryRange = (start?: string, end?: string) => {

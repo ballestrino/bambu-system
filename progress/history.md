@@ -309,3 +309,23 @@
 - PASS: `pnpm check:finance`, TypeScript, full lint, and `next build`.
 - NOT RUN: authenticated browser smoke, which needs a signed-in session.
 - No database, deploy, or production state changed.
+
+## 2026-09-08 - Feature 34 accumulated aguinaldo and vacation salary view
+
+- Added `/dashboard/employees/accruals` with a per-employee list of generated
+  aguinaldo, salario vacacional, and combined total, a team total row, and
+  summary cards for the accumulated totals.
+- The Empleados header opens the view with an `Aguinaldo y salario vacacional`
+  button. `/dashboard/payroll` was not used as the entry point because no UI
+  surface links to it today.
+- The period is a date range with `Año actual` (default) and
+  `Semestre de aguinaldo` presets, shared through `start` and `end` params.
+- Rows reuse `buildPayrollRows`, so employees without hours stay out of the list
+  and employees without an hourly rate show `Sin tarifa` and are counted in a
+  warning metric instead of being summed as zero.
+- Added `scripts/check-employee-accruals.ts` and the `check:employee-accruals`
+  script covering the period helpers, the row mapping, and the totals.
+- PASS: both focused check scripts, TypeScript, full lint, harness, and
+  `next build`.
+- NOT RUN: authenticated browser smoke, which needs a signed-in session.
+- No database, deploy, or production state changed.

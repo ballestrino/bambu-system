@@ -514,6 +514,20 @@
         "TypeScript, lint, harness, and a production build pass"
       ],
       "status": "done"
+    },
+    {
+      "id": 34,
+      "name": "ops_employee_accruals_view",
+      "title": "Accumulated aguinaldo and vacation salary view",
+      "description": "Add an employees view listing accumulated aguinaldo and vacation salary per employee for a period, with the team total.",
+      "acceptance": [
+        "The Empleados page exposes a button that opens the accruals view",
+        "The view lists every employee with hours in the period and their generated aguinaldo, vacation salary, and combined total",
+        "The view shows the summed team totals and flags employees without an hourly rate",
+        "The period is a date range with current year and aguinaldo semester presets, shareable through start and end search params",
+        "Focused accrual checks, TypeScript, lint, harness, and a production build pass"
+      ],
+      "status": "done"
     }
   ]
 }

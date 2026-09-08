@@ -8,19 +8,20 @@ Status: idle
 
 ## Last Closed Feature
 
-- Feature 33 - `ops_payroll_vacation_salary_counter`.
-- Added a `Salario vacacional generado` counter next to `Aguinaldo generado` in
-  the employee view payroll summary, plus the matching per-employee metric on
-  the Pagos page so the new total keeps a breakdown.
-- The accrual is 1/12 of the labor amount net of the base personal BPS
-  contributions (8,33% x 0,819 = 6,825% of the hours worked).
-- PASS: focused Finance checks (`pnpm check:finance`), TypeScript, full lint,
-  and `next build`.
-- NOT RUN: authenticated browser smoke. The change needs a signed-in session and
-  the agent does not enter credentials; the counter is otherwise covered by the
-  focused calculation checks.
-- `pnpm build` first failed on a Windows `prisma generate` file lock unrelated
-  to this change; `pnpm exec next build` then compiled every route.
+- Feature 34 - `ops_employee_accruals_view`.
+- Added `/dashboard/employees/accruals`: lista por empleada con aguinaldo,
+  salario vacacional y total generado en el periodo, mas la fila de total del
+  equipo y las tarjetas de total acumulado.
+- The Empleados header now has an `Aguinaldo y salario vacacional` button that
+  opens the view. `/dashboard/payroll` was not used as the entry point because
+  nothing in the UI links to it today.
+- Period is a date range with `Año actual` (default) and `Semestre de aguinaldo`
+  presets, kept in `start` and `end` search params.
+- PASS: `pnpm check:employee-accruals` (new), `pnpm check:finance`, TypeScript,
+  full lint, harness, and `next build` with the new route registered ahead of
+  `/dashboard/employees/[id]`.
+- NOT RUN: authenticated browser smoke. The view needs a signed-in session and
+  the agent does not enter credentials.
 
 ## Paused Feature
 
