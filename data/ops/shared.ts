@@ -21,3 +21,13 @@ export const buildDateTimeRange = (
     lte: endDate,
   };
 };
+
+// Oculta las visitas programadas de trabajos archivados, pero conserva su
+// historial ya realizado.
+export const visibleOccurrenceWhere = {
+  archivedAt: null,
+  NOT: {
+    job: { archivedAt: { not: null } },
+    status: "SCHEDULED",
+  },
+} satisfies Prisma.JobOccurrenceWhereInput;

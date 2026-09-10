@@ -3,6 +3,7 @@ import "server-only";
 import type { Prisma } from "@prisma/client";
 
 import { opsOccurrenceInclude } from "@/data/ops/includes";
+import { visibleOccurrenceWhere } from "@/data/ops/shared";
 import { db } from "@/lib/db";
 import { ensureJobOccurrencesForRange } from "@/lib/ops/job-occurrence-generator";
 import { getVisitExactDateRange, getVisitWeekRange } from "@/lib/ops/visit-feed";
@@ -11,14 +12,6 @@ import {
   VisitFeedFiltersSchema,
   type VisitFeedFilters,
 } from "@/schemas/ops";
-
-const visibleOccurrenceWhere = {
-  archivedAt: null,
-  NOT: {
-    job: { archivedAt: { not: null } },
-    status: "SCHEDULED",
-  },
-} satisfies Prisma.JobOccurrenceWhereInput;
 
 const buildFeedWhere = (
   filters: VisitFeedFilters

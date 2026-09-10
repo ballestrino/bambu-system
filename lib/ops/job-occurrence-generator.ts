@@ -1,11 +1,11 @@
 import "server-only";
 
 import { db } from "@/lib/db";
+import { getGenerationHorizonEnd } from "@/lib/ops/generation-horizon";
 import {
   createMissingOccurrences,
 } from "@/lib/ops/job-occurrence-generation-create";
 import {
-  getGenerationHorizonEnd,
   getGenerationStart,
   getGenerationWindow,
 } from "@/lib/ops/job-occurrence-recurrence";

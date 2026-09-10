@@ -528,6 +528,23 @@
         "Focused accrual checks, TypeScript, lint, harness, and a production build pass"
       ],
       "status": "done"
+    },
+    {
+      "id": 35,
+      "name": "ops_weekly_schedules",
+      "title": "Weekly schedules with admin panels and Bambu PDF",
+      "description": "Add a Monday-to-Sunday weekly schedule surface for operations: dedicated admin panels for the whole team and for a single employee, plus downloadable PDFs carrying the real Bambu logo and a per-day table with time, job, service address, and teammates.",
+      "acceptance": [
+        "A Cronogramas entry in the operations navigation opens /dashboard/schedules on the current Monday-to-Sunday week in America/Montevideo",
+        "The week is shareable through a week search param and moves with previous, next, and current week controls that stop at the occurrence generation horizon",
+        "The team panel lists every active employee across the seven days with time, job, service address, and teammates, and stays usable at 390px without horizontal overflow",
+        "Selecting an employee opens a dedicated panel and the employee detail view links to that employee week",
+        "Downloading an employee PDF produces an A4 document with the embedded Bambu logo, a per-day table of time, job, address, and teammates, and page numbering",
+        "A single team PDF bundles every employee week so administration downloads one file instead of many",
+        "The finance PDF export keeps working unchanged after the shared PDF builder gains image support",
+        "Focused schedule and schedule PDF checks, TypeScript, lint, harness, and a production build pass"
+      ],
+      "status": "in_progress"
     }
   ]
 }

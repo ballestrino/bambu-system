@@ -3,18 +3,7 @@ import {
   buildEmployeeSummaryCsv,
   type EmployeeMonthlySummary,
 } from "@/components/ops/employees/employee-summary-utils";
-
-const safeFilename = (value: string) =>
-  value.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "") || "empleada";
-
-const downloadBlob = (filename: string, blob: Blob) => {
-  const url = URL.createObjectURL(blob);
-  const link = document.createElement("a");
-  link.href = url;
-  link.download = filename;
-  link.click();
-  URL.revokeObjectURL(url);
-};
+import { downloadBlob, safeFilename } from "@/components/ops/shared/ops-download";
 
 export const downloadEmployeeSummaryCsv = (
   employeeName: string,

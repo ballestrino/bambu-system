@@ -2,9 +2,9 @@ import "server-only";
 
 import type { JobScheduleRule } from "@prisma/client";
 
+import { getGenerationHorizonEnd } from "@/lib/ops/generation-horizon";
 import {
   addLocalDays,
-  addLocalMonths,
   compareLocalDates,
   DEFAULT_OPS_TIMEZONE,
   diffLocalDays,
@@ -18,7 +18,6 @@ import {
   type LocalDate,
 } from "@/lib/ops/timezone";
 
-export const MAX_GENERATION_MONTHS = 3;
 export const MINUTE = 60 * 1000;
 
 export type GenerationRange = {
@@ -34,24 +33,6 @@ const minDate = (...dates: Date[]) =>
 
 const getRuleTimezone = (rule: JobScheduleRule) =>
   rule.timezone || DEFAULT_OPS_TIMEZONE;
-
-export const getGenerationHorizonEnd = (
-  timeZone = DEFAULT_OPS_TIMEZONE
-) => {
-  const today = getLocalDate(new Date(), timeZone);
-  const horizon = addLocalMonths(today, MAX_GENERATION_MONTHS);
-
-  return zonedTimeToUtc(
-    {
-      ...horizon,
-      hour: 23,
-      millisecond: 999,
-      minute: 59,
-      second: 59,
-    },
-    timeZone
-  );
-};
 
 export const getGenerationStart = (
   rangeStart?: Date,

@@ -31,4 +31,7 @@ export const opsQueryKeys = {
   costs: ["ops", "costs"] as const,
   costScope: (scope?: string) => ["ops", "costs", scope ?? "all"] as const,
   costSettings: ["ops", "cost-settings"] as const,
+  scheduleRoot: ["ops", "weekly-schedule"] as const,
+  weeklySchedule: (weekStart?: string) =>
+    ["ops", "weekly-schedule", weekStart ?? "current"] as const,
 };

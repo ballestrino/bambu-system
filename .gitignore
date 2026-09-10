@@ -48,3 +48,6 @@ next-env.d.ts
 
 # local planning docs
 /plans/
+
+# check script output
+/tmp/

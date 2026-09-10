@@ -1,3 +1,11 @@
+import {
+  buildImageObject,
+  buildXObjectResource,
+  type PdfImage,
+} from "@/lib/pdf/pdf-xobject";
+
+export type { PdfImage };
+
 export const PDF_PAGE = {
   height: 842,
   width: 595,
@@ -105,10 +113,21 @@ export const pdfLine = (
   color = "0.85 0.89 0.85"
 ) => `${color} RG ${x1} ${y1} m ${x2} ${y2} l S\n`;
 
-export const buildSimplePdf = (pages: string[]) => {
+export const pdfImage = (
+  x: number,
+  y: number,
+  width: number,
+  height: number,
+  name: string
+) =>
+  `q ${width.toFixed(2)} 0 0 ${height.toFixed(2)} ${x.toFixed(2)} ${y.toFixed(2)} cm /${name} Do Q\n`;
+
+export const buildSimplePdf = (pages: string[], images: PdfImage[] = []) => {
   const pageStartId = 5;
   const contentStartId = pageStartId + pages.length;
+  const imageStartId = contentStartId + pages.length;
   const pageIds = pages.map((_, index) => pageStartId + index);
+  const xObjectResource = buildXObjectResource(images, imageStartId);
   const objects = [
     "<< /Type /Catalog /Pages 2 0 R >>",
     `<< /Type /Pages /Kids [${pageIds.map((id) => `${id} 0 R`).join(" ")}] /Count ${pages.length} >>`,
@@ -118,11 +137,15 @@ export const buildSimplePdf = (pages: string[]) => {
 
   pages.forEach((_, index) => {
     objects.push(
-      `<< /Type /Page /Parent 2 0 R /MediaBox [0 0 ${PDF_PAGE.width} ${PDF_PAGE.height}] /Resources << /Font << /F1 3 0 R /F2 4 0 R >> >> /Contents ${contentStartId + index} 0 R >>`
+      `<< /Type /Page /Parent 2 0 R /MediaBox [0 0 ${PDF_PAGE.width} ${PDF_PAGE.height}] /Resources << /Font << /F1 3 0 R /F2 4 0 R >>${xObjectResource} >> /Contents ${contentStartId + index} 0 R >>`
     );
   });
   pages.forEach((content) => {
     objects.push(`<< /Length ${content.length} >>\nstream\n${content}endstream`);
+  });
+
+  images.forEach((image) => {
+    objects.push(buildImageObject(image));
   });
 
   let pdf = "%PDF-1.4\n";

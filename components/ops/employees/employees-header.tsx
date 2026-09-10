@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { Gift } from "lucide-react";
+import { CalendarRange, Gift } from "lucide-react";
 
 import { dashboardSecondaryActionClass } from "@/components/dashboard/dashboard-styles";
 import { EmployeeFormDialog } from "@/components/ops/employees/employee-form-dialog";
@@ -16,6 +16,12 @@ export const EmployeesHeader = ({ count }: { count: number }) => (
       </p>
     </div>
     <div className="flex flex-wrap gap-2">
+      <Button asChild variant="outline" className={dashboardSecondaryActionClass}>
+        <Link href="/dashboard/schedules">
+          <CalendarRange className="h-4 w-4" />
+          Cronogramas
+        </Link>
+      </Button>
       <Button asChild variant="outline" className={dashboardSecondaryActionClass}>
         <Link href="/dashboard/employees/accruals">
           <Gift className="h-4 w-4" />
