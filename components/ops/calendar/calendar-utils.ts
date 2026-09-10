@@ -1,5 +1,6 @@
 import type { OpsOccurrence } from "@/components/ops/types";
 import { hasOccurrenceEmployees } from "@/components/ops/jobs/occurrence-employees";
+import { formatTime } from "@/components/ops/utils";
 
 export const byScheduledStart = (a: OpsOccurrence, b: OpsOccurrence) =>
   new Date(a.scheduledStartAt).getTime() - new Date(b.scheduledStartAt).getTime();
@@ -49,4 +50,41 @@ export const getCalendarStats = (occurrences: OpsOccurrence[]) => {
     ),
     total: occurrences.length,
   };
+};
+
+export type CalendarHourGroup = {
+  hour: number;
+  label: string;
+  occurrences: OpsOccurrence[];
+};
+
+export const groupOccurrencesByHour = (
+  occurrences: OpsOccurrence[]
+): CalendarHourGroup[] => {
+  const groups = new Map<number, CalendarHourGroup>();
+
+  for (const occurrence of [...occurrences].sort(byScheduledStart)) {
+    const start = new Date(occurrence.scheduledStartAt);
+    const isValidStart = !Number.isNaN(start.getTime());
+    const hour = isValidStart ? start.getHours() : -1;
+    const group = groups.get(hour);
+
+    if (group) {
+      group.occurrences.push(occurrence);
+      continue;
+    }
+
+    const slot = new Date(start);
+    if (isValidStart) {
+      slot.setMinutes(0, 0, 0);
+    }
+
+    groups.set(hour, {
+      hour,
+      label: isValidStart ? formatTime(slot) : "Sin hora",
+      occurrences: [occurrence],
+    });
+  }
+
+  return [...groups.values()].sort((a, b) => a.hour - b.hour);
 };

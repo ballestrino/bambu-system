@@ -1,11 +1,14 @@
 import Link from "next/link";
-import { AlertCircle, BriefcaseBusiness, UsersRound } from "lucide-react";
+import { AlertCircle, AlertTriangle, BriefcaseBusiness, Clock3, UsersRound } from "lucide-react";
 
 import { dashboardSecondaryActionClass } from "@/components/dashboard/dashboard-styles";
 import {
   getCalendarStats,
   getVisitActionLabel,
+  groupOccurrencesByHour,
+  needsOccurrenceAttention,
   shouldCompleteOccurrenceOnSave,
+  type CalendarHourGroup,
 } from "@/components/ops/calendar/calendar-utils";
 import { JobOccurrenceDialog } from "@/components/ops/jobs/job-occurrence-dialog";
 import { getOccurrenceEmployeesLabel } from "@/components/ops/jobs/occurrence-employees";
@@ -17,33 +20,38 @@ import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
 const CalendarAgendaItem = ({ occurrence }: { occurrence: OpsOccurrence }) => (
-  <article className="rounded-md border border-[#53985E]/15 bg-white p-4 shadow-sm shadow-[#244C2D]/5 dark:bg-[#1A211A]">
-    <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
-      <div className="min-w-0 space-y-3">
+  <article className="rounded-[var(--ops-radius-row)] border border-ops-border bg-ops-surface p-3 shadow-sm shadow-ops-bamboo-strong/5 transition-colors hover:border-ops-bamboo/40 sm:p-4">
+    <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between lg:gap-4">
+      <div className="min-w-0 flex-1 space-y-2">
         <div className="flex flex-wrap items-center gap-2">
-          <OccurrenceStatusBadge status={occurrence.status} />
-          <span className="rounded-full bg-[#F7FBF7] px-3 py-1 text-xs font-medium text-[#244C2D] dark:bg-[#91AD71]/15 dark:text-[#D4E3B8]">
+          <span className="rounded-full bg-ops-bamboo-soft px-2.5 py-1 text-xs font-semibold tabular-nums text-ops-bamboo-strong">
             {formatTime(occurrence.scheduledStartAt)} - {formatTime(occurrence.scheduledEndAt)}
           </span>
+          <OccurrenceStatusBadge status={occurrence.status} />
+          {needsOccurrenceAttention(occurrence) ? (
+            <span className="flex items-center gap-1 rounded-full bg-amber-50 px-2.5 py-1 text-xs font-medium text-amber-800 dark:bg-amber-500/15 dark:text-amber-200">
+              <AlertTriangle className="h-3.5 w-3.5" />
+              Requiere atención
+            </span>
+          ) : null}
         </div>
-        <div>
-          <h3 className="font-semibold text-[#18251D] dark:text-[#F0F3E8]">
-            {occurrence.job.name}
-          </h3>
-          <p className="mt-1 flex items-center gap-1 text-sm font-medium text-muted-foreground">
-            <UsersRound className="h-3.5 w-3.5" />
-            {getOccurrenceEmployeesLabel(occurrence)}
-          </p>
-        </div>
-        <div className="flex flex-wrap gap-x-4 gap-y-1 text-sm text-muted-foreground">
-          <span>Real {formatTime(occurrence.actualStartAt)} - {formatTime(occurrence.actualEndAt)}</span>
+        <h3 className="truncate font-semibold text-ops-text">{occurrence.job.name}</h3>
+        <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-ops-text-muted">
+          <span className="flex min-w-0 items-center gap-1.5">
+            <UsersRound className="h-3.5 w-3.5 shrink-0" />
+            <span className="truncate">{getOccurrenceEmployeesLabel(occurrence)}</span>
+          </span>
+          <span className="flex items-center gap-1.5 tabular-nums">
+            <Clock3 className="h-3.5 w-3.5 shrink-0" />
+            Real {formatTime(occurrence.actualStartAt)} - {formatTime(occurrence.actualEndAt)}
+          </span>
           <span>{occurrence.isDetached ? "Separada de regla" : "Ligada a regla"}</span>
         </div>
         {occurrence.notes ? (
-          <p className="text-sm text-muted-foreground">{occurrence.notes}</p>
+          <p className="text-sm text-ops-text-muted">{occurrence.notes}</p>
         ) : null}
       </div>
-      <div className="flex flex-wrap gap-2 lg:justify-end">
+      <div className="flex flex-wrap gap-2 lg:shrink-0 lg:justify-end">
         <Button asChild size="sm" variant="outline" className={dashboardSecondaryActionClass}>
           <Link href={`/dashboard/jobs/${occurrence.jobId}`}>
             <BriefcaseBusiness className="h-4 w-4" />
@@ -58,6 +66,39 @@ const CalendarAgendaItem = ({ occurrence }: { occurrence: OpsOccurrence }) => (
       </div>
     </div>
   </article>
+);
+
+const CalendarAgendaHourGroup = ({
+  group,
+  isLast,
+}: {
+  group: CalendarHourGroup;
+  isLast: boolean;
+}) => (
+  <div className="grid grid-cols-[3.25rem_minmax(0,1fr)] gap-x-3 sm:grid-cols-[4rem_minmax(0,1fr)] sm:gap-x-4">
+    <div className="pt-2 text-right">
+      <p className="text-sm font-semibold tabular-nums leading-none text-ops-text">
+        {group.label}
+      </p>
+      <p className="mt-1 text-[11px] leading-none text-ops-text-muted">
+        {group.occurrences.length} visita{group.occurrences.length === 1 ? "" : "s"}
+      </p>
+    </div>
+    <div
+      className={cn(
+        "relative space-y-3 border-l border-ops-border pl-4 sm:pl-5",
+        isLast ? "pb-1" : "pb-5"
+      )}
+    >
+      <span
+        aria-hidden
+        className="absolute -left-[5px] top-3 h-2.5 w-2.5 rounded-full bg-ops-bamboo ring-4 ring-ops-surface"
+      />
+      {group.occurrences.map((occurrence) => (
+        <CalendarAgendaItem key={occurrence.id} occurrence={occurrence} />
+      ))}
+    </div>
+  </div>
 );
 
 export const CalendarAgendaPanel = ({
@@ -76,15 +117,16 @@ export const CalendarAgendaPanel = ({
   selectedDate?: Date;
 }) => {
   const { needsAttentionCount } = getCalendarStats(allOccurrences);
+  const hourGroups = groupOccurrencesByHour(occurrences);
 
   return (
     <section className={cn(opsSurface.panel, "p-4 md:p-5")}>
       <div className="mb-4 flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
         <div>
-          <h2 className="text-lg font-semibold text-[#18251D] dark:text-[#F0F3E8]">
+          <h2 className="text-lg font-semibold text-ops-text">
             Agenda del {selectedDate ? formatDate(selectedDate) : "día seleccionado"}
           </h2>
-          <p className="text-sm text-muted-foreground">
+          <p className="text-sm text-ops-text-muted">
             {occurrences.length} visita(s) en el día · {needsAttentionCount} requieren atención este mes
           </p>
         </div>
@@ -92,10 +134,14 @@ export const CalendarAgendaPanel = ({
 
       {isLoading ? (
         <div className="min-h-56 animate-pulse rounded-md bg-muted/40" />
-      ) : occurrences.length ? (
-        <div className="space-y-3">
-          {occurrences.map((occurrence) => (
-            <CalendarAgendaItem key={occurrence.id} occurrence={occurrence} />
+      ) : hourGroups.length ? (
+        <div>
+          {hourGroups.map((group, index) => (
+            <CalendarAgendaHourGroup
+              group={group}
+              isLast={index === hourGroups.length - 1}
+              key={group.hour}
+            />
           ))}
         </div>
       ) : (
