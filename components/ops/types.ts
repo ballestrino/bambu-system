@@ -69,6 +69,9 @@ export type OpsOccurrence = Prisma.JobOccurrenceGetPayload<{
       select: {
         id: true;
         name: true;
+        scheduleName: true;
+        serviceAddress: true;
+        serviceLocation: true;
         status: true;
       };
     };

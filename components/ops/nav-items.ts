@@ -1,7 +1,6 @@
 import {
   BriefcaseBusiness,
   CalendarDays,
-  CalendarRange,
   LayoutDashboard,
   UsersRound,
   WalletCards,
@@ -22,15 +21,9 @@ export const opsNavItems = [
   },
   {
     title: "Visitas",
-    description: "Calendario e historial del equipo",
+    description: "Calendario, cronograma semanal e historial",
     url: "/dashboard/calendar",
     icon: CalendarDays,
-  },
-  {
-    title: "Cronogramas",
-    description: "Semana del equipo y PDF por empleada",
-    url: "/dashboard/schedules",
-    icon: CalendarRange,
   },
   {
     title: "Empleados",

@@ -59,6 +59,7 @@ const jobOccurrenceBaseSchema = z
     ),
     ...occurrenceTimingShape,
     status: occurrenceStatusSchema.default("SCHEDULED"),
+    scheduleLabel: optionalTrimmedString(255),
     isDetached: booleanSchema.default(false),
     notes: optionalTrimmedString(),
   })
@@ -95,6 +96,7 @@ export const UpdateJobOccurrenceSchema = z
     actualStartAt: nullableDateUpdateSchema,
     actualEndAt: nullableDateUpdateSchema,
     status: occurrenceStatusSchema.optional(),
+    scheduleLabel: nullableTrimmedString(255),
     isDetached: optionalBooleanSchema,
     notes: nullableTrimmedString(),
   })
@@ -132,6 +134,7 @@ export const DetachJobOccurrenceSchema = z
     actualStartAt: nullableDateUpdateSchema,
     actualEndAt: nullableDateUpdateSchema,
     status: occurrenceStatusSchema.optional(),
+    scheduleLabel: nullableTrimmedString(255),
     notes: nullableTrimmedString(),
   })
   .superRefine((value, ctx) => {

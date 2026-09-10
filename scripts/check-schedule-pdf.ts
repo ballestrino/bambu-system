@@ -95,10 +95,12 @@ const denseSchedule = buildFixtureSchedule();
 denseSchedule.employees[0].days.forEach((day) => {
   day.visits = Array.from({ length: 6 }, (_, index) => ({
     address: `Camino Carrasco ${1000 + index}, entre Veracierto y Chimborazo, local ${index}`,
+    displayName: `Servicio integral de limpieza para oficinas ${index + 1}`,
     endLabel: "13:00",
     id: `${day.dateKey}-${index}`,
     jobId: `dense-${index}`,
     jobName: `Servicio integral de limpieza para oficinas ${index + 1}`,
+    startAt: `${day.dateKey}T12:00:00.000Z`,
     startLabel: "09:00",
     status: "SCHEDULED" as const,
     teammates: ["Ana Belén Rodríguez", "Lucía Fernández"],

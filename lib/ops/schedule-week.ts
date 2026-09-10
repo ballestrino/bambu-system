@@ -2,7 +2,9 @@ import { getGenerationHorizonEnd } from "@/lib/ops/generation-horizon";
 import {
   addLocalDays,
   DEFAULT_OPS_TIMEZONE,
+  diffLocalDays,
   getLocalDate,
+  getLocalDateTime,
   startOfIsoWeek,
   zonedTimeToUtc,
   type LocalDate,
@@ -19,6 +21,16 @@ export type ScheduleWeek = {
 };
 
 const WEEK_KEY_PATTERN = /^(\d{4})-(\d{2})-(\d{2})$/;
+
+export const parseWeekDateKey = (value: string): LocalDate | null => {
+  const match = value.match(WEEK_KEY_PATTERN);
+  if (!match) {
+    return null;
+  }
+
+  const [, year, month, day] = match;
+  return { day: Number(day), month: Number(month), year: Number(year) };
+};
 
 export const toLocalDateKey = (date: LocalDate) =>
   [
@@ -83,3 +95,36 @@ export const isBeyondGenerationHorizon = (
   weekStart: Date,
   timeZone = DEFAULT_OPS_TIMEZONE
 ) => weekStart.getTime() > getGenerationHorizonEnd(timeZone).getTime();
+
+// Mueve una visita a otro dia conservando la hora local y la duracion en dias,
+// en vez de sumar milisegundos: eso protege del cambio de huso y de las visitas
+// que cruzan la medianoche.
+export const shiftOccurrenceToDate = (
+  occurrence: { scheduledEndAt: Date | string; scheduledStartAt: Date | string },
+  targetDateKey: string,
+  timeZone = DEFAULT_OPS_TIMEZONE
+) => {
+  const target = parseWeekDateKey(targetDateKey);
+  if (!target) {
+    return null;
+  }
+
+  const start = getLocalDateTime(new Date(occurrence.scheduledStartAt), timeZone);
+  const end = getLocalDateTime(new Date(occurrence.scheduledEndAt), timeZone);
+  const dayShift = diffLocalDays(target, start);
+  const nextEndDate = addLocalDays(
+    { day: end.day, month: end.month, year: end.year },
+    dayShift
+  );
+
+  return {
+    scheduledEndAt: zonedTimeToUtc(
+      { ...nextEndDate, hour: end.hour, minute: end.minute },
+      timeZone
+    ),
+    scheduledStartAt: zonedTimeToUtc(
+      { ...target, hour: start.hour, minute: start.minute },
+      timeZone
+    ),
+  };
+};

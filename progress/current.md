@@ -5,46 +5,62 @@ Status: in_progress
 ## Active Feature
 
 - Feature 35 - `ops_weekly_schedules`.
-- New `/dashboard/schedules?week=YYYY-MM-DD&employeeId=` panel: Monday-to-Sunday
-  team grid on desktop, per-employee cards below `lg`, and a dedicated employee
-  panel that mirrors what the PDF contains.
-- `data/ops/schedules.ts` is a dedicated read: it calls
-  `ensureJobOccurrencesForRange` first so future weeks are materialized, then
-  loads active employees plus the week's occurrences with
-  `serviceAddress`/`serviceLocation`, which `getJobOccurrences` does not select.
-- Day bucketing uses local dates in `America/Montevideo`; a 21:00 visit is
-  00:00 UTC the next day and would land on the wrong column otherwise. The DTO
-  ships pre-formatted time labels because `serializeActionResult` turns Dates
-  into strings and `formatTime` has no fixed time zone.
-- PDF: `buildSimplePdf` now takes optional `PdfImage[]`. The logo rides as an
-  XObject with `/Filter [/ASCIIHexDecode /FlateDecode]`, so the document stays
-  pure ASCII and the existing `xref` offset math keeps working. The PNG is
-  flattened over white by `pnpm asset:logo` (140x166), which removes the need
-  for `/SMask`. With no images the page dictionary is byte-identical to before.
-- Cancelled and skipped visits stay visible in the panel but never reach the
-  employee's PDF (`getDeliverableDays`).
-- `visibleOccurrenceWhere` moved from `data/ops/visit-feed.ts` to
-  `data/ops/shared.ts`; the generation horizon moved out of the server-only
-  `job-occurrence-recurrence.ts` into `lib/ops/generation-horizon.ts` so the UI
-  can disable the next-week control past it.
-- PASS: `pnpm check:schedule` (new), `pnpm check:schedule-pdf` (new),
-  `pnpm check:finance-pdf`, `check:finance`, `check:employee-accruals`,
-  `check:profitability`, `check:occurrence-dialog`, `check:job-export`,
-  TypeScript, full lint, harness, `prisma validate`, and `next build` with
-  `/dashboard/schedules` registered.
-- PASS: sample PDFs rendered to `tmp/pdfs/` and inspected for structure
-  (xref offsets resolve to their objects, image `/Length` matches the encoded
-  stream, the logo round-trips to `140*166*3` RGB bytes).
-- NOT RUN: authenticated browser smoke. The panel needs a signed-in ADMIN
-  session and the agent does not enter credentials. `/dashboard/schedules`
-  answers 307 to `/auth/login` as expected while signed out.
+- The weekly schedule is now a **view inside `/dashboard/calendar`** (Calendario ·
+  Cronograma · Lista · Tarjetas), not a separate route. `/dashboard/schedules`,
+  its data layer, action, hook and schema were removed: the board reads through
+  the existing `useJobOccurrences` for the week range, so it shares the cache and
+  the optimistic updates with the rest of Visitas.
+- Schema: `Job.scheduleName` and `JobOccurrence.scheduleLabel`
+  (`20260910120000_schedule_display_names`, applied). The visit override wins
+  over the job alias, and the internal name is the fallback
+  (`getScheduleDisplayName`). The board shows the schedule name with the internal
+  one underneath; the PDF only carries the schedule name.
+- `opsOccurrenceInclude` now selects `scheduleName`, `serviceAddress` and
+  `serviceLocation`, and `getJobOccurrences` uses that shared include instead of
+  its own inline copy.
+- Drag and drop uses **pointer events**, not HTML5 drag and drop: the native API
+  does nothing on touch, and administration also builds the schedule on a tablet.
+  Only the grip starts a drag (`touch-action: none`), so touch scrolling still
+  works. `shiftOccurrenceToDate` recomposes the local date instead of adding
+  milliseconds, preserving the local time and the day span of overnight visits.
+- The visit dialog is now controllable from outside (`open`/`onOpenChange`) and
+  accepts `defaults`, so a day cell opens it prefilled with that date, a 09:00 to
+  13:00 slot and the row's employee. Clicking a visit opens the same dialog to
+  edit or delete.
+- The employee picker in the dialog and the board filter both use the new
+  `SearchableMultiSelect`, matching the job filter in Visitas. With 12+ employees
+  the old checkbox list was unusable.
+- `visibleWeekdays` is remembered per browser and is honoured by the grid, the
+  mobile list and both PDFs.
+- PASS: `pnpm check:schedule`, `check:schedule-pdf`, `check:finance-pdf`,
+  `check:finance`, `check:employee-accruals`, `check:profitability`,
+  `check:occurrence-dialog`, `check:job-export`, `check:official-budgets`,
+  `check:mail-agent`, TypeScript, full lint, harness, `prisma validate` and
+  `pnpm build`.
+- PASS: authenticated browser smoke on the real database. Verified the week grid
+  with live data, the weekday toggle hiding and restoring Sunday, the employee
+  multi-select narrowing the rows, the visit dialog opening from a card with the
+  new schedule-name field, the employee search matching without accents
+  (`fabian` finds `Fabián`), the day cell opening a prefilled Crear visita, and
+  both PDF downloads (`cronograma-lorena-2026-09-07.pdf` 31 KB,
+  `cronogramas-equipo-2026-09-07.pdf` 37 KB) honouring the employee filter.
+- PASS: drag verified in the browser at the DOM level (the target day cell
+  highlights and the drop fires the update), plus a transactional probe against
+  the real database confirming the shifted dates and `scheduleLabel` persist.
 
-## Next Step
+## Blocked Verification
 
-- Sign in as ADMIN and smoke `/dashboard/schedules`: week navigation and the
-  `?week=` sync, a future week showing generated visits, both PDF downloads
-  opened in a viewer, and 390x844 with no horizontal overflow. Then close the
-  feature.
+- Writes fail in this browser session with
+  `Foreign key constraint violated: JobOccurrence_updatedById_fkey`. The NextAuth
+  JWT carries `user.id = cmm82smv300000hk8oewf4ssb`, which does not exist in the
+  database (`.env` and `.env.local` both point at the same Neon instance, whose
+  admins are `cmkfuiovi…`, `cmkcszlfy…` and `cmkmt75m6…`). This is a stale
+  session cookie, not a regression: every write path in the app sets
+  `updatedById`/`createdById` from the session. **Sign out and back in**, then
+  re-check the drag, create and delete flows end to end.
+- NOT RUN: 390x844 smoke. The Chrome window would not resize from the tooling.
+  The mobile list renders in the DOM with the right content and the document has
+  no horizontal overflow, but it was not seen at that width.
 
 ## Paused Feature
 

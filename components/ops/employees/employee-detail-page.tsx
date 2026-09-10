@@ -119,7 +119,7 @@ export const EmployeeDetailPage = ({ employeeId }: { employeeId: string }) => {
           actions={
             <>
               <Button asChild size="sm" variant="outline" className={dashboardSecondaryActionClass}>
-                <Link href={`/dashboard/schedules?employeeId=${employee.id}`}>
+                <Link href="/dashboard/calendar">
                   Cronograma
                 </Link>
               </Button>

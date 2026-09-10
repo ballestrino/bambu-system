@@ -31,26 +31,42 @@ const useScheduleExport = (run: () => Promise<void>, errorMessage: string) => {
 export const ScheduleEmployeeExportButton = ({
   employee,
   schedule,
+  visibleWeekdays,
 }: {
   employee: ScheduleEmployee;
   schedule: WeeklySchedule;
+  visibleWeekdays?: number[];
 }) => {
   const { isExporting, start } = useScheduleExport(async () => {
-    await downloadEmployeeSchedulePdf(employee, schedule);
+    await downloadEmployeeSchedulePdf(employee, schedule, visibleWeekdays);
     toast.success(`Cronograma de ${employee.name} descargado`);
   }, "No pudimos generar el cronograma en PDF");
 
   return (
-    <Button disabled={isExporting} onClick={start} size="sm" type="button" variant="outline">
+    <Button
+      className="h-8 px-2 text-xs"
+      disabled={isExporting}
+      onClick={start}
+      size="sm"
+      title={`Descargar el cronograma de ${employee.name}`}
+      type="button"
+      variant="outline"
+    >
       {isExporting ? <LoaderCircle className="animate-spin" /> : <FileDown />}
-      {isExporting ? "Generando..." : "Descargar PDF"}
+      PDF
     </Button>
   );
 };
 
-export const ScheduleTeamExportButton = ({ schedule }: { schedule: WeeklySchedule }) => {
+export const ScheduleTeamExportButton = ({
+  schedule,
+  visibleWeekdays,
+}: {
+  schedule: WeeklySchedule;
+  visibleWeekdays?: number[];
+}) => {
   const { isExporting, start } = useScheduleExport(async () => {
-    await downloadTeamSchedulePdf(schedule);
+    await downloadTeamSchedulePdf(schedule, visibleWeekdays);
     toast.success("Cronogramas del equipo descargados");
   }, "No pudimos generar los cronogramas del equipo");
 

@@ -69,9 +69,24 @@ export const buildOptimisticOccurrence = (
     employees: getEmployeeLinks(queryClient, id, values.employeeIds),
     isDetached: values.isDetached ?? false,
     job: job
-      ? { id: job.id, name: job.name, status: job.status }
-      : { id: values.jobId, name: "Trabajo", status: "ACTIVE" },
+      ? {
+          id: job.id,
+          name: job.name,
+          scheduleName: job.scheduleName,
+          serviceAddress: job.serviceAddress,
+          serviceLocation: job.serviceLocation,
+          status: job.status,
+        }
+      : {
+          id: values.jobId,
+          name: "Trabajo",
+          scheduleName: null,
+          serviceAddress: null,
+          serviceLocation: null,
+          status: "ACTIVE",
+        },
     notes: values.notes ?? null,
+    scheduleLabel: values.scheduleLabel ?? null,
     scheduleRule: getCachedScheduleRule(queryClient, values.scheduleRuleId),
     scheduleRuleId: values.scheduleRuleId ?? null,
     status: values.status ?? "SCHEDULED",

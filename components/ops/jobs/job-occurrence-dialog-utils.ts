@@ -5,20 +5,33 @@ import {
 } from "@/components/ops/utils";
 import { getOccurrenceEmployeeIds } from "@/components/ops/jobs/occurrence-employees";
 
+export type OccurrenceDefaults = {
+  employeeIds?: string[];
+  jobId?: string;
+  scheduledEndAt?: string;
+  scheduledStartAt?: string;
+};
+
 export const getInitialOccurrenceState = (
   occurrence?: OpsOccurrence,
-  completeOnSave = false
+  completeOnSave = false,
+  defaults?: OccurrenceDefaults
 ) => {
-  const scheduledStartAt = toDateTimeLocalValue(occurrence?.scheduledStartAt);
-  const scheduledEndAt = toDateTimeLocalValue(occurrence?.scheduledEndAt);
+  const scheduledStartAt =
+    toDateTimeLocalValue(occurrence?.scheduledStartAt) || defaults?.scheduledStartAt || "";
+  const scheduledEndAt =
+    toDateTimeLocalValue(occurrence?.scheduledEndAt) || defaults?.scheduledEndAt || "";
   const actualStartAt = toDateTimeLocalValue(occurrence?.actualStartAt);
   const actualEndAt = toDateTimeLocalValue(occurrence?.actualEndAt);
   const shouldPrefillActualStart = completeOnSave && !actualStartAt;
   const shouldPrefillActualEnd = completeOnSave && !actualEndAt;
 
   return {
-    jobId: occurrence?.jobId ?? "",
-    employeeIds: getOccurrenceEmployeeIds(occurrence),
+    jobId: occurrence?.jobId ?? defaults?.jobId ?? "",
+    employeeIds: occurrence
+      ? getOccurrenceEmployeeIds(occurrence)
+      : defaults?.employeeIds ?? [],
+    scheduleLabel: occurrence?.scheduleLabel ?? "",
     scheduleRuleId: occurrence?.scheduleRuleId ?? "",
     scheduledStartAt,
     scheduledEndAt,

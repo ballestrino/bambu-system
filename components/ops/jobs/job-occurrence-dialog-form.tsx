@@ -12,6 +12,7 @@ import {
 } from "@/components/ops/jobs/job-occurrence-dialog-utils";
 import { JobOccurrenceDateTimeFields } from "@/components/ops/jobs/job-occurrence-date-time-fields";
 import { JobOccurrenceEmployeeField } from "@/components/ops/jobs/job-occurrence-employee-field";
+import { JobOccurrenceNameField } from "@/components/ops/jobs/job-occurrence-name-field";
 import {
   getJobScheduleRuleOptionLabel,
   type JobScheduleRuleOption,
@@ -55,6 +56,7 @@ export const JobOccurrenceDialogForm = ({
   setFormState: Dispatch<SetStateAction<OccurrenceFormState>>;
   showJobField: boolean;
 }) => {
+  const selectedJob = occurrence?.job ?? jobs.find((job) => job.id === resolvedJobId);
   const updateScheduledRange = ({
     endValue,
     startValue,
@@ -97,6 +99,12 @@ export const JobOccurrenceDialogForm = ({
           />
         </OpsFormField>
       ) : null}
+      <JobOccurrenceNameField
+        jobName={selectedJob?.name}
+        onChange={(scheduleLabel) => setFormState((current) => ({ ...current, scheduleLabel }))}
+        scheduleName={selectedJob?.scheduleName}
+        value={formState.scheduleLabel}
+      />
       <JobOccurrenceEmployeeField
         employees={employees}
         selectedEmployeeIds={formState.employeeIds}

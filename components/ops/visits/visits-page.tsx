@@ -17,6 +17,7 @@ import { useInfiniteVisits } from "@/components/ops/hooks/useInfiniteVisits";
 import { useJobOccurrences } from "@/components/ops/hooks/useJobOccurrences";
 import { useVisitFilterOptions } from "@/components/ops/hooks/useVisitFilterOptions";
 import { JobOccurrenceDialog } from "@/components/ops/jobs/job-occurrence-dialog";
+import { ScheduleBoard } from "@/components/ops/schedules/schedule-board";
 import {
   OpsPageHeader,
   OpsPageShell,
@@ -92,7 +93,7 @@ export const VisitsPage = () => {
   }, [exactDate, monthKey]);
   const feedQuery = useInfiniteVisits({
     anchor,
-    enabled: view !== "calendar",
+    enabled: view === "list" || view === "cards",
     filters: { ...filters, exactDate: exactDate || undefined },
   });
 
@@ -117,6 +118,7 @@ export const VisitsPage = () => {
       monthKey,
     }));
   const isCalendar = view === "calendar";
+  const isSchedule = view === "schedule";
   const refresh = async () => {
     await filterOptionsQuery.refetch();
     return isCalendar ? calendarQuery.refetch() : feedQuery.refetch();
@@ -134,6 +136,7 @@ export const VisitsPage = () => {
         onChange={(nextView) => setViewState({ view: nextView })}
         value={view}
       />
+      {isSchedule ? null : (
       <CalendarFiltersBar
         countLabel={isCalendar ? undefined : `${feedQuery.occurrences.length} visita(s) cargadas`}
         employeeOptions={employeeOptions}
@@ -146,8 +149,11 @@ export const VisitsPage = () => {
         totalCount={calendarQuery.occurrences.length}
         visibleCount={isCalendar ? filteredOccurrences.length : feedQuery.occurrences.length}
       />
+      )}
 
-      {isCalendar ? (
+      {isSchedule ? (
+        <ScheduleBoard />
+      ) : isCalendar ? (
         <div className="grid gap-5 xl:grid-cols-[minmax(0,420px)_1fr]">
           <CalendarMonthPanel month={month} occurrences={filteredOccurrences} selectedDate={visibleSelectedDate} onMonthChange={setMonth} onSelectDate={setSelectedDate} />
           <CalendarAgendaPanel allOccurrences={filteredOccurrences} hasActiveFilters={hasActiveCalendarFilters(filters)} isLoading={calendarQuery.isLoading} occurrences={selectedDayOccurrences} onClearFilters={clearFilters} selectedDate={visibleSelectedDate} />

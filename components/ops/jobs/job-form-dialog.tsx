@@ -42,6 +42,7 @@ export const JobFormDialog = ({
   const handleSubmit = () => {
     const payload = {
       name: formState.name.trim(),
+      scheduleName: formState.scheduleName.trim(),
       description: formState.description,
       serviceAddress: formState.serviceAddress,
       serviceLocation: formState.serviceLocation,
@@ -142,6 +143,17 @@ export const JobFormDialog = ({
               setFormState((current) => ({ ...current, punctualStartDate }))
             }
           />
+          <OpsFormField
+            description="Como lo ven las empleadas en el cronograma, si difiere del nombre interno."
+            label="Nombre en el cronograma"
+          >
+            <Input
+              className={opsFormControlClass}
+              onChange={(event) => setFormState((current) => ({ ...current, scheduleName: event.target.value }))}
+              placeholder={formState.name.trim() || "Igual que el nombre"}
+              value={formState.scheduleName}
+            />
+          </OpsFormField>
           <OpsFormField label="Descripción">
             <Textarea className={opsFormTextareaClass} value={formState.description} onChange={(event) => setFormState((current) => ({ ...current, description: event.target.value }))} />
           </OpsFormField>

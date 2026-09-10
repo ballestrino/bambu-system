@@ -65,6 +65,11 @@ export const buildResolvedJobOccurrence = (
       existingOccurrence.actualEndAt
     ),
     status: getPatchedValue(patch, "status", existingOccurrence.status),
+    scheduleLabel: getPatchedValue(
+      patch,
+      "scheduleLabel",
+      existingOccurrence.scheduleLabel ?? null
+    ),
     isDetached:
       overrides?.isDetached ??
       ("isDetached" in patch && patch.isDetached !== undefined
@@ -79,6 +84,7 @@ export const validateResolvedJobOccurrence = (
 ) =>
   CreateJobOccurrenceSchema.safeParse({
     ...occurrence,
+    scheduleLabel: occurrence.scheduleLabel ?? undefined,
     scheduleRuleId: occurrence.scheduleRuleId ?? undefined,
     actualStartAt: occurrence.actualStartAt ?? undefined,
     actualEndAt: occurrence.actualEndAt ?? undefined,

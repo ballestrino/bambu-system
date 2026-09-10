@@ -361,6 +361,7 @@ enum PaymentStatus {
 model Job {
   id                   String                  @id @default(cuid())
   name                 String
+  scheduleName         String?
   description          String?
   serviceAddress       String?
   serviceLocation      String?
@@ -436,6 +437,7 @@ model JobOccurrence {
   actualStartAt    DateTime?
   actualEndAt      DateTime?
   status           OccurrenceStatus        @default(SCHEDULED)
+  scheduleLabel    String?
   isDetached       Boolean                 @default(false)
   notes            String?                 @db.Text
   archivedAt       DateTime?

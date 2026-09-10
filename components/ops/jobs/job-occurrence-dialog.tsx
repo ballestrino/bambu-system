@@ -10,6 +10,7 @@ import { JobOccurrenceDialogPresentation } from "@/components/ops/jobs/job-occur
 import {
   getInitialOccurrenceState,
   getJobOccurrenceEmployeeOptions,
+  type OccurrenceDefaults,
 } from "@/components/ops/jobs/job-occurrence-dialog-utils";
 import { JobOccurrenceTrigger } from "@/components/ops/jobs/job-occurrence-trigger";
 import { useJobOccurrenceDialogSubmit } from "@/components/ops/jobs/use-job-occurrence-dialog-submit";
@@ -19,7 +20,10 @@ import { Button } from "@/components/ui/button";
 
 type JobOccurrenceDialogProps = {
   completeOnSave?: boolean;
+  defaults?: OccurrenceDefaults;
   jobId?: string;
+  onOpenChange?: (open: boolean) => void;
+  open?: boolean;
   scheduleRules?: OpsScheduleRule[];
   occurrence?: OpsOccurrence;
   triggerClassName?: string;
@@ -29,16 +33,25 @@ type JobOccurrenceDialogProps = {
 
 export const JobOccurrenceDialog = ({
   completeOnSave = false,
+  defaults,
   jobId,
+  onOpenChange: onControlledOpenChange,
+  open: controlledOpen,
   scheduleRules = [],
   occurrence,
   triggerClassName,
   triggerLabel,
   triggerVariant,
 }: JobOccurrenceDialogProps) => {
-  const [open, setOpen] = useState(false);
+  const isControlled = controlledOpen !== undefined;
+  const [uncontrolledOpen, setUncontrolledOpen] = useState(false);
+  const open = isControlled ? controlledOpen : uncontrolledOpen;
+  const setOpen = (nextOpen: boolean) => {
+    if (!isControlled) setUncontrolledOpen(nextOpen);
+    onControlledOpenChange?.(nextOpen);
+  };
   const [formState, setFormState] = useState(
-    getInitialOccurrenceState(occurrence, completeOnSave)
+    getInitialOccurrenceState(occurrence, completeOnSave, defaults)
   );
   const { employees: activeEmployees } = useEmployees({ isActive: true });
   const { jobs } = useJobs({ includeArchived: false });
@@ -90,7 +103,7 @@ export const JobOccurrenceDialog = ({
 
   const onOpenChange = (nextOpen: boolean) => {
     if (nextOpen) {
-      setFormState(getInitialOccurrenceState(occurrence, completeOnSave));
+      setFormState(getInitialOccurrenceState(occurrence, completeOnSave, defaults));
     }
     setOpen(nextOpen);
   };
@@ -107,12 +120,14 @@ export const JobOccurrenceDialog = ({
       onRemove={remove}
       onSubmit={submit}
       trigger={
-        <JobOccurrenceTrigger
-          isEditing={Boolean(occurrence)}
-          triggerClassName={triggerClassName}
-          triggerLabel={triggerLabel}
-          triggerVariant={triggerVariant}
-        />
+        isControlled ? null : (
+          <JobOccurrenceTrigger
+            isEditing={Boolean(occurrence)}
+            triggerClassName={triggerClassName}
+            triggerLabel={triggerLabel}
+            triggerVariant={triggerVariant}
+          />
+        )
       }
     >
       <JobOccurrenceDialogForm

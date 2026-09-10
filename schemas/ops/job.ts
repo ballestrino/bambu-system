@@ -32,6 +32,7 @@ export const jobVisibilitySchema = z.enum(jobVisibilityValues);
 const jobBaseSchema = z
   .object({
     name: z.string().trim().min(1, "El nombre es obligatorio").max(255),
+    scheduleName: optionalTrimmedString(255),
     description: optionalTrimmedString(),
     serviceAddress: optionalTrimmedString(255),
     serviceLocation: optionalTrimmedString(255),
@@ -92,6 +93,7 @@ export const CreateJobSchema = jobBaseSchema.refine(
 
 export const UpdateJobSchema = z.object({
   name: z.string().trim().min(1, "El nombre es obligatorio").max(255).optional(),
+  scheduleName: nullableTrimmedString(255),
   description: nullableTrimmedString(),
   serviceAddress: nullableTrimmedString(255),
   serviceLocation: nullableTrimmedString(255),

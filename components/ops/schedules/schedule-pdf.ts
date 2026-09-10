@@ -21,21 +21,30 @@ export const finalizeSchedulePages = (bodies: string[], subtitle: string) =>
 
 export const buildEmployeeSchedulePages = (
   employee: ScheduleEmployee,
-  schedule: WeeklySchedule
+  schedule: WeeklySchedule,
+  visibleWeekdays?: number[]
 ) =>
   finalizeSchedulePages(
-    buildDayBlocks(getDeliverableDays(employee), employee.name, schedule.weekLabel),
+    buildDayBlocks(
+      getDeliverableDays(employee, visibleWeekdays),
+      employee.name,
+      schedule.weekLabel
+    ),
     employee.name
   );
 
 export const buildEmployeeSchedulePdf = (
   employee: ScheduleEmployee,
-  schedule: WeeklySchedule
-) => buildSimplePdf(buildEmployeeSchedulePages(employee, schedule), [bambuLogoImage]);
+  schedule: WeeklySchedule,
+  visibleWeekdays?: number[]
+) =>
+  buildSimplePdf(buildEmployeeSchedulePages(employee, schedule, visibleWeekdays), [
+    bambuLogoImage,
+  ]);
 
 // Portada del PDF de equipo: hace navegable un archivo con una seccion por
 // empleada.
-const buildTeamCoverPage = (schedule: WeeklySchedule) => {
+const buildTeamCoverPage = (schedule: WeeklySchedule, visibleWeekdays?: number[]) => {
   let content = drawScheduleCover({
     subtitle: "Equipo completo",
     title: "Cronogramas del equipo",
@@ -63,7 +72,7 @@ const buildTeamCoverPage = (schedule: WeeklySchedule) => {
     content += pdfText(margin + 8, y, 10, employee.name, {
       color: scheduleColors.text,
     });
-    content += pdfText(rightEdge - 8, y, 10, String(countDeliverableVisits(employee)), {
+    content += pdfText(rightEdge - 8, y, 10, String(countDeliverableVisits(employee, visibleWeekdays)), {
       align: "right",
       bold: true,
       color: scheduleColors.bambooStrong,
@@ -75,12 +84,15 @@ const buildTeamCoverPage = (schedule: WeeklySchedule) => {
   return content + drawScheduleFooter(1, 1, "Equipo completo");
 };
 
-export const buildTeamSchedulePdf = (schedule: WeeklySchedule) =>
+export const buildTeamSchedulePdf = (
+  schedule: WeeklySchedule,
+  visibleWeekdays?: number[]
+) =>
   buildSimplePdf(
     [
-      buildTeamCoverPage(schedule),
+      buildTeamCoverPage(schedule, visibleWeekdays),
       ...schedule.employees.flatMap((employee) =>
-        buildEmployeeSchedulePages(employee, schedule)
+        buildEmployeeSchedulePages(employee, schedule, visibleWeekdays)
       ),
     ],
     [bambuLogoImage]

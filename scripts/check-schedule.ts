@@ -8,6 +8,8 @@ import {
   toLocalDateKey,
 } from "../lib/ops/schedule-week";
 import { formatScheduleWeekLabel } from "../lib/ops/schedule-format";
+import { getScheduleDisplayName } from "../lib/ops/schedule-types";
+import { shiftOccurrenceToDate } from "../lib/ops/schedule-week";
 import { buildFixtureSchedule } from "./schedule-fixture";
 
 // La semana siempre arranca el lunes en hora de Montevideo.
@@ -85,5 +87,55 @@ assert.equal(maria.days[2].visits[0].status, "CANCELED");
 assert.equal(getDeliverableDays(maria)[2].visits.length, 0);
 assert.equal(maria.totalVisits, 6, "cinco entregables mas la cancelada");
 assert.equal(countDeliverableVisits(maria), 5);
+
+// El nombre que ve la empleada: la visita pisa al trabajo, y el trabajo al
+// nombre interno.
+const nameRow = (scheduleLabel: string | null, scheduleName: string | null) => ({
+  employees: [],
+  id: "n",
+  job: { id: "j", name: "Contrato 2026 - Oficina SRL", scheduleName },
+  jobId: "j",
+  scheduleLabel,
+  scheduledEndAt: new Date(),
+  scheduledStartAt: new Date(),
+  status: "SCHEDULED" as const,
+});
+
+assert.equal(getScheduleDisplayName(nameRow(null, null)), "Contrato 2026 - Oficina SRL");
+assert.equal(getScheduleDisplayName(nameRow(null, "Oficina del centro")), "Oficina del centro");
+assert.equal(getScheduleDisplayName(nameRow("Repaso puntual", "Oficina del centro")), "Repaso puntual");
+assert.equal(getScheduleDisplayName(nameRow("   ", "Oficina del centro")), "Oficina del centro");
+
+// Mover de dia conserva la hora local y la duracion, no suma milisegundos.
+const moved = shiftOccurrenceToDate(
+  {
+    scheduledStartAt: new Date("2026-09-14T11:00:00.000Z"),
+    scheduledEndAt: new Date("2026-09-14T15:30:00.000Z"),
+  },
+  "2026-09-17"
+);
+assert.ok(moved);
+assert.equal(moved!.scheduledStartAt.toISOString(), "2026-09-17T11:00:00.000Z");
+assert.equal(moved!.scheduledEndAt.toISOString(), "2026-09-17T15:30:00.000Z");
+
+// Una visita que empieza a las 22:00 locales y termina de madrugada mantiene
+// el salto de dia al moverse. 01:00 UTC son las 22:00 del dia anterior en
+// Montevideo, asi que el dia de origen es el 14.
+const overnight = shiftOccurrenceToDate(
+  {
+    scheduledStartAt: new Date("2026-09-15T01:00:00.000Z"),
+    scheduledEndAt: new Date("2026-09-15T05:00:00.000Z"),
+  },
+  "2026-09-18"
+);
+assert.ok(overnight);
+assert.equal(overnight!.scheduledStartAt.toISOString(), "2026-09-19T01:00:00.000Z");
+assert.equal(overnight!.scheduledEndAt.toISOString(), "2026-09-19T05:00:00.000Z");
+assert.equal(shiftOccurrenceToDate({ scheduledEndAt: new Date(), scheduledStartAt: new Date() }, "roto"), null);
+
+// Los dias del DTO exponen su numero ISO para poder ocultar sabado y domingo.
+assert.deepEqual(maria.days.map((day) => day.weekdayNumber), [1, 2, 3, 4, 5, 6, 7]);
+assert.equal(getDeliverableDays(maria, [1, 2, 3, 4, 5]).length, 5);
+assert.equal(countDeliverableVisits(maria, [1, 2, 3, 4, 5]), 4, "sin el domingo queda fuera la nocturna");
 
 console.log("Schedule checks passed");

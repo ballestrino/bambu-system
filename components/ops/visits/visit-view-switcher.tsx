@@ -1,14 +1,15 @@
 "use client";
 
-import { CalendarDays, LayoutGrid, List } from "lucide-react";
+import { CalendarDays, CalendarRange, LayoutGrid, List } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { opsSurface } from "@/components/ops/shared";
 
-export type VisitView = "calendar" | "list" | "cards";
+export type VisitView = "calendar" | "schedule" | "list" | "cards";
 
 const views = [
   { icon: CalendarDays, label: "Calendario", value: "calendar" },
+  { icon: CalendarRange, label: "Cronograma", value: "schedule" },
   { icon: List, label: "Lista", value: "list" },
   { icon: LayoutGrid, label: "Cards", value: "cards" },
 ] as const;

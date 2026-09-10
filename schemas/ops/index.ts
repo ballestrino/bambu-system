@@ -10,4 +10,3 @@ export * from "@/schemas/ops/job-schedule-rule";
 export * from "@/schemas/ops/time-entry";
 export * from "@/schemas/ops/visit-feed";
 export * from "@/schemas/ops/profitability";
-export * from "@/schemas/ops/schedule";

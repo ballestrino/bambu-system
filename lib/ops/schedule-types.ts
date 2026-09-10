@@ -2,10 +2,12 @@ import type { OccurrenceStatus } from "@prisma/client";
 
 export type ScheduleVisit = {
   address: string;
+  displayName: string;
   endLabel: string;
   id: string;
   jobId: string;
   jobName: string;
+  startAt: string;
   startLabel: string;
   status: OccurrenceStatus;
   teammates: string[];
@@ -17,6 +19,7 @@ export type ScheduleDay = {
   longLabel: string;
   visits: ScheduleVisit[];
   weekdayLabel: string;
+  weekdayNumber: number;
 };
 
 export type ScheduleEmployee = {
@@ -35,17 +38,28 @@ export type WeeklySchedule = {
   weekStartKey: string;
 };
 
+// Forma minima que necesita el cronograma. OpsOccurrence la cumple, y las
+// fechas llegan como string cuando el DTO cruza una server action.
 export type ScheduleOccurrenceRow = {
-  employees: { employee: { id: string; name: string } }[];
+  employees: { employee: { id: string; name: string } | null }[];
   id: string;
   job: {
     id: string;
     name: string;
-    serviceAddress: string | null;
-    serviceLocation: string | null;
+    scheduleName?: string | null;
+    serviceAddress?: string | null;
+    serviceLocation?: string | null;
   };
   jobId: string;
-  scheduledEndAt: Date;
-  scheduledStartAt: Date;
+  scheduleLabel?: string | null;
+  scheduledEndAt: Date | string;
+  scheduledStartAt: Date | string;
   status: OccurrenceStatus;
 };
+
+// El nombre que ve la empleada: la excepcion de la visita gana sobre el alias
+// del trabajo, y el nombre interno queda como ultimo recurso.
+export const getScheduleDisplayName = (occurrence: ScheduleOccurrenceRow) =>
+  occurrence.scheduleLabel?.trim() ||
+  occurrence.job.scheduleName?.trim() ||
+  occurrence.job.name;

@@ -77,8 +77,14 @@ export const useJobOccurrenceMutations = (_jobId?: string) => {
   });
 
   const updateMutation = useMutation({
-    mutationFn: ({ occurrenceId, values }: { occurrenceId: string; values: UpdateJobOccurrenceInput } & MutationErrorAction) =>
-      updateJobOccurrenceAction(occurrenceId, values),
+    mutationFn: ({
+      occurrenceId,
+      values,
+    }: {
+      occurrenceId: string;
+      successMessage?: string;
+      values: UpdateJobOccurrenceInput;
+    } & MutationErrorAction) => updateJobOccurrenceAction(occurrenceId, values),
     onMutate: async ({ occurrenceId, values }) => {
       const snapshots = await snapshotQueries(queryClient, occurrenceRoots);
       patchListItem<OpsOccurrence>(
@@ -90,14 +96,14 @@ export const useJobOccurrenceMutations = (_jobId?: string) => {
       );
       return { snapshots };
     },
-    onSuccess: (occurrence) => {
+    onSuccess: (occurrence, { successMessage }) => {
       if (!occurrence) return;
       reconcileListItem(queryClient, opsQueryKeys.occurrenceRoot, occurrence, {
         matches: matchesOccurrenceFilters,
         sort: sortOccurrences,
       });
       void invalidateVisitScopes(queryClient);
-      toast.success("Ocurrencia actualizada");
+      toast.success(successMessage ?? "Ocurrencia actualizada");
     },
     onError: (error, values, context) => {
       restoreSnapshots(queryClient, context?.snapshots);

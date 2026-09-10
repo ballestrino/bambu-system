@@ -5,6 +5,7 @@ import type { JobType } from "@prisma/client";
 export type EditableJob = {
   id: string;
   name: string;
+  scheduleName?: string | null;
   description?: string | null;
   serviceAddress?: string | null;
   serviceLocation?: string | null;
@@ -25,6 +26,7 @@ export const getInitialJobFormState = (job?: EditableJob) => ({
   description: job?.description ?? "",
   jobType: job?.jobType ?? "ONGOING",
   name: job?.name ?? "",
+  scheduleName: job?.scheduleName ?? "",
   operationalNotes: job?.operationalNotes ?? "",
   punctualEndDate: toDateInputValue(job?.punctualEndDate),
   punctualStartDate: toDateInputValue(job?.punctualStartDate),

@@ -17,9 +17,9 @@ export const EmployeesHeader = ({ count }: { count: number }) => (
     </div>
     <div className="flex flex-wrap gap-2">
       <Button asChild variant="outline" className={dashboardSecondaryActionClass}>
-        <Link href="/dashboard/schedules">
+        <Link href="/dashboard/calendar">
           <CalendarRange className="h-4 w-4" />
-          Cronogramas
+          Cronograma semanal
         </Link>
       </Button>
       <Button asChild variant="outline" className={dashboardSecondaryActionClass}>

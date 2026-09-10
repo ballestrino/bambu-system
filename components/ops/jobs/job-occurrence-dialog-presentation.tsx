@@ -35,7 +35,7 @@ type JobOccurrenceDialogPresentationProps = {
   onRemove: () => void | Promise<void>;
   onSubmit: () => void;
   open: boolean;
-  trigger: ReactElement;
+  trigger?: ReactElement | null;
 };
 
 const presentationCopy = (isEditing: boolean) => ({
@@ -75,7 +75,7 @@ export const JobOccurrenceDialogPresentation = ({
   if (isMobile) {
     return (
       <Sheet open={open} onOpenChange={onOpenChange}>
-        <SheetTrigger asChild>{trigger}</SheetTrigger>
+        {trigger ? <SheetTrigger asChild>{trigger}</SheetTrigger> : null}
         <SheetContent
           className="grid! h-[min(92dvh,820px)]! max-h-[92dvh] grid-rows-[auto_auto_minmax(0,1fr)_auto] gap-0 overflow-hidden rounded-t-[var(--ops-radius-dialog)] border-ops-border bg-ops-surface p-0 shadow-[var(--ops-shadow-elevated)]"
           side="bottom"
@@ -112,7 +112,7 @@ export const JobOccurrenceDialogPresentation = ({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogTrigger asChild>{trigger}</DialogTrigger>
+      {trigger ? <DialogTrigger asChild>{trigger}</DialogTrigger> : null}
       <OpsFormDialogContent size="md">
         <OpsFormHeader className="bg-ops-surface-muted">
           <div className="flex items-start gap-3 pr-8">

@@ -34,7 +34,7 @@ const measureVisit = (visit: ScheduleVisit): VisitCells => {
     scheduleColumns.teammates.width,
     8
   );
-  const work = wrapCell(visit.jobName, scheduleColumns.work.width, 9);
+  const work = wrapCell(visit.displayName, scheduleColumns.work.width, 9);
 
   return {
     address,

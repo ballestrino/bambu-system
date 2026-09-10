@@ -1,7 +1,8 @@
 import "server-only";
 
 import { db } from "@/lib/db";
-import { buildDateTimeRange, opsAuditUserSelect } from "@/data/ops/shared";
+import { opsOccurrenceInclude } from "@/data/ops/includes";
+import { buildDateTimeRange } from "@/data/ops/shared";
 import { ensureJobOccurrencesForRange } from "@/lib/ops/job-occurrence-generator";
 import { requireAdminSession } from "@/lib/require-admin-session";
 import { JobOccurrenceFiltersSchema } from "@/schemas/ops";
@@ -58,27 +59,7 @@ export const getJobOccurrences = async (filters?: unknown) => {
         isDetached,
         scheduledStartAt: buildDateTimeRange(startDate, endDate),
       },
-      include: {
-        job: {
-          select: {
-            id: true,
-            name: true,
-            status: true,
-          },
-        },
-        employees: {
-          include: {
-            employee: true,
-          },
-        },
-        scheduleRule: true,
-        createdBy: {
-          select: opsAuditUserSelect,
-        },
-        updatedBy: {
-          select: opsAuditUserSelect,
-        },
-      },
+      include: opsOccurrenceInclude,
       orderBy: [{ scheduledStartAt: "asc" }],
     });
 

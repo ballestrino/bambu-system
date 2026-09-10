@@ -6,21 +6,25 @@ const loadBuilders = () => import("@/components/ops/schedules/schedule-pdf");
 
 export const downloadEmployeeSchedulePdf = async (
   employee: ScheduleEmployee,
-  schedule: WeeklySchedule
+  schedule: WeeklySchedule,
+  visibleWeekdays?: number[]
 ) => {
   const { buildEmployeeSchedulePdf } = await loadBuilders();
 
   downloadPdf(
     `cronograma-${safeFilename(employee.name)}-${schedule.weekStartKey}.pdf`,
-    buildEmployeeSchedulePdf(employee, schedule)
+    buildEmployeeSchedulePdf(employee, schedule, visibleWeekdays)
   );
 };
 
-export const downloadTeamSchedulePdf = async (schedule: WeeklySchedule) => {
+export const downloadTeamSchedulePdf = async (
+  schedule: WeeklySchedule,
+  visibleWeekdays?: number[]
+) => {
   const { buildTeamSchedulePdf } = await loadBuilders();
 
   downloadPdf(
     `cronogramas-equipo-${schedule.weekStartKey}.pdf`,
-    buildTeamSchedulePdf(schedule)
+    buildTeamSchedulePdf(schedule, visibleWeekdays)
   );
 };

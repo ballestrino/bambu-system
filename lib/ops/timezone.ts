@@ -52,6 +52,9 @@ const getZonedParts = (date: Date, timeZone: string) => {
   };
 };
 
+export const getLocalDateTime = (date: Date, timeZone: string) =>
+  getZonedParts(date, timeZone);
+
 export const getLocalDate = (date: Date, timeZone: string): LocalDate => {
   const parts = getZonedParts(date, timeZone);
   return {
