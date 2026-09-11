@@ -1,4 +1,5 @@
 export * from "@/components/ops/shared/ops-action-menu";
+export * from "@/components/ops/shared/ops-data-table";
 export * from "@/components/ops/shared/ops-detail-hero";
 export * from "@/components/ops/shared/ops-detail-list";
 export * from "@/components/ops/shared/ops-empty-state";
@@ -10,6 +11,11 @@ export * from "@/components/ops/shared/ops-page-shell";
 export * from "@/components/ops/shared/ops-record-list";
 export * from "@/components/ops/shared/ops-refresh-button";
 export * from "@/components/ops/shared/ops-scroll-container";
+export * from "@/components/ops/shared/ops-search-input";
+export * from "@/components/ops/shared/ops-table-controls";
+export * from "@/components/ops/shared/ops-table-states";
 export * from "@/components/ops/shared/ops-theme";
+export * from "@/components/ops/shared/ops-view-tabs";
 export * from "@/components/ops/shared/use-ops-debounced-value";
 export * from "@/components/ops/shared/use-ops-persisted-state";
+export * from "@/components/ops/shared/use-ops-table-state";
