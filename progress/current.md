@@ -2,6 +2,46 @@
 
 Status: in_progress
 
+## Feature 37 - Sueldos a mes vencido
+
+- Feature 37 - `ops_payroll_paid_in_arrears`, sin commitear en `main`. Queda
+  `pending` por lo mismo que la 36: la 35 ocupa el único `in_progress`.
+- Los pagos a empleadas se siguen contando en el mes en que se hacen:
+  `assignedMonth`, el Resumen, la tendencia, Costes y el PDF no cambian.
+- Lo que cambia es contra qué se compara el saldo. En Finanzas → Pagos,
+  `/dashboard/payroll` y la ficha de la empleada, el mes M compara los pagos
+  de M contra las visitas realizadas de M−1 (horas, sugerido, devengamientos y
+  saldo). La regla vive en `getPayrollWorkMonth` (`lib/ops/finance`), y
+  `getPayrollPeriod` arma el rango y los nombres de mes.
+- Finanzas tiene una query propia, `payrollOccurrences`, que solo se activa
+  en Pagos. Usa el mismo scope que la query mensual de M−1, así que comparten
+  caché. Cobros y Resumen siguen leyendo las visitas de M.
+- `PayrollDialog` ya no recibe `periodStart`/`periodEnd`: calcula solo el mes
+  asignado (M) y el período trabajado (M−1). Así también se corrige el acceso
+  de la ficha de la empleada, que abría el diálogo sin período.
+- En la ficha de la empleada, "Periodo desde/hasta" pasó a "Pagos
+  desde/hasta": esas fechas eligen el mes de los pagos, no el período trabajado.
+- `es-UY` escribe "setiembre", y el mes suelto en mayúscula ("Agosto"). Por
+  eso se pasa a minúscula, porque va en medio de la frase.
+
+### Verificación de la 37
+
+- PASS: `check:finance` (con el mes anterior y el cruce de año),
+  `check:finance-tables`, `check:finance-trend`, `tsc` y el lint de las carpetas
+  tocadas.
+- PASS: recálculo de solo lectura contra la base con las mismas funciones de la
+  pantalla. Setiembre pasa de sugerido 49.132 (horas de setiembre en curso) a
+  120.858 (horas de agosto), con pagado 0 y saldo 120.858. Agosto pasa a
+  comparar sus 100.296 pagados contra julio.
+- NOT RUN: smoke en navegador. Ni el navegador integrado ni Chrome tenían
+  sesión en `localhost:3000`.
+- Datos: julio tiene 141 visitas `DONE` sin hora real, así que su sugerido da
+  772 y agosto muestra saldo −99.524. Es un hueco de carga previo a este cambio,
+  no un error de cálculo. Además, los pagos de agosto (del 6 al 28) tienen
+  período 1–31 de agosto, aunque pagan julio. Eso no afecta a Finanzas, que
+  usa `assignedMonth`, pero sí al resumen por período de la empleada, que
+  filtra por período.
+
 ## Feature 36 - Tablas buscables en Finanzas
 
 - Feature 36 - `ops_finance_searchable_tables`, en la rama

@@ -567,6 +567,20 @@
         "check:finance-tables, the existing finance checks, TypeScript, lint, harness, a production build, and authenticated desktop plus 390-pixel browser smoke are recorded"
       ],
       "status": "pending"
+    },
+    {
+      "id": 37,
+      "name": "ops_payroll_paid_in_arrears",
+      "title": "Payroll balance settles the previous month's hours",
+      "description": "Salaries are paid in arrears: employee payments stay counted in the month they are made, while the payroll suggested amount, accruals, and balance compare them against the hours worked the month before in Finance, /dashboard/payroll, and the employee payroll panel.",
+      "acceptance": [
+        "Employee payments keep counting in their assigned month for Resumen, trend, costs, and the PDF export",
+        "Finance Pagos, /dashboard/payroll, and the employee payroll panel compute hours, suggested amount, accruals, and balance from the previous month's completed visits against the selected month's payments",
+        "Registrar pago defaults the assigned month to the selected month and the worked period to the previous month",
+        "Each payroll screen states which month's hours it is settling",
+        "check:finance covers the previous-month rule including the year boundary, plus TypeScript, lint, harness, and authenticated browser smoke"
+      ],
+      "status": "pending"
     }
   ]
 }
