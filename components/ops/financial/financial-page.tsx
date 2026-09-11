@@ -51,6 +51,7 @@ export const FinancialPage = () => {
       />
       <FinancialTabs onSectionChange={setSection} section={section} />
       <FinancialSectionPanel
+        onSelectSection={setSection}
         section={section}
         summary={summary}
         workspace={workspace}

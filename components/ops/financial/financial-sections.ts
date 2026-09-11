@@ -41,16 +41,18 @@ export const isFinanceSection = (value: unknown): value is FinanceSection =>
 //   - PaymentsList / PaymentDialog need jobs.
 //   - EmployeeGeneratedPayPanel reads names off occurrences, not employees.
 //   - PayrollDialog / PayrollRowsPanel need employees, not jobs.
-//   - CostDialog / CostsFilters need categories, employees and jobs.
+//   - CostDialog / CostsFilters need categories, employees and jobs, which is
+//     why Resumen loads them too: its quick actions open those same dialogs.
 // The month money queries (cobros, costes, pagos, ajustes) are never gated: they
 // feed every section's summary and the PDF export, which runs from any tab.
 export const financeSectionQueries = {
   resumen: {
-    categories: false,
-    employees: false,
+    categories: true,
+    employees: true,
     jobs: true,
     occurrences: true,
     profitability: true,
+    trend: true,
   },
   rentabilidad: {
     categories: false,
@@ -58,6 +60,7 @@ export const financeSectionQueries = {
     jobs: false,
     occurrences: false,
     profitability: true,
+    trend: false,
   },
   cobros: {
     categories: false,
@@ -65,6 +68,7 @@ export const financeSectionQueries = {
     jobs: true,
     occurrences: true,
     profitability: false,
+    trend: false,
   },
   costes: {
     categories: true,
@@ -72,6 +76,7 @@ export const financeSectionQueries = {
     jobs: true,
     occurrences: false,
     profitability: false,
+    trend: false,
   },
   pagos: {
     categories: false,
@@ -79,5 +84,6 @@ export const financeSectionQueries = {
     jobs: false,
     occurrences: true,
     profitability: false,
+    trend: false,
   },
 } as const satisfies Record<FinanceSection, Record<string, boolean>>;

@@ -4,21 +4,22 @@ import { FinancialCostsSection } from "@/components/ops/financial/financial-cost
 import { FinancialPaymentsSection } from "@/components/ops/financial/financial-payments-section";
 import { FinancialPayrollSection } from "@/components/ops/financial/financial-payroll-section";
 import { FinancialProfitabilitySection } from "@/components/ops/financial/financial-profitability-section";
-import { FinancialSummary } from "@/components/ops/financial/financial-summary";
+import { FinancialSummarySection } from "@/components/ops/financial/financial-summary-section";
 import type { FinanceSection } from "@/components/ops/financial/financial-sections";
 import {
   financePanelId,
   financeTabId,
 } from "@/components/ops/financial/financial-tabs";
 import type { FinancialWorkspace } from "@/components/ops/financial/use-financial-workspace";
-import { OpsSection } from "@/components/ops/shared";
 import type { getFinancialSummary } from "@/lib/ops/finance";
 
 export const FinancialSectionPanel = ({
+  onSelectSection,
   section,
   summary,
   workspace,
 }: {
+  onSelectSection: (section: FinanceSection) => void;
   section: FinanceSection;
   summary: ReturnType<typeof getFinancialSummary>;
   workspace: FinancialWorkspace;
@@ -31,17 +32,11 @@ export const FinancialSectionPanel = ({
     tabIndex={0}
   >
     {section === "resumen" ? (
-      <OpsSection
-        description="Los anulados permanecen en el historial, pero no afectan estos importes."
-        title="Resumen financiero"
-      >
-        <FinancialSummary
-          error={workspace.errors.summary}
-          isLoading={workspace.loading.summary}
-          onRetry={workspace.refresh.all}
-          summary={summary}
-        />
-      </OpsSection>
+      <FinancialSummarySection
+        onSelectSection={onSelectSection}
+        summary={summary}
+        workspace={workspace}
+      />
     ) : section === "rentabilidad" ? (
       <FinancialProfitabilitySection
         error={workspace.profitability.error}

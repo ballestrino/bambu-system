@@ -6,6 +6,7 @@ import {
 } from "@/components/ops/financial/financial-sections";
 import { buildFinancialRefresh } from "@/components/ops/financial/financial-workspace-refresh";
 import { useEmployeePayments } from "@/components/ops/hooks/useEmployeePayments";
+import { useFinanceTrend } from "@/components/ops/hooks/useFinanceTrend";
 import { useEmployees } from "@/components/ops/hooks/useEmployees";
 import { useJobClientPayments } from "@/components/ops/hooks/useJobClientPayments";
 import { useJobOccurrences } from "@/components/ops/hooks/useJobOccurrences";
@@ -60,6 +61,8 @@ export const useFinancialWorkspace = ({
     needs.profitability
   );
 
+  const trendQuery = useFinanceTrend({ month, months: 3 }, needs.trend);
+
   const refresh = buildFinancialRefresh({
     categories: categoriesQuery,
     costs: costsQuery,
@@ -70,6 +73,7 @@ export const useFinancialWorkspace = ({
     payments: paymentsQuery,
     profitability: profitabilityQuery,
     settings: settingsQuery,
+    trend: trendQuery,
   });
 
   return {
@@ -98,7 +102,8 @@ export const useFinancialWorkspace = ({
       occurrencesQuery.isFetching ||
       paymentsQuery.isFetching ||
       profitabilityQuery.isFetching ||
-      settingsQuery.isFetching,
+      settingsQuery.isFetching ||
+      trendQuery.isFetching,
     loading: {
       costs: categoriesQuery.isLoading || costsQuery.isLoading,
       payments: jobsQuery.isLoading || paymentsQuery.isLoading,
@@ -121,6 +126,12 @@ export const useFinancialWorkspace = ({
     },
     refresh,
     settings: settingsQuery.settings,
+    trend: {
+      error: trendQuery.error,
+      isLoading: trendQuery.isLoading,
+      points: trendQuery.trend,
+      refetch: trendQuery.refetch,
+    },
     jobs: jobsQuery.jobs,
   };
 };
