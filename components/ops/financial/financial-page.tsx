@@ -15,7 +15,7 @@ import {
 import { getFinancialSummary } from "@/lib/ops/finance";
 
 export const FinancialPage = () => {
-  const { section, setSection } = useFinancialSection();
+  const { section, setSection, setView, view } = useFinancialSection();
   const workspace = useFinancialWorkspace({ section });
   const summary = useMemo(
     () =>
@@ -52,8 +52,10 @@ export const FinancialPage = () => {
       <FinancialTabs onSectionChange={setSection} section={section} />
       <FinancialSectionPanel
         onSelectSection={setSection}
+        onViewChange={setView}
         section={section}
         summary={summary}
+        view={view}
         workspace={workspace}
       />
     </OpsPageShell>

@@ -6,11 +6,13 @@ import {
   OpsFilterChips,
   OpsFilterSheet,
   OpsRefreshButton,
+  OpsSearchInput,
   OpsToolbar,
   getOpsStatusConfig,
   opsFilterControlClass,
   opsPaymentStatus,
   type OpsFilterChip,
+  type OpsSearchControl,
 } from "@/components/ops/shared";
 import type {
   OpsEmployee,
@@ -19,6 +21,11 @@ import type {
 } from "@/components/ops/types";
 import { SearchableSelect } from "@/components/ui/searchable-select";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { cn } from "@/lib/utils";
+
+// On the desktop toolbar (a wrapping flex row from lg) the four selects share
+// one line instead of each taking a full-width row.
+const toolbarFieldClass = cn(opsFilterControlClass, "lg:w-auto lg:min-w-36 lg:flex-1");
 
 export type CostsFilterState = {
   categoryId: string;
@@ -37,6 +44,7 @@ export const CostsFilters = ({
   onChange,
   onClear,
   onRefresh,
+  search,
 }: {
   categories: OpsOperationalCostCategory[];
   employees: OpsEmployee[];
@@ -47,6 +55,7 @@ export const CostsFilters = ({
   onChange: (values: Partial<CostsFilterState>) => void;
   onClear: () => void;
   onRefresh: () => Promise<unknown> | void;
+  search?: OpsSearchControl;
 }) => {
   const selectedCategory = categories.find(
     (category) => category.id === filters.categoryId
@@ -75,7 +84,7 @@ export const CostsFilters = ({
     <>
       <SearchableSelect
         aria-label="Filtrar por categoría"
-        className={opsFilterControlClass}
+        className={toolbarFieldClass}
         onValueChange={(categoryId) => onChange({ categoryId })}
         options={[
           { label: "Todas las categorías", value: "ALL" },
@@ -85,7 +94,7 @@ export const CostsFilters = ({
         value={filters.categoryId}
       />
       <Select value={filters.status} onValueChange={(status) => onChange({ status })}>
-        <SelectTrigger className={opsFilterControlClass}><SelectValue /></SelectTrigger>
+        <SelectTrigger className={toolbarFieldClass}><SelectValue /></SelectTrigger>
         <SelectContent>
           <SelectItem value="ALL">Todos los estados</SelectItem>
           <SelectItem value="RECORDED">Registrado</SelectItem>
@@ -99,7 +108,7 @@ export const CostsFilters = ({
     <>
       <SearchableSelect
         aria-label="Filtrar por trabajo"
-        className={opsFilterControlClass}
+        className={toolbarFieldClass}
         onValueChange={(jobId) => onChange({ jobId })}
         options={[
           { label: "Todos los trabajos", value: "ALL" },
@@ -110,7 +119,7 @@ export const CostsFilters = ({
       />
       <SearchableSelect
         aria-label="Filtrar por empleada"
-        className={opsFilterControlClass}
+        className={toolbarFieldClass}
         onValueChange={(employeeId) => onChange({ employeeId })}
         options={[
           { label: "Todas las empleadas", value: "ALL" },
@@ -124,7 +133,8 @@ export const CostsFilters = ({
 
   return (
     <div className="space-y-3">
-      <div className="md:hidden">
+      <div className="space-y-3 md:hidden">
+        {search ? <OpsSearchInput {...search} /> : null}
         <OpsFilterSheet activeCount={chips.length} onClear={onClear}>
           {selectFields}
           {relationFields}
@@ -132,6 +142,7 @@ export const CostsFilters = ({
       </div>
       <div className="hidden md:block">
         <OpsToolbar summary={`${chips.length} filtro(s) activo(s)`}>
+          {search ? <OpsSearchInput className="lg:basis-full" {...search} /> : null}
           {selectFields}
           {relationFields}
           <OpsRefreshButton isRefreshing={isRefreshing} onRefresh={onRefresh} />

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, type ReactNode } from "react";
 import { LoaderCircle, Pencil, Plus } from "lucide-react";
 
 import { dashboardPrimaryActionClass, dashboardSecondaryActionClass } from "@/components/dashboard/dashboard-styles";
@@ -46,20 +46,33 @@ const getInitialState = (defaultMonthKey: string, cost?: OpsOperationalCost) => 
   reference: cost?.reference ?? "",
 });
 
+// `trigger={null}` renders no trigger: the parent mounts the dialog with
+// `defaultOpen` when its own button is pressed and unmounts it on close.
 export const CostDialog = ({
   categories,
   cost,
+  defaultOpen = false,
   employees,
   jobs,
+  onOpenChange,
+  trigger,
 }: {
   categories: OpsOperationalCostCategory[];
   cost?: OpsOperationalCost;
+  defaultOpen?: boolean;
   employees: OpsEmployee[];
   jobs: OpsJobListItem[];
+  onOpenChange?: (open: boolean) => void;
+  trigger?: ReactNode | null;
 }) => {
   const { monthKey } = useOpsSelectedMonth();
-  const [open, setOpen] = useState(false);
+  const [open, setOpen] = useState(defaultOpen);
   const [formState, setFormState] = useState(getInitialState(monthKey, cost));
+  const changeOpen = (nextOpen: boolean) => {
+    if (nextOpen) setFormState(getInitialState(monthKey, cost));
+    setOpen(nextOpen);
+    onOpenChange?.(nextOpen);
+  };
   const { createCostAsync, updateCostAsync, isCreating, isUpdating } =
     useOperationalCostMutations();
   const amount = toCostNumber(formState.amount);
@@ -87,30 +100,26 @@ export const CostDialog = ({
       await createCostAsync(values);
     }
 
-    setOpen(false);
+    changeOpen(false);
   };
 
   return (
-    <Dialog
-      open={open}
-      onOpenChange={(nextOpen) => {
-        if (nextOpen) setFormState(getInitialState(monthKey, cost));
-        setOpen(nextOpen);
-      }}
-    >
-      <DialogTrigger asChild>
-        {cost ? (
-          <Button variant="outline" size="sm" className={dashboardSecondaryActionClass}>
-            <Pencil className="h-4 w-4" />
-            Editar
-          </Button>
-        ) : (
-          <Button className={dashboardPrimaryActionClass}>
-            <Plus className="h-4 w-4" />
-            Registrar coste
-          </Button>
-        )}
-      </DialogTrigger>
+    <Dialog open={open} onOpenChange={changeOpen}>
+      {trigger === null ? null : (
+        <DialogTrigger asChild>
+          {trigger ?? (cost ? (
+            <Button variant="outline" size="sm" className={dashboardSecondaryActionClass}>
+              <Pencil className="h-4 w-4" />
+              Editar
+            </Button>
+          ) : (
+            <Button className={dashboardPrimaryActionClass}>
+              <Plus className="h-4 w-4" />
+              Registrar coste
+            </Button>
+          ))}
+        </DialogTrigger>
+      )}
       <OpsFormDialogContent size="md">
         <OpsFormHeader>
           <DialogTitle>{cost ? "Editar coste" : "Registrar coste"}</DialogTitle>
@@ -166,7 +175,7 @@ export const CostDialog = ({
           <OpsFormField label="Notas"><Textarea className={opsFormTextareaClass} value={formState.notes} onChange={(event) => setFormState((current) => ({ ...current, notes: event.target.value }))} /></OpsFormField>
         </OpsFormBody>
         <OpsFormFooter>
-          <Button variant="outline" onClick={() => setOpen(false)}>Cancelar</Button>
+          <Button variant="outline" onClick={() => changeOpen(false)}>Cancelar</Button>
           <Button disabled={isPending || !formState.assignedMonth || !formState.categoryId || amount <= 0 || !formState.costDate} onClick={handleSubmit}>
             {isPending ? <LoaderCircle className="h-4 w-4 animate-spin" /> : null}
             Guardar coste

@@ -3,7 +3,7 @@
 import { ArrowRight, UsersRound } from "lucide-react";
 
 import { formatCostMoney } from "@/components/ops/costs/cost-utils";
-import type { FinanceSection } from "@/components/ops/financial/financial-sections";
+import type { FinanceSectionSelect } from "@/components/ops/financial/financial-sections";
 import type { FinancialWorkspace } from "@/components/ops/financial/use-financial-workspace";
 import { buildEmployeeGeneratedPay } from "@/components/ops/payments/payment-utils";
 import { OpsEmptyState, OpsSection } from "@/components/ops/shared";
@@ -16,7 +16,7 @@ export const FinancialTeamRevenuePanel = ({
   onSelectSection,
   workspace,
 }: {
-  onSelectSection: (section: FinanceSection) => void;
+  onSelectSection: FinanceSectionSelect;
   workspace: FinancialWorkspace;
 }) => {
   const rows = buildEmployeeGeneratedPay(workspace.occurrences).rows.slice(0, 5);
@@ -27,7 +27,7 @@ export const FinancialTeamRevenuePanel = ({
       actions={
         rows.length ? (
           <Button
-            onClick={() => onSelectSection("cobros")}
+            onClick={() => onSelectSection("cobros", { view: "equipo" })}
             size="sm"
             type="button"
             variant="outline"

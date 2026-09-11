@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, type ReactNode } from "react";
 import { LoaderCircle, Pencil, Plus } from "lucide-react";
 
 import {
@@ -47,20 +47,28 @@ const getInitialState = (
   reference: payment?.reference ?? "",
 });
 
+// `trigger={null}` renders no trigger: the parent mounts the dialog with
+// `defaultOpen` when its own button is pressed and unmounts it on close.
 export const PayrollDialog = ({
+  defaultOpen = false,
   employeeId,
   employees,
+  onOpenChange,
   payment,
   periodEnd,
   periodStart,
   suggestedAmount,
+  trigger,
 }: {
+  defaultOpen?: boolean;
   employeeId?: string;
   employees: OpsEmployee[];
+  onOpenChange?: (open: boolean) => void;
   payment?: OpsEmployeePayment;
   periodEnd?: string;
   periodStart?: string;
   suggestedAmount?: number | null;
+  trigger?: ReactNode | null;
 }) => {
   const { monthKey } = useOpsSelectedMonth();
   const defaults = {
@@ -70,8 +78,13 @@ export const PayrollDialog = ({
     periodStart,
     suggestedAmount,
   };
-  const [open, setOpen] = useState(false);
+  const [open, setOpen] = useState(defaultOpen);
   const [formState, setFormState] = useState(getInitialState(payment, defaults));
+  const changeOpen = (nextOpen: boolean) => {
+    if (nextOpen) setFormState(getInitialState(payment, defaults));
+    setOpen(nextOpen);
+    onOpenChange?.(nextOpen);
+  };
   const { createPaymentAsync, updatePaymentAsync, isCreating, isUpdating } =
     useEmployeePaymentMutations(employeeId ?? payment?.employeeId);
   const isPending = isCreating || isUpdating;
@@ -108,24 +121,20 @@ export const PayrollDialog = ({
       });
     }
 
-    setOpen(false);
+    changeOpen(false);
   };
 
   return (
-    <Dialog
-      open={open}
-      onOpenChange={(nextOpen) => {
-        if (nextOpen) setFormState(getInitialState(payment, defaults));
-        setOpen(nextOpen);
-      }}
-    >
-      <DialogTrigger asChild>
-        {payment ? (
-          <Button variant="outline" size="sm" className={dashboardSecondaryActionClass}><Pencil className="h-4 w-4" />Editar</Button>
-        ) : (
-          <Button size="sm" className={dashboardPrimaryActionClass}><Plus className="h-4 w-4" />Registrar pago</Button>
-        )}
-      </DialogTrigger>
+    <Dialog open={open} onOpenChange={changeOpen}>
+      {trigger === null ? null : (
+        <DialogTrigger asChild>
+          {trigger ?? (payment ? (
+            <Button variant="outline" size="sm" className={dashboardSecondaryActionClass}><Pencil className="h-4 w-4" />Editar</Button>
+          ) : (
+            <Button size="sm" className={dashboardPrimaryActionClass}><Plus className="h-4 w-4" />Registrar pago</Button>
+          ))}
+        </DialogTrigger>
+      )}
       <OpsFormDialogContent size="sm">
         <OpsFormHeader>
           <DialogTitle>{payment ? "Editar pago" : "Registrar pago"}</DialogTitle>
@@ -162,7 +171,7 @@ export const PayrollDialog = ({
           <OpsFormField label="Notas"><Textarea className={opsFormTextareaClass} value={formState.notes} onChange={(event) => setFormState((current) => ({ ...current, notes: event.target.value }))} /></OpsFormField>
         </OpsFormBody>
         <OpsFormFooter>
-          <Button variant="outline" onClick={() => setOpen(false)}>Cancelar</Button>
+          <Button variant="outline" onClick={() => changeOpen(false)}>Cancelar</Button>
           <Button disabled={isPending || amount <= 0 || !formState.assignedMonth || !formState.employeeId || !formState.paymentDate || !formState.periodStart || !formState.periodEnd} onClick={handleSubmit}>
             {isPending ? <LoaderCircle className="h-4 w-4 animate-spin" /> : null}
             Guardar pago

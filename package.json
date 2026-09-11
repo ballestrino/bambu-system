@@ -10,6 +10,7 @@
     "check:finance": "tsx scripts/check-finance.ts",
     "check:finance-trend": "tsx scripts/check-finance-trend.ts",
     "check:finance-pdf": "tsx scripts/check-finance-pdf.ts",
+    "check:finance-tables": "tsx scripts/check-finance-tables.ts",
     "check:job-export": "tsx scripts/check-job-excel-export.ts",
     "check:occurrence-dialog": "tsx scripts/check-occurrence-dialog.ts",
     "check:profitability": "tsx scripts/check-profitability.ts",

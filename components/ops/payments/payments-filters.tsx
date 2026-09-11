@@ -6,10 +6,12 @@ import {
   OpsFilterField,
   OpsFilterSheet,
   OpsRefreshButton,
+  OpsSearchInput,
   OpsToolbar,
   opsFilterControlClass,
   opsPaymentStatus,
   type OpsFilterChip,
+  type OpsSearchControl,
 } from "@/components/ops/shared";
 import type { OpsJobListItem } from "@/components/ops/types";
 import { SearchableSelect } from "@/components/ui/searchable-select";
@@ -24,6 +26,7 @@ type PaymentsFiltersProps = {
   onJobIdChange: (value: string) => void;
   onRefresh: () => Promise<unknown> | void;
   onStatusChange: (value: string) => void;
+  search?: OpsSearchControl;
   status: string;
 };
 
@@ -36,6 +39,7 @@ export const PaymentsFilters = ({
   onJobIdChange,
   onRefresh,
   onStatusChange,
+  search,
   status,
 }: PaymentsFiltersProps) => {
   const selectedStatus =
@@ -78,9 +82,12 @@ export const PaymentsFilters = ({
     </OpsFilterField>
   );
 
+  const searchInput = search ? <OpsSearchInput {...search} /> : null;
+
   return (
     <div className="space-y-3">
       <div className="space-y-3 md:hidden">
+        {searchInput}
         <div className="flex gap-2">
           <OpsFilterSheet
             activeCount={chips.length}
@@ -101,6 +108,11 @@ export const PaymentsFilters = ({
 
       <div className="hidden space-y-3 md:block">
         <OpsToolbar summary={`${chips.length} filtro(s) activo(s)`}>
+          {searchInput ? (
+            <OpsFilterField className="lg:min-w-72 lg:flex-1" label="Buscar">
+              {searchInput}
+            </OpsFilterField>
+          ) : null}
           {statusField}
           {jobField}
           <OpsRefreshButton

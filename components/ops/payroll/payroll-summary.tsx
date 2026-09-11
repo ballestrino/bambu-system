@@ -17,6 +17,7 @@ export const PayrollSummary = ({
   bpsGeneratedTotal,
   recordedTotal,
   showVoided = true,
+  size,
   suggestedTotal,
   vacationSalaryGeneratedTotal,
   voidedTotal,
@@ -26,6 +27,7 @@ export const PayrollSummary = ({
   bpsGeneratedTotal: number;
   recordedTotal: number;
   showVoided?: boolean;
+  size?: OpsMetric["size"];
   suggestedTotal: number;
   vacationSalaryGeneratedTotal: number;
   voidedTotal: number;
@@ -87,5 +89,7 @@ export const PayrollSummary = ({
     );
   }
 
-  return <OpsMetricsGrid metrics={metrics} />;
+  return (
+    <OpsMetricsGrid metrics={metrics.map((metric) => ({ ...metric, size }))} />
+  );
 };

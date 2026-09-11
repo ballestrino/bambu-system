@@ -5,7 +5,11 @@ import { FinancialPaymentsSection } from "@/components/ops/financial/financial-p
 import { FinancialPayrollSection } from "@/components/ops/financial/financial-payroll-section";
 import { FinancialProfitabilitySection } from "@/components/ops/financial/financial-profitability-section";
 import { FinancialSummarySection } from "@/components/ops/financial/financial-summary-section";
-import type { FinanceSection } from "@/components/ops/financial/financial-sections";
+import {
+  resolveFinanceView,
+  type FinanceSection,
+  type FinanceSectionSelect,
+} from "@/components/ops/financial/financial-sections";
 import {
   financePanelId,
   financeTabId,
@@ -15,13 +19,17 @@ import type { getFinancialSummary } from "@/lib/ops/finance";
 
 export const FinancialSectionPanel = ({
   onSelectSection,
+  onViewChange,
   section,
   summary,
+  view,
   workspace,
 }: {
-  onSelectSection: (section: FinanceSection) => void;
+  onSelectSection: FinanceSectionSelect;
+  onViewChange: (view: string) => void;
   section: FinanceSection;
   summary: ReturnType<typeof getFinancialSummary>;
+  view: string | null;
   workspace: FinancialWorkspace;
 }) => (
   <div
@@ -45,11 +53,19 @@ export const FinancialSectionPanel = ({
         results={workspace.profitability.results}
       />
     ) : section === "cobros" ? (
-      <FinancialPaymentsSection workspace={workspace} />
+      <FinancialPaymentsSection
+        onViewChange={onViewChange}
+        view={resolveFinanceView("cobros", view)}
+        workspace={workspace}
+      />
     ) : section === "costes" ? (
       <FinancialCostsSection workspace={workspace} />
     ) : (
-      <FinancialPayrollSection workspace={workspace} />
+      <FinancialPayrollSection
+        onViewChange={onViewChange}
+        view={resolveFinanceView("pagos", view)}
+        workspace={workspace}
+      />
     )}
   </div>
 );

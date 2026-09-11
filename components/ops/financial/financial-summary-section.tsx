@@ -15,7 +15,7 @@ import { FinancialHeroMetrics } from "@/components/ops/financial/financial-hero-
 import { FinancialQuickActions } from "@/components/ops/financial/financial-quick-actions";
 import { FinancialTeamRevenuePanel } from "@/components/ops/financial/financial-team-revenue-panel";
 import { FinancialTrendPanel } from "@/components/ops/financial/financial-trend-panel";
-import type { FinanceSection } from "@/components/ops/financial/financial-sections";
+import type { FinanceSectionSelect } from "@/components/ops/financial/financial-sections";
 import type { FinancialWorkspace } from "@/components/ops/financial/use-financial-workspace";
 import type { getFinancialSummary } from "@/lib/ops/finance";
 
@@ -24,7 +24,7 @@ export const FinancialSummarySection = ({
   summary,
   workspace,
 }: {
-  onSelectSection: (section: FinanceSection) => void;
+  onSelectSection: FinanceSectionSelect;
   summary: ReturnType<typeof getFinancialSummary>;
   workspace: FinancialWorkspace;
 }) => {

@@ -106,6 +106,7 @@ export const useFinancialWorkspace = ({
       trendQuery.isFetching,
     loading: {
       costs: categoriesQuery.isLoading || costsQuery.isLoading,
+      occurrences: occurrencesQuery.isLoading,
       payments: jobsQuery.isLoading || paymentsQuery.isLoading,
       payroll: employeePaymentsQuery.isLoading || employeesQuery.isLoading,
       summary:

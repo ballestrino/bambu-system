@@ -7,12 +7,14 @@ export const PaymentsSummary = ({
   recordedCount,
   recordedTotal,
   showVoided = true,
+  size,
   voidedCount,
   voidedTotal,
 }: {
   recordedCount: number;
   recordedTotal: number;
   showVoided?: boolean;
+  size?: OpsMetric["size"];
   voidedCount: number;
   voidedTotal: number;
 }) => {
@@ -52,5 +54,7 @@ export const PaymentsSummary = ({
     );
   }
 
-  return <OpsMetricsGrid metrics={metrics} />;
+  return (
+    <OpsMetricsGrid metrics={metrics.map((metric) => ({ ...metric, size }))} />
+  );
 };
