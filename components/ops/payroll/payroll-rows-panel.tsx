@@ -82,8 +82,6 @@ export const PayrollRowsPanel = ({
                 <PayrollDialog
                   employeeId={row.employeeId}
                   employees={employees}
-                  periodEnd={periodEnd}
-                  periodStart={periodStart}
                   suggestedAmount={row.balance && row.balance > 0 ? row.balance : row.suggestedAmount}
                 />
               </div>

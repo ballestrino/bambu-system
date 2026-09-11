@@ -8,6 +8,7 @@ type FinancialQueries = {
   jobs: Refetchable;
   occurrences: Refetchable;
   payments: Refetchable;
+  payrollOccurrences: Refetchable;
   profitability: Refetchable;
   settings: Refetchable;
   trend: Refetchable;
@@ -39,7 +40,7 @@ export const buildFinancialRefresh = (queries: FinancialQueries) => ({
     refetchAll([
       queries.employeePayments,
       queries.employees,
-      queries.occurrences,
+      queries.payrollOccurrences,
     ]),
   profitability: () => refetchAll([queries.profitability]),
 });

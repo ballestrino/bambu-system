@@ -44,7 +44,7 @@ export const EmployeePayrollFilters = ({
       ? { label: "Mes anterior", onRemove: onPresetCurrentMonth }
       : null,
     !activePreset && startDate && endDate
-      ? { label: `Periodo: ${startDate} a ${endDate}`, onRemove: onPresetCurrentMonth }
+      ? { label: `Pagos: ${startDate} a ${endDate}`, onRemove: onPresetCurrentMonth }
       : null,
   ].filter(Boolean) as OpsFilterChip[];
 
@@ -56,13 +56,13 @@ export const EmployeePayrollFilters = ({
       <div className={opsSurface.toolbar}>
         <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_auto] xl:items-end">
           <div className="grid gap-3 sm:grid-cols-2">
-            <OpsFilterField label="Periodo desde">
+            <OpsFilterField label="Pagos desde">
               <OpsDateFilterInput
                 value={startDate}
                 onChange={(event) => onStartDateChange(event.target.value)}
               />
             </OpsFilterField>
-            <OpsFilterField label="Periodo hasta">
+            <OpsFilterField label="Pagos hasta">
               <OpsDateFilterInput
                 value={endDate}
                 onChange={(event) => onEndDateChange(event.target.value)}

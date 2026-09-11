@@ -124,7 +124,7 @@ export const FinancialPayrollTable = ({
         ) : table.total === 0 ? (
           <OpsTableEmptyRow
             colSpan={PAYROLL_COLUMN_COUNT}
-            emptyDescription="Aparece cuando hay horas realizadas o pagos registrados en el mes."
+            emptyDescription="Aparece cuando hay horas realizadas en el mes anterior o pagos registrados en este mes."
             emptyTitle="No hay horas ni pagos para este periodo"
             onClearQuery={onClearQuery}
             query={query}

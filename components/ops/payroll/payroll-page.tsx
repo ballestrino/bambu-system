@@ -12,11 +12,15 @@ import { useJobOccurrences } from "@/components/ops/hooks/useJobOccurrences";
 import { EmployeePaymentList } from "@/components/ops/payroll/employee-payment-list";
 import { PayrollDialog } from "@/components/ops/payroll/payroll-dialog";
 import { PayrollFilters } from "@/components/ops/payroll/payroll-filters";
+import {
+  getPayrollPeriod,
+  getPayrollPeriodDescription,
+} from "@/components/ops/payroll/payroll-period";
 import { PayrollRowsPanel } from "@/components/ops/payroll/payroll-rows-panel";
 import { PayrollSummary } from "@/components/ops/payroll/payroll-summary";
 import { buildPayrollRows, getPayrollSummary } from "@/components/ops/payroll/payroll-utils";
 import { useOpsSelectedMonth } from "@/components/ops/shared";
-import { formatMonth, toDateInputValue } from "@/components/ops/utils";
+import { formatMonth } from "@/components/ops/utils";
 import { Button } from "@/components/ui/button";
 
 export const PayrollPage = () => {
@@ -24,18 +28,17 @@ export const PayrollPage = () => {
     goToPreviousMonth,
     month,
     monthKey,
-    monthRange,
     resetToCurrentMonth,
   } = useOpsSelectedMonth();
   const [status, setStatus] = useState("RECORDED");
   const [employeeId, setEmployeeId] = useState("ALL");
-  const startDate = toDateInputValue(monthRange.start);
-  const endDate = toDateInputValue(monthRange.end);
+  // Paid in arrears: this month's payments settle last month's hours.
+  const period = getPayrollPeriod(month);
   const monthLabel = formatMonth(month);
 
   const rangeFilters = {
-    startDate: monthRange.start,
-    endDate: monthRange.end,
+    startDate: period.range.start,
+    endDate: period.range.end,
   };
   const selectedEmployeeId = employeeId === "ALL" ? undefined : employeeId;
 
@@ -71,7 +74,7 @@ export const PayrollPage = () => {
       includeArchived: false,
       statuses: ["DONE"],
     },
-    `payroll-occurrences-${employeeId}-${monthKey}`
+    `payroll-occurrences-${employeeId}-${period.workMonthKey}`
   );
   const { voidPaymentAsync } = useEmployeePaymentMutations();
 
@@ -96,7 +99,7 @@ export const PayrollPage = () => {
       <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
         <div className="space-y-1">
           <h1 className="text-3xl font-bold tracking-tight">Pagos</h1>
-          <p className="text-muted-foreground">Pagos a empleadas por periodo trabajado.</p>
+          <p className="text-muted-foreground">{getPayrollPeriodDescription(period)}</p>
         </div>
         <div className="flex flex-wrap gap-2">
           <Button
@@ -109,11 +112,7 @@ export const PayrollPage = () => {
             <ChevronLeft className="h-4 w-4" />
             Mes anterior
           </Button>
-          <PayrollDialog
-            employees={employees}
-            periodEnd={endDate}
-            periodStart={startDate}
-          />
+          <PayrollDialog employees={employees} />
         </div>
       </div>
       <PayrollFilters
@@ -127,12 +126,12 @@ export const PayrollPage = () => {
         onStatusChange={setStatus}
         status={status}
       />
-      <PayrollSummary {...summary} showVoided={status !== "RECORDED"} />
+      <PayrollSummary {...summary} period={period} showVoided={status !== "RECORDED"} />
       <div className="grid gap-6 xl:grid-cols-[minmax(0,1.65fr)_minmax(20rem,0.75fr)]">
         <PayrollRowsPanel
           employees={employees}
-          periodEnd={endDate}
-          periodStart={startDate}
+          periodEnd={period.endDate}
+          periodStart={period.startDate}
           rows={rows}
         />
         <EmployeePaymentList

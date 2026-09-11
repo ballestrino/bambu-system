@@ -9,7 +9,6 @@ import type { FinancialWorkspace } from "@/components/ops/financial/use-financia
 import { PaymentDialog } from "@/components/ops/payments/payment-dialog";
 import { PayrollDialog } from "@/components/ops/payroll/payroll-dialog";
 import { OpsSection } from "@/components/ops/shared";
-import { toDateInputValue } from "@/components/ops/utils";
 import { Button } from "@/components/ui/button";
 
 // Everything here is deliberately secondary: the one primary action on Resumen
@@ -32,11 +31,7 @@ export const FinancialQuickActions = ({
         employees={workspace.employees}
         jobs={workspace.jobs}
       />
-      <PayrollDialog
-        employees={workspace.employees}
-        periodEnd={toDateInputValue(workspace.monthRange.end)}
-        periodStart={toDateInputValue(workspace.monthRange.start)}
-      />
+      <PayrollDialog employees={workspace.employees} />
       <Button
         className={dashboardSecondaryActionClass}
         onClick={() => onSelectSection("rentabilidad")}

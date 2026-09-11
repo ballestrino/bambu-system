@@ -8,6 +8,10 @@ import { useJobOccurrences } from "@/components/ops/hooks/useJobOccurrences";
 import { EmployeePaymentList } from "@/components/ops/payroll/employee-payment-list";
 import { EmployeePayrollFilters } from "@/components/ops/payroll/employee-payroll-filters";
 import { PayrollDialog } from "@/components/ops/payroll/payroll-dialog";
+import {
+  getPayrollPeriod,
+  getPayrollPeriodDescription,
+} from "@/components/ops/payroll/payroll-period";
 import { PayrollSummary } from "@/components/ops/payroll/payroll-summary";
 import { buildPayrollRows, getPayrollSummary } from "@/components/ops/payroll/payroll-utils";
 import { OpsSection, useOpsSelectedMonth } from "@/components/ops/shared";
@@ -34,10 +38,8 @@ export const EmployeePayrollPanel = ({
   } = useOpsSelectedMonth();
   const startDate = toDateInputValue(monthRange.start);
   const endDate = toDateInputValue(monthRange.end);
-  const rangeFilters = {
-    startDate: monthRange.start,
-    endDate: monthRange.end,
-  };
+  // Paid in arrears: this month's payments settle last month's hours.
+  const period = getPayrollPeriod(month);
 
   const { payments, isLoading } = useEmployeePayments(
     { assignedMonth: month, employeeId: employee.id, statuses: ["RECORDED"] },
@@ -46,11 +48,12 @@ export const EmployeePayrollPanel = ({
   const { occurrences } = useJobOccurrences(
     {
       employeeId: employee.id,
-      ...rangeFilters,
+      endDate: period.range.end,
       includeArchived: false,
+      startDate: period.range.start,
       statuses: ["DONE"],
     },
-    `employee-payroll-occurrences-${employee.id}-${monthKey}`
+    `employee-payroll-occurrences-${employee.id}-${period.workMonthKey}`
   );
   const { voidPaymentAsync } = useEmployeePaymentMutations(employee.id);
   const rows = useMemo(
@@ -82,12 +85,10 @@ export const EmployeePayrollPanel = ({
           <PayrollDialog
             employeeId={employee.id}
             employees={[employee]}
-            periodEnd={endDate}
-            periodStart={startDate}
             suggestedAmount={row?.balance && row.balance > 0 ? row.balance : row?.suggestedAmount}
           />
         }
-        description="Mismo periodo visual que visitas, para liquidar y revisar historial sin cambiar de contexto."
+        description={getPayrollPeriodDescription(period)}
         title="Pagos a empleada"
       >
         <EmployeePayrollFilters
@@ -109,7 +110,7 @@ export const EmployeePayrollPanel = ({
           startDate={startDate}
         />
       </OpsSection>
-      <PayrollSummary {...summary} showVoided={false} />
+      <PayrollSummary {...summary} period={period} showVoided={false} />
       <EmployeePaymentList
         employees={[employee]}
         isLoading={isLoading}

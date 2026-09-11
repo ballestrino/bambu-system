@@ -14,6 +14,7 @@ import type { FinancialWorkspace } from "@/components/ops/financial/use-financia
 import { useEmployeePaymentMutations } from "@/components/ops/hooks/useEmployeePaymentMutations";
 import { PayrollDialog } from "@/components/ops/payroll/payroll-dialog";
 import { PayrollFilters } from "@/components/ops/payroll/payroll-filters";
+import { getPayrollPeriodDescription } from "@/components/ops/payroll/payroll-period";
 import { PayrollSummary } from "@/components/ops/payroll/payroll-summary";
 import {
   buildPayrollRows,
@@ -21,7 +22,7 @@ import {
   getPayrollSummary,
 } from "@/components/ops/payroll/payroll-utils";
 import { OpsSection, OpsViewTabs } from "@/components/ops/shared";
-import { formatMonth, toDateInputValue } from "@/components/ops/utils";
+import { formatMonth } from "@/components/ops/utils";
 import { TabsContent } from "@/components/ui/tabs";
 
 const searchPlaceholders: Record<FinanceSectionView<"pagos">, string> = {
@@ -56,28 +57,29 @@ export const FinancialPayrollSection = ({
       ),
     [scopedPayments, status]
   );
+  // Paid in arrears: this month's payments settle last month's hours.
+  const { occurrences: workOccurrences, period } = workspace.payroll;
   const rows = useMemo(() => {
     const employees =
       employeeId === "ALL"
         ? workspace.employees
         : workspace.employees.filter((employee) => employee.id === employeeId);
-    const occurrences = workspace.occurrences.filter((occurrence) =>
+    const occurrences = workOccurrences.filter((occurrence) =>
       employeeId === "ALL"
         ? true
         : occurrence.employees.some((item) => item.employeeId === employeeId)
     );
     return buildPayrollRows(employees, occurrences, scopedPayments);
-  }, [employeeId, scopedPayments, workspace.employees, workspace.occurrences]);
+  }, [employeeId, scopedPayments, workOccurrences, workspace.employees]);
   const summary = {
     ...getPayrollSummary(rows, scopedPayments),
     ...getPaymentSummary(visiblePayments),
   };
-  const periodStart = toDateInputValue(workspace.monthRange.start);
-  const periodEnd = toDateInputValue(workspace.monthRange.end);
   const monthLabel = formatMonth(workspace.month);
   const resetKey = `${status}|${employeeId}`;
   const clearQuery = () => setQuery("");
-  const isLoadingRows = workspace.loading.payroll || workspace.loading.occurrences;
+  const isLoadingRows =
+    workspace.loading.payroll || workspace.loading.payrollOccurrences;
   const counts = {
     empleadas: isLoadingRows ? undefined : rows.length,
     registrados: workspace.loading.payroll ? undefined : visiblePayments.length,
@@ -85,14 +87,8 @@ export const FinancialPayrollSection = ({
 
   return (
     <OpsSection
-      actions={
-        <PayrollDialog
-          employees={workspace.employees}
-          periodEnd={periodEnd}
-          periodStart={periodStart}
-        />
-      }
-      description="Importes sugeridos, pagos y devengamientos. El BPS usa Fonasa personal base de 3%; adicionales y CCM no están incluidos."
+      actions={<PayrollDialog employees={workspace.employees} />}
+      description={`${getPayrollPeriodDescription(period)} El BPS usa Fonasa personal base de 3%; adicionales y CCM no están incluidos.`}
       title="Pagos a empleadas"
     >
       <PayrollFilters
@@ -116,7 +112,12 @@ export const FinancialPayrollSection = ({
           <FinancialErrorState onRetry={workspace.refresh.payroll} />
         ) : (
           <div className="space-y-5">
-            <PayrollSummary {...summary} showVoided={status !== "RECORDED"} size="compact" />
+            <PayrollSummary
+              {...summary}
+              period={period}
+              showVoided={status !== "RECORDED"}
+              size="compact"
+            />
             <OpsViewTabs
               label="Vistas de Pagos"
               onValueChange={onViewChange}
@@ -128,12 +129,12 @@ export const FinancialPayrollSection = ({
             >
               <TabsContent value="empleadas">
                 <FinancialPayrollTable
-                  caption={`Pagos por empleada en ${monthLabel}`}
+                  caption={`Horas de ${period.workMonthName} y pagos de ${monthLabel} por empleada`}
                   employees={workspace.employees}
                   isLoading={isLoadingRows}
                   onClearQuery={clearQuery}
-                  periodEnd={periodEnd}
-                  periodStart={periodStart}
+                  periodEnd={period.endDate}
+                  periodStart={period.startDate}
                   query={query}
                   resetKey={resetKey}
                   rows={rows}

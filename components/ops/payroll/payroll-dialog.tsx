@@ -8,6 +8,7 @@ import {
   dashboardSecondaryActionClass,
 } from "@/components/dashboard/dashboard-styles";
 import { useEmployeePaymentMutations } from "@/components/ops/hooks/useEmployeePaymentMutations";
+import { getPayrollPeriod } from "@/components/ops/payroll/payroll-period";
 import { formatPayrollMoney, toPayrollNumber } from "@/components/ops/payroll/payroll-utils";
 import {
   OpsFormBody, OpsFormDialogContent, OpsFormField, OpsFormFooter,
@@ -55,8 +56,6 @@ export const PayrollDialog = ({
   employees,
   onOpenChange,
   payment,
-  periodEnd,
-  periodStart,
   suggestedAmount,
   trigger,
 }: {
@@ -65,17 +64,18 @@ export const PayrollDialog = ({
   employees: OpsEmployee[];
   onOpenChange?: (open: boolean) => void;
   payment?: OpsEmployeePayment;
-  periodEnd?: string;
-  periodStart?: string;
   suggestedAmount?: number | null;
   trigger?: ReactNode | null;
 }) => {
-  const { monthKey } = useOpsSelectedMonth();
+  const { month, monthKey } = useOpsSelectedMonth();
+  // Paid in arrears: the payment belongs to the selected month, the period it
+  // covers is the month before.
+  const workPeriod = getPayrollPeriod(month);
   const defaults = {
     assignedMonth: monthKey,
     employeeId,
-    periodEnd,
-    periodStart,
+    periodEnd: workPeriod.endDate,
+    periodStart: workPeriod.startDate,
     suggestedAmount,
   };
   const [open, setOpen] = useState(defaultOpen);

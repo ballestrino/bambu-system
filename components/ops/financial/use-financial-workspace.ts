@@ -15,6 +15,7 @@ import { useJobs } from "@/components/ops/hooks/useJobs";
 import { useOperationalCostCategories } from "@/components/ops/hooks/useOperationalCostCategories";
 import { useOperationalCosts } from "@/components/ops/hooks/useOperationalCosts";
 import { useOpsCostSettings } from "@/components/ops/hooks/useOpsCostSettings";
+import { getPayrollPeriod } from "@/components/ops/payroll/payroll-period";
 import { useOpsSelectedMonth } from "@/components/ops/shared";
 
 export const useFinancialWorkspace = ({
@@ -23,6 +24,7 @@ export const useFinancialWorkspace = ({
   section: FinanceSection;
 }) => {
   const { month, monthKey, monthRange } = useOpsSelectedMonth();
+  const payrollPeriod = getPayrollPeriod(month);
   const needs = financeSectionQueries[section];
 
   const jobsQuery = useJobs({ includeArchived: false }, needs.jobs);
@@ -54,6 +56,18 @@ export const useFinancialWorkspace = ({
     `financial-occurrences-${monthKey}`,
     needs.occurrences
   );
+  // Same filters and scope as the month query above, so the settled month
+  // reuses its cache when the user steps back to it in Cobros.
+  const payrollOccurrencesQuery = useJobOccurrences(
+    {
+      endDate: payrollPeriod.range.end,
+      includeArchived: false,
+      startDate: payrollPeriod.range.start,
+      statuses: ["DONE"],
+    },
+    `financial-occurrences-${payrollPeriod.workMonthKey}`,
+    needs.payrollOccurrences
+  );
   // Resumen and Rentabilidad share this query key, so switching between them
   // reuses one fetch instead of paying for it twice.
   const profitabilityQuery = useJobProfitability(
@@ -71,6 +85,7 @@ export const useFinancialWorkspace = ({
     jobs: jobsQuery,
     occurrences: occurrencesQuery,
     payments: paymentsQuery,
+    payrollOccurrences: payrollOccurrencesQuery,
     profitability: profitabilityQuery,
     settings: settingsQuery,
     trend: trendQuery,
@@ -86,7 +101,9 @@ export const useFinancialWorkspace = ({
       costs: categoriesQuery.error || costsQuery.error || settingsQuery.error,
       payments: jobsQuery.error || paymentsQuery.error || occurrencesQuery.error,
       payroll:
-        employeePaymentsQuery.error || employeesQuery.error || occurrencesQuery.error,
+        employeePaymentsQuery.error ||
+        employeesQuery.error ||
+        payrollOccurrencesQuery.error,
       summary:
         costsQuery.error ||
         employeePaymentsQuery.error ||
@@ -100,6 +117,7 @@ export const useFinancialWorkspace = ({
       employeesQuery.isFetching ||
       jobsQuery.isFetching ||
       occurrencesQuery.isFetching ||
+      payrollOccurrencesQuery.isFetching ||
       paymentsQuery.isFetching ||
       profitabilityQuery.isFetching ||
       settingsQuery.isFetching ||
@@ -109,6 +127,7 @@ export const useFinancialWorkspace = ({
       occurrences: occurrencesQuery.isLoading,
       payments: jobsQuery.isLoading || paymentsQuery.isLoading,
       payroll: employeePaymentsQuery.isLoading || employeesQuery.isLoading,
+      payrollOccurrences: payrollOccurrencesQuery.isLoading,
       summary:
         costsQuery.isLoading ||
         employeePaymentsQuery.isLoading ||
@@ -119,6 +138,10 @@ export const useFinancialWorkspace = ({
     monthKey,
     monthRange,
     occurrences: occurrencesQuery.occurrences,
+    payroll: {
+      occurrences: payrollOccurrencesQuery.occurrences,
+      period: payrollPeriod,
+    },
     profitability: {
       error: profitabilityQuery.error,
       isLoading: profitabilityQuery.isLoading,

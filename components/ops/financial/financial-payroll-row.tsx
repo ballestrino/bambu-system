@@ -103,8 +103,6 @@ export const FinancialPayrollRow = ({
               employeeId={row.employeeId}
               employees={employees}
               onOpenChange={onOpenChange}
-              periodEnd={periodEnd}
-              periodStart={periodStart}
               suggestedAmount={hasPendingBalance ? row.balance : row.suggestedAmount}
               trigger={null}
             />

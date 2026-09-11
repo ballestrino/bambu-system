@@ -9,12 +9,14 @@ import {
 } from "lucide-react";
 
 import { OpsMetricsGrid, type OpsMetric } from "@/components/ops/shared";
+import type { PayrollPeriod } from "@/components/ops/payroll/payroll-period";
 import { formatPayrollMoney } from "@/components/ops/payroll/payroll-utils";
 
 export const PayrollSummary = ({
   aguinaldoGeneratedTotal,
   balanceTotal,
   bpsGeneratedTotal,
+  period,
   recordedTotal,
   showVoided = true,
   size,
@@ -25,6 +27,7 @@ export const PayrollSummary = ({
   aguinaldoGeneratedTotal: number;
   balanceTotal: number;
   bpsGeneratedTotal: number;
+  period: PayrollPeriod;
   recordedTotal: number;
   showVoided?: boolean;
   size?: OpsMetric["size"];
@@ -34,21 +37,21 @@ export const PayrollSummary = ({
 }) => {
   const metrics: OpsMetric[] = [
     {
-      helper: "pago estimado del periodo",
+      helper: `horas de ${period.workMonthName}`,
       icon: BadgeDollarSign,
       label: "Sugerido",
       tone: "money",
       value: formatPayrollMoney(suggestedTotal),
     },
     {
-      helper: "pagos confirmados",
+      helper: `pagado en ${period.paymentMonthName}`,
       icon: ReceiptText,
       label: "Pagado",
       tone: "success",
       value: formatPayrollMoney(recordedTotal),
     },
     {
-      helper: "pendiente por cubrir",
+      helper: `pendiente de ${period.workMonthName}`,
       icon: CircleDollarSign,
       label: "Saldo",
       tone: "warning",

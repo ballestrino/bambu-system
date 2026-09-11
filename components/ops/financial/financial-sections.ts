@@ -74,6 +74,8 @@ export type FinanceSectionSelect = (
 //   - FinancialPaymentsTable / PaymentDialog need jobs.
 //   - FinancialGeneratedPayTable reads names off occurrences, not employees.
 //   - PayrollDialog / FinancialPayrollTable need employees, not jobs.
+//   - FinancialPayrollTable reads the settled month's visits (payroll is paid in
+//     arrears), not the selected month's.
 //   - CostDialog / CostsFilters need categories, employees and jobs, which is
 //     why Resumen loads them too: its quick actions open those same dialogs.
 // The month money queries (cobros, costes, pagos, ajustes) are never gated: they
@@ -84,6 +86,7 @@ export const financeSectionQueries = {
     employees: true,
     jobs: true,
     occurrences: true,
+    payrollOccurrences: false,
     profitability: true,
     trend: true,
   },
@@ -92,6 +95,7 @@ export const financeSectionQueries = {
     employees: false,
     jobs: false,
     occurrences: false,
+    payrollOccurrences: false,
     profitability: true,
     trend: false,
   },
@@ -100,6 +104,7 @@ export const financeSectionQueries = {
     employees: false,
     jobs: true,
     occurrences: true,
+    payrollOccurrences: false,
     profitability: false,
     trend: false,
   },
@@ -108,6 +113,7 @@ export const financeSectionQueries = {
     employees: true,
     jobs: true,
     occurrences: false,
+    payrollOccurrences: false,
     profitability: false,
     trend: false,
   },
@@ -115,7 +121,8 @@ export const financeSectionQueries = {
     categories: false,
     employees: true,
     jobs: false,
-    occurrences: true,
+    occurrences: false,
+    payrollOccurrences: true,
     profitability: false,
     trend: false,
   },

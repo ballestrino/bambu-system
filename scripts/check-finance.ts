@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 
 import {
   getPayrollAccruals,
+  getPayrollWorkMonth,
   getAssignedMonthRange,
   getEmployeePaymentDateFilter,
   getFinancialSummary,
@@ -10,7 +11,8 @@ import {
   URUGUAY_TOTAL_BPS_BASE_PERCENT,
   URUGUAY_VACATION_SALARY_NET_FACTOR,
 } from "../lib/ops/finance";
-import { toDateInputValue } from "../components/ops/utils";
+import { getMonthKey, toDateInputValue } from "../components/ops/utils";
+import { getPayrollPeriod } from "../components/ops/payroll/payroll-period";
 import {
   buildPayrollRows,
   getPayrollSummary,
@@ -92,6 +94,16 @@ assert.ok(
     payrollSummary.vacationSalaryGeneratedTotal - (200 / 12) * 0.819
   ) < 0.000_001
 );
+
+// Paid in arrears: September's payments settle August's hours, and January's
+// cross the year back to December.
+assert.equal(getMonthKey(getPayrollWorkMonth(new Date(2026, 8, 1))), "2026-08");
+assert.equal(getMonthKey(getPayrollWorkMonth(new Date(2027, 0, 1))), "2026-12");
+const septemberPayroll = getPayrollPeriod(new Date(2026, 8, 1));
+assert.equal(septemberPayroll.startDate, "2026-08-01");
+assert.equal(septemberPayroll.endDate, "2026-08-31");
+assert.equal(septemberPayroll.workMonthName, "agosto");
+assert.equal(septemberPayroll.paymentMonthName, "setiembre");
 
 const empty = getFinancialSummary({
   bpsEstimatePercent: 20,
