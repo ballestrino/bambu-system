@@ -97,11 +97,13 @@ denseSchedule.employees[0].days.forEach((day) => {
     address: `Camino Carrasco ${1000 + index}, entre Veracierto y Chimborazo, local ${index}`,
     displayName: `Servicio integral de limpieza para oficinas ${index + 1}`,
     endLabel: "13:00",
+    endMinute: 13 * 60,
     id: `${day.dateKey}-${index}`,
     jobId: `dense-${index}`,
     jobName: `Servicio integral de limpieza para oficinas ${index + 1}`,
     startAt: `${day.dateKey}T12:00:00.000Z`,
     startLabel: "09:00",
+    startMinute: 9 * 60,
     status: "SCHEDULED" as const,
     teammates: ["Ana Belén Rodríguez", "Lucía Fernández"],
   }));

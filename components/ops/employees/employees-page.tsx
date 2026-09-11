@@ -12,7 +12,7 @@ import {
   OpsPageShell,
   OpsRecordList,
   OpsRecordSkeleton,
-  useOpsDebouncedValue,
+  useOpsFlushableDebouncedValue,
   useOpsPersistedState,
 } from "@/components/ops/shared";
 
@@ -33,7 +33,12 @@ export const EmployeesPage = () => {
     "bambu:ops:employees:filters",
     defaultEmployeeFilters
   );
-  const debouncedQuery = useOpsDebouncedValue(filterState.query, 1500);
+  const [debouncedQuery, flushQuery] = useOpsFlushableDebouncedValue(
+    filterState.query,
+    // Vaciar el buscador vuelve al listado completo, que ya está en caché: no
+    // tiene sentido esperar el debounce.
+    filterState.query.trim() ? 500 : 0
+  );
 
   const filters = {
     query: debouncedQuery || undefined,
@@ -58,7 +63,9 @@ export const EmployeesPage = () => {
         activeFilter={filterState.activeFilter}
         includeArchived={filterState.includeArchived}
         isRefreshing={isFetching}
+        isSearching={isFetching}
         onQueryChange={(query) => updateFilters({ query })}
+        onQuerySubmit={flushQuery}
         onRefresh={refetch}
         onActiveFilterChange={(activeFilter) => updateFilters({ activeFilter })}
         onIncludeArchivedChange={(includeArchived) =>

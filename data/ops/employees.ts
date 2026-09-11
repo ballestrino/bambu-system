@@ -6,7 +6,11 @@ import {
   EmployeeFiltersSchema,
   JobEmployeeAssignmentFiltersSchema,
 } from "@/schemas/ops";
-import { buildDateTimeRange, opsAuditUserSelect } from "@/data/ops/shared";
+import {
+  buildDateTimeRange,
+  matchesOpsSearchQuery,
+  opsAuditUserSelect,
+} from "@/data/ops/shared";
 import { Prisma } from "@prisma/client";
 
 export const getEmployees = async (filters?: unknown) => {
@@ -21,16 +25,6 @@ export const getEmployees = async (filters?: unknown) => {
     const { query, isActive, includeArchived, startDate, endDate } =
       parsedFilters.data;
 
-    const searchFilter: Prisma.EmployeeWhereInput | undefined = query
-      ? {
-          OR: [
-            { name: { contains: query, mode: "insensitive" } },
-            { email: { contains: query, mode: "insensitive" } },
-            { phone: { contains: query, mode: "insensitive" } },
-            { notes: { contains: query, mode: "insensitive" } },
-          ],
-        }
-      : undefined;
     const archiveFilter: Prisma.EmployeeWhereInput = includeArchived
       ? {
           OR: [
@@ -49,11 +43,8 @@ export const getEmployees = async (filters?: unknown) => {
           archivedAt: null,
           isActive,
         };
-    const whereFilters: Prisma.EmployeeWhereInput[] = searchFilter
-      ? [archiveFilter, searchFilter]
-      : [archiveFilter];
     const where: Prisma.EmployeeWhereInput = {
-      AND: whereFilters,
+      AND: [archiveFilter],
       createdAt: buildDateTimeRange(startDate, endDate),
     };
 
@@ -70,7 +61,20 @@ export const getEmployees = async (filters?: unknown) => {
       orderBy: [{ archivedAt: "asc" }, { updatedAt: "desc" }],
     });
 
-    return { employees };
+    // Igual que en trabajos: el texto se filtra en memoria para ignorar los
+    // acentos, que Postgres no normaliza con `contains`.
+    return {
+      employees: query
+        ? employees.filter((employee) =>
+            matchesOpsSearchQuery(query, [
+              employee.name,
+              employee.email,
+              employee.phone,
+              employee.notes,
+            ])
+          )
+        : employees,
+    };
   } catch (error) {
     console.error("Error getting employees:", error);
     return { error: "Error al obtener las empleadas" };

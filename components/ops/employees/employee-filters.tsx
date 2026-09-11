@@ -26,8 +26,10 @@ export const EmployeeFilters = ({
   activeFilter,
   includeArchived,
   isRefreshing,
+  isSearching,
   onClear,
   onQueryChange,
+  onQuerySubmit,
   onRefresh,
   onActiveFilterChange,
   onIncludeArchivedChange,
@@ -36,8 +38,10 @@ export const EmployeeFilters = ({
   activeFilter: string;
   includeArchived: boolean;
   isRefreshing?: boolean;
+  isSearching?: boolean;
   onClear: () => void;
   onQueryChange: (value: string) => void;
+  onQuerySubmit?: () => void;
   onRefresh: () => Promise<unknown> | void;
   onActiveFilterChange: (value: string) => void;
   onIncludeArchivedChange: (value: boolean) => void;
@@ -59,8 +63,10 @@ export const EmployeeFilters = ({
 
   const searchField = (
     <OpsSearchInput
+      isSearching={isSearching}
       value={query}
       onChange={onQueryChange}
+      onSubmit={onQuerySubmit}
       placeholder="Buscar por nombre, email, teléfono o notas"
     />
   );

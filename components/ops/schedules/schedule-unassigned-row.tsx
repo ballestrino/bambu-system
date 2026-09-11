@@ -29,7 +29,7 @@ export const ScheduleUnassignedRow = ({
   }
 
   const rows: ScheduleRow[] = [
-    { days, employeeId: null, name: "Sin asignar", totalVisits },
+    { days, employeeId: null, name: "Sin asignar", overlapCount: 0, totalVisits },
   ];
 
   return (

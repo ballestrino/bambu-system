@@ -1,6 +1,6 @@
 "use client";
 
-import { useQuery } from "@tanstack/react-query";
+import { keepPreviousData, useQuery } from "@tanstack/react-query";
 
 import { getJobsAction } from "@/components/ops/actions/jobs/get-jobs.action";
 import { opsQueryKeys } from "@/components/ops/query-keys";
@@ -10,6 +10,7 @@ export const useJobs = (filters?: JobFilters) => {
   const jobsQuery = useQuery({
     queryKey: [...opsQueryKeys.jobs, filters ?? {}],
     queryFn: () => getJobsAction(filters),
+    placeholderData: keepPreviousData,
     staleTime: 1000 * 60 * 5,
   });
 

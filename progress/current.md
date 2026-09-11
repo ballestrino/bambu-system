@@ -32,24 +32,48 @@ Status: in_progress
   the old checkbox list was unusable.
 - `visibleWeekdays` is remembered per browser and is honoured by the grid, the
   mobile list and both PDFs.
-- PASS: `pnpm check:schedule`, `check:schedule-pdf`, `check:finance-pdf`,
-  `check:finance`, `check:employee-accruals`, `check:profitability`,
-  `check:occurrence-dialog`, `check:job-export`, `check:official-budgets`,
-  `check:mail-agent`, TypeScript, full lint, harness, `prisma validate` and
-  `pnpm build`.
-- PASS: authenticated browser smoke on the real database. Verified the week grid
-  with live data, the weekday toggle hiding and restoring Sunday, the employee
-  multi-select narrowing the rows, the visit dialog opening from a card with the
-  new schedule-name field, the employee search matching without accents
-  (`fabian` finds `Fabián`), the day cell opening a prefilled Crear visita, and
-  both PDF downloads (`cronograma-lorena-2026-09-07.pdf` 31 KB,
-  `cronogramas-equipo-2026-09-07.pdf` 37 KB) honouring the employee filter.
-- PASS: drag verified in the browser at the DOM level (the target day cell
-  highlights and the drop fires the update), plus a transactional probe against
-  the real database confirming the shifted dates and `scheduleLabel` persist.
+
+## Cruces, Reasignacion Y Huecos
+
+- Schema: `EmployeeAvailabilityRule`
+  (`20260910190000_employee_availability_rules`, applied). Una regla `AVAILABLE`
+  reemplaza la ventana por defecto (`08:00` a `18:00`) del dia y una
+  `UNAVAILABLE` la recorta; `weekdays` vacio significa toda la semana. Las reglas
+  se crean y se borran, no se editan, asi que solo llevan `createdById`.
+- Toda la aritmetica vive en minutos desde la medianoche local
+  (`lib/ops/minute-ranges.ts`). `ScheduleVisit` ahora expone `startMinute` y
+  `endMinute`; una visita nocturna termina en 1500 en vez de volver a 60, asi que
+  conserva su duracion al compararla.
+- Cruces (`schedule-conflicts`): dos visitas de la misma empleada que se pisan se
+  marcan en la tarjeta (borde ambar mas icono con el detalle), en la fila y en la
+  barra. Las canceladas y omitidas no cruzan ni ocupan. El aviso no bloquea: a
+  veces se solapa a proposito.
+- El aviso de "fuera de disponibilidad" solo aparece si esa empleada tiene reglas
+  cargadas. Sin reglas, la ventana por defecto es solo una convencion para buscar
+  huecos y marcar cada visita temprana seria ruido.
+- Reasignacion: soltar la tarjeta en la fila de otra empleada escribe dia, hora y
+  equipo en una sola actualizacion (`buildScheduleMove`). Reemplaza a la empleada
+  arrastrada y deja al resto del equipo; soltar en "Sin asignar" la saca.
+- Durante el arrastre cada celda muestra sus huecos libres como destino: soltar
+  ahi fija la hora de inicio y conserva la duracion. Soltar en el resto de la
+  celda mantiene la hora original.
+- `Buscar huecos` lista, por dia y empleada, los tramos libres que entran en la
+  duracion elegida y crea la visita prefijada con ese dia, hora y empleada.
+  `Disponibilidad` administra las reglas por empleada desde el mismo tablero.
+- PASS: `pnpm check:schedule-availability` y `check:schedule-move` (nuevos),
+  `check:schedule`, `check:schedule-pdf`, TypeScript, lint, harness,
+  `prisma validate` y `pnpm build`.
+- PASS: sonda transaccional contra la base real (`tmp/probe-availability.ts`,
+  borrada al cerrar): crea una regla con `weekdays: [1, 3]`, la lee con su
+  empleada incluida y revierte sin dejar filas.
 
 ## Blocked Verification
 
+- NOT RUN: smoke autenticado del tablero con cruces, reasignacion, huecos y
+  disponibilidad. El panel de navegador no tiene sesion y el `pnpm dev` del
+  usuario se detuvo para poder regenerar el cliente de Prisma (el motor quedaba
+  tomado por el proceso). Hay que **volver a levantar `pnpm dev`** y entrar a
+  `/dashboard/calendar` para verificar.
 - Writes fail in this browser session with
   `Foreign key constraint violated: JobOccurrence_updatedById_fkey`. The NextAuth
   JWT carries `user.id = cmm82smv300000hk8oewf4ssb`, which does not exist in the

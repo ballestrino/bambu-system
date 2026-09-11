@@ -1,5 +1,6 @@
 "use client";
 
+import { countOverlapPairs } from "@/lib/ops/schedule-conflicts";
 import type {
   ScheduleDay,
   ScheduleEmployee,
@@ -7,6 +8,8 @@ import type {
   WeeklySchedule,
 } from "@/lib/ops/schedule-types";
 import { ScheduleDayCell } from "@/components/ops/schedules/schedule-day-cell";
+import { ScheduleRowOverlaps } from "@/components/ops/schedules/schedule-row-overlaps";
+import type { ScheduleCellReader } from "@/components/ops/schedules/use-schedule-cells";
 import type { ScheduleDragState } from "@/components/ops/schedules/use-schedule-drag";
 import { ScheduleEmployeeExportButton } from "@/components/ops/schedules/schedule-export-buttons";
 import { opsSurface } from "@/components/ops/shared";
@@ -14,6 +17,7 @@ import { cn } from "@/lib/utils";
 
 export type ScheduleHandlers = {
   drag: ScheduleDragState;
+  getCellState: ScheduleCellReader;
   onCreate: (dateKey: string, employeeId: string | null) => void;
   onEditVisit: (visit: ScheduleVisit) => void;
 };
@@ -23,6 +27,7 @@ export type ScheduleRow = {
   employee?: ScheduleEmployee;
   employeeId: string | null;
   name: string;
+  overlapCount: number;
   totalVisits: number;
 };
 
@@ -37,6 +42,7 @@ export const toScheduleRow = (
     employee,
     employeeId: employee.id,
     name: employee.name,
+    overlapCount: countOverlapPairs(days),
     totalVisits: days.reduce((total, day) => total + day.visits.length, 0),
   };
 };
@@ -91,6 +97,7 @@ export const ScheduleGrid = ({
                   />
                 ) : null}
               </div>
+              <ScheduleRowOverlaps count={row.overlapCount} />
             </div>
             {row.days.map((day) => (
               <div
@@ -98,6 +105,7 @@ export const ScheduleGrid = ({
                 key={`${row.employeeId ?? "unassigned"}-${day.dateKey}`}
               >
                 <ScheduleDayCell
+                  cell={handlers.getCellState(row.employeeId, day.dateKey)}
                   compact
                   day={day}
                   drag={handlers.drag}
@@ -129,11 +137,12 @@ export const ScheduleList = ({
     {rows.map((row) => (
       <div className={cn(opsSurface.panel, "min-w-0 p-3")} key={row.employeeId ?? "unassigned"}>
         <div className="mb-2 flex min-w-0 items-start justify-between gap-2">
-          <div className="min-w-0">
+          <div className="min-w-0 space-y-1">
             <p className="break-words text-sm font-semibold text-ops-text">{row.name}</p>
             <p className="text-xs text-muted-foreground">
               {row.totalVisits} visita{row.totalVisits === 1 ? "" : "s"} en la semana
             </p>
+            <ScheduleRowOverlaps count={row.overlapCount} />
           </div>
           {row.employee && schedule ? (
             <ScheduleEmployeeExportButton
@@ -150,6 +159,7 @@ export const ScheduleList = ({
                 {day.weekdayLabel} {day.dayLabel}
               </p>
               <ScheduleDayCell
+                cell={handlers.getCellState(row.employeeId, day.dateKey)}
                 day={day}
                 drag={handlers.drag}
                 employeeId={row.employeeId}

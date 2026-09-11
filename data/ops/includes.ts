@@ -65,3 +65,12 @@ export const opsAssignmentInclude = {
     select: opsAuditUserSelect,
   },
 } satisfies Prisma.JobEmployeeAssignmentInclude;
+
+export const opsAvailabilityRuleInclude = {
+  employee: {
+    select: {
+      id: true,
+      name: true,
+    },
+  },
+} satisfies Prisma.EmployeeAvailabilityRuleInclude;

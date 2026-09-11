@@ -2,7 +2,10 @@
 
 import { useRef, useState, type PointerEvent as ReactPointerEvent } from "react";
 
+import type { ScheduleMoveTarget } from "@/lib/ops/schedule-move";
+
 export type ScheduleDragPayload = {
+  durationMinutes: number;
   employeeId: string | null;
   fromDateKey: string;
   visitId: string;
@@ -10,24 +13,47 @@ export type ScheduleDragPayload = {
 
 const DRAG_THRESHOLD_PX = 6;
 const DAY_ATTRIBUTE = "data-schedule-day";
+const EMPLOYEE_ATTRIBUTE = "data-schedule-employee";
+const MINUTE_ATTRIBUTE = "data-schedule-minute";
 
-const findDayKeyAt = (x: number, y: number) =>
-  document
-    .elementFromPoint(x, y)
-    ?.closest(`[${DAY_ATTRIBUTE}]`)
-    ?.getAttribute(DAY_ATTRIBUTE) ?? null;
+// La celda entera recibe la visita con su hora original; el hueco, anidado
+// dentro de la celda, gana el elementFromPoint y ademas fija la hora.
+const findTargetAt = (x: number, y: number): ScheduleMoveTarget | null => {
+  const element = document.elementFromPoint(x, y)?.closest(`[${DAY_ATTRIBUTE}]`);
+  const dateKey = element?.getAttribute(DAY_ATTRIBUTE);
+  if (!element || !dateKey) {
+    return null;
+  }
+
+  const minute = element.getAttribute(MINUTE_ATTRIBUTE);
+
+  return {
+    dateKey,
+    employeeId: element.getAttribute(EMPLOYEE_ATTRIBUTE) || null,
+    startMinute: minute === null ? null : Number(minute),
+  };
+};
+
+const isSamePlace = (payload: ScheduleDragPayload, target: ScheduleMoveTarget) =>
+  target.startMinute == null &&
+  target.dateKey === payload.fromDateKey &&
+  target.employeeId === payload.employeeId;
 
 // Pointer events en vez de HTML5 drag and drop: el nativo no funciona con el
 // dedo, y administracion tambien arma el cronograma desde la tablet.
-export const useScheduleDrag = (onMove: (payload: ScheduleDragPayload, toDateKey: string) => void) => {
+export const useScheduleDrag = (
+  onMove: (payload: ScheduleDragPayload, target: ScheduleMoveTarget) => void
+) => {
   const [dragging, setDragging] = useState<ScheduleDragPayload | null>(null);
-  const [overDateKey, setOverDateKey] = useState<string | null>(null);
-  const origin = useRef<{ payload: ScheduleDragPayload; x: number; y: number } | null>(null);
+  const [target, setTarget] = useState<ScheduleMoveTarget | null>(null);
+  const origin = useRef<{ payload: ScheduleDragPayload; x: number; y: number } | null>(
+    null
+  );
 
   const reset = () => {
     origin.current = null;
     setDragging(null);
-    setOverDateKey(null);
+    setTarget(null);
   };
 
   const onPointerDown = (payload: ScheduleDragPayload) => (event: ReactPointerEvent) => {
@@ -51,13 +77,13 @@ export const useScheduleDrag = (onMove: (payload: ScheduleDragPayload, toDateKey
     if (!movedEnough && !dragging) return;
 
     if (!dragging) setDragging(start.payload);
-    setOverDateKey(findDayKeyAt(event.clientX, event.clientY));
+    setTarget(findTargetAt(event.clientX, event.clientY));
   };
 
   const onPointerUp = (event: ReactPointerEvent) => {
     const start = origin.current;
     const wasDragging = Boolean(dragging);
-    const target = findDayKeyAt(event.clientX, event.clientY);
+    const dropTarget = findTargetAt(event.clientX, event.clientY);
 
     try {
       if (event.currentTarget.hasPointerCapture(event.pointerId)) {
@@ -68,13 +94,19 @@ export const useScheduleDrag = (onMove: (payload: ScheduleDragPayload, toDateKey
     }
     reset();
 
-    if (start && wasDragging && target && target !== start.payload.fromDateKey) {
-      onMove(start.payload, target);
+    if (start && wasDragging && dropTarget && !isSamePlace(start.payload, dropTarget)) {
+      onMove(start.payload, dropTarget);
     }
   };
 
   return {
-    dayProps: (dateKey: string) => ({ [DAY_ATTRIBUTE]: dateKey }),
+    canDrop: (dateKey: string, employeeId: string | null) =>
+      Boolean(dragging) &&
+      (dragging?.fromDateKey !== dateKey || dragging?.employeeId !== employeeId),
+    dayProps: (dateKey: string, employeeId: string | null) => ({
+      [DAY_ATTRIBUTE]: dateKey,
+      [EMPLOYEE_ATTRIBUTE]: employeeId ?? "",
+    }),
     dragging,
     handleProps: (payload: ScheduleDragPayload) => ({
       onPointerCancel: reset,
@@ -83,9 +115,20 @@ export const useScheduleDrag = (onMove: (payload: ScheduleDragPayload, toDateKey
       onPointerUp,
       style: { touchAction: "none" as const },
     }),
-    isDragging: (visitId: string, dateKey: string) =>
-      dragging?.visitId === visitId && dragging.fromDateKey === dateKey,
-    overDateKey,
+    isDragging: (visitId: string, dateKey: string, employeeId: string | null) =>
+      dragging?.visitId === visitId &&
+      dragging.fromDateKey === dateKey &&
+      dragging.employeeId === employeeId,
+    isOver: (dateKey: string, employeeId: string | null) =>
+      Boolean(dragging) &&
+      target?.dateKey === dateKey &&
+      target?.employeeId === employeeId,
+    slotProps: (dateKey: string, employeeId: string | null, startMinute: number) => ({
+      [DAY_ATTRIBUTE]: dateKey,
+      [EMPLOYEE_ATTRIBUTE]: employeeId ?? "",
+      [MINUTE_ATTRIBUTE]: String(startMinute),
+    }),
+    target,
   };
 };
 

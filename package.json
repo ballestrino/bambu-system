@@ -18,6 +18,8 @@
     "check:official-budgets": "tsx scripts/check-official-budgets.ts",
     "check:official-budget-workspace": "tsx scripts/check-official-budget-workspace.ts",
     "check:schedule": "tsx scripts/check-schedule.ts",
+    "check:schedule-availability": "tsx scripts/check-schedule-availability.ts",
+    "check:schedule-move": "tsx scripts/check-schedule-move.ts",
     "check:schedule-pdf": "tsx scripts/check-schedule-pdf.ts",
     "start": "next start",
     "lint": "eslint",

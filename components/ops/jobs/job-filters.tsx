@@ -24,8 +24,10 @@ interface JobFiltersProps {
   status: string;
   profitability: string;
   includeArchived: boolean;
+  isSearching?: boolean;
   onVisibilityChange: (value: string) => void;
   onQueryChange: (value: string) => void;
+  onQuerySubmit?: () => void;
   onRefresh: () => Promise<unknown> | void;
   onStatusChange: (value: string) => void;
   onProfitabilityChange: (value: string) => void;
@@ -41,8 +43,10 @@ export const JobFilters = ({
   visibility,
   includeArchived,
   isRefreshing,
+  isSearching,
   onClear,
   onQueryChange,
+  onQuerySubmit,
   onProfitabilityChange,
   onRefresh,
   onStatusChange,
@@ -71,8 +75,11 @@ export const JobFilters = ({
 
   const searchField = (
     <OpsSearchInput
+      className="lg:max-w-[50%]"
+      isSearching={isSearching}
       value={query}
       onChange={onQueryChange}
+      onSubmit={onQuerySubmit}
       placeholder="Buscar por nombre, descripción o ubicación"
     />
   );
@@ -162,7 +169,7 @@ export const JobFilters = ({
 
       <div className="hidden space-y-3 md:block">
         <OpsToolbar summary={`${chips.length} filtro(s) activo(s)`}>
-          {searchField}
+          <div className="flex w-full min-w-0">{searchField}</div>
           {statusField}
           {visibilityField}
           {profitabilityField}

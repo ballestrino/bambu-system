@@ -124,6 +124,18 @@ export type OpsEmployee = Prisma.EmployeeGetPayload<{
   };
 }>;
 
+export type OpsEmployeeAvailabilityRule =
+  Prisma.EmployeeAvailabilityRuleGetPayload<{
+    include: {
+      employee: {
+        select: {
+          id: true;
+          name: true;
+        };
+      };
+    };
+  }>;
+
 export type OpsEmployeeDetail = Prisma.EmployeeGetPayload<{
   include: {
     assignments: {

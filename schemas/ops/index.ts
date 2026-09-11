@@ -1,5 +1,6 @@
 export * from "@/schemas/ops/common";
 export * from "@/schemas/ops/employee";
+export * from "@/schemas/ops/employee-availability";
 export * from "@/schemas/ops/employee-payment";
 export * from "@/schemas/ops/job";
 export * from "@/schemas/ops/job-client-payment";

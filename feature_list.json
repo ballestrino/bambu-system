@@ -533,7 +533,7 @@
       "id": 35,
       "name": "ops_weekly_schedules",
       "title": "Weekly schedule board inside Visits with Bambu PDF",
-      "description": "Add a Monday-to-Sunday schedule view to /dashboard/calendar for planning a whole week per employee: multi-employee filter, hideable weekdays, pointer drag to move a visit to another day, inline create and edit through the visit dialog, a separate schedule-facing name for jobs and visits, and downloadable PDFs with the Bambu logo per employee and for the team.",
+      "description": "Add a Monday-to-Sunday schedule view to /dashboard/calendar for planning a whole week per employee: multi-employee filter, hideable weekdays, pointer drag to move a visit to another day, inline create and edit through the visit dialog, a separate schedule-facing name for jobs and visits, downloadable PDFs with the Bambu logo per employee and for the team, subtle warnings when two visits of the same employee cross, drag to another employee row or free slot to change day, hour and team, a free-slot finder for new services, and per-employee availability rules so the finder does not offer false gaps.",
       "acceptance": [
         "Visitas exposes a Cronograma view alongside Calendario, Lista and Tarjetas instead of a separate route",
         "The week runs Monday to Sunday in America/Montevideo and moves with previous, next and current week controls that stop at the occurrence generation horizon",
@@ -543,7 +543,12 @@
         "Jobs carry a schedule name and visits can override it, so the employee sees a different label than the internal job name",
         "The employee selector in the visit dialog searches like the job filter in Visitas",
         "Each employee row downloads its own PDF and the team PDF bundles everyone, both honouring the hidden weekdays",
-        "Focused schedule and schedule PDF checks, TypeScript, lint, harness and a production build pass"
+        "Two visits of the same employee that cross in time warn subtly on the card, the employee row and the toolbar without blocking the overlap",
+        "Dragging a visit to another employee row moves day, hour and team in one update, keeping the rest of the team on the visit",
+        "Dropping on a free slot inside a day cell sets the start hour and keeps the duration of the visit",
+        "The board finds free slots for a chosen service duration and creates a visit prefilled with that employee, day and hour",
+        "Each employee can declare the hours or days she cannot take services, and those tramos are excluded from the free slots and flag the visits that fall there",
+        "Focused schedule, availability and schedule PDF checks, TypeScript, lint, harness and a production build pass"
       ],
       "status": "in_progress"
     }

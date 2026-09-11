@@ -21,6 +21,7 @@ import {
   diffLocalDays,
   getIsoWeekday,
   getLocalDate,
+  getLocalDateTime,
 } from "@/lib/ops/timezone";
 
 const DELIVERED_STATUSES = new Set(["SCHEDULED", "DONE"]);
@@ -51,9 +52,25 @@ const getDayIndex = (
     week.startLocal
   );
 
+// La duracion se toma del intervalo real y no de la hora de fin local: asi una
+// visita que cruza la medianoche termina en 1500 y no vuelve a 60.
+const getVisitMinutes = (
+  occurrence: ScheduleOccurrenceRow,
+  timeZone: string
+) => {
+  const start = new Date(occurrence.scheduledStartAt);
+  const end = new Date(occurrence.scheduledEndAt);
+  const local = getLocalDateTime(start, timeZone);
+  const startMinute = local.hour * 60 + local.minute;
+  const duration = Math.max(0, Math.round((end.getTime() - start.getTime()) / 60000));
+
+  return { endMinute: startMinute + duration, startMinute };
+};
+
 const toVisit = (
   occurrence: ScheduleOccurrenceRow,
-  employeeId: string | null
+  employeeId: string | null,
+  timeZone: string
 ): ScheduleVisit => ({
   address:
     occurrence.job.serviceAddress?.trim() ||
@@ -75,6 +92,7 @@ const toVisit = (
     )
     .map((employee) => employee.name)
     .sort((left, right) => left.localeCompare(right, "es")),
+  ...getVisitMinutes(occurrence, timeZone),
 });
 
 export const buildWeeklySchedule = (input: {
@@ -101,12 +119,14 @@ export const buildWeeklySchedule = (input: {
       .filter((employee): employee is { id: string; name: string } => Boolean(employee));
 
     if (!assigned.length) {
-      unassigned[dayIndex].visits.push(toVisit(occurrence, null));
+      unassigned[dayIndex].visits.push(toVisit(occurrence, null, timeZone));
       return;
     }
 
     assigned.forEach((employee) => {
-      buckets.get(employee.id)?.[dayIndex].visits.push(toVisit(occurrence, employee.id));
+      buckets
+        .get(employee.id)
+        ?.[dayIndex].visits.push(toVisit(occurrence, employee.id, timeZone));
     });
   });
 

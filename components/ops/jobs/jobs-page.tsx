@@ -14,7 +14,7 @@ import {
   OpsPageShell,
   OpsRecordList,
   OpsRecordSkeleton,
-  useOpsDebouncedValue,
+  useOpsFlushableDebouncedValue,
   useOpsPersistedState,
   useOpsSelectedMonth,
 } from "@/components/ops/shared";
@@ -45,7 +45,12 @@ export const JobsPage = () => {
     "bambu:ops:jobs:filters",
     defaultJobFilters
   );
-  const debouncedQuery = useOpsDebouncedValue(filterState.query, 1500);
+  const [debouncedQuery, flushQuery] = useOpsFlushableDebouncedValue(
+    filterState.query,
+    // Vaciar el buscador vuelve al listado completo, que ya está en caché: no
+    // tiene sentido esperar el debounce.
+    filterState.query.trim() ? 500 : 0
+  );
 
   const filters: JobFiltersInput = {
     query: debouncedQuery || undefined,
@@ -89,7 +94,9 @@ export const JobsPage = () => {
         visibility={filterState.visibility}
         includeArchived={filterState.includeArchived}
         isRefreshing={isFetching || profitabilityQuery.isFetching}
+        isSearching={isFetching}
         onQueryChange={(query) => updateFilters({ query })}
+        onQuerySubmit={flushQuery}
         onRefresh={async () => { await Promise.all([refetch(), profitabilityQuery.refetch()]); }}
         onProfitabilityChange={(profitability) =>
           updateFilters({ profitability: profitability as JobFilterState["profitability"] })

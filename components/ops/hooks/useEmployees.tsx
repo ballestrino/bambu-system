@@ -1,6 +1,6 @@
 "use client";
 
-import { useQuery } from "@tanstack/react-query";
+import { keepPreviousData, useQuery } from "@tanstack/react-query";
 
 import { getEmployeesAction } from "@/components/ops/actions/employees/get-employees.action";
 import { opsQueryKeys } from "@/components/ops/query-keys";
@@ -10,6 +10,7 @@ export const useEmployees = (filters?: EmployeeFilters) => {
   const employeesQuery = useQuery({
     queryKey: [...opsQueryKeys.employees, filters ?? {}],
     queryFn: () => getEmployeesAction(filters),
+    placeholderData: keepPreviousData,
     staleTime: 1000 * 60 * 5,
   });
 

@@ -1,7 +1,7 @@
 "use client";
 
 import type { ComponentProps } from "react";
-import { GripVertical, MapPin, Users } from "lucide-react";
+import { GripVertical, MapPin, TriangleAlert, Users } from "lucide-react";
 
 import type { ScheduleVisit } from "@/lib/ops/schedule-types";
 import {
@@ -18,23 +18,28 @@ export const ScheduleVisitCard = ({
   onEdit,
   showDetails = true,
   visit,
+  warnings = [],
 }: {
   handleProps?: ComponentProps<"button">;
   isDragging?: boolean;
   onEdit?: () => void;
   showDetails?: boolean;
   visit: ScheduleVisit;
+  warnings?: string[];
 }) => {
   const status = getOpsStatusConfig(opsOccurrenceStatus, visit.status);
   const isOff = visit.status === "CANCELED" || visit.status === "SKIPPED";
   const hasAlias = visit.displayName !== visit.jobName;
+  const warningLabel = warnings.join(" · ");
 
   return (
     <div
       className={cn(
         "flex min-w-0 items-start gap-1 rounded-[var(--ops-radius-row)] border border-ops-border bg-ops-surface p-1.5 text-left",
         isDragging && "opacity-40 ring-1 ring-ops-bamboo",
-        isOff && "opacity-60"
+        isOff && "opacity-60",
+        // El aviso se ve, pero no compite con el estado de la visita.
+        warnings.length && "border-l-2 border-l-amber-400 dark:border-l-amber-500/70"
       )}
     >
       {handleProps ? (
@@ -56,6 +61,15 @@ export const ScheduleVisitCard = ({
           <span className="text-xs font-semibold text-ops-text">
             {visit.startLabel} - {visit.endLabel}
           </span>
+          {warnings.length ? (
+            <span className="inline-flex items-center" title={warningLabel}>
+              <TriangleAlert
+                aria-hidden
+                className="h-3.5 w-3.5 shrink-0 text-amber-500 dark:text-amber-400"
+              />
+              <span className="sr-only">{warningLabel}</span>
+            </span>
+          ) : null}
           {isOff ? (
             <Badge
               variant="outline"
@@ -71,6 +85,11 @@ export const ScheduleVisitCard = ({
         {hasAlias ? (
           <span className="block break-words text-[11px] text-muted-foreground/70">
             {visit.jobName}
+          </span>
+        ) : null}
+        {warnings.length && showDetails ? (
+          <span className="block break-words text-[11px] text-amber-700 dark:text-amber-300">
+            {warningLabel}
           </span>
         ) : null}
         {showDetails ? (

@@ -41,6 +41,7 @@ model User {
   updatedEmployees                 Employee[]                 @relation("EmployeeUpdatedBy")
   createdJobEmployeeAssignments    JobEmployeeAssignment[]    @relation("JobEmployeeAssignmentCreatedBy")
   updatedJobEmployeeAssignments    JobEmployeeAssignment[]    @relation("JobEmployeeAssignmentUpdatedBy")
+  createdEmployeeAvailabilityRules EmployeeAvailabilityRule[] @relation("EmployeeAvailabilityRuleCreatedBy")
   createdTimeEntries               TimeEntry[]                @relation("TimeEntryCreatedBy")
   updatedTimeEntries               TimeEntry[]                @relation("TimeEntryUpdatedBy")
   approvedTimeEntries              TimeEntry[]                @relation("TimeEntryApprovedBy")
@@ -358,6 +359,11 @@ enum PaymentStatus {
   VOIDED
 }
 
+enum EmployeeAvailabilityKind {
+  AVAILABLE
+  UNAVAILABLE
+}
+
 model Job {
   id                   String                  @id @default(cuid())
   name                 String
@@ -471,6 +477,7 @@ model Employee {
   updatedBy             User?                   @relation("EmployeeUpdatedBy", fields: [updatedById], references: [id], onDelete: Restrict)
   assignments           JobEmployeeAssignment[]
   occurrenceAssignments JobOccurrenceEmployee[]
+  availabilityRules     EmployeeAvailabilityRule[]
   timeEntries           TimeEntry[]
   payments              EmployeePayment[]
   operationalCosts      OperationalCost[]
@@ -517,6 +524,26 @@ model JobEmployeeAssignment {
   @@index([employeeId, assignedFrom])
   @@index([createdById])
   @@index([updatedById])
+}
+
+// Cuando puede trabajar cada empleada. Sin reglas se usa la ventana por defecto
+// del cronograma; una regla AVAILABLE la reemplaza y una UNAVAILABLE recorta.
+model EmployeeAvailabilityRule {
+  id          String                   @id @default(cuid())
+  employeeId  String
+  employee    Employee                 @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+  kind        EmployeeAvailabilityKind @default(UNAVAILABLE)
+  weekdays    Int[]
+  startMinute Int                      @default(0)
+  endMinute   Int                      @default(1440)
+  note        String?
+  createdById String
+  createdBy   User                     @relation("EmployeeAvailabilityRuleCreatedBy", fields: [createdById], references: [id], onDelete: Restrict)
+  createdAt   DateTime                 @default(now())
+  updatedAt   DateTime                 @updatedAt
+
+  @@index([employeeId])
+  @@index([createdById])
 }
 
 model TimeEntry {

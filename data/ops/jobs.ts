@@ -6,7 +6,11 @@ import {
   JobFiltersSchema,
   JobScheduleRuleFiltersSchema,
 } from "@/schemas/ops";
-import { buildDateTimeRange, opsAuditUserSelect } from "@/data/ops/shared";
+import {
+  buildDateTimeRange,
+  matchesOpsSearchQuery,
+  opsAuditUserSelect,
+} from "@/data/ops/shared";
 import { Prisma } from "@prisma/client";
 
 const getCurrentMonthRange = () => {
@@ -54,19 +58,6 @@ export const getJobs = async (filters?: unknown) => {
           : {};
     const andFilters: Prisma.JobWhereInput[] = [
       ...(includeArchived ? [] : [{ status: { not: "ARCHIVED" as const } }]),
-      ...(query
-        ? [
-            {
-              OR: [
-                { name: { contains: query, mode: "insensitive" as const } },
-                { description: { contains: query, mode: "insensitive" as const } },
-                { serviceAddress: { contains: query, mode: "insensitive" as const } },
-                { serviceLocation: { contains: query, mode: "insensitive" as const } },
-                { operationalNotes: { contains: query, mode: "insensitive" as const } },
-              ],
-            },
-          ]
-        : []),
     ];
 
     const where: Prisma.JobWhereInput = {
@@ -100,7 +91,21 @@ export const getJobs = async (filters?: unknown) => {
       orderBy: [{ archivedAt: "asc" }, { updatedAt: "desc" }],
     });
 
-    return { jobs };
+    // El texto se filtra en memoria porque Postgres no ignora los acentos con
+    // `contains` y la lista de trabajos es chica.
+    return {
+      jobs: query
+        ? jobs.filter((job) =>
+            matchesOpsSearchQuery(query, [
+              job.name,
+              job.description,
+              job.serviceAddress,
+              job.serviceLocation,
+              job.operationalNotes,
+            ])
+          )
+        : jobs,
+    };
   } catch (error) {
     console.error("Error getting jobs:", error);
     return { error: "Error al obtener los trabajos" };

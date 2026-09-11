@@ -3,10 +3,14 @@
 import { useState } from "react";
 import { CalendarRange, UsersRound } from "lucide-react";
 
-import { shiftOccurrenceToDate } from "@/lib/ops/schedule-week";
+import { DAY_MINUTES, formatMinuteOfDay } from "@/lib/ops/minute-ranges";
 import type { ScheduleVisit } from "@/lib/ops/schedule-types";
-import { useJobOccurrenceMutations } from "@/components/ops/hooks/useJobOccurrenceMutations";
 import { JobOccurrenceDialog } from "@/components/ops/jobs/job-occurrence-dialog";
+import { ScheduleAvailabilityDialog } from "@/components/ops/schedules/schedule-availability-dialog";
+import {
+  ScheduleGapFinder,
+  type ScheduleGapPick,
+} from "@/components/ops/schedules/schedule-gap-finder";
 import {
   ScheduleGrid,
   ScheduleList,
@@ -14,10 +18,9 @@ import {
 } from "@/components/ops/schedules/schedule-grid";
 import { ScheduleToolbar } from "@/components/ops/schedules/schedule-toolbar";
 import { ScheduleUnassignedRow } from "@/components/ops/schedules/schedule-unassigned-row";
-import {
-  useScheduleDrag,
-  type ScheduleDragPayload,
-} from "@/components/ops/schedules/use-schedule-drag";
+import { useScheduleCells } from "@/components/ops/schedules/use-schedule-cells";
+import { useScheduleDrag } from "@/components/ops/schedules/use-schedule-drag";
+import { useScheduleVisitMove } from "@/components/ops/schedules/use-schedule-visit-move";
 import { useScheduleWeek } from "@/components/ops/schedules/use-schedule-week";
 import { OpsEmptyState, OpsRecordSkeleton } from "@/components/ops/shared";
 import type { OpsOccurrence } from "@/components/ops/types";
@@ -28,46 +31,59 @@ type DialogState =
   | { defaults: { employeeIds: string[]; scheduledEndAt: string; scheduledStartAt: string }; mode: "create" }
   | { mode: "edit"; occurrence: OpsOccurrence };
 
+type PanelState = "availability" | "gaps" | null;
+
+// El input datetime-local no acepta 24:00, asi que un hueco que termina a la
+// medianoche cierra un minuto antes.
+const toLocalValue = (dateKey: string, minute: number) =>
+  `${dateKey}T${formatMinuteOfDay(Math.min(minute, DAY_MINUTES - 1))}`;
+
 export const ScheduleBoard = () => {
   const state = useScheduleWeek();
   const [dialog, setDialog] = useState<DialogState | null>(null);
-  const { updateOccurrenceAsync } = useJobOccurrenceMutations();
+  const [panel, setPanel] = useState<PanelState>(null);
+  const moveVisit = useScheduleVisitMove(state.occurrences);
+  const drag = useScheduleDrag(moveVisit);
+  const cells = useScheduleCells({
+    dragging: drag.dragging,
+    rules: state.availabilityRules,
+    schedule: state.schedule,
+    visibleWeekdays: state.visibleWeekdays,
+  });
 
-  const findOccurrence = (visitId: string) =>
-    state.occurrences.find((occurrence) => occurrence.id === visitId);
-
-  const openCreate = (dateKey: string, employeeId: string | null) => {
-    const start = new Date(`${dateKey}T09:00:00`);
-    const end = new Date(`${dateKey}T13:00:00`);
-
+  const openCreate = (dateKey: string, employeeId: string | null) =>
     setDialog({
       defaults: {
         employeeIds: employeeId ? [employeeId] : [],
-        scheduledEndAt: toDateTimeLocalValue(end),
-        scheduledStartAt: toDateTimeLocalValue(start),
+        scheduledEndAt: toDateTimeLocalValue(new Date(`${dateKey}T13:00:00`)),
+        scheduledStartAt: toDateTimeLocalValue(new Date(`${dateKey}T09:00:00`)),
+      },
+      mode: "create",
+    });
+
+  const openCreateInGap = (pick: ScheduleGapPick) => {
+    setPanel(null);
+    setDialog({
+      defaults: {
+        employeeIds: [pick.employeeId],
+        scheduledEndAt: toLocalValue(pick.dateKey, pick.endMinute),
+        scheduledStartAt: toLocalValue(pick.dateKey, pick.startMinute),
       },
       mode: "create",
     });
   };
+
   const openEdit = (visit: ScheduleVisit) => {
-    const occurrence = findOccurrence(visit.id);
+    const occurrence = state.occurrences.find((current) => current.id === visit.id);
     if (occurrence) setDialog({ mode: "edit", occurrence });
   };
 
-  const moveVisit = (payload: ScheduleDragPayload, targetDateKey: string) => {
-    const occurrence = findOccurrence(payload.visitId);
-    const shifted = occurrence && shiftOccurrenceToDate(occurrence, targetDateKey);
-    if (!occurrence || !shifted) return;
-
-    void updateOccurrenceAsync({
-      occurrenceId: occurrence.id,
-      successMessage: "Visita movida",
-      values: shifted,
-    }).catch(() => undefined);
+  const handlers = {
+    drag,
+    getCellState: cells.getCellState,
+    onCreate: openCreate,
+    onEditVisit: openEdit,
   };
-
-  const drag = useScheduleDrag(moveVisit);
-  const handlers = { drag, onCreate: openCreate, onEditVisit: openEdit };
   const rows = state.schedule.employees.map((employee) =>
     toScheduleRow(employee, state.visibleWeekdays)
   );
@@ -77,8 +93,11 @@ export const ScheduleBoard = () => {
       <ScheduleToolbar
         employeeOptions={state.employeeOptions}
         onEmployeesChange={state.setSelectedEmployeeIds}
+        onOpenAvailability={() => setPanel("availability")}
+        onOpenGaps={() => setPanel("gaps")}
         onWeekChange={state.setWeekStart}
         onWeekdaysChange={state.setVisibleWeekdays}
+        overlapCount={cells.overlapCount}
         schedule={state.schedule}
         selectedEmployeeIds={state.selectedEmployeeIds}
         visibleWeekdays={state.visibleWeekdays}
@@ -130,6 +149,21 @@ export const ScheduleBoard = () => {
           />
         )
       ) : null}
+
+      <ScheduleGapFinder
+        onOpenChange={(open) => setPanel(open ? "gaps" : null)}
+        onPick={openCreateInGap}
+        open={panel === "gaps"}
+        rules={state.availabilityRules}
+        schedule={state.schedule}
+        visibleWeekdays={state.visibleWeekdays}
+      />
+
+      <ScheduleAvailabilityDialog
+        employeeOptions={state.employeeOptions}
+        onOpenChange={(open) => setPanel(open ? "availability" : null)}
+        open={panel === "availability"}
+      />
 
       {dialog ? (
         <JobOccurrenceDialog

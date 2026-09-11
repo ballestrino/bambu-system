@@ -4,6 +4,7 @@ import { useMemo, useState } from "react";
 
 import { buildWeeklySchedule } from "@/lib/ops/schedule-mapper";
 import { getScheduleWeek, parseScheduleWeekParam } from "@/lib/ops/schedule-week";
+import { useEmployeeAvailability } from "@/components/ops/hooks/useEmployeeAvailability";
 import { useEmployees } from "@/components/ops/hooks/useEmployees";
 import { useJobOccurrences } from "@/components/ops/hooks/useJobOccurrences";
 import { ALL_WEEKDAYS } from "@/components/ops/schedules/schedule-weekday-filter";
@@ -34,6 +35,9 @@ export const useScheduleWeek = () => {
     `schedule-${week.startKey}`
   );
   const { employees } = useEmployees({ isActive: true });
+  // La disponibilidad se lee entera y se cruza en memoria: son pocas reglas por
+  // empleada y el tablero ya tiene la semana completa.
+  const { rules: availabilityRules } = useEmployeeAvailability();
 
   const visibleEmployees = useMemo(() => {
     const active = employees.map((employee) => ({
@@ -58,6 +62,7 @@ export const useScheduleWeek = () => {
   );
 
   return {
+    availabilityRules,
     employeeOptions: employees.map((employee) => ({
       id: employee.id,
       name: employee.name,

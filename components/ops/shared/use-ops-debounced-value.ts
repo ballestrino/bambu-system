@@ -1,8 +1,12 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 
-export const useOpsDebouncedValue = <T,>(value: T, delayMs = 1500) => {
+/**
+ * Debounced value plus a `flush` callback that commits the pending value right
+ * away (por ejemplo al presionar Enter en un buscador).
+ */
+export const useOpsFlushableDebouncedValue = <T,>(value: T, delayMs = 1500) => {
   const [debouncedValue, setDebouncedValue] = useState(value);
 
   useEffect(() => {
@@ -13,5 +17,12 @@ export const useOpsDebouncedValue = <T,>(value: T, delayMs = 1500) => {
     return () => window.clearTimeout(timeoutId);
   }, [delayMs, value]);
 
-  return debouncedValue;
+  const flush = useCallback(() => {
+    setDebouncedValue(value);
+  }, [value]);
+
+  return [debouncedValue, flush] as const;
 };
+
+export const useOpsDebouncedValue = <T,>(value: T, delayMs = 1500) =>
+  useOpsFlushableDebouncedValue(value, delayMs)[0];
