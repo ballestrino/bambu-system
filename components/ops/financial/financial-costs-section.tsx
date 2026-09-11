@@ -36,56 +36,54 @@ export const FinancialCostsSection = ({ workspace }: { workspace: FinancialWorks
   );
 
   return (
-    <div className="scroll-mt-28" id="costes">
-      <OpsSection
-        actions={
-          <CostDialog
-            categories={workspace.categories}
-            employees={workspace.employees}
-            jobs={workspace.jobs}
-          />
-        }
-        description="Costes reales, categorías operativas y configuración de BPS."
-        title="Costes"
-      >
-        <CostsFilters
+    <OpsSection
+      actions={
+        <CostDialog
           categories={workspace.categories}
           employees={workspace.employees}
-          filters={filters}
-          isRefreshing={workspace.isFetching}
           jobs={workspace.jobs}
-          monthLabel={formatMonth(workspace.month)}
-          onChange={(values) => setFilters((current) => ({ ...current, ...values }))}
-          onClear={() => setFilters(defaultFilters)}
-          onRefresh={workspace.refresh.costs}
         />
-        <div className="mt-5">
-          {workspace.errors.costs ? (
-            <FinancialErrorState onRetry={workspace.refresh.costs} />
-          ) : (
-            <div className="grid gap-5 xl:grid-cols-[minmax(0,1.25fr)_minmax(340px,0.75fr)]">
-              <OpsSection title="Costes registrados">
-                <OpsScrollContainer>
-                  <CostsList
-                    categories={workspace.categories}
-                    costs={visibleCosts}
-                    employees={workspace.employees}
-                    isLoading={workspace.loading.costs}
-                    jobs={workspace.jobs}
-                    onVoid={async (costId) => {
-                      await voidCostAsync(costId);
-                    }}
-                  />
-                </OpsScrollContainer>
-              </OpsSection>
-              <div className="grid content-start gap-5">
-                <BpsSettingsPanel settings={workspace.settings} />
-                <CostCategoriesPanel categories={workspace.categories} scrollable />
-              </div>
+      }
+      description="Costes reales, categorías operativas y configuración de BPS."
+      title="Costes"
+    >
+      <CostsFilters
+        categories={workspace.categories}
+        employees={workspace.employees}
+        filters={filters}
+        isRefreshing={workspace.isFetching}
+        jobs={workspace.jobs}
+        monthLabel={formatMonth(workspace.month)}
+        onChange={(values) => setFilters((current) => ({ ...current, ...values }))}
+        onClear={() => setFilters(defaultFilters)}
+        onRefresh={workspace.refresh.costs}
+      />
+      <div className="mt-5">
+        {workspace.errors.costs ? (
+          <FinancialErrorState onRetry={workspace.refresh.costs} />
+        ) : (
+          <div className="grid gap-5 xl:grid-cols-[minmax(0,1.25fr)_minmax(340px,0.75fr)]">
+            <OpsSection title="Costes registrados">
+              <OpsScrollContainer>
+                <CostsList
+                  categories={workspace.categories}
+                  costs={visibleCosts}
+                  employees={workspace.employees}
+                  isLoading={workspace.loading.costs}
+                  jobs={workspace.jobs}
+                  onVoid={async (costId) => {
+                    await voidCostAsync(costId);
+                  }}
+                />
+              </OpsScrollContainer>
+            </OpsSection>
+            <div className="grid content-start gap-5">
+              <BpsSettingsPanel settings={workspace.settings} />
+              <CostCategoriesPanel categories={workspace.categories} scrollable />
             </div>
-          )}
-        </div>
-      </OpsSection>
-    </div>
+          </div>
+        )}
+      </div>
+    </OpsSection>
   );
 };

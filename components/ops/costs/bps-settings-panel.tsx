@@ -12,7 +12,7 @@ import { Input } from "@/components/ui/input";
 export const BpsSettingsPanel = ({
   settings,
 }: {
-  settings?: OpsCostSettings;
+  settings?: OpsCostSettings | null;
 }) => (
   <BpsSettingsForm
     key={String(settings?.updatedAt ?? "empty")}

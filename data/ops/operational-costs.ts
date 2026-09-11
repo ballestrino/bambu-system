@@ -14,29 +14,9 @@ import {
 } from "@/data/ops/shared";
 import { getAssignedMonthRange } from "@/lib/ops/finance";
 
-const defaultCategories = [
-  { name: "BPS", kind: "BPS", color: "#3B82F6" },
-  { name: "Taxi", kind: "TRANSPORT", color: "#F59E0B" },
-  { name: "Bus", kind: "TRANSPORT", color: "#10B981" },
-  { name: "Otros", kind: "GENERAL", color: "#64748B" },
-] as const;
-
-const ensureDefaultCostCategories = async (userId: string) => {
-  await Promise.all(
-    defaultCategories.map((category) =>
-      db.operationalCostCategory.upsert({
-        where: { name: category.name },
-        create: { ...category, createdById: userId },
-        update: {},
-      })
-    )
-  );
-};
-
 export const getOperationalCostCategories = async (filters?: unknown) => {
   try {
-    const session = await requireAdminSession();
-    await ensureDefaultCostCategories(session.user.id);
+    await requireAdminSession();
 
     const parsedFilters = OperationalCostCategoryFiltersSchema.safeParse(
       filters ?? {}
@@ -120,13 +100,14 @@ export const getOpsCostSettings = async () => {
   try {
     await requireAdminSession();
 
-    const settings = await db.opsCostSettings.upsert({
+    // Read-only: the row is created by updateOpsCostSettings when an admin
+    // saves a percentage. Returning null (never undefined) keeps React Query
+    // happy and leaves BpsSettingsPanel's remount key stable.
+    const settings = await db.opsCostSettings.findUnique({
       where: { id: "default" },
-      create: { id: "default" },
-      update: {},
     });
 
-    return { settings };
+    return { settings: settings ?? null };
   } catch (error) {
     console.error("Error getting cost settings:", error);
     return { error: "Error al obtener configuracion de costes" };

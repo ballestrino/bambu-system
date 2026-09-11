@@ -70,7 +70,7 @@ export const JobProfitabilityPanel = ({ jobId, month }: { jobId: string; month: 
           <div className="flex flex-col gap-3 rounded-lg border p-3 text-sm sm:flex-row sm:items-center sm:justify-between">
             <span>Cobrado en el período: <strong>{formatProfitabilityMoney(result.collectedRevenue)}</strong>. Se informa aparte de la rentabilidad.</span>
             <div className="flex flex-wrap gap-2">
-              <Button asChild size="sm" variant="outline"><Link href="/dashboard/financial#costes"><ReceiptText /> Revisar costes</Link></Button>
+              <Button asChild size="sm" variant="outline"><Link href="/dashboard/financial?seccion=costes"><ReceiptText /> Revisar costes</Link></Button>
               <Button asChild size="sm" variant="outline"><Link href="/dashboard/calendar"><CalendarRange /> Revisar visitas</Link></Button>
             </div>
           </div>

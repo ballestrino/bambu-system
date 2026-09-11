@@ -45,59 +45,57 @@ export const FinancialPayrollSection = ({ workspace }: { workspace: FinancialWor
   const periodEnd = toDateInputValue(workspace.monthRange.end);
 
   return (
-    <div className="scroll-mt-28" id="pagos">
-      <OpsSection
-        actions={
-          <PayrollDialog
-            employees={workspace.employees}
-            periodEnd={periodEnd}
-            periodStart={periodStart}
-          />
-        }
-        description="Importes sugeridos, pagos y devengamientos. El BPS usa Fonasa personal base de 3%; adicionales y CCM no están incluidos."
-        title="Pagos a empleadas"
-      >
-        <PayrollFilters
-          employeeId={employeeId}
+    <OpsSection
+      actions={
+        <PayrollDialog
           employees={workspace.employees}
-          isRefreshing={workspace.isFetching}
-          monthLabel={formatMonth(workspace.month)}
-          onClear={() => { setEmployeeId("ALL"); setStatus("RECORDED"); }}
-          onEmployeeIdChange={setEmployeeId}
-          onRefresh={workspace.refresh.payroll}
-          onStatusChange={setStatus}
-          status={status}
+          periodEnd={periodEnd}
+          periodStart={periodStart}
         />
-        <div className="mt-5">
-          {workspace.errors.payroll ? (
-            <FinancialErrorState onRetry={workspace.refresh.payroll} />
-          ) : (
-            <div className="space-y-5">
-              <PayrollSummary {...summary} showVoided={status !== "RECORDED"} />
-              <div className="grid gap-5 xl:grid-cols-[minmax(0,1.65fr)_minmax(20rem,0.75fr)]">
-                <OpsScrollContainer>
-                  <PayrollRowsPanel
-                    employees={workspace.employees}
-                    periodEnd={periodEnd}
-                    periodStart={periodStart}
-                    rows={rows}
-                  />
-                </OpsScrollContainer>
-                <OpsScrollContainer>
-                  <EmployeePaymentList
-                    employees={workspace.employees}
-                    isLoading={workspace.loading.payroll}
-                    onVoid={async (paymentId) => {
-                      await voidPaymentAsync(paymentId);
-                    }}
-                    payments={visiblePayments}
-                  />
-                </OpsScrollContainer>
-              </div>
+      }
+      description="Importes sugeridos, pagos y devengamientos. El BPS usa Fonasa personal base de 3%; adicionales y CCM no están incluidos."
+      title="Pagos a empleadas"
+    >
+      <PayrollFilters
+        employeeId={employeeId}
+        employees={workspace.employees}
+        isRefreshing={workspace.isFetching}
+        monthLabel={formatMonth(workspace.month)}
+        onClear={() => { setEmployeeId("ALL"); setStatus("RECORDED"); }}
+        onEmployeeIdChange={setEmployeeId}
+        onRefresh={workspace.refresh.payroll}
+        onStatusChange={setStatus}
+        status={status}
+      />
+      <div className="mt-5">
+        {workspace.errors.payroll ? (
+          <FinancialErrorState onRetry={workspace.refresh.payroll} />
+        ) : (
+          <div className="space-y-5">
+            <PayrollSummary {...summary} showVoided={status !== "RECORDED"} />
+            <div className="grid gap-5 xl:grid-cols-[minmax(0,1.65fr)_minmax(20rem,0.75fr)]">
+              <OpsScrollContainer>
+                <PayrollRowsPanel
+                  employees={workspace.employees}
+                  periodEnd={periodEnd}
+                  periodStart={periodStart}
+                  rows={rows}
+                />
+              </OpsScrollContainer>
+              <OpsScrollContainer>
+                <EmployeePaymentList
+                  employees={workspace.employees}
+                  isLoading={workspace.loading.payroll}
+                  onVoid={async (paymentId) => {
+                    await voidPaymentAsync(paymentId);
+                  }}
+                  payments={visiblePayments}
+                />
+              </OpsScrollContainer>
             </div>
-          )}
-        </div>
-      </OpsSection>
-    </div>
+          </div>
+        )}
+      </div>
+    </OpsSection>
   );
 };

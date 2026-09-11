@@ -46,7 +46,7 @@ export const DashboardProfitabilityAlerts = ({
     <OpsSection
       actions={
         <Button asChild size="sm" variant="outline">
-          <Link href="/dashboard/financial#rentabilidad">Ver todas <ArrowRight /></Link>
+          <Link href="/dashboard/financial?seccion=rentabilidad">Ver todas <ArrowRight /></Link>
         </Button>
       }
       description={`${alerts.length} servicio(s) requieren revisión en el mes seleccionado.`}

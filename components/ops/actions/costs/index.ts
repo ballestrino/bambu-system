@@ -4,6 +4,7 @@ export * from "@/components/ops/actions/costs/create-operational-cost.action";
 export * from "@/components/ops/actions/costs/get-operational-cost-categories.action";
 export * from "@/components/ops/actions/costs/get-operational-costs.action";
 export * from "@/components/ops/actions/costs/get-ops-cost-settings.action";
+export * from "@/components/ops/actions/costs/initialize-default-cost-categories.action";
 export * from "@/components/ops/actions/costs/update-operational-cost-category.action";
 export * from "@/components/ops/actions/costs/update-operational-cost.action";
 export * from "@/components/ops/actions/costs/update-ops-cost-settings.action";

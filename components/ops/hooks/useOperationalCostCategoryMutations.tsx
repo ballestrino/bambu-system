@@ -5,6 +5,7 @@ import { toast } from "sonner";
 
 import { archiveOperationalCostCategoryAction } from "@/components/ops/actions/costs/archive-operational-cost-category.action";
 import { createOperationalCostCategoryAction } from "@/components/ops/actions/costs/create-operational-cost-category.action";
+import { initializeDefaultCostCategoriesAction } from "@/components/ops/actions/costs/initialize-default-cost-categories.action";
 import { updateOperationalCostCategoryAction } from "@/components/ops/actions/costs/update-operational-cost-category.action";
 import { opsQueryKeys } from "@/components/ops/query-keys";
 import type {
@@ -59,12 +60,29 @@ export const useOperationalCostCategoryMutations = () => {
     },
   });
 
+  const initializeDefaultsMutation = useMutation({
+    mutationFn: () => initializeDefaultCostCategoriesAction(),
+    onSuccess: async () => {
+      toast.success("Categorias por defecto creadas");
+      await invalidateCategories();
+    },
+    onError: (error) => {
+      toast.error(
+        error instanceof Error
+          ? error.message
+          : "Error al crear las categorias por defecto"
+      );
+    },
+  });
+
   return {
     archiveCategoryAsync: archiveCategoryMutation.mutateAsync,
     createCategoryAsync: createCategoryMutation.mutateAsync,
     updateCategoryAsync: updateCategoryMutation.mutateAsync,
+    initializeDefaultsAsync: initializeDefaultsMutation.mutateAsync,
     isArchiving: archiveCategoryMutation.isPending,
     isCreating: createCategoryMutation.isPending,
+    isInitializingDefaults: initializeDefaultsMutation.isPending,
     isUpdating: updateCategoryMutation.isPending,
   };
 };

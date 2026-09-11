@@ -1,11 +1,17 @@
 "use client";
 
+import { Tags } from "lucide-react";
+
 import { Badge } from "@/components/ui/badge";
 import DeleteDialog from "@/components/ui/delete-dialog";
 import { Button } from "@/components/ui/button";
 import { CostCategoryDialog } from "@/components/ops/costs/cost-category-dialog";
 import { useOperationalCostCategoryMutations } from "@/components/ops/hooks/useOperationalCostCategoryMutations";
-import { OpsScrollContainer, OpsSection } from "@/components/ops/shared";
+import {
+  OpsEmptyState,
+  OpsScrollContainer,
+  OpsSection,
+} from "@/components/ops/shared";
 import type { OpsOperationalCostCategory } from "@/components/ops/types";
 
 const kindLabels = {
@@ -21,7 +27,11 @@ export const CostCategoriesPanel = ({
   categories: OpsOperationalCostCategory[];
   scrollable?: boolean;
 }) => {
-  const { archiveCategoryAsync } = useOperationalCostCategoryMutations();
+  const {
+    archiveCategoryAsync,
+    initializeDefaultsAsync,
+    isInitializingDefaults,
+  } = useOperationalCostCategoryMutations();
   const categoryList = (
     <div className="grid gap-2">
       {categories.map((category) => (
@@ -68,7 +78,30 @@ export const CostCategoriesPanel = ({
       description="Agrupa costes reales sin mezclar con presupuestos."
       actions={<CostCategoryDialog />}
     >
-      {scrollable ? <OpsScrollContainer>{categoryList}</OpsScrollContainer> : categoryList}
+      {categories.length === 0 ? (
+        <OpsEmptyState
+          action={
+            <Button
+              disabled={isInitializingDefaults}
+              onClick={async () => {
+                await initializeDefaultsAsync();
+              }}
+              type="button"
+            >
+              {isInitializingDefaults
+                ? "Creando..."
+                : "Crear categorias por defecto"}
+            </Button>
+          }
+          description="Crea las categorias por defecto (BPS, Taxi, Bus, Otros) para empezar a cargar egresos, o agrega una propia."
+          icon={Tags}
+          title="Todavia no hay categorias de costes"
+        />
+      ) : scrollable ? (
+        <OpsScrollContainer>{categoryList}</OpsScrollContainer>
+      ) : (
+        categoryList
+      )}
     </OpsSection>
   );
 };

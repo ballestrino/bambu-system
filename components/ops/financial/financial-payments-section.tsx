@@ -31,48 +31,46 @@ export const FinancialPaymentsSection = ({ workspace }: { workspace: FinancialWo
   const summary = getPaymentSummary(visiblePayments);
 
   return (
-    <div className="scroll-mt-28" id="cobros">
-      <OpsSection
-        actions={<PaymentDialog jobs={workspace.jobs} />}
-        description="Ingresos recibidos de trabajos y atribución generada por el equipo."
-        title="Cobros"
-      >
-        <PaymentsFilters
-          isRefreshing={workspace.isFetching}
-          jobId={jobId}
-          jobs={workspace.jobs}
-          monthLabel={formatMonth(workspace.month)}
-          onClear={() => { setJobId("ALL"); setStatus("RECORDED"); }}
-          onJobIdChange={setJobId}
-          onRefresh={workspace.refresh.payments}
-          onStatusChange={setStatus}
-          status={status}
-        />
-        <div className="mt-5">
-          {workspace.errors.payments ? (
-            <FinancialErrorState onRetry={workspace.refresh.payments} />
-          ) : (
-            <div className="space-y-5">
-              <PaymentsSummary {...summary} showVoided={status !== "RECORDED"} />
-              <div className="grid gap-5 xl:grid-cols-2">
-                <OpsScrollContainer>
-                  <PaymentsList
-                    isLoading={workspace.loading.payments}
-                    jobs={workspace.jobs}
-                    onVoid={async (paymentId) => {
-                      await voidPaymentAsync(paymentId);
-                    }}
-                    payments={visiblePayments}
-                  />
-                </OpsScrollContainer>
-                <OpsScrollContainer>
-                  <EmployeeGeneratedPayPanel {...buildEmployeeGeneratedPay(visibleOccurrences)} />
-                </OpsScrollContainer>
-              </div>
+    <OpsSection
+      actions={<PaymentDialog jobs={workspace.jobs} />}
+      description="Ingresos recibidos de trabajos y atribución generada por el equipo."
+      title="Cobros"
+    >
+      <PaymentsFilters
+        isRefreshing={workspace.isFetching}
+        jobId={jobId}
+        jobs={workspace.jobs}
+        monthLabel={formatMonth(workspace.month)}
+        onClear={() => { setJobId("ALL"); setStatus("RECORDED"); }}
+        onJobIdChange={setJobId}
+        onRefresh={workspace.refresh.payments}
+        onStatusChange={setStatus}
+        status={status}
+      />
+      <div className="mt-5">
+        {workspace.errors.payments ? (
+          <FinancialErrorState onRetry={workspace.refresh.payments} />
+        ) : (
+          <div className="space-y-5">
+            <PaymentsSummary {...summary} showVoided={status !== "RECORDED"} />
+            <div className="grid gap-5 xl:grid-cols-2">
+              <OpsScrollContainer>
+                <PaymentsList
+                  isLoading={workspace.loading.payments}
+                  jobs={workspace.jobs}
+                  onVoid={async (paymentId) => {
+                    await voidPaymentAsync(paymentId);
+                  }}
+                  payments={visiblePayments}
+                />
+              </OpsScrollContainer>
+              <OpsScrollContainer>
+                <EmployeeGeneratedPayPanel {...buildEmployeeGeneratedPay(visibleOccurrences)} />
+              </OpsScrollContainer>
             </div>
-          )}
-        </div>
-      </OpsSection>
-    </div>
+          </div>
+        )}
+      </div>
+    </OpsSection>
   );
 };
