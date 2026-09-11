@@ -7,7 +7,6 @@ import { FinancialSectionPanel } from "@/components/ops/financial/financial-sect
 import { FinancialTabs } from "@/components/ops/financial/financial-tabs";
 import { useFinancialSection } from "@/components/ops/financial/use-financial-section";
 import { useFinancialWorkspace } from "@/components/ops/financial/use-financial-workspace";
-import { useJobProfitability } from "@/components/ops/hooks/useJobProfitability";
 import {
   OpsPageHeader,
   OpsPageShell,
@@ -17,11 +16,7 @@ import { getFinancialSummary } from "@/lib/ops/finance";
 
 export const FinancialPage = () => {
   const { section, setSection } = useFinancialSection();
-  const workspace = useFinancialWorkspace();
-  const profitabilityQuery = useJobProfitability({
-    mode: "MONTH",
-    month: workspace.month,
-  });
+  const workspace = useFinancialWorkspace({ section });
   const summary = useMemo(
     () =>
       getFinancialSummary({
@@ -45,13 +40,8 @@ export const FinancialPage = () => {
           <>
             <FinancialExportButton summary={summary} workspace={workspace} />
             <OpsRefreshButton
-              isRefreshing={workspace.isFetching || profitabilityQuery.isFetching}
-              onRefresh={async () => {
-                await Promise.all([
-                  workspace.refresh.all(),
-                  profitabilityQuery.refetch(),
-                ]);
-              }}
+              isRefreshing={workspace.isFetching}
+              onRefresh={workspace.refresh.all}
             />
           </>
         }
@@ -61,12 +51,6 @@ export const FinancialPage = () => {
       />
       <FinancialTabs onSectionChange={setSection} section={section} />
       <FinancialSectionPanel
-        profitability={{
-          error: profitabilityQuery.error,
-          isLoading: profitabilityQuery.isLoading,
-          refetch: profitabilityQuery.refetch,
-          results: profitabilityQuery.profitability,
-        }}
         section={section}
         summary={summary}
         workspace={workspace}

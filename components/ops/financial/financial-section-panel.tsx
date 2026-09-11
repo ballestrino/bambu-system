@@ -13,22 +13,12 @@ import {
 import type { FinancialWorkspace } from "@/components/ops/financial/use-financial-workspace";
 import { OpsSection } from "@/components/ops/shared";
 import type { getFinancialSummary } from "@/lib/ops/finance";
-import type { JobProfitability } from "@/lib/ops/profitability";
-
-type ProfitabilityState = {
-  error: unknown;
-  isLoading: boolean;
-  refetch: () => Promise<unknown> | void;
-  results: JobProfitability[];
-};
 
 export const FinancialSectionPanel = ({
-  profitability,
   section,
   summary,
   workspace,
 }: {
-  profitability: ProfitabilityState;
   section: FinanceSection;
   summary: ReturnType<typeof getFinancialSummary>;
   workspace: FinancialWorkspace;
@@ -54,10 +44,10 @@ export const FinancialSectionPanel = ({
       </OpsSection>
     ) : section === "rentabilidad" ? (
       <FinancialProfitabilitySection
-        error={profitability.error}
-        isLoading={profitability.isLoading}
-        onRetry={profitability.refetch}
-        results={profitability.results}
+        error={workspace.profitability.error}
+        isLoading={workspace.profitability.isLoading}
+        onRetry={workspace.profitability.refetch}
+        results={workspace.profitability.results}
       />
     ) : section === "cobros" ? (
       <FinancialPaymentsSection workspace={workspace} />

@@ -6,10 +6,11 @@ import { getJobsAction } from "@/components/ops/actions/jobs/get-jobs.action";
 import { opsQueryKeys } from "@/components/ops/query-keys";
 import type { JobFilters } from "@/schemas/ops";
 
-export const useJobs = (filters?: JobFilters) => {
+export const useJobs = (filters?: JobFilters, enabled = true) => {
   const jobsQuery = useQuery({
     queryKey: [...opsQueryKeys.jobs, filters ?? {}],
     queryFn: () => getJobsAction(filters),
+    enabled,
     placeholderData: keepPreviousData,
     staleTime: 1000 * 60 * 5,
   });

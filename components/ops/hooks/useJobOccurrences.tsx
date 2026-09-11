@@ -8,7 +8,8 @@ import type { JobOccurrenceFilters } from "@/schemas/ops";
 
 export const useJobOccurrences = (
   filters?: JobOccurrenceFilters,
-  queryKeyScope?: string
+  queryKeyScope?: string,
+  enabled = true
 ) => {
   const occurrencesQuery = useQuery({
     queryKey: [
@@ -16,6 +17,7 @@ export const useJobOccurrences = (
       filters ?? {},
     ],
     queryFn: () => getJobOccurrencesAction(filters),
+    enabled,
     staleTime: 1000 * 60 * 5,
   });
 

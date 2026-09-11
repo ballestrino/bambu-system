@@ -1,20 +1,35 @@
 "use client";
 
+import {
+  financeSectionQueries,
+  type FinanceSection,
+} from "@/components/ops/financial/financial-sections";
+import { buildFinancialRefresh } from "@/components/ops/financial/financial-workspace-refresh";
 import { useEmployeePayments } from "@/components/ops/hooks/useEmployeePayments";
 import { useEmployees } from "@/components/ops/hooks/useEmployees";
 import { useJobClientPayments } from "@/components/ops/hooks/useJobClientPayments";
 import { useJobOccurrences } from "@/components/ops/hooks/useJobOccurrences";
+import { useJobProfitability } from "@/components/ops/hooks/useJobProfitability";
 import { useJobs } from "@/components/ops/hooks/useJobs";
 import { useOperationalCostCategories } from "@/components/ops/hooks/useOperationalCostCategories";
 import { useOperationalCosts } from "@/components/ops/hooks/useOperationalCosts";
 import { useOpsCostSettings } from "@/components/ops/hooks/useOpsCostSettings";
 import { useOpsSelectedMonth } from "@/components/ops/shared";
 
-export const useFinancialWorkspace = () => {
+export const useFinancialWorkspace = ({
+  section,
+}: {
+  section: FinanceSection;
+}) => {
   const { month, monthKey, monthRange } = useOpsSelectedMonth();
-  const jobsQuery = useJobs({ includeArchived: false });
-  const employeesQuery = useEmployees({ includeArchived: true });
-  const categoriesQuery = useOperationalCostCategories({ isActive: true });
+  const needs = financeSectionQueries[section];
+
+  const jobsQuery = useJobs({ includeArchived: false }, needs.jobs);
+  const employeesQuery = useEmployees({ includeArchived: true }, needs.employees);
+  const categoriesQuery = useOperationalCostCategories(
+    { isActive: true },
+    needs.categories
+  );
   const settingsQuery = useOpsCostSettings();
   const paymentsQuery = useJobClientPayments(
     { assignedMonth: month },
@@ -35,40 +50,27 @@ export const useFinancialWorkspace = () => {
       startDate: monthRange.start,
       statuses: ["DONE"],
     },
-    `financial-occurrences-${monthKey}`
+    `financial-occurrences-${monthKey}`,
+    needs.occurrences
+  );
+  // Resumen and Rentabilidad share this query key, so switching between them
+  // reuses one fetch instead of paying for it twice.
+  const profitabilityQuery = useJobProfitability(
+    { mode: "MONTH", month },
+    needs.profitability
   );
 
-  const refreshPayments = () =>
-    Promise.all([
-      jobsQuery.refetch(),
-      paymentsQuery.refetch(),
-      occurrencesQuery.refetch(),
-    ]);
-  const refreshCosts = () =>
-    Promise.all([
-      categoriesQuery.refetch(),
-      costsQuery.refetch(),
-      employeesQuery.refetch(),
-      jobsQuery.refetch(),
-      settingsQuery.refetch(),
-    ]);
-  const refreshPayroll = () =>
-    Promise.all([
-      employeePaymentsQuery.refetch(),
-      employeesQuery.refetch(),
-      occurrencesQuery.refetch(),
-    ]);
-  const refreshAll = () =>
-    Promise.all([
-      categoriesQuery.refetch(),
-      costsQuery.refetch(),
-      employeePaymentsQuery.refetch(),
-      employeesQuery.refetch(),
-      jobsQuery.refetch(),
-      occurrencesQuery.refetch(),
-      paymentsQuery.refetch(),
-      settingsQuery.refetch(),
-    ]);
+  const refresh = buildFinancialRefresh({
+    categories: categoriesQuery,
+    costs: costsQuery,
+    employeePayments: employeePaymentsQuery,
+    employees: employeesQuery,
+    jobs: jobsQuery,
+    occurrences: occurrencesQuery,
+    payments: paymentsQuery,
+    profitability: profitabilityQuery,
+    settings: settingsQuery,
+  });
 
   return {
     categories: categoriesQuery.categories,
@@ -95,6 +97,7 @@ export const useFinancialWorkspace = () => {
       jobsQuery.isFetching ||
       occurrencesQuery.isFetching ||
       paymentsQuery.isFetching ||
+      profitabilityQuery.isFetching ||
       settingsQuery.isFetching,
     loading: {
       costs: categoriesQuery.isLoading || costsQuery.isLoading,
@@ -110,12 +113,13 @@ export const useFinancialWorkspace = () => {
     monthKey,
     monthRange,
     occurrences: occurrencesQuery.occurrences,
-    refresh: {
-      all: refreshAll,
-      costs: refreshCosts,
-      payments: refreshPayments,
-      payroll: refreshPayroll,
+    profitability: {
+      error: profitabilityQuery.error,
+      isLoading: profitabilityQuery.isLoading,
+      refetch: profitabilityQuery.refetch,
+      results: profitabilityQuery.profitability,
     },
+    refresh,
     settings: settingsQuery.settings,
     jobs: jobsQuery.jobs,
   };

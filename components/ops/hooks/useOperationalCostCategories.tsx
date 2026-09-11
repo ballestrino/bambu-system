@@ -7,11 +7,13 @@ import { opsQueryKeys } from "@/components/ops/query-keys";
 import type { OperationalCostCategoryFilters } from "@/schemas/ops";
 
 export const useOperationalCostCategories = (
-  filters?: OperationalCostCategoryFilters
+  filters?: OperationalCostCategoryFilters,
+  enabled = true
 ) => {
   const categoriesQuery = useQuery({
     queryKey: [...opsQueryKeys.costCategories, filters ?? {}],
     queryFn: () => getOperationalCostCategoriesAction(filters),
+    enabled,
     staleTime: 1000 * 60,
   });
 
