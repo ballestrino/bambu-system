@@ -3,14 +3,13 @@
 import { useState } from "react";
 import type { PaymentStatus } from "@prisma/client";
 
-import { BpsSettingsPanel } from "@/components/ops/costs/bps-settings-panel";
-import { CostCategoriesPanel } from "@/components/ops/costs/cost-categories-panel";
 import { CostDialog } from "@/components/ops/costs/cost-dialog";
 import {
   CostsFilters,
   type CostsFilterState,
 } from "@/components/ops/costs/costs-filters";
 import { CostsList } from "@/components/ops/costs/costs-list";
+import { FinancialCostSettingsSheet } from "@/components/ops/financial/financial-cost-settings-sheet";
 import { FinancialErrorState } from "@/components/ops/financial/financial-error-state";
 import type { FinancialWorkspace } from "@/components/ops/financial/use-financial-workspace";
 import { useOperationalCostMutations } from "@/components/ops/hooks/useOperationalCostMutations";
@@ -38,11 +37,14 @@ export const FinancialCostsSection = ({ workspace }: { workspace: FinancialWorks
   return (
     <OpsSection
       actions={
-        <CostDialog
-          categories={workspace.categories}
-          employees={workspace.employees}
-          jobs={workspace.jobs}
-        />
+        <>
+          <FinancialCostSettingsSheet workspace={workspace} />
+          <CostDialog
+            categories={workspace.categories}
+            employees={workspace.employees}
+            jobs={workspace.jobs}
+          />
+        </>
       }
       description="Costes reales, categorías operativas y configuración de BPS."
       title="Costes"
@@ -62,26 +64,20 @@ export const FinancialCostsSection = ({ workspace }: { workspace: FinancialWorks
         {workspace.errors.costs ? (
           <FinancialErrorState onRetry={workspace.refresh.costs} />
         ) : (
-          <div className="grid gap-5 xl:grid-cols-[minmax(0,1.25fr)_minmax(340px,0.75fr)]">
-            <OpsSection title="Costes registrados">
-              <OpsScrollContainer>
-                <CostsList
-                  categories={workspace.categories}
-                  costs={visibleCosts}
-                  employees={workspace.employees}
-                  isLoading={workspace.loading.costs}
-                  jobs={workspace.jobs}
-                  onVoid={async (costId) => {
-                    await voidCostAsync(costId);
-                  }}
-                />
-              </OpsScrollContainer>
-            </OpsSection>
-            <div className="grid content-start gap-5">
-              <BpsSettingsPanel settings={workspace.settings} />
-              <CostCategoriesPanel categories={workspace.categories} scrollable />
-            </div>
-          </div>
+          <OpsSection title="Costes registrados">
+            <OpsScrollContainer>
+              <CostsList
+                categories={workspace.categories}
+                costs={visibleCosts}
+                employees={workspace.employees}
+                isLoading={workspace.loading.costs}
+                jobs={workspace.jobs}
+                onVoid={async (costId) => {
+                  await voidCostAsync(costId);
+                }}
+              />
+            </OpsScrollContainer>
+          </OpsSection>
         )}
       </div>
     </OpsSection>
