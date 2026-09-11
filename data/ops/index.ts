@@ -8,3 +8,4 @@ export * from "@/data/ops/jobs";
 export * from "@/data/ops/time-entries";
 export * from "@/data/ops/visit-feed";
 export * from "@/data/ops/profitability";
+export * from "@/data/ops/finance-trend";

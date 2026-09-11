@@ -18,6 +18,7 @@ export const useOperationalCostMutations = () => {
     await Promise.all([
       queryClient.invalidateQueries({ queryKey: opsQueryKeys.costs }),
       queryClient.invalidateQueries({ queryKey: opsQueryKeys.profitabilityRoot }),
+      queryClient.invalidateQueries({ queryKey: opsQueryKeys.financeTrendRoot }),
     ]);
   };
 

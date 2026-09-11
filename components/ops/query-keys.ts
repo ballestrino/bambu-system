@@ -32,4 +32,6 @@ export const opsQueryKeys = {
   costs: ["ops", "costs"] as const,
   costScope: (scope?: string) => ["ops", "costs", scope ?? "all"] as const,
   costSettings: ["ops", "cost-settings"] as const,
+  financeTrendRoot: ["ops", "finance-trend"] as const,
+  financeTrend: (scope: unknown) => ["ops", "finance-trend", scope] as const,
 };

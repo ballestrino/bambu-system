@@ -144,4 +144,16 @@ assert.equal(
   false
 );
 
+// The trend defers the BPS estimate to the client, where the settings live, and
+// calls getFinancialSummary with bpsEstimatePercent 0. That only reconciles if
+// the zero baseline leaves realBpsTotal untouched.
+const zeroEstimate = getFinancialSummary({
+  bpsEstimatePercent: 0,
+  clientPayments: [recorded(1_000)],
+  employeePayments: [recorded(300)],
+  operationalCosts: [cost(100), cost(50, "BPS")],
+});
+assert.equal(zeroEstimate.estimatedBpsTotal, 0);
+assert.equal(zeroEstimate.bpsDifference, zeroEstimate.realBpsTotal);
+
 console.log("Finance checks passed");
