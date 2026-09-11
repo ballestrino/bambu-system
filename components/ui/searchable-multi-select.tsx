@@ -29,14 +29,8 @@ import {
 } from "@/components/ui/sheet";
 import type { SearchableSelectOption } from "@/components/ui/searchable-select";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { normalizeSearchText } from "@/lib/search-text";
 import { cn } from "@/lib/utils";
-
-const normalizeSearchText = (value: string) =>
-  value
-    .normalize("NFD")
-    .replace(/\p{Diacritic}/gu, "")
-    .toLocaleLowerCase("es-UY")
-    .trim();
 
 type SearchableMultiSelectProps = {
   "aria-label"?: string;

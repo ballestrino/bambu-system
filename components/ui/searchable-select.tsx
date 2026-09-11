@@ -26,6 +26,7 @@ import {
   SheetTrigger,
 } from "@/components/ui/sheet";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { normalizeSearchText } from "@/lib/search-text";
 import { cn } from "@/lib/utils";
 
 export type SearchableSelectOption = {
@@ -46,13 +47,6 @@ type SearchableSelectProps = {
   searchPlaceholder?: string;
   value: string;
 };
-
-const normalizeSearchText = (value: string) =>
-  value
-    .normalize("NFD")
-    .replace(/\p{Diacritic}/gu, "")
-    .toLocaleLowerCase("es-UY")
-    .trim();
 
 export const SearchableSelect = ({
   "aria-label": ariaLabel,
