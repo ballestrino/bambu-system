@@ -2,6 +2,64 @@
 
 Status: in_progress
 
+## Feature 36 - Tablas buscables en Finanzas
+
+- Feature 36 - `ops_finance_searchable_tables`, en la rama
+  `finanzas-dashboard-navegacion`. Verificación en verde y commiteada, pero
+  **sigue `pending`** hasta el cierre de sesión: la 35 ocupa el único
+  `in_progress`.
+- Cobros, Costes y Pagos dejaron las tarjetas y los `OpsScrollContainer`: cada
+  uno es una tabla compacta con encabezados ordenables (`aria-sort`), 25 filas
+  por página y un pie con conteo y total registrado. Reemplaza el criterio de
+  la 28 que pedía conservar el scroll interno.
+- Un solo buscador por sección, dentro de la toolbar de filtros. No distingue
+  acentos ni mayúsculas y busca montos crudos y formateados (`12900`,
+  `12.900`). "Limpiar" también lo vacía.
+- El normalizador estaba copiado tres veces y la copia de `data/ops/shared.ts`
+  es `server-only`. Pasó a `lib/search-text.ts`, y los dos selects y `data/`
+  delegan en él.
+- Cobros y Pagos muestran una tabla a la vez con un selector de vista en
+  `?vista=` (`equipo`, `registrados`). Cambiar de vista hace `replace()`, no
+  `push()`. "Ver todo" del Resumen abre `?seccion=cobros&vista=equipo`.
+- Los diálogos se montan por fila y solo mientras están abiertos (`trigger={null}`
+  más `defaultOpen`). Antes había un `PaymentDialog` y un `DeleteDialog` por
+  tarjeta. Radix devuelve el foco al trigger, que acá no existe, así que
+  `useRowDialog` se lo devuelve al botón que abrió el diálogo.
+- Debajo de `sm` el monto y las acciones se pliegan en la primera celda
+  (`OpsRowMobileAside`). Sin eso la tabla desbordaba 62px a 390px.
+- `useOpsTableState` guarda la página junto con la firma de query, orden y
+  filtros. Si la firma cambia vuelve a la página 1 sin `useEffect`. El hook no
+  expone refs: `react-hooks/refs` marca cualquier objeto que contenga una.
+- La toolbar de Costes apilaba sus cuatro selects `w-full` en filas completas
+  desde `lg`. Ahora comparten una línea.
+- Sin cambios en `/payments`, `/costs`, `/payroll`, la ficha del trabajo ni la de
+  la empleada: las props nuevas de diálogos, filtros y resúmenes son opcionales.
+
+### Verificación de la 36
+
+- PASS: `check:finance-tables` (nuevo), `check:finance`, `check:finance-trend`,
+  `check:finance-pdf`, `check:employee-accruals`, `check:profitability`, `tsc`,
+  lint completo, `pnpm exec next build` y `pnpm harness`.
+- PASS: smoke autenticado en Chrome, agosto 2026, en oscuro y claro. Esto cubrió:
+  - La búsqueda (`maria` encuentra María, `15.337` y `9637` encuentran el
+    monto, sin resultados ofrece limpiar).
+  - El orden, la página 2 (26–33 de 33) y el cambio de vista.
+  - Back y forward, "Ver todo" y la fila expandible de Pagos.
+  - Editar y "Registrar pago" abren precargados y el saldo sugerido es 12844.
+    Anular abre la confirmación. Todos se cancelaron sin guardar.
+  - El foco vuelve al botón que abrió el diálogo, incluido el cierre con Escape.
+  - Los estados de carga (skeleton con `aria-busy`) y vacío.
+- PASS: los totales del pie de Por empleada coinciden con los KPIs (sugerido
+  120.858, pagado 100.296, saldo 20.562).
+- PASS: 390x844 emulado con un iframe del mismo origen, porque `resize_window`
+  sigue sin cambiar el viewport. En las cinco vistas no hay overflow horizontal
+  y los targets miden 44px.
+- PASS: regresión de `/dashboard/payments`, `/costs`, `/payroll`, la ficha del
+  trabajo y la ficha de la empleada. Siguen con sus tarjetas y botones.
+- Consola: solo la advertencia de hidratación de una extensión
+  (`cz-shortcut-listen`) y la de `Description` en los diálogos de alta y edición,
+  que ya estaba antes.
+
 ## Active Feature
 
 - Feature 28 - `ops_finance_task_navigation`. El código está implementado y

@@ -435,7 +435,7 @@
         "Finance shows one active Summary, Profitability, Receivables, Costs, or Payroll section at a time with desktop tabs and a mobile-native selector",
         "Existing hashes or equivalent direct links open the requested Finance section and browser back or forward navigation remains coherent",
         "Each section exposes one contextual primary action and cost configuration remains a secondary action",
-        "Internal list scrolling, status badges, and the local Profitability collapse behavior are preserved",
+        "Status badges and the local Profitability collapse behavior are preserved; internal list scrolling in Cobros, Costes, and Pagos is superseded by feature 36",
         "Operational cost categories and settings are read without upserts or other writes, using explicit initialization or a non-mutating fallback",
         "Financial rules, calculations, permissions, and persistence contracts do not change",
         "Loading, retryable error, empty, direct-link, keyboard, desktop, and 390x844 browser states plus lint and build when available are verified"
@@ -551,6 +551,22 @@
         "Focused schedule, availability and schedule PDF checks, TypeScript, lint, harness and a production build pass"
       ],
       "status": "in_progress"
+    },
+    {
+      "id": 36,
+      "name": "ops_finance_searchable_tables",
+      "title": "Searchable tables for Finance receivables, costs, and payroll",
+      "description": "Replace the card lists and nested scroll boxes of Cobros, Costes, and Pagos in /dashboard/financial with compact sortable, paginated tables and one accent-insensitive search per section, while job detail, employee detail, and the legacy routes keep their current lists.",
+      "acceptance": [
+        "Cobros, Costes, and Pagos render compact tables with sortable headers exposing aria-sort, 25-row pagination, and a count and recorded-total footer, without nested scroll containers",
+        "Each section has one case- and accent-insensitive search beside its existing filters that matches names, references, notes, and raw or formatted amounts, and Limpiar clears it together with the filters",
+        "Cobros switches between Cobros and Generado por empleada and Pagos between Por empleada and Pagos registrados through a view control synchronized with ?vista=, and Resumen's Ver todo opens Generado por empleada",
+        "Rows keep edit, void confirmation, register payment with the suggested balance, and period summary actions, return focus to the button that opened a dialog, and show the per-employee accrual breakdown in an expandable row",
+        "At 390 pixels the amount and actions fold into the first cell with 44-pixel targets and no horizontal overflow",
+        "Financial calculations, KPIs, permissions, and persistence contracts do not change, and shared dialogs, filters, and summaries stay backward compatible for their other callers",
+        "check:finance-tables, the existing finance checks, TypeScript, lint, harness, a production build, and authenticated desktop plus 390-pixel browser smoke are recorded"
+      ],
+      "status": "pending"
     }
   ]
 }
