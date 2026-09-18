@@ -2,19 +2,34 @@
 
 Status: in_progress
 
-## Planificado - Agente de Bambú (features 38-41)
+## Agente de Bambú (features 38-41)
 
-- Plan aprobado en `docs/agent-plan.md`. Todavía
-  sin código: las features 38 (`ai_model_gateway`), 39
-  (`agent_core_skills_and_stream`), 40 (`agent_proposals`) y 41
-  (`agent_budget_sheet`) están `pending` en `feature_list.json`.
-- Orden: 38 → 39 → 40 → 41, cada una en su rama (`feature/38-ai-model-gateway`,
-  etc.). Se marcan `in_progress` recién cuando la 35 libere el único slot.
-- Antes de la 38: `pnpm add ai @ai-sdk/openai @ai-sdk/react` (v7, Node ≥ 22,
-  ESM-only) y cargar los precios reales de `gpt-5.6-luna`, `gpt-5.6-terra` y
-  `gpt-5.6-sol` desde la página de precios de OpenAI. No inventar precios.
+- Plan aprobado en `docs/agent-plan.md`; contrato vivo en `docs/agent.md`.
+  Orden: 38 → 39 → 40 → 41, cada una en su rama. Se marcan `in_progress`
+  recién cuando la 35 libere el único slot, así que las cuatro siguen
+  `pending` en `feature_list.json`.
 - Supuestos a confirmar con el usuario si hace falta: modo por conversación con
   default Medio, habilidad por mensaje con default General, costos en USD.
+
+### Feature 38 - `ai_model_gateway`
+
+- Implementada y verificada en la rama `feature/38-ai-model-gateway` (desde
+  `main`). Detalle en `progress/impl_ai_model_gateway.md`. Falta la revisión
+  (`progress/review_ai_model_gateway.md`) y el cambio de estado.
+- `lib/ai/**`: modos Bajo/Medio/Alto (Luna xhigh, Terra high, Sol medium),
+  overrides por entorno, proveedores perezosos de OpenAI y del Vercel AI
+  Gateway, settings con `store: false`, precios reales de OpenAI y costo
+  estimado en USD.
+- Cambios contra el plan, ya anotados en `docs/agent-plan.md`: el título usa
+  `none` porque gpt-5.6 no acepta `minimal`, y el uso y los precios suman la
+  escritura de caché (1,25 veces la entrada).
+- PASS: `check:ai-gateway`, prueba de mutación, `tsc`, `.\init.ps1`,
+  `pnpm exec next build` y un turno real por modo contra OpenAI.
+- Para la 39: `AgentUsageEvent` guarda también `cacheWriteTokens`. Con el
+  gateway, `readGatewayCost` se lee por paso y se suma. Si
+  `estimateUsageCost` lanza por un `AI_PRICE_*` mal escrito, la persistencia
+  del uso no tiene que tirar el turno.
+- Pendiente fuera del código: confirmar que Vercel usa Node 22.x o 24.x.
 
 ## Feature 37 - Sueldos a mes vencido
 
