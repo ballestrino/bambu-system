@@ -31,6 +31,32 @@ Status: in_progress
   del uso no tiene que tirar el turno.
 - Pendiente fuera del código: confirmar que Vercel usa Node 22.x o 24.x.
 
+### Feature 39 - `agent_core_skills_and_stream`
+
+- Implementada y verificada en la rama `feature/39-agent-core` (encima de la
+  38). Detalle en `progress/impl_agent_core_skills_and_stream.md`. Falta la
+  revisión y el cambio de estado.
+- Persistencia `Agent*` con migración aditiva, núcleo en `lib/agent/**`, 14
+  tools sin escrituras, cuatro habilidades, `draftEmail` con validación de
+  precios y Literal E, historial y costos en `data/agent/**`, acciones de
+  conversación y la ruta `POST /api/agent/chat`.
+- La migración `20260918120000_agent_workspace` ya está aplicada, con
+  confirmación del usuario, en la base del `.env` (Neon
+  `br-sparkling-night-acqea90i`, 20/20).
+- Hallazgo de la prueba real: con campos opcionales el modelo inventaba
+  valores y erraba el precio. Las entradas de las tools son ahora
+  obligatorias y nullable; el mismo pedido pasó de 5 tools y 31 s con precio
+  errado a 1 tool y 8 s con el correcto.
+- PASS: `check:agent-tools`, regresiones de finanzas, oficiales y mail, `tsc`,
+  `.\init.ps1`, `next build` y la prueba autenticada con OpenAI (números
+  iguales a Finanzas y a Pagos, correo con fuentes, Alto con Sol, formulario
+  sin guardar, corte, regenerar y acciones). Gasto de la prueba: US$ 0,20.
+- Para la 40: las propuestas agregan `AgentProposal`, las tools `propose*`
+  (con entradas nullable) y el bloque "Propuestas de esta conversación" del
+  prompt. Hasta entonces la habilidad Presupuestos dice que no puede guardar.
+- Decisión pendiente: `maxDuration` es 60. El turno más largo medido fue de
+  38,9 s en Medio; con Fluid compute confirmado conviene subirlo a 300.
+
 ## Feature 37 - Sueldos a mes vencido
 
 - Feature 37 - `ops_payroll_paid_in_arrears`, sin commitear en `main`. Queda
