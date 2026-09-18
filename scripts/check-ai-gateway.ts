@@ -8,7 +8,7 @@ import { buildAgentCallSettings } from "../lib/ai/call-settings";
 import { AGENT_MODE_IDS, AGENT_MODES } from "../lib/ai/modes";
 import { resolveDefaultMode, resolveModelSpec, resolveTitleModelSpec } from "../lib/ai/model-spec";
 import { MODEL_PRICES, estimateUsageCost, formatUsd, getPriceEnvKey } from "../lib/ai/pricing";
-import { getGatewayProvider, getOpenAIProvider, resolveLanguageModel } from "../lib/ai/providers";
+import { getGatewayProvider, getOpenAIProvider, hasGatewayCredentials, resolveLanguageModel } from "../lib/ai/providers";
 import { getAiSafetyIdentifier } from "../lib/ai/safety-identifier";
 import { EMPTY_USAGE, normalizeUsage, readGatewayCost, sumUsage } from "../lib/ai/usage";
 import { getMailSafetyIdentifier } from "../lib/mail-agent/openai-client";
@@ -75,6 +75,9 @@ assert.match(getAiSafetyIdentifier("agent", "user-1"), /^[0-9a-f]{64}$/);
 // Spanish when a key is missing and works once it exists.
 assert.throws(() => getOpenAIProvider(), /Falta configurar OPENAI_API_KEY/);
 assert.throws(() => getGatewayProvider(), /Falta configurar AI_GATEWAY_API_KEY/);
+// Without a key, the Vercel OIDC token (deploys, or vercel env pull) is enough.
+[{ VERCEL_OIDC_TOKEN: "oidc" }, { VERCEL: "1" }, { AI_GATEWAY_API_KEY: "key" }].forEach((env) => assert.equal(hasGatewayCredentials(env), true));
+assert.equal(hasGatewayCredentials({ AI_GATEWAY_API_KEY: "  " }), false);
 process.env.OPENAI_API_KEY = "sk-check-not-a-real-key";
 process.env.AI_GATEWAY_API_KEY = "gateway-check-not-a-real-key";
 assert.equal(
@@ -152,7 +155,15 @@ assert.deepEqual(
   estimateUsageCost("gpt-5.6-terra", usage, { AI_PRICE_GPT_5_6_TERRA: "1,0.1,6" }),
   { costUsd: 0.0142, priced: true }
 );
-["1;0.1;6", "1,0.1", "a,b,c", "-1,0,1", "1,0,0,1,2"].forEach((value) =>
+// Without the fourth value, cache writes cost 1.25x input, as in gpt-5.6: the
+// real Terra prices as three values price like the table.
+const withWrites = { ...usage, cacheWriteTokens: 1_000 };
+assert.deepEqual(
+  estimateUsageCost("gpt-5.6-terra", withWrites, { AI_PRICE_GPT_5_6_TERRA: "2,0.2,12" }),
+  estimateUsageCost("gpt-5.6-terra", withWrites, {})
+);
+// Empty fields, a trailing comma, hex or exponents are typos, never a zero price.
+["1;0.1;6", "1,0.1", "a,b,c", "-1,0,1", "1,0,0,1,2", ",,", "1,,6", "1,0.1,6,", "0x10,0,1", "1e3,0,1"].forEach((value) =>
   assert.throws(
     () => estimateUsageCost("gpt-5.6-terra", usage, { AI_PRICE_GPT_5_6_TERRA: value }),
     /AI_PRICE_GPT_5_6_TERRA inválido/

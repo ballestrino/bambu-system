@@ -28,6 +28,7 @@ const listSchema = z.object({
 // El historial del Sheet: conversaciones del usuario con su costo acumulado.
 export const listAgentConversations = async (values: unknown) => {
   try {
+    await requireAdminSession();
     const parsed = listSchema.safeParse(values ?? {});
     if (!parsed.success) return { error: "Filtros inválidos" };
     const conversations = await getAgentConversations(parsed.data);
@@ -46,6 +47,7 @@ export const listAgentConversations = async (values: unknown) => {
 
 export const getAgentConversationAction = async (conversationId: unknown) => {
   try {
+    await requireAdminSession();
     const parsed = agentClientIdSchema.safeParse(conversationId);
     if (!parsed.success) return { error: "Conversación inválida" };
     const conversation = await getAgentConversation(parsed.data);

@@ -2,12 +2,10 @@ import {
   applyBudgetChanges,
   budgetOptionToFormValues,
   describeBudgetInputs,
-  getCalculationAmounts,
   runBudgetCalculation,
 } from "@/lib/agent/budget-calculation";
 import {
   describeChanges,
-  getStoredAmounts,
   getStoredPrices,
   hasPriceDrift,
   officialVersionWarning,
@@ -23,13 +21,13 @@ import type { AgentBudgetChanges } from "@/schemas/agent-tools";
 import type { BudgetFormValues } from "@/schemas/BudgetSchema";
 
 // Arma las propuestas que guardan valores nuevos (crear y guardar cambios): el
-// payload que se ejecuta al confirmar, el resumen de la tarjeta y los importes
-// que quedan citables. Duplicar y publicar están en stored-budget-proposals.ts.
+// payload que se ejecuta al confirmar y el resumen de la tarjeta, del que salen
+// los importes citables. Duplicar y publicar están en stored-budget-proposals.ts.
 // Puro: check:agent-proposals lo prueba sin base ni modelo.
 export type { ProposalBudget };
 
 export type BuiltProposal<K extends AgentProposalKind = AgentProposalKind> =
-  | { ok: true; kind: K; payload: ProposalPayloads[K]; summary: ProposalSummary; grounding: number[] }
+  | { ok: true; kind: K; payload: ProposalPayloads[K]; summary: ProposalSummary }
   | { ok: false; code: string; message: string };
 
 export const refuse = (code: string, message: string) => ({ ok: false as const, code, message });
@@ -86,7 +84,6 @@ export const buildCreateBudgetProposal = (input: {
       stored: [],
       warnings: onlyText([CREATE_NOTES[base.source]]),
     },
-    grounding: getCalculationAmounts(after),
   };
 };
 
@@ -140,6 +137,5 @@ export const buildUpdateBudgetProposal = (input: {
         drift,
       ]),
     },
-    grounding: [...getStoredAmounts(budget), ...getCalculationAmounts(before), ...getCalculationAmounts(after)],
   };
 };

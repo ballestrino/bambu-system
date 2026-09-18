@@ -96,8 +96,8 @@ export const getConversationCostTotals = async (conversationIds: string[]) => {
 };
 
 // Gasto del mes (en Montevideo) de todo el equipo, por modelo y modo. Incluye
-// el uso de conversaciones borradas. El top 10 muestra el título solo de las
-// conversaciones propias.
+// el uso de conversaciones borradas. El top 10 ordena por costo con precio y
+// muestra el título solo de las conversaciones propias.
 export const getMonthlyAgentCost = async (monthKey: string) => {
   const session = await requireAdminSession();
   const range = getZonedMonthRange(monthKey);
@@ -110,9 +110,12 @@ export const getMonthlyAgentCost = async (monthKey: string) => {
       _sum: sumFields,
       _count: { _all: true },
     }),
+    // Solo uso con precio: en DESC Postgres pone primero las sumas NULL, y una
+    // conversación sin precio desplazaría a las que más gastaron. El uso sin
+    // precio lo cuenta unpricedEvents.
     db.agentUsageEvent.groupBy({
       by: ["conversationId"],
-      where: { ...where, conversationId: { not: null } },
+      where: { ...where, conversationId: { not: null }, costUsd: { not: null } },
       _sum: { costUsd: true },
       orderBy: { _sum: { costUsd: "desc" } },
       take: 10,

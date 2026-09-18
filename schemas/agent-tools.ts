@@ -34,7 +34,13 @@ export const budgetChangesSchema = z.object({
   products_price: z.number().min(0).nullable().describe(`Costo mensual de productos, 0 es sin productos${keep}`),
   products_revenue_percent: z.number().min(0).nullable().describe(`Margen de productos en %${keep}`),
   transportation_cost: z.number().min(0).nullable().describe(`Costo mensual de transporte${keep}`),
-  iva: z.number().min(0).nullable().describe(`IVA en %${keep}`),
+  // El cálculo toma un IVA 0 como 22 (`|| 22`): aceptarlo mostraría importes
+  // con IVA rotulados como sin IVA.
+  iva: z
+    .number()
+    .positive("El IVA tiene que ser mayor que 0: para cotizar sin IVA (Literal E) usá los importes sin IVA del cálculo")
+    .nullable()
+    .describe(`IVA en %, mayor que 0; nunca 0 para "sin IVA": los importes sin IVA ya vienen en el cálculo${keep}`),
   incidence_enabled: z.boolean().nullable().describe(`Solo si piden habilitar o quitar la incidencia${keep}`),
   company_enabled: z.boolean().nullable().describe(`Solo si piden habilitar o quitar los aportes patronales${keep}`),
   personal_enabled: z.boolean().nullable().describe(`Solo si piden habilitar o quitar los aportes personales${keep}`),

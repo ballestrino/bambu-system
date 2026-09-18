@@ -20,6 +20,8 @@ assert.doesNotMatch(tools, /from "@\/actions\/|from "@\/lib\/db"/);
 const store = read("lib/agent/proposal-store.ts");
 const models = [...store.matchAll(/\bdb\.(\w+)\./g)].map((match) => match[1]);
 assert.deepEqual([...new Set(models)], ["agentProposal"]);
+// Expiring discarded proposals audits only the rows the conditional update changed.
+assert.match(store, /where: \{ id: proposal\.id, status: "PENDING" \}[\s\S]*if \(!count\) continue;/);
 
 // --- Confirm: admin session, re-validation, an atomic claim of a live PENDING
 // proposal, the four existing actions and an audit event.
@@ -36,6 +38,16 @@ const confirm = read("actions/agent/confirm-proposal.ts");
   ...BUDGET_WRITES,
 ].forEach((text) => assert.ok(confirm.includes(text), `confirm-proposal.ts: ${text}`));
 assert.match(confirm, /^"use server";/);
+// Saving re-checks inside updateBudget's own transaction (compare-and-set on
+// updatedAt): a concurrent write between the precondition and the save loses.
+assert.match(confirm, /updateBudget\(budgetId, newSlug, values, \{ expectedUpdatedAt: baseUpdatedAt \}\)/);
+assert.match(confirm, /budgetResult\(result\.budget, result\.budget\.officialBudget\)/);
+const updateAction = read("actions/budgets/update-budget.ts");
+assert.match(updateAction, /where: \{ id, updatedAt: new Date\(options\.expectedUpdatedAt\) \}/);
+assert.match(updateAction, /if \(unchanged\.count !== 1\) throw new BudgetChangedError\(\);/);
+// The write is audited before the proposal is closed, and closing tolerates a
+// conversation deleted meanwhile.
+assert.ok(confirm.indexOf("auditProposal(") < confirm.indexOf('where: { id, status: "EXECUTING" }'));
 
 // --- Reject only moves a live PENDING proposal and writes nothing else.
 const reject = read("actions/agent/reject-proposal.ts");

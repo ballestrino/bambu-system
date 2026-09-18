@@ -46,6 +46,11 @@ export const toPlainJson = (value: unknown): PlainJson => {
 
 export const roundMoney = (value: number) => Math.round(value * 100) / 100;
 
+// La salida de una tool como JSON plano: aunque una lectura empiece a devolver
+// Decimal o Date, lo que llega al modelo y se guarda es JSON.
+export const toPlainResult = <T>(result: ToolResult<T>): ToolResult<T> =>
+  result.ok ? { ok: true, data: toPlainJson(result.data) as T } : result;
+
 // Toda tool corre dentro de esto: un error inesperado vuelve como resultado
 // y el modelo puede explicarlo o reintentar, en vez de cortar el turno.
 export const runTool = async <T>(
@@ -53,7 +58,7 @@ export const runTool = async <T>(
   execute: () => Promise<ToolResult<T>>
 ): Promise<ToolResult<T>> => {
   try {
-    return await execute();
+    return toPlainResult(await execute());
   } catch (error) {
     console.error(`Agent tool ${toolName} failed:`, error);
     return toolError("internal_error", "No se pudo completar la consulta. Probá de nuevo.");

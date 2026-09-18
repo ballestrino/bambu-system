@@ -61,9 +61,7 @@ export const prepareAgentTurn = async (actor: AgentActor, request: AgentChatRequ
     message: userMessage,
     skill: request.skill,
   });
-  if (!saved) {
-    return { ok: false, error: "El mensaje no pertenece a esta conversación", status: 409 } as const;
-  }
+  if ("error" in saved) return { ok: false, error: saved.error, status: 409 } as const;
   await discardMessagesAfter(request.id, saved.createdAt);
   await expireDiscardedProposals(request.id, saved.createdAt);
 
@@ -81,7 +79,10 @@ export const prepareAgentTurn = async (actor: AgentActor, request: AgentChatRequ
 
   return {
     ok: true as const,
-    conversationCreated: conversation.created,
+    // Sin respuesta del asistente todavía, el título es el provisorio: también
+    // al reintentar un primer turno que falló.
+    needsTitle: !messages.some((message) => message.role === "assistant"),
+    conversationTitle: conversation.title,
     userText,
     messages,
     grounding,

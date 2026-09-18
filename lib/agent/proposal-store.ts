@@ -111,21 +111,21 @@ export const expireDiscardedProposals = async (conversationId: string, after: Da
     where: { conversationId, status: "PENDING", createdAt: { gt: after } },
     select: { id: true, kind: true, actorId: true },
   });
-  if (!discarded.length) return;
 
-  await db.agentProposal.updateMany({
-    where: { id: { in: discarded.map(({ id }) => id) }, status: "PENDING" },
-    data: { status: "EXPIRED", resolvedAt: new Date(), error: DISCARDED_PROPOSAL_ERROR },
-  });
-  await Promise.all(
-    discarded.map((proposal) =>
-      auditProposal({
-        actorId: proposal.actorId,
-        action: "proposal.expire",
-        entityType: "AgentProposal",
-        entityId: proposal.id,
-        metadata: { kind: proposal.kind, reason: "discarded" },
-      })
-    )
-  );
+  // Una por una y condicional: si alguna se confirmó en el medio, no vence ni
+  // se audita como vencida.
+  for (const proposal of discarded) {
+    const { count } = await db.agentProposal.updateMany({
+      where: { id: proposal.id, status: "PENDING" },
+      data: { status: "EXPIRED", resolvedAt: new Date(), error: DISCARDED_PROPOSAL_ERROR },
+    });
+    if (!count) continue;
+    await auditProposal({
+      actorId: proposal.actorId,
+      action: "proposal.expire",
+      entityType: "AgentProposal",
+      entityId: proposal.id,
+      metadata: { kind: proposal.kind, reason: "discarded" },
+    });
+  }
 };

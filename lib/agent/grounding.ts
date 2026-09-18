@@ -62,6 +62,15 @@ export const collectGroundingFromMessages = (messages: { parts: PersistedPart[] 
   return grounding;
 };
 
+// El respaldo de un borrador: las fuentes oficiales con algún importe citado.
+// Las demás de la conversación no sostienen ese texto.
+export const selectQuotedSources = (sources: OfficialSource[], quotedAmounts: number[]) => {
+  const quoted = new Set(quotedAmounts.map(roundMoney));
+  return sources.filter((source) =>
+    Object.values(source.prices).some((price) => quoted.has(roundMoney(price)))
+  );
+};
+
 const normalizeNote = (text: string) =>
   text.replace(/[*_~`]/g, "").replace(/\s+/g, " ").trim().toLocaleLowerCase("es-UY");
 

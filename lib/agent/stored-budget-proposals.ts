@@ -5,13 +5,11 @@ import {
 } from "@/lib/agent/budget-calculation";
 import { refuse, type BuiltProposal } from "@/lib/agent/proposal-builders";
 import {
-  getStoredAmounts,
   getStoredPrices,
   hasPriceDrift,
   onlyText,
   type ProposalBudget,
 } from "@/lib/agent/proposal-summary";
-import { slugifyBudgetName } from "@/lib/budget-slug";
 
 // Propuestas sobre un presupuesto guardado tal cual está: duplicarlo y
 // publicarlo como oficial. Usan sus precios guardados, no un cálculo nuevo.
@@ -37,7 +35,9 @@ export const buildDuplicateBudgetProposal = (input: {
     summary: {
       title: `Duplicar “${budget.name}”`,
       name,
-      slug: slugifyBudgetName(name) || null,
+      // duplicateBudget elige la dirección al guardar (agrega -2, -3…): la
+      // real llega en el resultado.
+      slug: null,
       changes: [],
       inputs: describeBudgetInputs(budgetOptionToFormValues(budget)),
       before: null,
@@ -47,7 +47,6 @@ export const buildDuplicateBudgetProposal = (input: {
         "La copia lleva las mismas opciones, precios guardados y categorías, y no queda vinculada a ningún presupuesto oficial.",
       ],
     },
-    grounding: getStoredAmounts(budget),
   };
 };
 
@@ -84,6 +83,5 @@ export const buildPublishOfficialBudgetProposal = (input: {
           : null,
       ]),
     },
-    grounding: getStoredAmounts(budget),
   };
 };

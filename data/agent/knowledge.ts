@@ -3,6 +3,7 @@ import "server-only";
 import type { MailMemoryScope } from "@prisma/client";
 
 import { db } from "@/lib/db";
+import { requireAdminSession } from "@/lib/require-admin-session";
 
 const SCOPE_LABELS: Record<MailMemoryScope, string> = {
   CONTACT: "Contacto",
@@ -15,6 +16,7 @@ const SCOPE_LABELS: Record<MailMemoryScope, string> = {
 // políticas y estilo. Nunca datos de un contacto. El agente la lee y no la
 // modifica.
 export const getApprovedAgentKnowledge = async () => {
+  await requireAdminSession();
   const memories = await db.mailMemory.findMany({
     where: {
       status: "APPROVED",

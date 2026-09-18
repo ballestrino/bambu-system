@@ -1,10 +1,11 @@
 import {
   CHANGEABLE_FIELDS,
+  getCalculationAmounts,
   getStoredOptionAmounts,
   type BudgetCalculation,
   type BudgetOptionRow,
 } from "@/lib/agent/budget-calculation";
-import type { ProposalChange, StoredOptionPrice } from "@/lib/agent/proposals";
+import type { ProposalChange, ProposalSummary, StoredOptionPrice } from "@/lib/agent/proposals";
 import type { BudgetFormValues } from "@/schemas/BudgetSchema";
 
 // Piezas del resumen que muestra la tarjeta de una propuesta: qué cambia,
@@ -64,8 +65,13 @@ export const getStoredPrices = (budget: ProposalBudget): StoredOptionPrice[] =>
       return { hasProducts: option.has_products, net, iva, final };
     });
 
-export const getStoredAmounts = (budget: ProposalBudget) =>
-  getStoredOptionAmounts(budget.budgetOptions);
+// Los importes que una propuesta deja citar: exactamente los de su tarjeta
+// (precios guardados, antes y después).
+export const getSummaryAmounts = (summary: ProposalSummary) => [
+  ...summary.stored.flatMap((option) => [option.net, option.iva, option.final]),
+  ...(summary.before ? getCalculationAmounts(summary.before) : []),
+  ...(summary.after ? getCalculationAmounts(summary.after) : []),
+];
 
 // Un precio guardado que no sale de sus propios insumos (constantes viejas).
 export const hasPriceDrift = (budget: ProposalBudget, calculation: BudgetCalculation) =>

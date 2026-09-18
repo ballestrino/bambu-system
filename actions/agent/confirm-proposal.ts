@@ -12,12 +12,14 @@ import {
   getBudgetUrl,
   getOfficialBudgetUrl,
   getProposalBudgetId,
+  PROPOSAL_STALE_MESSAGE,
   proposalSelect,
   serializeProposal,
   type AgentProposalKind,
   type ProposalResult,
   type ProposalSummary,
 } from "@/lib/agent/proposals";
+import { BUDGET_CHANGED_MESSAGE } from "@/lib/budget-errors";
 import { db } from "@/lib/db";
 import {
   AdminAuthorizationError,
@@ -33,20 +35,26 @@ type Outcome = { ok: true; result: ProposalResult } | { ok: false; error: string
 
 const budgetResult = (
   budget: { id: string; slug: string; name: string },
-  officialVersion: number | null = null
+  official: { id: string; currentVersion: number } | null = null
 ): ProposalResult => ({
   label: budget.name,
   url: getBudgetUrl(budget.slug),
   budgetId: budget.id,
   slug: budget.slug,
-  officialBudgetId: null,
-  officialVersion,
+  officialBudgetId: official?.id ?? null,
+  officialVersion: official?.currentVersion ?? null,
 });
 
-// createBudget y duplicateBudget fallan con un "error" sin detalle.
+// createBudget y duplicateBudget fallan con un "error" sin detalle. El
+// compare-and-set de updateBudget se informa como propuesta vieja.
 const failure = (error: string | undefined, fallback: string): Outcome => ({
   ok: false,
-  error: !error || error === "error" ? fallback : error,
+  error:
+    error === BUDGET_CHANGED_MESSAGE
+      ? PROPOSAL_STALE_MESSAGE
+      : !error || error === "error"
+        ? fallback
+        : error,
 });
 
 // Las cuatro escrituras son las acciones existentes, con sus propios chequeos
@@ -60,10 +68,12 @@ const execute = async (proposal: ParsedProposal, summary: ProposalSummary): Prom
         : failure(result.error, "No se pudo crear el presupuesto.");
     }
     case "UPDATE_BUDGET": {
-      const { budgetId, newSlug, values } = proposal.payload;
-      const result = await updateBudget(budgetId, newSlug, values);
+      // expectedUpdatedAt cierra la carrera entre la re-validación y la
+      // escritura: otra propuesta o un guardado a mano en el medio la frenan.
+      const { budgetId, newSlug, values, baseUpdatedAt } = proposal.payload;
+      const result = await updateBudget(budgetId, newSlug, values, { expectedUpdatedAt: baseUpdatedAt });
       return result.budget
-        ? { ok: true, result: budgetResult(result.budget, result.budget.officialBudget?.currentVersion ?? null) }
+        ? { ok: true, result: budgetResult(result.budget, result.budget.officialBudget) }
         : failure(result.error, "No se pudo guardar el presupuesto.");
     }
     case "DUPLICATE_BUDGET": {
@@ -151,13 +161,8 @@ export const confirmAgentProposal = async (proposalId: unknown) => {
     }
 
     const outcome = await runClaimed(stored, actorId);
-    const saved = await db.agentProposal.update({
-      where: { id },
-      data: outcome.ok
-        ? { status: "CONFIRMED", resolvedAt: new Date(), result: outcome.result }
-        : { status: "FAILED", resolvedAt: new Date(), error: outcome.error },
-      select: proposalSelect,
-    });
+    // La auditoría va primero: la escritura ya pasó (o falló) y queda
+    // registrada aunque el cierre de abajo no llegue.
     await auditProposal({
       actorId,
       action: outcome.ok ? "proposal.confirm" : "proposal.fail",
@@ -167,6 +172,19 @@ export const confirmAgentProposal = async (proposalId: unknown) => {
         ? { kind: stored.kind, ...outcome.result }
         : { kind: stored.kind, error: outcome.error },
     });
+    const resolvedAt = new Date();
+    await db.agentProposal.updateMany({
+      where: { id, status: "EXECUTING" },
+      data: outcome.ok
+        ? { status: "CONFIRMED", resolvedAt, result: outcome.result }
+        : { status: "FAILED", resolvedAt, error: outcome.error },
+    });
+    const saved = await db.agentProposal.findUnique({ where: { id }, select: proposalSelect });
+    // Si borraron la conversación mientras se ejecutaba, la propuesta ya no
+    // existe: se responde con lo que pasó con la escritura.
+    if (!saved) {
+      return outcome.ok ? { success: "Propuesta confirmada", result: outcome.result } : { error: outcome.error };
+    }
     return describeConfirmOutcome(serializeProposal(saved));
   } catch (error) {
     console.error("Error confirming agent proposal:", error);

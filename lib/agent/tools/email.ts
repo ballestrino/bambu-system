@@ -4,7 +4,7 @@ import { generateText, Output, tool } from "ai";
 import { z } from "zod";
 
 import { buildEmailDraftInstructions, buildEmailDraftPrompt } from "@/lib/agent/email-prompt";
-import { validateEmailDraft } from "@/lib/agent/grounding";
+import { selectQuotedSources, validateEmailDraft } from "@/lib/agent/grounding";
 import type { AgentToolContext } from "@/lib/agent/tools/context";
 import { runTool, toolError, toolOk } from "@/lib/agent/tool-result";
 import { buildAgentCallSettings } from "@/lib/ai/call-settings";
@@ -65,7 +65,7 @@ export const createEmailTools = (ctx: AgentToolContext) => ({
           to: input.to ?? null,
           subject: input.channel === "email" ? draft.subject.trim() || input.subject || null : null,
           body: draft.body.trim(),
-          sources: sources.map((source) => ({
+          sources: selectQuotedSources(sources, check.quotedAmounts).map((source) => ({
             officialBudgetId: source.officialBudgetId,
             name: source.name,
             version: source.version,

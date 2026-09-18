@@ -10,6 +10,8 @@ import {
   type BuiltProposal,
 } from "@/lib/agent/proposal-builders";
 import { saveAgentProposal } from "@/lib/agent/proposal-store";
+import { getSummaryAmounts } from "@/lib/agent/proposal-summary";
+import type { ProposalSummary } from "@/lib/agent/proposals";
 import {
   buildDuplicateBudgetProposal,
   buildPublishOfficialBudgetProposal,
@@ -29,7 +31,9 @@ import {
 type Proposal = Extract<BuiltProposal, { ok: true }>;
 
 // Guarda la propuesta PENDING y devuelve la tarjeta. Estas tools nunca
-// escriben presupuestos: eso pasa solo al confirmar, en actions/agent.
+// escriben presupuestos: eso pasa solo al confirmar, en actions/agent. La
+// tarjeta sale de la fila guardada: si la misma llamada llega dos veces, lo
+// que se muestra es lo que se ejecutaría.
 const saveProposal = async (ctx: AgentToolContext, toolCallId: string, built: Proposal) => {
   const proposal = await saveAgentProposal({
     conversationId: ctx.conversationId,
@@ -39,15 +43,16 @@ const saveProposal = async (ctx: AgentToolContext, toolCallId: string, built: Pr
     payload: built.payload,
     summary: built.summary,
   });
-  const grounding = { amounts: built.grounding };
+  const summary = proposal.summary as ProposalSummary;
+  const grounding = { amounts: getSummaryAmounts(summary) };
   addToolGrounding(ctx.grounding, grounding);
   return toolOk({
     card: "proposal" as const,
     proposalId: proposal.id,
-    kind: built.kind,
+    kind: proposal.kind,
     status: proposal.status,
     expiresAt: proposal.expiresAt.toISOString(),
-    summary: built.summary,
+    summary,
     grounding,
   });
 };

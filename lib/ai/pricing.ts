@@ -14,6 +14,8 @@ export type ModelPrice = {
 // de caché se cobra 1,25 veces la entrada. Por encima de 272K tokens de
 // entrada OpenAI cobra el doble de entrada y 1,5 veces la salida; no se modela
 // porque el agente recorta el historial muy por debajo de ese tope.
+// El precio de Sol es promocional "at least through November 21, 2026": si
+// cambia, actualizar la tabla o fijarlo con AI_PRICE_GPT_5_6_SOL.
 export const MODEL_PRICES: Readonly<Record<string, ModelPrice>> = {
   "gpt-5.6-luna": {
     inputPerMillion: 0.2,
@@ -41,19 +43,26 @@ export type UsageCost = { costUsd: number | null; priced: boolean };
 export const getPriceEnvKey = (modelId: string) =>
   `AI_PRICE_${modelId.toUpperCase().replace(/[^A-Z0-9]+/g, "_")}`;
 
-// Formato: "entrada,cacheada,salida[,escritura de caché]", con punto decimal.
-// Sin el cuarto valor, la escritura de caché se cobra como entrada.
+// Sin el cuarto valor, la escritura de caché se cobra como en gpt-5.6.
+const DEFAULT_CACHE_WRITE_MULTIPLIER = 1.25;
+
+// Un número con punto decimal, sin signo, exponente ni hexadecimal. Number()
+// solo no alcanza: Number("") es 0 y un campo vacío inventaría un precio.
+const PRICE_PART = /^\d+(\.\d+)?$/;
+
+// Formato: "entrada,cacheada,salida[,escritura de caché]". Un campo vacío o
+// mal escrito lanza un error que nombra la variable.
 const parsePriceOverride = (key: string, raw: string): ModelPrice => {
-  const values = raw.split(",").map((part) => Number(part.trim()));
+  const parts = raw.split(",").map((part) => part.trim());
   const valid =
-    (values.length === 3 || values.length === 4) &&
-    values.every((value) => Number.isFinite(value) && value >= 0);
+    (parts.length === 3 || parts.length === 4) && parts.every((part) => PRICE_PART.test(part));
   if (!valid) {
     throw new Error(
       `${key} inválido: "${raw}". Formato: entrada,cacheada,salida[,escritura] en USD por millón, con punto decimal.`
     );
   }
-  const [input, cachedInput, output, cacheWrite = input] = values;
+  const [input, cachedInput, output, cacheWrite = input * DEFAULT_CACHE_WRITE_MULTIPLIER] =
+    parts.map(Number);
   return {
     inputPerMillion: input,
     cachedInputPerMillion: cachedInput,

@@ -6,6 +6,7 @@ import {
   getCalculationAmounts,
   getStoredOptionAmounts,
   runBudgetCalculation,
+  withEffectiveIva,
 } from "@/lib/agent/budget-calculation";
 import { formatBudgetForAI } from "@/lib/format-budget";
 import type { AgentBudgetContextInput } from "@/schemas/agent";
@@ -59,12 +60,18 @@ export const resolveBudgetContext = async (
     };
   }
 
-  const values: BudgetFormValues = { ...defaultBudgetValues, ...input.values };
+  const raw: BudgetFormValues = { ...defaultBudgetValues, ...input.values };
+  // Un IVA 0 en el formulario se calcula igual con 22: el agente usa ese.
+  const values = withEffectiveIva(raw);
+  const ivaNote =
+    values.iva === raw.iva
+      ? ""
+      : `\n\nEl formulario tiene IVA ${raw.iva}: sus totales se calculan con ${values.iva} %, y el agente usa esos.`;
   return {
     kind: "form",
     budgetId: null,
     formValues: values,
-    text: formatBudgetForAI({ ...values, name: values.name || "Presupuesto sin guardar" }),
+    text: `${formatBudgetForAI({ ...values, name: values.name || "Presupuesto sin guardar" })}${ivaNote}`,
     amounts: [
       ...getStoredOptionAmounts([{ price: values.price, iva: values.iva }]),
       ...getCalculationAmounts(runBudgetCalculation(values)),

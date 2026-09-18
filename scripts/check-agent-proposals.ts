@@ -7,6 +7,7 @@ import {
   runBudgetCalculation,
 } from "../lib/agent/budget-calculation";
 import { buildCreateBudgetProposal, buildUpdateBudgetProposal } from "../lib/agent/proposal-builders";
+import { getSummaryAmounts } from "../lib/agent/proposal-summary";
 import { AGENT_PROPOSAL_KINDS } from "../lib/agent/proposals";
 import {
   buildDuplicateBudgetProposal,
@@ -33,7 +34,11 @@ assert.deepEqual(
   [update.payload.newSlug, update.payload.baseUpdatedAt, update.payload.officialBudgetId],
   ["ln-2026", budget.updatedAt.toISOString(), null]
 );
-assert.ok(update.grounding.includes(update.summary.after?.withoutProducts.final ?? -1));
+// What the card shows is what becomes citable: stored prices, before and after.
+const citable = getSummaryAmounts(update.summary);
+// (The hourly price only exists in the calculations, never in stored prices.)
+[update.summary.after?.withoutProducts.hourlyNet, update.summary.before?.withoutProducts.hourlyNet, update.summary.stored[0].final]
+  .forEach((amount) => assert.ok(citable.includes(amount ?? -1), String(amount)));
 // Option recreation is always announced; linked jobs are counted.
 assert.match(update.summary.warnings[0], /recrea las opciones con ids nuevos: 3 trabajos vinculados/);
 assert.ok(!update.summary.warnings.some((warning) => /versión oficial/.test(warning)));
@@ -91,7 +96,8 @@ const notOwner = buildDuplicateBudgetProposal({ budget, actorId: "user_2" });
 assert.equal(notOwner.ok ? null : notOwner.code, "not_owner");
 const duplicate = buildDuplicateBudgetProposal({ budget, actorId: "user_1" });
 assert.ok(duplicate.ok);
-assert.equal(duplicate.summary.name, "Limpieza Norte (copia)");
+// duplicateBudget picks the address when saving (-2, -3...): the card does not guess it.
+assert.deepEqual([duplicate.summary.name, duplicate.summary.slug], ["Limpieza Norte (copia)", null]);
 assert.deepEqual(duplicate.summary.stored.map((option) => option.hasProducts), [false, true]);
 const linked = buildPublishOfficialBudgetProposal({ budget: official });
 assert.equal(linked.ok ? null : linked.code, "already_official");
@@ -113,5 +119,10 @@ assert.equal(
   parseProposalPayload("CREATE_BUDGET", { values: { ...create.payload.values, employees: 0 } }),
   null
 );
+// IVA 0: the calculation reads it as 22 while the actions would store the raw 0,
+// so what gets saved would not be the card. Refused when proposing and again when confirming.
+assert.equal(parseProposalPayload("CREATE_BUDGET", { values: { ...create.payload.values, iva: 0 } }), null);
+const ivaZero = buildCreateBudgetProposal({ base: { source: "form", values: { ...formValues, iva: 0 } }, name: null, description: null, changes: {} });
+assert.equal(ivaZero.ok ? null : ivaZero.code, "invalid_values");
 
 console.log("Agent proposal checks passed");

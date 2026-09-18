@@ -21,13 +21,19 @@ type BudgetRow = {
   budgetCategory?: { id: string }[];
 };
 
+// calculateBudgetTotals toma un IVA 0 como 22 (`Number(iva) || 22`). El agente
+// parte siempre del IVA que de verdad usa el cálculo, así sus insumos, sus
+// totales y lo que propone guardar dicen lo mismo.
+export const withEffectiveIva = (values: BudgetFormValues): BudgetFormValues =>
+  Number(values.iva) > 0 ? values : { ...values, iva: defaultBudgetValues.iva };
+
 // Igual que el formulario de edición: la opción con productos si existe, y un
-// aporte guardado en 0 es un aporte deshabilitado.
+// aporte guardado en 0 es un aporte deshabilitado. El IVA, el efectivo.
 export const budgetOptionToFormValues = (budget: BudgetRow): BudgetFormValues => {
   const option =
     budget.budgetOptions.find((item) => item.has_products) ?? budget.budgetOptions[0];
   const base = option ?? defaultBudgetValues;
-  return {
+  return withEffectiveIva({
     ...defaultBudgetValues,
     visits: base.visits,
     visit_type: base.visit_type,
@@ -51,7 +57,7 @@ export const budgetOptionToFormValues = (budget: BudgetRow): BudgetFormValues =>
     incidence_enabled: Number(base.incidence_contribution) > 0,
     company_enabled: Number(base.company_contribution) > 0,
     personal_enabled: Number(base.personal_contribution) > 0,
-  };
+  });
 };
 
 const priceOption = (net: number, iva: number, final: number, hourlyNet: number) => ({

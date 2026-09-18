@@ -30,12 +30,14 @@ const sanitizeTitle = (text: string) =>
     .slice(0, TITLE_MAX_LENGTH);
 
 // Corre con after() después de la respuesta: no suma tiempo al primer turno.
-// Su consumo queda registrado como TITLE.
+// Su consumo queda registrado como TITLE. Solo reemplaza el título que tenía
+// la conversación al empezar el turno: un renombrado del usuario gana.
 export const generateConversationTitle = async (input: {
   conversationId: string;
   actorId: string;
   mode: AgentMode;
   text: string;
+  replaceTitle: string;
 }) => {
   const spec = resolveTitleModelSpec();
   try {
@@ -62,7 +64,7 @@ export const generateConversationTitle = async (input: {
     const title = sanitizeTitle(result.text);
     if (title) {
       await db.agentConversation.updateMany({
-        where: { id: input.conversationId },
+        where: { id: input.conversationId, title: input.replaceTitle },
         data: { title },
       });
     }

@@ -416,6 +416,37 @@ Rama `feature/40-agent-proposals`.
   bloque describe sus cambios. La misma pregunta pasó a responderse bien y
   sin tools.
 
+### Correcciones de las revisiones de 38, 39 y 40 (2026-09-18)
+
+Las tres revisiones (`progress/review_*.md`) pidieron cambios.
+
+- 38: `AI_PRICE_<MODELO>` valida cada campo (un campo vacío daba precio 0 y
+  se aceptaba hexadecimal). Con tres valores, la escritura de caché se cobra
+  1,25 veces la entrada, como en gpt-5.6. Quedaron anotados el precio
+  promocional de Sol y el vencimiento del OIDC local, y la rama OIDC tiene
+  prueba (`hasGatewayCredentials`).
+- 39 y 40, mismo bloqueante: `calculateBudgetTotals` toma un IVA 0 como 22,
+  pero las acciones guardan el IVA crudo. Los `changes` rechazan IVA ≤ 0, toda
+  base usa el IVA efectivo (`withEffectiveIva`) y el payload de una propuesta
+  exige IVA mayor que 0 al proponer y al confirmar. El formulario manual
+  tiene el mismo problema y queda fuera de estas features.
+- 39: `draftEmail` devuelve solo las fuentes citadas, el top 10 del mes
+  ordena por uso con precio, reenviar un id exige el mismo texto del usuario,
+  las lecturas del Sheet llaman al guard primero, `runTool` pasa todo por
+  `toPlainJson` y el título del modelo no pisa un renombrado (y se genera
+  también al reintentar un primer turno que falló).
+- 40: `updateBudget` acepta `expectedUpdatedAt` y hace compare-and-set en su
+  transacción: cierra la carrera entre la re-validación y la escritura. La
+  tarjeta y los importes citables salen de la fila guardada. Se audita antes
+  de cerrar la propuesta y el cierre tolera una conversación borrada. El
+  vencimiento al regenerar audita solo lo que cambió. El resultado de guardar
+  un vinculado trae `officialBudgetId`, y la tarjeta de duplicar no predice
+  la dirección.
+- Quedan como decisiones o seguimiento: `engines` de Node y el `maxDuration`
+  (con el consumo guardado por paso), el override del modelo del título, los
+  imports de `lib/` a `components/` de tres tools y el IVA 0 del formulario
+  manual.
+
 ## Feature 41: el agente en el Sheet de Presupuestos
 
 Rama `feature/41-agent-budget-sheet`. Todo bajo `components/agent/**`, ≤ 200

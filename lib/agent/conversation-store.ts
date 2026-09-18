@@ -35,7 +35,7 @@ export const claimAgentConversation = async (input: {
 }) => {
   const existing = await db.agentConversation.findUnique({
     where: { id: input.id },
-    select: { userId: true },
+    select: { userId: true, title: true },
   });
   if (existing && existing.userId !== input.actorId) return null;
 
@@ -62,7 +62,7 @@ export const claimAgentConversation = async (input: {
     where: { id: input.id, userId: input.actorId },
     data: { mode: toDbAgentMode(input.mode), lastMessageAt: new Date() },
   });
-  return claimed.count ? { created } : null;
+  return claimed.count ? { created, title: existing?.title ?? input.title } : null;
 };
 
 // De qué conversación es un id de mensaje, si ya existe. Se mira antes de
@@ -71,16 +71,28 @@ export const getMessageConversationId = async (messageId: string) =>
   (await db.agentMessage.findUnique({ where: { id: messageId }, select: { conversationId: true } }))
     ?.conversationId ?? null;
 
+const FOREIGN_MESSAGE = "El mensaje no pertenece a esta conversación";
+
 // Idempotente: reenviar el mismo mensaje (reintento o regenerar) no lo
-// duplica. null = el id ya es de otra conversación.
+// duplica. Un id ya usado con otro contenido (un mensaje del asistente o un
+// texto editado) no se reinterpreta: se rechaza.
 export const saveUserMessage = async (input: {
   conversationId: string;
   message: AgentUIMessage;
   skill: AgentSkillId;
-}) => {
-  const select = { conversationId: true, createdAt: true } as const;
-  const existing = await db.agentMessage.findUnique({ where: { id: input.message.id }, select });
-  if (existing) return existing.conversationId === input.conversationId ? existing : null;
+}): Promise<{ createdAt: Date } | { error: string }> => {
+  const text = getMessageText(input.message);
+  const existing = await db.agentMessage.findUnique({
+    where: { id: input.message.id },
+    select: { conversationId: true, createdAt: true, role: true, text: true },
+  });
+  if (existing) {
+    if (existing.conversationId !== input.conversationId) return { error: FOREIGN_MESSAGE };
+    if (existing.role !== "USER" || existing.text !== text) {
+      return { error: "Ese mensaje ya existe con otro contenido: mandalo como uno nuevo." };
+    }
+    return { createdAt: existing.createdAt };
+  }
 
   try {
     return await db.agentMessage.create({
@@ -89,15 +101,15 @@ export const saveUserMessage = async (input: {
         conversationId: input.conversationId,
         role: "USER",
         parts: toJson(input.message.parts),
-        text: getMessageText(input.message),
+        text,
         metadata: input.message.metadata ? toJson(input.message.metadata) : Prisma.JsonNull,
         skill: input.skill,
       },
-      select,
+      select: { createdAt: true },
     });
   } catch (error) {
     if (!isUniqueViolation(error)) throw error;
-    return null;
+    return { error: FOREIGN_MESSAGE };
   }
 };
 

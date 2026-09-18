@@ -29,6 +29,7 @@ import { agentChatRequestSchema } from "../schemas/agent";
 import { queryOperationsInputSchema } from "../schemas/agent-tools";
 import { defaultBudgetValues, type BudgetFormValues } from "../schemas/BudgetSchema";
 import "./agent-grounding-checks";
+import "./agent-input-checks";
 
 const round = (value: number) => Math.round(value * 100) / 100;
 

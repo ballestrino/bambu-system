@@ -24,12 +24,16 @@ actualiza con cada feature.
   values }`.
 - Una conversación es de un usuario: toda lectura y escritura filtra por
   `userId`. Reenviar un mensaje (reintento o regenerar) no lo duplica y borra
-  lo que vino después.
+  lo que vino después. Un id que ya existe con otro rol u otro texto da 409:
+  no se reinterpreta.
 - `AgentMessage.parts` guarda el `UIMessage` completo (texto, razonamiento y
   tools). `AgentUsageEvent` guarda tokens y costo por tipo (TURN, SKILL,
   TITLE) y modelo; sobrevive al borrado de la conversación (SET NULL) para que
   el gasto del mes no cambie.
-- El título sale del primer mensaje y después lo mejora Luna con `after()`.
+- El título sale del primer mensaje y después lo mejora Luna con `after()`,
+  mientras la conversación no tenga respuesta (también al reintentar un
+  primer turno que falló). Solo reemplaza el título que tenía al empezar el
+  turno: un renombrado gana.
 - Habilidades en `lib/agent/skills/**`: General (todas las tools),
   Presupuestos, Emails y Consejos. Todas las tools quedan registradas y la
   habilidad elige las activas (`activeTools`), así el historial puede traer
@@ -39,7 +43,8 @@ actualiza con cada feature.
   `searchBudgets`, `getBudget`, `calculateBudget`, `solveForTargetPrice`,
   `getFinancialSnapshot`, `getFinancialTrend`, `getJobProfitability`,
   `getPayrollSummary`, `queryOperations` y `draftEmail`. Devuelven
-  `{ ok, data } | { ok: false, error }` en JSON plano, con `card` para la UI.
+  `{ ok, data } | { ok: false, error }` con `card` para la UI; `runTool` pasa
+  cada salida por `toPlainJson`, así nunca llega un `Decimal` ni un `Date`.
 - Las entradas de las tools son campos obligatorios y nullable (`null` = sin
   dato o sin cambio): con campos opcionales el modelo inventaba valores. Un
   `null` se pasa como `undefined` antes de llamar a una lectura de `data/`,
@@ -50,11 +55,20 @@ actualiza con cada feature.
   (precio oficial exact, presupuesto o cálculo). Las tools que dan importes
   los declaran en `grounding` y se reconstruyen de las partes guardadas.
   `draftEmail` redacta con el modelo del modo y falla con `ungrounded_price`,
-  `price_mismatch` o `missing_literal_e`. No envía nada.
+  `price_mismatch` o `missing_literal_e`, y devuelve como fuentes solo los
+  oficiales con algún importe citado en el borrador. No envía nada.
+- IVA: `calculateBudgetTotals` toma un IVA 0 como 22 (`|| 22`). Por eso el
+  IVA de los `changes` es mayor que 0 ("sin IVA" son los importes sin IVA del
+  cálculo, por Literal E) y toda base, guardada o del formulario, parte del
+  IVA efectivo (`withEffectiveIva`): insumos, totales y propuestas coinciden.
 - El conocimiento aprobado del correo (organización, políticas y estilo, sin
   contactos) entra al prompt como solo lectura.
 - `maxDuration` es 60 s (Hobby sin Fluid compute). Con Fluid activo se puede
-  subir a 300 si los turnos de Bajo lo necesitan.
+  subir a 300 si los turnos de Bajo lo necesitan. El consumo se guarda en
+  `onEnd`: si Vercel corta la función por `maxDuration`, el de ese turno se
+  pierde (decisión pendiente junto con el valor de `maxDuration`).
+- El top 10 del informe del mes ordena por uso con precio; el uso sin precio
+  lo cuenta `unpricedEvents`.
 
 ## Propuestas (feature 40)
 
@@ -63,7 +77,7 @@ Proponer y confirmar: ninguna tool escribe presupuestos durante el turno.
 | Tool | Tipo | Al confirmar ejecuta |
 | --- | --- | --- |
 | `proposeCreateBudget` | `CREATE_BUDGET` | `createBudget(values)` |
-| `proposeUpdateBudget` | `UPDATE_BUDGET` | `updateBudget(budgetId, newSlug, values)` |
+| `proposeUpdateBudget` | `UPDATE_BUDGET` | `updateBudget(budgetId, newSlug, values, { expectedUpdatedAt })` |
 | `proposeDuplicateBudget` | `DUPLICATE_BUDGET` | `duplicateBudget(budgetId)` |
 | `proposePublishOfficialBudget` | `PUBLISH_OFFICIAL_BUDGET` | `publishOfficialBudget({ sourceBudgetId })` |
 
@@ -73,7 +87,9 @@ Proponer y confirmar: ninguna tool escribe presupuestos durante el turno.
 - La tool valida, arma el resumen (antes y después, cambios campo por campo,
   precios guardados, avisos) y guarda un `AgentProposal` PENDING con el
   payload. Devuelve `{ card: "proposal", proposalId, kind, status,
-  expiresAt, summary, grounding }`: sus importes se pueden citar.
+  expiresAt, summary, grounding }` con la fila guardada: los importes
+  citables son los de su tarjeta (`getSummaryAmounts`). El IVA es mayor que 0
+  al proponer y otra vez al confirmar.
 - Precondiciones al proponer: nombre con slug válido y libre (la misma regla
   que `createBudget`, en `lib/budget-slug.ts`), cambios reales, dueño para
   duplicar, no vinculado y con opciones para publicar. El slug solo cambia si
@@ -87,9 +103,13 @@ Proponer y confirmar: ninguna tool escribe presupuestos durante el turno.
   propuesta de quien confirma, claim atómico `PENDING` sin vencer →
   `EXECUTING`, re-valida el payload con zod y las precondiciones contra una
   lectura fresca (mismo `updatedAt` y mismo vínculo oficial que al proponer),
-  ejecuta la acción existente y deja `CONFIRMED` con `result { label, url,
-  budgetId, slug, officialBudgetId, officialVersion }` o `FAILED` con el
+  ejecuta la acción existente, audita y deja `CONFIRMED` con `result { label,
+  url, budgetId, slug, officialBudgetId, officialVersion }` o `FAILED` con el
   error. Repetirla devuelve el estado guardado: no escribe dos veces.
+- Guardar cambios repite el chequeo dentro de la transacción de
+  `updateBudget` (compare-and-set de `updatedAt`): si otra propuesta o un
+  guardado a mano escribe en el medio, falla como propuesta vieja. El vínculo
+  oficial se compara antes, fuera de esa transacción.
 - `rejectAgentProposal(id)`: `PENDING` sin vencer → `REJECTED`, sin otra
   escritura. `listAgentProposals(conversationId)`: el estado vivo para la
   tarjeta (la salida guardada de la tool queda en PENDING).
@@ -110,7 +130,11 @@ Proponer y confirmar: ninguna tool escribe presupuestos durante el turno.
   siempre, y en la prueba real el modelo le creyó a ella antes que al bloque.
 - Presupuestos y General tienen las cuatro tools; Emails y Consejos no.
 - Si el servidor se corta en plena ejecución, la propuesta queda `EXECUTING`:
-  no se puede saber si la escritura llegó, así que no se reintenta sola.
+  no se puede saber si la escritura llegó, así que no se reintenta sola. La
+  UI tiene que mostrar una EXECUTING vieja como "resultado desconocido".
+- La tarjeta de duplicar no predice la dirección (`duplicateBudget` agrega
+  -2, -3…): la real llega en `result`. El número de trabajos que pierden el
+  vínculo es el del momento de proponer.
 
 ## Modos
 
@@ -156,11 +180,11 @@ Reglas:
 | --- | --- | --- |
 | `OPENAI_API_KEY` | — | Requerida con `AI_PROVIDER=openai` |
 | `AI_PROVIDER` | `openai` | `openai` (directo, Responses API) o `gateway` (Vercel AI Gateway) |
-| `AI_GATEWAY_API_KEY` | — | Clave del gateway. Sin ella se usa el OIDC del proyecto de Vercel: existe en los deploys y en local después de `vercel env pull` |
+| `AI_GATEWAY_API_KEY` | — | Clave del gateway. Sin ella se usa el OIDC del proyecto de Vercel: existe en los deploys y en local después de `vercel env pull`. El token local vence a las 12 horas; vencido, la llamada falla hasta volver a correr `vercel env pull` |
 | `AI_DEFAULT_MODE` | `medio` | `bajo`, `medio` o `alto` |
 | `AI_MODEL_<MODO>` | tabla de modos | Id del modelo de `BAJO`, `MEDIO` o `ALTO` |
 | `AI_REASONING_<MODO>` | tabla de modos | `provider-default`, `none`, `minimal`, `low`, `medium`, `high` o `xhigh` |
-| `AI_PRICE_<MODELO>` | tabla de precios | `entrada,cacheada,salida[,escritura]` en USD por millón |
+| `AI_PRICE_<MODELO>` | tabla de precios | `entrada,cacheada,salida[,escritura]` en USD por millón, con punto decimal. Sin el cuarto valor, la escritura de caché se cobra 1,25 veces la entrada, como en gpt-5.6. Un campo vacío, una coma de más, hexadecimal o exponente lanzan un error |
 
 - Una variable vacía cuenta como no configurada. Un valor inválido lanza un
   error que nombra la variable; no se ignora en silencio.
@@ -195,6 +219,10 @@ millón de tokens:
 | `gpt-5.6-terra` | 2.00 | 0.20 | 2.50 | 12.00 |
 | `gpt-5.6-sol` | 4.00 | 0.40 | 5.00 | 20.00 |
 
+- El precio de Sol es promocional "at least through November 21, 2026",
+  según la página de precios. Cuando cambie, actualizar `MODEL_PRICES` o
+  fijarlo con `AI_PRICE_GPT_5_6_SOL`: hasta entonces el costo de Alto se
+  registra con el precio promocional y queda fijo.
 - Costo = (entrada − cacheada − escritura) × entrada + cacheada × cacheada +
   escritura × escritura + salida × salida. Los tokens de razonamiento ya están
   dentro de la salida y no se cobran dos veces.
@@ -224,15 +252,21 @@ millón de tokens:
 
 - `pnpm check:ai-gateway`: modos, overrides, prefijo del gateway, errores de
   entorno, identificador de seguridad igual al del correo, settings con
-  `store: false`, costos con y sin precio, uso normalizado, costo del gateway
-  y, por texto fuente, que los proveedores no se crean a nivel de módulo.
+  `store: false`, costos con y sin precio, overrides de precio mal escritos
+  (campos vacíos, coma de más, hexadecimal, exponente), la escritura de caché
+  por defecto (1,25 veces la entrada), credenciales del gateway con clave u
+  OIDC, uso normalizado, costo del gateway y, por texto fuente, que los
+  proveedores no se crean a nivel de módulo.
 - `pnpm check:agent-tools`: ida y vuelta de un presupuesto guardado, cálculos
   iguales a los del formulario, precio objetivo con recorte, datos del negocio
   iguales a sus constantes, prompt con regla de precios y Literal E,
   habilidades con tools reales, evidencia desde partes guardadas, los cuatro
-  casos de `draftEmail`, consumo por turno y, por texto fuente, que las tools
-  no escriben ni generan visitas y que la migración no toca `Chat` ni
-  `Message`.
+  casos de `draftEmail` y sus fuentes citadas, consumo por turno, IVA 0
+  rechazado en los cambios y base con IVA efectivo, salidas en JSON plano
+  por `runTool` y, por texto fuente, que las tools no escriben ni generan
+  visitas, que la migración no toca `Chat` ni `Message`, que reenviar un id
+  exige el mismo texto, que el título no pisa un renombrado y que el top 10
+  del mes ordena por uso con precio.
 - `pnpm check:agent-proposals`: los cuatro constructores (valores iguales a
   `calculateBudget`, categorías conservadas, antes y después, avisos, slug
   solo con el nombre, sin cambios, sin nombre, valores inválidos, dueño,
@@ -241,4 +275,6 @@ millón de tokens:
   el bloque del prompt con los cambios de cada propuesta, el estado vivo en
   el historial del modelo, las habilidades y, por texto fuente, que las tools
   no llaman a las acciones, que el store solo escribe `AgentProposal`, el
-  claim de `confirm-proposal.ts` y que la migración es aditiva.
+  claim de `confirm-proposal.ts`, el compare-and-set de `updateBudget`, la
+  auditoría antes del cierre, el vencimiento condicional por propuesta y que
+  la migración es aditiva. IVA 0 se rechaza al proponer y al confirmar.

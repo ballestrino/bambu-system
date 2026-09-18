@@ -52,13 +52,14 @@ export async function POST(request: Request) {
       abortSignal: request.signal,
     });
 
-    if (turn.conversationCreated) {
+    if (turn.needsTitle) {
       after(() =>
         generateConversationTitle({
           conversationId: body.id,
           actorId: actor.id,
           mode: body.mode,
           text: turn.userText,
+          replaceTitle: turn.conversationTitle,
         })
       );
     }
