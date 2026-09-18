@@ -67,6 +67,7 @@ model User {
   officialBudgetAuditEvents        OfficialBudgetAuditEvent[] @relation("OfficialBudgetAuditActor")
   agentConversations               AgentConversation[]
   agentAuditEvents                 AgentAuditEvent[]
+  agentProposals                   AgentProposal[]
 }
 
 model Account {
@@ -1126,6 +1127,22 @@ enum AgentUsageKind {
   TITLE
 }
 
+enum AgentProposalKind {
+  CREATE_BUDGET
+  UPDATE_BUDGET
+  DUPLICATE_BUDGET
+  PUBLISH_OFFICIAL_BUDGET
+}
+
+enum AgentProposalStatus {
+  PENDING
+  EXECUTING
+  CONFIRMED
+  REJECTED
+  EXPIRED
+  FAILED
+}
+
 // Conversación del agente de Bambú. El id lo genera el cliente para que el
 // chat tenga identidad desde el primer envío.
 model AgentConversation {
@@ -1140,6 +1157,7 @@ model AgentConversation {
   lastMessageAt DateTime?
   messages      AgentMessage[]
   usageEvents   AgentUsageEvent[]
+  proposals     AgentProposal[]
   createdAt     DateTime          @default(now())
   updatedAt     DateTime          @updatedAt
 
@@ -1200,5 +1218,31 @@ model AgentAuditEvent {
 
   @@index([createdAt])
   @@index([entityType, entityId])
+  @@index([actorId, createdAt])
+}
+
+// Escritura que el agente propone durante el turno y que solo se ejecuta
+// cuando quien conversa la confirma. El payload se re-valida al confirmar;
+// la auditoría duradera va en AgentAuditEvent.
+model AgentProposal {
+  id             String              @id @default(cuid())
+  kind           AgentProposalKind
+  status         AgentProposalStatus @default(PENDING)
+  payload        Json
+  summary        Json
+  toolCallId     String
+  conversationId String
+  conversation   AgentConversation   @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  actorId        String
+  actor          User                @relation(fields: [actorId], references: [id], onDelete: Cascade)
+  resolvedAt     DateTime?
+  result         Json?
+  error          String?
+  expiresAt      DateTime
+  createdAt      DateTime            @default(now())
+  updatedAt      DateTime            @updatedAt
+
+  @@unique([conversationId, toolCallId])
+  @@index([conversationId, createdAt])
   @@index([actorId, createdAt])
 }

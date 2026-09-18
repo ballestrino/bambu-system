@@ -9,6 +9,7 @@ import { createFinanceTools } from "@/lib/agent/tools/finance";
 import { createOfficialBudgetTools } from "@/lib/agent/tools/official-budgets";
 import { createOperationsTools } from "@/lib/agent/tools/operations";
 import { createPayrollTools } from "@/lib/agent/tools/payroll";
+import { createProposalTools } from "@/lib/agent/tools/proposals";
 
 export type { AgentToolContext };
 
@@ -24,6 +25,7 @@ export const createAgentTools = (ctx: AgentToolContext) => ({
   ...createPayrollTools(),
   ...createOperationsTools(),
   ...createEmailTools(ctx),
+  ...createProposalTools(ctx),
 });
 
 export type AgentTools = ReturnType<typeof createAgentTools>;

@@ -14,6 +14,12 @@ import { fallbackConversationTitle } from "@/lib/agent/conversation-title";
 import { addGroundedAmounts, collectGroundingFromMessages } from "@/lib/agent/grounding";
 import { getMessageText, type AgentUIMessage } from "@/lib/agent/messages";
 import { formatToday } from "@/lib/agent/month";
+import { withLiveProposals } from "@/lib/agent/proposal-context";
+import {
+  expireDiscardedProposals,
+  listConversationProposals,
+} from "@/lib/agent/proposal-store";
+import { serializeProposal } from "@/lib/agent/proposals";
 import { getAgentSkill, type AgentSkillId } from "@/lib/agent/skills";
 import { buildAgentInstructions } from "@/lib/agent/system-prompt";
 import { summarizeUsage, type UsageEntry } from "@/lib/agent/usage-collector";
@@ -59,11 +65,17 @@ export const prepareAgentTurn = async (actor: AgentActor, request: AgentChatRequ
     return { ok: false, error: "El mensaje no pertenece a esta conversación", status: 409 } as const;
   }
   await discardMessagesAfter(request.id, saved.createdAt);
+  await expireDiscardedProposals(request.id, saved.createdAt);
 
-  const [messages, knowledge] = await Promise.all([
+  const [history, knowledge, rows] = await Promise.all([
     loadConversationMessages(request.id),
     getApprovedAgentKnowledge(),
+    listConversationProposals(request.id),
   ]);
+  // El modelo ve el estado actual de cada propuesta, no el de cuando se hizo.
+  const now = new Date();
+  const proposals = rows.map((row) => serializeProposal(row, now));
+  const messages = withLiveProposals(history, proposals);
   const grounding = collectGroundingFromMessages(messages);
   addGroundedAmounts(grounding, budgetContext.amounts);
 
@@ -80,6 +92,7 @@ export const prepareAgentTurn = async (actor: AgentActor, request: AgentChatRequ
       skill: getAgentSkill(request.skill),
       budgetContextText: budgetContext.text,
       approvedKnowledge: knowledge,
+      proposals,
     }),
   };
 };

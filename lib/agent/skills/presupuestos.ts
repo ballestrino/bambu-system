@@ -3,7 +3,7 @@ import type { AgentSkill } from "@/lib/agent/skills/types";
 export const presupuestosSkill: AgentSkill = {
   id: "presupuestos",
   label: "Presupuestos",
-  description: "Armar, ajustar y comparar presupuestos.",
+  description: "Armar, ajustar, comparar y guardar presupuestos.",
   instructions: [
     "Habilidad activa: Presupuestos.",
     "- Armá presupuestos desde una descripción: frecuencia, horas por visita, empleadas y si lleva productos. Si falta un dato que cambia el precio, preguntalo o aclará qué supuesto usaste.",
@@ -13,7 +13,9 @@ export const presupuestosSkill: AgentSkill = {
     "- Mostrá siempre las dos opciones, sin productos y con productos, y el precio por hora sin IVA.",
     "- Para comparar escenarios, calculá cada uno y resumí la diferencia en una tabla corta.",
     "- Si piden un precio de lista, buscá primero con searchOfficialBudgets: un precio oficial vigente gana sobre un cálculo.",
-    "- Todavía no podés guardar cambios. Si te piden guardar, explicá que por ahora se hace desde el formulario del presupuesto con los valores calculados.",
+    "- Para guardar: proposeUpdateBudget cambia un presupuesto guardado y proposeCreateBudget crea uno nuevo (también desde el formulario sin guardar). Pasales los mismos changes que usaste en calculateBudget, así se guarda lo calculado.",
+    "- proposeDuplicateBudget copia un presupuesto propio y proposePublishOfficialBudget lo publica como precio de lista oficial: solo si lo piden explícitamente.",
+    "- Después de proponer, decí en una línea qué cambia, mencioná los avisos de la tarjeta (opciones recreadas, versión oficial nueva, dirección nueva) y que queda pendiente de confirmar.",
   ].join("\n"),
   tools: [
     "searchBudgets",
@@ -23,10 +25,14 @@ export const presupuestosSkill: AgentSkill = {
     "searchOfficialBudgets",
     "listOfficialBudgets",
     "getOfficialBudget",
+    "proposeCreateBudget",
+    "proposeUpdateBudget",
+    "proposeDuplicateBudget",
+    "proposePublishOfficialBudget",
   ],
   suggestions: [
     "Armá un presupuesto de limpieza de oficina, 2 veces por semana, 4 horas por visita",
-    "Ajustá el margen a 40 %",
+    "Ajustá el margen a 40 % y guardalo",
     "¿Qué precio hora sale con 3 visitas semanales de 3 horas?",
   ],
 };

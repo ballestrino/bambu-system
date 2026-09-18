@@ -5,6 +5,7 @@ import { db } from "@/lib/db";
 import { BudgetSchema, BudgetFormValues } from "@/schemas/BudgetSchema";
 import { calculateBudgetTotals } from "@/lib/budget-calculations";
 import { getBudgetBySlug } from "@/data/budget";
+import { slugifyBudgetName } from "@/lib/budget-slug";
 
 export const createBudget = async (values: BudgetFormValues) => {
     const session = await auth();
@@ -52,12 +53,7 @@ export const createBudget = async (values: BudgetFormValues) => {
 
     try {
         // Generate Slug
-        const slug = name
-            .toLowerCase()
-            .trim()
-            .replace(/[^\w\s-]/g, '')
-            .replace(/[\s_-]+/g, '-')
-            .replace(/^-+|-+$/g, '');
+        const slug = slugifyBudgetName(name);
 
         // Check uniqueness
         const existingBudget = await getBudgetBySlug(slug)

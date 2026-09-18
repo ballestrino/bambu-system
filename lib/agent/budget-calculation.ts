@@ -10,7 +10,7 @@ import type { AgentBudgetChanges } from "@/schemas/agent-tools";
 
 // Cálculos del agente sobre las funciones del formulario. Puro: nunca
 // persiste, así "¿y si…?" no toca ningún presupuesto.
-type BudgetOptionRow = Omit<BudgetFormValues,
+export type BudgetOptionRow = Omit<BudgetFormValues,
   "name" | "description" | "categoryIds" | "incidence_enabled" | "company_enabled" | "personal_enabled"
 > & { has_products: boolean };
 
@@ -135,7 +135,7 @@ export const describeBudgetInputs = (values: BudgetFormValues) => ({
   },
 });
 
-const CHANGEABLE_FIELDS = [
+export const CHANGEABLE_FIELDS = [
   "visits", "visit_type", "hours_per_visit", "employees", "nominal_hour", "revenue_percent",
   "products_price", "products_revenue_percent", "transportation_cost", "iva",
   "incidence_enabled", "company_enabled", "personal_enabled",

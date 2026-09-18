@@ -374,6 +374,48 @@ Rama `feature/40-agent-proposals`.
   schemas, expiración, y por texto fuente que `confirm-proposal.ts` contiene
   `requireAdminSession`, `updateMany`, `status: "PENDING"` y las cuatro llamadas.
 
+### Ajustes al implementar la 40 (2026-09-18)
+
+- `toolCallId` es único por conversación (`@@unique([conversationId,
+  toolCallId])`), no global: un proveedor del gateway podría repetir ids
+  entre respuestas, y con un único global el choque devolvería la propuesta
+  de otra conversación.
+- `actorId` es `Cascade`, no `Restrict`: la propuesta ya se borra con la
+  conversación (que cascadea desde el usuario), así que `Restrict` no
+  protegía ninguna auditoría y podía trabar el borrado de un usuario según el
+  orden de los triggers. La auditoría duradera es `AgentAuditEvent`.
+- Los payloads que actúan sobre un presupuesto guardado llevan
+  `baseUpdatedAt`, y el de guardar cambios también `officialBudgetId`. Al
+  confirmar se comparan con una lectura fresca: `updateBudget` reescribe el
+  presupuesto entero, y confirmar una propuesta vieja pisaría cambios hechos
+  después, o publicaría una versión oficial que la tarjeta no anunció.
+- `summary` guarda `changes` (campo, etiqueta, antes y después) en vez de
+  `changedFields`, más `inputs` y `stored` (precios guardados), para que la
+  tarjeta no tenga que recalcular.
+- El aviso de opciones recreadas cuenta los trabajos vinculados a una opción:
+  `Job.sourceBudgetOptionId` es `SET NULL`, así que pierden ese vínculo y
+  siguen con `budgetSnapshot`.
+- El slug se extrajo a `lib/budget-slug.ts` y lo usan `createBudget`,
+  `duplicateBudget` y las propuestas: el chequeo previo y la acción no
+  pueden divergir.
+- `resolveBudgetBase` lee con `getAgentBudget` (`data/agent/budgets.ts`), que
+  trae categorías, vínculo oficial y trabajos por opción: crear uno nuevo
+  desde el presupuesto en contexto conserva sus categorías, y guardar
+  cambios no las borra.
+- Al reintentar o regenerar, las propuestas pendientes de la respuesta
+  descartada vencen (`EXPIRED`, motivo `discarded`): se quedaron sin tarjeta.
+- `listAgentProposals` (`actions/agent/proposals.ts`) se agregó para que la
+  41 lea el estado vivo sin otra acción nueva.
+- Los `console.log` de `createBudget` siguen: son de la feature 3, que exige
+  sacarlos de crear, editar y borrar.
+- Hallazgo de la prueba real: con solo el bloque del prompt, el modelo dio
+  por pendientes propuestas ya confirmadas, rechazadas o vencidas, porque la
+  salida guardada de cada tool dice PENDING y las cuatro propuestas de
+  guardar cambios tenían el mismo título. Ahora el historial que ve el modelo
+  lleva el estado vivo en esa salida (`withLiveProposals`) y cada línea del
+  bloque describe sus cambios. La misma pregunta pasó a responderse bien y
+  sin tools.
+
 ## Feature 41: el agente en el Sheet de Presupuestos
 
 Rama `feature/41-agent-budget-sheet`. Todo bajo `components/agent/**`, ≤ 200

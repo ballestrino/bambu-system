@@ -127,6 +127,31 @@ export const queryOperationsInputSchema = z.object({
 
 export type QueryOperationsInput = z.infer<typeof queryOperationsInputSchema>;
 
+// Propuestas: la misma base y los mismos changes que calculateBudget, así
+// "calculalo y guardalo" guarda exactamente lo calculado.
+const targetSlugSchema = z
+  .string()
+  .trim()
+  .min(1)
+  .max(200)
+  .nullable()
+  .describe("Slug del presupuesto guardado; null es el presupuesto en contexto");
+
+export const proposeCreateBudgetInputSchema = z.object({
+  ...budgetBaseShape,
+  name: z.string().trim().min(1).max(120).nullable().describe("Nombre del presupuesto nuevo; null usa el del formulario abierto"),
+  description: z.string().trim().max(2000).nullable().describe("Descripción; null usa la de la base"),
+});
+
+export const proposeUpdateBudgetInputSchema = z.object({
+  budgetSlug: targetSlugSchema,
+  name: z.string().trim().min(1).max(120).nullable().describe("Nombre nuevo, solo si piden renombrar: también cambia la dirección (slug); null lo deja igual"),
+  description: z.string().trim().max(2000).nullable().describe("Descripción nueva; null la deja igual"),
+  changes: budgetChangesSchema.describe("Cada campo en null salvo lo que el usuario pidió cambiar"),
+});
+
+export const proposeBudgetTargetInputSchema = z.object({ budgetSlug: targetSlugSchema });
+
 export const draftEmailInputSchema = z.object({
   brief: z
     .string()

@@ -1,15 +1,8 @@
 "use server";
 
 import { auth } from "@/auth";
+import { slugifyBudgetName } from "@/lib/budget-slug";
 import { db } from "@/lib/db";
-
-const slugify = (value: string) =>
-    value
-        .toLowerCase()
-        .trim()
-        .replace(/[^\w\s-]/g, "")
-        .replace(/[\s_-]+/g, "-")
-        .replace(/^-+|-+$/g, "");
 
 const findUniqueSlug = async (base: string) => {
     let candidate = base;
@@ -48,7 +41,7 @@ export const duplicateBudget = async (budgetId: string) => {
         }
 
         const newName = `${original.name} (copia)`;
-        const baseSlug = slugify(newName);
+        const baseSlug = slugifyBudgetName(newName);
         const slug = await findUniqueSlug(baseSlug);
 
         const budget = await db.budget.create({

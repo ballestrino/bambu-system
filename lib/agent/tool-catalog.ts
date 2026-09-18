@@ -24,6 +24,10 @@ export const AGENT_TOOL_CATALOG = {
   getPayrollSummary: { label: "Sueldos del mes", kind: "read" },
   queryOperations: { label: "Consulta operaciones", kind: "read" },
   draftEmail: { label: "Redacta un mensaje", kind: "draft" },
+  proposeCreateBudget: { label: "Propone crear un presupuesto", kind: "proposal" },
+  proposeUpdateBudget: { label: "Propone guardar cambios", kind: "proposal" },
+  proposeDuplicateBudget: { label: "Propone duplicar un presupuesto", kind: "proposal" },
+  proposePublishOfficialBudget: { label: "Propone publicar como oficial", kind: "proposal" },
 } as const satisfies Record<string, { label: string; kind: AgentToolKind }>;
 
 export type AgentToolName = keyof typeof AGENT_TOOL_CATALOG;

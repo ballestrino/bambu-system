@@ -1,6 +1,6 @@
 import "server-only";
 
-import { getBudgetById, getBudgetBySlug } from "@/data/budget";
+import { getAgentBudget } from "@/data/agent/budgets";
 import { budgetOptionToFormValues } from "@/lib/agent/budget-calculation";
 import type { Grounding } from "@/lib/agent/grounding";
 import type { AgentUsageCollector } from "@/lib/agent/usage-collector";
@@ -35,8 +35,16 @@ const fromDefaults = (): BudgetBase => ({
   values: { ...defaultBudgetValues, name: "Presupuesto nuevo" },
 });
 
+// El presupuesto guardado sobre el que actúa una tool: el pedido por slug o,
+// si no, el que está en contexto. null si no hay ninguno guardado.
+export const loadTargetBudget = (ctx: AgentToolContext, budgetSlug: string | null) => {
+  if (budgetSlug) return getAgentBudget({ slug: budgetSlug });
+  return ctx.budgetId ? getAgentBudget({ id: ctx.budgetId }) : Promise.resolve(null);
+};
+
 // De qué valores parte un cálculo: lo pedido explícitamente, si no el
 // formulario abierto, si no el presupuesto en contexto, si no los defaults.
+// Un presupuesto guardado trae sus categorías: una copia las conserva.
 export const resolveBudgetBase = async (
   ctx: AgentToolContext,
   input: BaseInput
@@ -44,15 +52,13 @@ export const resolveBudgetBase = async (
   if (input.fromDefaults) return fromDefaults();
 
   if (input.budgetSlug) {
-    const result = await getBudgetBySlug(input.budgetSlug);
-    if ("error" in result || !result.budget) {
-      return { error: `No encontré el presupuesto "${input.budgetSlug}".` };
-    }
+    const budget = await getAgentBudget({ slug: input.budgetSlug });
+    if (!budget) return { error: `No encontré el presupuesto "${input.budgetSlug}".` };
     return {
       source: "budget",
-      name: result.budget.name,
-      slug: result.budget.slug,
-      values: budgetOptionToFormValues(result.budget),
+      name: budget.name,
+      slug: budget.slug,
+      values: budgetOptionToFormValues(budget),
     };
   }
 
@@ -66,7 +72,7 @@ export const resolveBudgetBase = async (
   }
 
   if (ctx.budgetId) {
-    const budget = await getBudgetById(ctx.budgetId);
+    const budget = await getAgentBudget({ id: ctx.budgetId });
     if (!budget) return { error: "El presupuesto en contexto ya no existe." };
     return {
       source: "context",

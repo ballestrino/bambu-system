@@ -22,8 +22,10 @@ const declaredTools = Object.values(toolSources).flatMap((source) =>
 );
 assert.deepEqual([...declaredTools].sort(), [...AGENT_TOOL_NAMES].sort());
 
-// --- Tools never write: no Prisma client and no Server Actions. Every read
-// goes through data/ or an existing read helper.
+// --- Tools never write operational data: no Prisma client and no Server
+// Actions. Every read goes through data/ or an existing read helper; the
+// propose* tools only save their AgentProposal through lib/agent/proposal-store
+// (check:agent-proposals).
 Object.entries(toolSources).forEach(([file, source]) => {
   assert.doesNotMatch(source, /from "@\/lib\/db"/, file);
   assert.doesNotMatch(source, /from "@\/actions\//, file);

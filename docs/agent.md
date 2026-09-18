@@ -10,7 +10,9 @@ actualiza con cada feature.
   costos.
 - Feature 39: núcleo en `lib/agent/**`, habilidades, tools de lectura y
   cálculo, `draftEmail`, persistencia `Agent*` y la ruta `/api/agent/chat`.
-  Todavía sin escrituras (40) ni UI (41).
+- Feature 40: propuestas. El agente prepara crear, guardar, duplicar o
+  publicar como oficial un presupuesto y solo se escribe cuando el usuario
+  confirma. Todavía sin UI (41): las acciones existen, la tarjeta no.
 - El agente de correo (`lib/mail-agent/**`) no usa esta capa y no cambia.
 
 ## Núcleo (feature 39)
@@ -53,6 +55,62 @@ actualiza con cada feature.
   contactos) entra al prompt como solo lectura.
 - `maxDuration` es 60 s (Hobby sin Fluid compute). Con Fluid activo se puede
   subir a 300 si los turnos de Bajo lo necesitan.
+
+## Propuestas (feature 40)
+
+Proponer y confirmar: ninguna tool escribe presupuestos durante el turno.
+
+| Tool | Tipo | Al confirmar ejecuta |
+| --- | --- | --- |
+| `proposeCreateBudget` | `CREATE_BUDGET` | `createBudget(values)` |
+| `proposeUpdateBudget` | `UPDATE_BUDGET` | `updateBudget(budgetId, newSlug, values)` |
+| `proposeDuplicateBudget` | `DUPLICATE_BUDGET` | `duplicateBudget(budgetId)` |
+| `proposePublishOfficialBudget` | `PUBLISH_OFFICIAL_BUDGET` | `publishOfficialBudget({ sourceBudgetId })` |
+
+- Crear y guardar parten de la misma base y los mismos `changes` que
+  `calculateBudget`: "calculalo y guardalo" guarda exactamente lo calculado.
+  Duplicar y publicar usan el presupuesto guardado tal cual.
+- La tool valida, arma el resumen (antes y después, cambios campo por campo,
+  precios guardados, avisos) y guarda un `AgentProposal` PENDING con el
+  payload. Devuelve `{ card: "proposal", proposalId, kind, status,
+  expiresAt, summary, grounding }`: sus importes se pueden citar.
+- Precondiciones al proponer: nombre con slug válido y libre (la misma regla
+  que `createBudget`, en `lib/budget-slug.ts`), cambios reales, dueño para
+  duplicar, no vinculado y con opciones para publicar. El slug solo cambia si
+  cambia el nombre.
+- Avisos de guardar cambios: siempre que se recrean las opciones con ids
+  nuevos, y cuántos trabajos vinculados a una opción pierden ese vínculo
+  (`SET NULL`; conservan su copia de precios); la versión oficial N+1 si hay
+  un oficial vigente; la dirección nueva; la opción con productos que se
+  agrega o se quita; y precios guardados que no salen del cálculo actual.
+- `confirmAgentProposal(id)` (`actions/agent/confirm-proposal.ts`): admin,
+  propuesta de quien confirma, claim atómico `PENDING` sin vencer →
+  `EXECUTING`, re-valida el payload con zod y las precondiciones contra una
+  lectura fresca (mismo `updatedAt` y mismo vínculo oficial que al proponer),
+  ejecuta la acción existente y deja `CONFIRMED` con `result { label, url,
+  budgetId, slug, officialBudgetId, officialVersion }` o `FAILED` con el
+  error. Repetirla devuelve el estado guardado: no escribe dos veces.
+- `rejectAgentProposal(id)`: `PENDING` sin vencer → `REJECTED`, sin otra
+  escritura. `listAgentProposals(conversationId)`: el estado vivo para la
+  tarjeta (la salida guardada de la tool queda en PENDING).
+- Vencen a las 24 horas. Las lecturas muestran vencida una pendiente pasada
+  de hora sin escribir; se registra `EXPIRED` al intentar confirmarla o
+  rechazarla. Al reintentar o regenerar, las pendientes de la respuesta
+  descartada vencen con el motivo.
+- Auditoría en `AgentAuditEvent`: `proposal.create`, `proposal.confirm`,
+  `proposal.fail`, `proposal.reject` y `proposal.expire` (`ttl` o
+  `discarded`). Sobrevive al borrado de la conversación, que borra sus
+  propuestas.
+- El prompt lleva "Propuestas de esta conversación" con el estado vivo de las
+  últimas 30, y cada línea dice qué cambia ("Margen del servicio 45 → 40"):
+  dos propuestas sobre el mismo presupuesto tienen el mismo título.
+- El historial que se manda al modelo lleva el estado vivo en la salida de
+  cada tool `propose*` (`withLiveProposals`, `lib/agent/proposal-context.ts`);
+  la base conserva la salida original. La salida guardada dice PENDING para
+  siempre, y en la prueba real el modelo le creyó a ella antes que al bloque.
+- Presupuestos y General tienen las cuatro tools; Emails y Consejos no.
+- Si el servidor se corta en plena ejecución, la propuesta queda `EXECUTING`:
+  no se puede saber si la escritura llegó, así que no se reintenta sola.
 
 ## Modos
 
@@ -175,3 +233,12 @@ millón de tokens:
   casos de `draftEmail`, consumo por turno y, por texto fuente, que las tools
   no escriben ni generan visitas y que la migración no toca `Chat` ni
   `Message`.
+- `pnpm check:agent-proposals`: los cuatro constructores (valores iguales a
+  `calculateBudget`, categorías conservadas, antes y después, avisos, slug
+  solo con el nombre, sin cambios, sin nombre, valores inválidos, dueño,
+  ya oficial), payloads que sobreviven el JSON de la base, precondiciones al
+  confirmar, vencimiento a las 24 horas, estados de confirmar y rechazar,
+  el bloque del prompt con los cambios de cada propuesta, el estado vivo en
+  el historial del modelo, las habilidades y, por texto fuente, que las tools
+  no llaman a las acciones, que el store solo escribe `AgentProposal`, el
+  claim de `confirm-proposal.ts` y que la migración es aditiva.
