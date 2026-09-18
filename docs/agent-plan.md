@@ -291,6 +291,34 @@ isStepCount(6)`, `toolChoice: 'auto'`, `maxOutputTokens: 4000`.
 - Agregar una línea a `docs/architecture.md` (Route Boundaries) nombrando
   `/api/agent/chat`.
 
+### Ajustes al implementar (2026-09-18)
+
+- Todas las tools quedan registradas en `streamText` y la habilidad elige las
+  activas con `activeTools` (`resolveSkillToolNames`): el historial puede
+  traer partes de tools de otra habilidad y `convertToModelMessages` las
+  necesita. El tipo de `activeTools` garantiza que el catálogo existe.
+- `queryOperations` es un objeto con `kind` cerrado, no una unión
+  discriminada: OpenAI exige un objeto en la raíz de cada tool.
+- `AgentUsageEvent.conversationId` es SET NULL, no Cascade: borrar una
+  conversación no puede borrar gasto ya hecho. También guarda
+  `cacheWriteTokens`.
+- `maxOutputTokens` es 16.000 por paso (incluye razonamiento; con 4.000 un
+  paso de Luna con xhigh podía quedarse sin respuesta) y `maxDuration` 60 s.
+- `budgetOptionToFormValues` no existía: está en
+  `lib/agent/budget-calculation.ts`, con la misma regla que el formulario de
+  edición. La lectura de conocimiento aprobado quedó en
+  `data/agent/knowledge.ts` (lecturas en `data/`).
+- Confirmado con una ruta de prueba y modelo simulado: dentro de una tool, en
+  pleno streaming, `headers()` y `auth()` funcionan. Las tools reutilizan las
+  lecturas de `data/` con su `requireAdminSession`.
+- Las entradas de las tools son campos obligatorios y nullable, como la tool
+  del correo. Con campos opcionales, la Responses API de OpenAI igual pedía
+  todos y el modelo inventaba valores: en la prueba real mandó
+  `personal_enabled: false` y dio precios entre 14 % y 17 % más bajos. Con `null` = "sin
+  cambio", el mismo pedido pasó de cinco tools y 31 s a una tool y 8 s, con
+  el precio correcto. `changedFields` compara contra la base para que un
+  desvío quede a la vista.
+
 ### Check
 
 `scripts/check-agent-tools.ts` (`check:agent-tools`): round trip

@@ -7,8 +7,52 @@ actualiza con cada feature.
 ## Estado
 
 - Feature 38: capa de modelos `lib/ai/**` con modos, proveedores perezosos y
-  costos. Todavía no hay ruta, persistencia ni UI: llegan con las 39, 40 y 41.
+  costos.
+- Feature 39: núcleo en `lib/agent/**`, habilidades, tools de lectura y
+  cálculo, `draftEmail`, persistencia `Agent*` y la ruta `/api/agent/chat`.
+  Todavía sin escrituras (40) ni UI (41).
 - El agente de correo (`lib/mail-agent/**`) no usa esta capa y no cambia.
+
+## Núcleo (feature 39)
+
+- `POST /api/agent/chat` (solo admin, 403 JSON): `{ id, message, mode, skill,
+  context?, trigger?, messageId? }` validado con `schemas/agent.ts`. El
+  cliente manda solo el último mensaje; el historial (24 mensajes) sale de
+  la base. `context` es `{ kind: "saved", budgetId }` o `{ kind: "form",
+  values }`.
+- Una conversación es de un usuario: toda lectura y escritura filtra por
+  `userId`. Reenviar un mensaje (reintento o regenerar) no lo duplica y borra
+  lo que vino después.
+- `AgentMessage.parts` guarda el `UIMessage` completo (texto, razonamiento y
+  tools). `AgentUsageEvent` guarda tokens y costo por tipo (TURN, SKILL,
+  TITLE) y modelo; sobrevive al borrado de la conversación (SET NULL) para que
+  el gasto del mes no cambie.
+- El título sale del primer mensaje y después lo mejora Luna con `after()`.
+- Habilidades en `lib/agent/skills/**`: General (todas las tools),
+  Presupuestos, Emails y Consejos. Todas las tools quedan registradas y la
+  habilidad elige las activas (`activeTools`), así el historial puede traer
+  tools de otra habilidad.
+- Tools en `lib/agent/tools/**`, sin escrituras: `getBusinessProfile`,
+  `searchOfficialBudgets`, `listOfficialBudgets`, `getOfficialBudget`,
+  `searchBudgets`, `getBudget`, `calculateBudget`, `solveForTargetPrice`,
+  `getFinancialSnapshot`, `getFinancialTrend`, `getJobProfitability`,
+  `getPayrollSummary`, `queryOperations` y `draftEmail`. Devuelven
+  `{ ok, data } | { ok: false, error }` en JSON plano, con `card` para la UI.
+- Las entradas de las tools son campos obligatorios y nullable (`null` = sin
+  dato o sin cambio): con campos opcionales el modelo inventaba valores. Un
+  `null` se pasa como `undefined` antes de llamar a una lectura de `data/`,
+  que valida con zod.
+- Las visitas se leen con `data/agent/occurrences.ts`: `getJobOccurrences` y
+  `getVisitWeek` generan ocurrencias antes de leer.
+- Regla de precios: solo se citan importes de una fuente de la conversación
+  (precio oficial exact, presupuesto o cálculo). Las tools que dan importes
+  los declaran en `grounding` y se reconstruyen de las partes guardadas.
+  `draftEmail` redacta con el modelo del modo y falla con `ungrounded_price`,
+  `price_mismatch` o `missing_literal_e`. No envía nada.
+- El conocimiento aprobado del correo (organización, políticas y estilo, sin
+  contactos) entra al prompt como solo lectura.
+- `maxDuration` es 60 s (Hobby sin Fluid compute). Con Fluid activo se puede
+  subir a 300 si los turnos de Bajo lo necesitan.
 
 ## Modos
 
@@ -124,3 +168,10 @@ millón de tokens:
   entorno, identificador de seguridad igual al del correo, settings con
   `store: false`, costos con y sin precio, uso normalizado, costo del gateway
   y, por texto fuente, que los proveedores no se crean a nivel de módulo.
+- `pnpm check:agent-tools`: ida y vuelta de un presupuesto guardado, cálculos
+  iguales a los del formulario, precio objetivo con recorte, datos del negocio
+  iguales a sus constantes, prompt con regla de precios y Literal E,
+  habilidades con tools reales, evidencia desde partes guardadas, los cuatro
+  casos de `draftEmail`, consumo por turno y, por texto fuente, que las tools
+  no escriben ni generan visitas y que la migración no toca `Chat` ni
+  `Message`.
