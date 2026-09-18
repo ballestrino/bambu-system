@@ -83,3 +83,45 @@ en `docs/agent-plan.md` (con la sección "Ajustes al implementar"), contrato en
 - Turno más largo medido: 38,9 s (tendencia de 6 meses en Medio). Con
   `maxDuration` 60, un turno de Bajo con xhigh puede cortarse: conviene
   confirmar Fluid compute en Vercel y subirlo a 300.
+
+## Correcciones de la revisión (2026-09-18)
+
+`progress/review_agent_core_skills_and_stream.md` pidió cambios.
+
+- Bloqueante: `calculateBudget` aceptaba IVA 0 y calculaba con 22
+  (`calculateBudgetTotals` usa `|| 22`). Ahora el IVA de los `changes` es
+  mayor que 0, con un mensaje que explica que "sin IVA" son los importes sin
+  IVA del cálculo. Toda base, guardada o del formulario, parte del IVA
+  efectivo (`withEffectiveIva`), y el contexto del formulario avisa si lo
+  corrigió.
+- `draftEmail` devuelve como fuentes solo los oficiales con algún importe
+  citado (`selectQuotedSources`).
+- El top 10 del mes ordena por uso con precio: en `DESC` Postgres ponía
+  primero las sumas nulas.
+- Reenviar un id que ya existe exige rol USER y el mismo texto; si no, 409.
+- `listAgentConversations`, `getAgentConversationAction` y
+  `getApprovedAgentKnowledge` llaman al guard primero.
+- `runTool` pasa cada salida por `toPlainJson` (`toPlainResult`).
+- El título del modelo solo reemplaza el que tenía la conversación al empezar
+  el turno (un renombrado gana) y se genera mientras no haya respuesta,
+  también al reintentar un primer turno que falló.
+- No se hizo: guardar el consumo por paso (va con la decisión de
+  `maxDuration`), mover a `lib/` los helpers de `components/` que usan tres
+  tools, el recorte de visitas antes de leer y el 403 con un usuario no
+  admin, que queda para el smoke de la 41.
+- PASS: `check:agent-tools` (con `scripts/agent-input-checks.ts` nuevo),
+  prueba de mutación de los arreglos (8 de 8), regresiones, `tsc`,
+  `.\init.ps1` y `next build`.
+- Re-revisión sobre `b6becae`: APPROVED, con menores nuevos que se
+  resolvieron en la pasada siguiente:
+  - Regenerar la primera respuesta después de renombrar pisaba el nombre.
+    Ahora el título del modelo exige que el actual siga siendo el provisorio
+    del primer mensaje (`needsModelTitle`, en el módulo puro
+    `lib/agent/conversation-title-rules.ts`).
+  - Cuatro arreglos no tenían aserción (la llamada de `selectQuotedSources`,
+    los dos guards y la condición del título). Ahora la tienen, y las
+    mutaciones de cada uno se detectan.
+  - Un turno real con Luna (unos 3.600 tokens) confirmó que OpenAI acepta el
+    `exclusiveMinimum` del IVA: con "IVA 10 %" la tool corrió con 10, y con
+    "IVA 0" el modelo mandó `null` y explicó que "sin IVA" son los importes
+    sin IVA del cálculo.

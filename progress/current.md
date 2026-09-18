@@ -10,12 +10,23 @@ Status: in_progress
   `pending` en `feature_list.json`.
 - Supuestos a confirmar con el usuario si hace falta: modo por conversación con
   default Medio, habilidad por mensaje con default General, costos en USD.
+- Revisiones (2026-09-18): tres revisores independientes, uno por feature,
+  pidieron cambios en las tres (`progress/review_*.md`). Las correcciones
+  están en la rama `feature/40-agent-proposals` (encima de las tres) y en la
+  sección "Correcciones de la revisión" de cada `impl_*.md`. La re-revisión
+  sobre `b6becae` aprobó las tres; sus menores nuevos (título al regenerar y
+  aserciones faltantes) quedaron resueltos en el commit siguiente.
+- Para cerrar 38, 39 y 40 falta la decisión del usuario de pasarlas a `done`
+  con la 35 todavía en `in_progress`. Decisiones abiertas: `engines`/Node del
+  deploy y `maxDuration` (con el consumo guardado por paso).
 
 ### Feature 38 - `ai_model_gateway`
 
 - Implementada y verificada en la rama `feature/38-ai-model-gateway` (desde
-  `main`). Detalle en `progress/impl_ai_model_gateway.md`. Falta la revisión
-  (`progress/review_ai_model_gateway.md`) y el cambio de estado.
+  `main`). Detalle en `progress/impl_ai_model_gateway.md`. La revisión
+  (`progress/review_ai_model_gateway.md`) pidió cambios: el parser de
+  `AI_PRICE_*` inventaba precios con campos vacíos. Corregido y aprobado en la
+  re-revisión; falta el cambio de estado.
 - `lib/ai/**`: modos Bajo/Medio/Alto (Luna xhigh, Terra high, Sol medium),
   overrides por entorno, proveedores perezosos de OpenAI y del Vercel AI
   Gateway, settings con `store: false`, precios reales de OpenAI y costo
@@ -34,8 +45,10 @@ Status: in_progress
 ### Feature 39 - `agent_core_skills_and_stream`
 
 - Implementada y verificada en la rama `feature/39-agent-core` (encima de la
-  38). Detalle en `progress/impl_agent_core_skills_and_stream.md`. Falta la
-  revisión y el cambio de estado.
+  38). Detalle en `progress/impl_agent_core_skills_and_stream.md`. La
+  revisión pidió cambios: `calculateBudget` aceptaba IVA 0 y calculaba con
+  22. Corregido junto con los menores y aprobado en la re-revisión; falta el
+  cambio de estado.
 - Persistencia `Agent*` con migración aditiva, núcleo en `lib/agent/**`, 14
   tools sin escrituras, cuatro habilidades, `draftEmail` con validación de
   precios y Literal E, historial y costos en `data/agent/**`, acciones de
@@ -84,7 +97,14 @@ Status: in_progress
 - Hallazgo de la prueba: el modelo creía pendientes propuestas ya resueltas
   (la salida guardada de la tool dice PENDING). Corregido con el estado vivo
   en el historial que ve el modelo y los cambios en cada línea del bloque.
-- Falta la revisión y el cambio de estado.
+- La revisión pidió cambios: con IVA 0 lo guardado no era la tarjeta, y había
+  una carrera entre la re-validación y `updateBudget`. Corregidos (con
+  compare-and-set en `updateBudget`) junto con los menores y aprobados en la
+  re-revisión; falta el cambio de estado.
+- Para la 41: mostrar una EXECUTING vieja como resultado desconocido, no
+  presentar como exacto el número de trabajos vinculados, aceptar la
+  respuesta de confirmar sin `proposal` (conversación borrada en el medio) y
+  cubrir en el smoke el 403 de un usuario logueado que no es admin.
 - Para la 41: la tarjeta lee el estado vivo con `listAgentProposals`, no la
   salida guardada de la tool, y al confirmar invalida presupuestos,
   oficiales y propuestas. Un `result.slug` distinto del actual implica

@@ -104,3 +104,37 @@ Rama `feature/40-agent-proposals`, encima de `feature/39-agent-core`. Plan en
   conversación (US$ 0,0635), como se esperaba.
 - NOT RUN: 403 para un usuario logueado que no es admin (no hay uno) y el
   corte del servidor en plena ejecución (queda EXECUTING, documentado).
+
+## Correcciones de la revisión (2026-09-18)
+
+`progress/review_agent_proposals.md` pidió cambios.
+
+- Bloqueante (IVA 0, misma causa que en la 39): el payload exige IVA mayor
+  que 0 al proponer y al confirmar, y las bases ya parten del IVA efectivo.
+- Carrera: `updateBudget` acepta `expectedUpdatedAt` y hace compare-and-set
+  dentro de su transacción. Confirmar lo pasa, y un guardado concurrente
+  falla como propuesta vieja. Las llamadas del formulario no lo mandan y no
+  cambian.
+- La tool responde con la fila guardada (tipo y resumen), y los importes
+  citables salen de ese resumen (`getSummaryAmounts`).
+- Confirmar audita antes de cerrar la propuesta; el cierre es un
+  `updateMany` condicional y, si borraron la conversación en el medio,
+  responde con el resultado de la escritura.
+- El vencimiento al regenerar actualiza propuesta por propuesta y audita
+  solo las que cambió.
+- El resultado de guardar un vinculado trae `officialBudgetId`, y la
+  tarjeta de duplicar no predice la dirección.
+- Quedan para la 41: mostrar una EXECUTING vieja como resultado desconocido
+  y no presentar como exacto el número de trabajos vinculados.
+- PASS: `check:agent-proposals`, prueba de mutación de los arreglos (7 de 7) y
+  de los checks anteriores (9 de 9), regresiones, `tsc`, `.\init.ps1` y
+  `next build`.
+- NOT RUN contra la base: el compare-and-set con dos confirmaciones
+  concurrentes reales. Está cubierto por el check de fuente y por la
+  semántica de `UPDATE ... WHERE updatedAt` en Postgres.
+- Re-revisión sobre `b6becae`: APPROVED. El arreglo de la tarjeta desde la
+  fila guardada no tenía aserción; ahora la tiene y su mutación se detecta.
+  Quedan documentadas dos ventanas de milisegundos: una publicación oficial
+  entre la re-validación y `updateBudget`, y publicar o duplicar sobre
+  valores guardados en el medio. La 41 tiene que aceptar la respuesta de
+  confirmar sin `proposal` (conversación borrada en el medio).

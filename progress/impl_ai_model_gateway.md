@@ -83,3 +83,27 @@ Flex o Priority.
 - `pnpm build` completo no se corrió: había un proceso escuchando en el puerto
   3000. Se usó `pnpm exec next build`, que no ejecuta `prisma generate`; el
   schema no cambió.
+
+## Correcciones de la revisión (2026-09-18)
+
+`progress/review_ai_model_gateway.md` pidió cambios.
+
+- Bloqueante: `AI_PRICE_<MODELO>` valida cada campo con `^\d+(\.\d+)?$`
+  antes de convertirlo. `",,"`, `"1,,6"`, `"1,0.1,6,"`, `"0x10,0,1"` y
+  `"1e3,0,1"` lanzan el error con el nombre de la variable, en vez de un
+  precio inventado.
+- Con tres valores, la escritura de caché se cobra 1,25 veces la entrada,
+  como en gpt-5.6: `"2,0.2,12"` da lo mismo que la tabla de Terra.
+- Anotado el precio promocional de Sol ("at least through November 21,
+  2026", confirmado en la página de precios) en `pricing.ts` y la doc.
+- `hasGatewayCredentials(env)` separa la precondición del gateway y prueba la
+  rama OIDC. La doc aclara que el token local vence a las 12 horas (doc de
+  Vercel).
+- No se hizo: el override del modelo del título (opcional) y `engines` en
+  `package.json`, que cambia el deploy y queda para decidir.
+- PASS: `check:ai-gateway`, prueba de mutación de los tres arreglos (3 de 3),
+  `tsc`, `.\init.ps1` y `next build`.
+- Re-revisión sobre `b6becae`: APPROVED. Quedan abiertos, sin bloquear, el
+  override del título, `engines`/Node del deploy y, del smoke real, los datos
+  crudos, una llamada con caché contra el panel de OpenAI y un turno por el
+  gateway antes de usarlo en producción.
