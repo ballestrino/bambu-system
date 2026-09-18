@@ -2,24 +2,13 @@ import "server-only";
 
 import { generateText } from "ai";
 
+import { TITLE_MAX_LENGTH } from "@/lib/agent/conversation-title-rules";
 import { persistUsageEntries } from "@/lib/agent/usage-store";
 import { buildAgentCallSettings } from "@/lib/ai/call-settings";
 import type { AgentMode } from "@/lib/ai/modes";
 import { resolveTitleModelSpec } from "@/lib/ai/model-spec";
 import { normalizeUsage, readGatewayCost } from "@/lib/ai/usage";
 import { db } from "@/lib/db";
-
-const TITLE_MAX_LENGTH = 60;
-
-// Título determinista con el primer mensaje: la conversación nunca queda sin
-// nombre, aunque el modelo falle o no haya clave.
-export const fallbackConversationTitle = (text: string) => {
-  const clean = text.replace(/\s+/g, " ").trim();
-  if (!clean) return "Nueva conversación";
-  return clean.length > TITLE_MAX_LENGTH
-    ? `${clean.slice(0, TITLE_MAX_LENGTH - 1).trimEnd()}…`
-    : clean;
-};
 
 const sanitizeTitle = (text: string) =>
   text

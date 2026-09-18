@@ -9,6 +9,7 @@ import {
   runBudgetCalculation,
   withEffectiveIva,
 } from "../lib/agent/budget-calculation";
+import { fallbackConversationTitle, needsModelTitle } from "../lib/agent/conversation-title-rules";
 import { selectQuotedSources, type OfficialSource } from "../lib/agent/grounding";
 import { toolOk, toPlainResult } from "../lib/agent/tool-result";
 import { calculateBudgetInputSchema } from "../schemas/agent-tools";
@@ -64,3 +65,21 @@ const store = read("lib/agent/conversation-store.ts");
 assert.match(store, /existing\.role !== "USER" \|\| existing\.text !== text/);
 assert.match(read("lib/agent/conversation-title.ts"), /where: \{ id: input\.conversationId, title: input\.replaceTitle \}/);
 assert.match(read("data/agent/usage.ts"), /conversationId: \{ not: null \}, costUsd: \{ not: null \}/);
+
+// --- The model title: while there is no answer (a failed first turn too),
+// and only over the first message's fallback title, so a rename survives even
+// regenerating the first answer.
+const firstText = "Armá un presupuesto de limpieza de oficina";
+const opening = [{ id: "m1", role: "user" as const, parts: [{ type: "text" as const, text: firstText }] }];
+assert.equal(needsModelTitle(opening, fallbackConversationTitle(firstText)), true);
+assert.equal(needsModelTitle(opening, "Oficina de Ana"), false);
+assert.equal(needsModelTitle([...opening, { id: "a1", role: "assistant", parts: [] }], fallbackConversationTitle(firstText)), false);
+assert.match(read("lib/agent/turn.ts"), /needsTitle: needsModelTitle\(messages, conversation\.title\)/);
+
+// --- The other fixes, at their call sites: the draft card lists only quoted
+// sources, and the Sheet reads check the admin session first.
+assert.match(read("lib/agent/tools/email.ts"), /sources: selectQuotedSources\(sources, check\.quotedAmounts\)/);
+const conversations = read("actions/agent/conversations.ts");
+["listAgentConversations = async \\(values: unknown\\)", "getAgentConversationAction = async \\(conversationId: unknown\\)"]
+  .forEach((head) => assert.match(conversations, new RegExp(`${head} => \\{\\s*try \\{\\s*await requireAdminSession\\(\\);`), head));
+assert.match(read("data/agent/knowledge.ts"), /getApprovedAgentKnowledge = async \(\) => \{\s*await requireAdminSession\(\);/);

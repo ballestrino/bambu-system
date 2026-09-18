@@ -32,8 +32,10 @@ actualiza con cada feature.
   el gasto del mes no cambie.
 - El título sale del primer mensaje y después lo mejora Luna con `after()`,
   mientras la conversación no tenga respuesta (también al reintentar un
-  primer turno que falló). Solo reemplaza el título que tenía al empezar el
-  turno: un renombrado gana.
+  primer turno que falló) y solo si el título sigue siendo el provisorio del
+  primer mensaje (`needsModelTitle`, `lib/agent/conversation-title-rules.ts`).
+  Un renombrado nunca se pisa, ni durante el turno ni al regenerar la primera
+  respuesta.
 - Habilidades en `lib/agent/skills/**`: General (todas las tools),
   Presupuestos, Emails y Consejos. Todas las tools quedan registradas y la
   habilidad elige las activas (`activeTools`), así el historial puede traer
@@ -135,6 +137,13 @@ Proponer y confirmar: ninguna tool escribe presupuestos durante el turno.
 - La tarjeta de duplicar no predice la dirección (`duplicateBudget` agrega
   -2, -3…): la real llega en `result`. El número de trabajos que pierden el
   vínculo es el del momento de proponer.
+- Si la conversación se borra mientras se confirma, `confirmAgentProposal`
+  responde `{ success, result }` o `{ error }` sin `proposal`: el wrapper de la
+  UI tiene que aceptar las dos formas.
+- Ventanas que quedan, de milisegundos y documentadas: una publicación
+  oficial entre la re-validación y `updateBudget` (el vínculo no mueve
+  `Budget.updatedAt`), y publicar o duplicar sobre valores guardados en el
+  medio por otra confirmación.
 
 ## Modos
 

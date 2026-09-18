@@ -446,6 +446,14 @@ Las tres revisiones (`progress/review_*.md`) pidieron cambios.
   (con el consumo guardado por paso), el override del modelo del título, los
   imports de `lib/` a `components/` de tres tools y el IVA 0 del formulario
   manual.
+- Re-revisión (commit `b6becae`): las tres aprobadas. La 39 marcó que
+  regenerar la primera respuesta podía pisar un renombrado: el título del
+  modelo ahora exige que el actual sea el provisorio del primer mensaje
+  (`needsModelTitle`). También marcaron arreglos sin aserción (la llamada de
+  `selectQuotedSources`, los guards, la condición del título y la tarjeta
+  desde la fila guardada): ahora las tienen, y cada una falla si se revierte
+  su arreglo. Un turno real con Luna confirmó que OpenAI acepta el
+  `exclusiveMinimum` del IVA y que el modelo no manda IVA 0.
 
 ## Feature 41: el agente en el Sheet de Presupuestos
 

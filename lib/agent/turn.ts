@@ -10,7 +10,10 @@ import {
   saveAssistantMessage,
   saveUserMessage,
 } from "@/lib/agent/conversation-store";
-import { fallbackConversationTitle } from "@/lib/agent/conversation-title";
+import {
+  fallbackConversationTitle,
+  needsModelTitle,
+} from "@/lib/agent/conversation-title-rules";
 import { addGroundedAmounts, collectGroundingFromMessages } from "@/lib/agent/grounding";
 import { getMessageText, type AgentUIMessage } from "@/lib/agent/messages";
 import { formatToday } from "@/lib/agent/month";
@@ -79,9 +82,7 @@ export const prepareAgentTurn = async (actor: AgentActor, request: AgentChatRequ
 
   return {
     ok: true as const,
-    // Sin respuesta del asistente todavía, el título es el provisorio: también
-    // al reintentar un primer turno que falló.
-    needsTitle: !messages.some((message) => message.role === "assistant"),
+    needsTitle: needsModelTitle(messages, conversation.title),
     conversationTitle: conversation.title,
     userText,
     messages,

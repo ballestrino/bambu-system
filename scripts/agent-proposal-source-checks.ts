@@ -14,6 +14,9 @@ const tools = read("lib/agent/tools/proposals.ts");
   assert.ok(!tools.includes(text), `tools/proposals.ts: ${text}`)
 );
 assert.doesNotMatch(tools, /from "@\/actions\/|from "@\/lib\/db"/);
+// The card comes from the saved row: a repeated tool call shows what would run.
+assert.match(tools, /const summary = proposal\.summary as ProposalSummary;/);
+assert.match(tools, /kind: proposal\.kind,/);
 
 // --- The proposal store only writes AgentProposal (audit goes through
 // recordAgentAudit).
