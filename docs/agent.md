@@ -1,0 +1,126 @@
+# Agente de Bambú
+
+Contrato de producto y entorno del agente (features 38-41). El plan completo
+está en `docs/agent-plan.md`; este documento describe lo que ya existe y se
+actualiza con cada feature.
+
+## Estado
+
+- Feature 38: capa de modelos `lib/ai/**` con modos, proveedores perezosos y
+  costos. Todavía no hay ruta, persistencia ni UI: llegan con las 39, 40 y 41.
+- El agente de correo (`lib/mail-agent/**`) no usa esta capa y no cambia.
+
+## Modos
+
+| Modo | Modelo | Razonamiento | Uso |
+| --- | --- | --- | --- |
+| Bajo | `gpt-5.6-luna` | `xhigh` | El más económico; razona a fondo, puede tardar más |
+| Medio (default) | `gpt-5.6-terra` | `high` | Equilibrio entre calidad, velocidad y costo |
+| Alto | `gpt-5.6-sol` | `medium` | La mejor calidad para análisis y presupuestos complejos |
+| Título (interno) | `gpt-5.6-luna` | `none` | Nombre corto de la conversación |
+
+- La familia gpt-5.6 acepta `none`, `low`, `medium`, `high`, `xhigh` y `max`.
+  No acepta `minimal`, por eso el título usa `none`. `max` no existe en la
+  opción agnóstica `reasoning` del AI SDK.
+- El modo se elige por conversación y aplica a los turnos siguientes.
+
+## Capa de modelos
+
+| Archivo | Responsabilidad |
+| --- | --- |
+| `lib/ai/modes.ts` | Modos, etiquetas, defaults y spec del título. Puro |
+| `lib/ai/model-spec.ts` | `resolveModelSpec(mode, env)`, `resolveTitleModelSpec`, `resolveDefaultMode`. Puro |
+| `lib/ai/providers.ts` | `getOpenAIProvider`, `getGatewayProvider` y `resolveLanguageModel(spec)`, perezosos |
+| `lib/ai/safety-identifier.ts` | `getAiSafetyIdentifier('agent' \| 'mail', actorId)` |
+| `lib/ai/call-settings.ts` | `buildAgentCallSettings(spec, { actorId })` |
+| `lib/ai/pricing.ts` | Tabla de precios, `estimateUsageCost`, `formatUsd`. Puro |
+| `lib/ai/usage.ts` | `normalizeUsage`, `sumUsage`, `readGatewayCost`. Puro |
+
+Reglas:
+
+- Fuera de `lib/ai` nadie crea proveedores ni escribe ids de modelo: se pide
+  `resolveModelSpec(mode)` y se esparce `buildAgentCallSettings(spec, {
+  actorId })` en `streamText` o `generateText`.
+- Toda llamada va con `store: false`, un `safetyIdentifier` seudónimo con el
+  namespace `agent` y `parallelToolCalls: false`.
+- Los módulos marcados como puros solo importan tipos del SDK, así los usan
+  los checks y, si hace falta, el cliente.
+- Importar `providers.ts` no lee claves: el error aparece en la primera
+  llamada ("Falta configurar OPENAI_API_KEY").
+
+## Entorno
+
+| Variable | Default | Efecto |
+| --- | --- | --- |
+| `OPENAI_API_KEY` | — | Requerida con `AI_PROVIDER=openai` |
+| `AI_PROVIDER` | `openai` | `openai` (directo, Responses API) o `gateway` (Vercel AI Gateway) |
+| `AI_GATEWAY_API_KEY` | — | Clave del gateway. Sin ella se usa el OIDC del proyecto de Vercel: existe en los deploys y en local después de `vercel env pull` |
+| `AI_DEFAULT_MODE` | `medio` | `bajo`, `medio` o `alto` |
+| `AI_MODEL_<MODO>` | tabla de modos | Id del modelo de `BAJO`, `MEDIO` o `ALTO` |
+| `AI_REASONING_<MODO>` | tabla de modos | `provider-default`, `none`, `minimal`, `low`, `medium`, `high` o `xhigh` |
+| `AI_PRICE_<MODELO>` | tabla de precios | `entrada,cacheada,salida[,escritura]` en USD por millón |
+
+- Una variable vacía cuenta como no configurada. Un valor inválido lanza un
+  error que nombra la variable; no se ignora en silencio.
+- Con `AI_PROVIDER=openai`, un modelo con `/` es un error: pide el gateway.
+- `<MODELO>` es el id en mayúsculas con todo lo que no sea letra o número
+  cambiado por `_`: `gpt-5.6-terra` → `AI_PRICE_GPT_5_6_TERRA`.
+
+### Cambiar de modelo o proveedor sin tocar código
+
+```bash
+AI_PROVIDER=gateway
+AI_MODEL_ALTO=anthropic/claude-sonnet-5
+AI_PRICE_ANTHROPIC_CLAUDE_SONNET_5=3,0.3,15,3.75
+```
+
+- Con el gateway, un id sin `/` se manda como `openai/<id>`: los modos que no
+  se tocan siguen en gpt-5.6.
+- `reasoning` es agnóstico: el SDK lo traduce al equivalente de cada
+  proveedor. Las opciones `providerOptions.openai` se ignoran con otros.
+- Un proveedor directo nuevo (por ejemplo `@ai-sdk/anthropic`) es un literal
+  más en `AI_PROVIDERS` y una factory en `providers.ts`.
+
+## Costos
+
+Precios del tier Standard, contexto corto, tomados de
+<https://developers.openai.com/api/docs/pricing> el 2026-09-18, en USD por
+millón de tokens:
+
+| Modelo | Entrada | Entrada cacheada | Escritura de caché | Salida |
+| --- | --- | --- | --- | --- |
+| `gpt-5.6-luna` | 0.20 | 0.02 | 0.25 | 1.20 |
+| `gpt-5.6-terra` | 2.00 | 0.20 | 2.50 | 12.00 |
+| `gpt-5.6-sol` | 4.00 | 0.40 | 5.00 | 20.00 |
+
+- Costo = (entrada − cacheada − escritura) × entrada + cacheada × cacheada +
+  escritura × escritura + salida × salida. Los tokens de razonamiento ya están
+  dentro de la salida y no se cobran dos veces.
+- No se modela el contexto largo (más de 272K tokens de entrada: doble la
+  entrada y 1,5 veces la salida) porque el agente recorta el historial muy por
+  debajo. Tampoco los tiers Batch, Flex ni Priority, que el agente no usa.
+- Un modelo sin precio devuelve `{ costUsd: null, priced: false }`: la UI
+  muestra los tokens y "precio no configurado". Nunca se inventa un precio.
+- Con el gateway, `providerMetadata.gateway.cost` trae el costo real de cada
+  llamada (string en USD). `readGatewayCost` lo lee; en un turno con varios
+  pasos se lee y se suma por paso. Con claves propias (BYOK) el gateway puede
+  informar 0 aunque el proveedor cobre.
+- El costo se calcula al persistir el uso (feature 39) y queda fijo aunque
+  después cambien los precios.
+- `formatUsd` muestra "US$ 0,03", hasta cuatro decimales debajo del centavo y
+  "< US$ 0,0001" para montos menores.
+
+## Runtime
+
+- AI SDK v7: `ai@7`, `@ai-sdk/openai@4`, `@ai-sdk/react@4`. Son ESM-only y
+  exigen Node ≥ 22 (local: 24.14.1). El deploy en Vercel tiene que usar Node
+  22.x o 24.x.
+- pnpm exige que una versión tenga 24 horas publicada (`minimumReleaseAge`):
+  al actualizar, elegir la última versión que cumpla.
+
+## Verificación
+
+- `pnpm check:ai-gateway`: modos, overrides, prefijo del gateway, errores de
+  entorno, identificador de seguridad igual al del correo, settings con
+  `store: false`, costos con y sin precio, uso normalizado, costo del gateway
+  y, por texto fuente, que los proveedores no se crean a nivel de módulo.

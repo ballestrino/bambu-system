@@ -76,6 +76,26 @@ muestran en USD porque OpenAI factura en USD.
 - Uso: `result.totalUsage` suma todos los pasos (tokens de entrada, salida,
   cacheados y de razonamiento; forma exacta a confirmar al instalar).
 
+### Confirmado al instalar (feature 38, 2026-09-18)
+
+- Versiones: `ai@7.0.105`, `@ai-sdk/openai@4.0.69`, `@ai-sdk/react@4.0.108`.
+  pnpm exige 24 horas de publicadas (`minimumReleaseAge`), así que se instaló
+  la última versión que cumplía.
+- `LanguageModelUsage` viene anidado: `inputTokenDetails.{noCacheTokens,
+  cacheReadTokens, cacheWriteTokens}` y `outputTokenDetails.{textTokens,
+  reasoningTokens}`. `outputTokens` ya incluye el razonamiento.
+- gpt-5.6 cobra la escritura de caché a 1,25 veces la entrada. Por eso el uso
+  normalizado, los precios y el override `AI_PRICE_<MODELO>` (cuarto valor
+  opcional) suman `cacheWriteTokens`, y `AgentUsageEvent` (39) también la
+  guarda.
+- gpt-5.6 acepta `none | low | medium | high | xhigh | max`, **no `minimal`**:
+  el título usa `none`.
+- Un turno real por modo (Luna xhigh, Terra high, Sol medium, título none, y
+  `streamText` en Medio) respondió sin advertencias por `@ai-sdk/openai`.
+- `AI_PROVIDER=gateway` es el Vercel AI Gateway. Sin `AI_GATEWAY_API_KEY`
+  autentica con el OIDC del proyecto de Vercel. OpenRouter no entra por ahí:
+  sería un proveedor directo nuevo.
+
 ## Arquitectura
 
 ```text
@@ -114,13 +134,13 @@ Rama `feature/38-ai-model-gateway`.
 
 | Archivo | Contenido |
 | --- | --- |
-| `lib/ai/modes.ts` | Puro. `AgentMode = 'bajo' \| 'medio' \| 'alto'`, `AGENT_MODES` con etiqueta y descripción para la UI, `DEFAULT_MODE_SPECS` (tabla de arriba), `TITLE_MODEL_SPEC` (`gpt-5.6-luna`, reasoning `minimal`) |
+| `lib/ai/modes.ts` | Puro. `AgentMode = 'bajo' \| 'medio' \| 'alto'`, `AGENT_MODES` con etiqueta y descripción para la UI, `DEFAULT_MODE_SPECS` (tabla de arriba), `TITLE_MODEL_SPEC` (`gpt-5.6-luna`, reasoning `none`) |
 | `lib/ai/model-spec.ts` | Puro, sin SDK. `ModelSpec = { mode, provider: 'openai' \| 'gateway', modelId, reasoning, temperature? }` y `resolveModelSpec(mode, env = process.env)`, `resolveDefaultMode(env)` |
 | `lib/ai/providers.ts` | Factories perezosas al estilo `lib/mail-agent/openai-client.ts`: `getOpenAIProvider()` ("Falta configurar OPENAI_API_KEY"), `getGatewayProvider()` (`AI_GATEWAY_API_KEY`), `resolveLanguageModel(spec)` → `openai.responses(id)` o `gateway(id)` |
 | `lib/ai/safety-identifier.ts` | `getAiSafetyIdentifier(namespace: 'agent' \| 'mail', actorId)`; con `'mail'` da el mismo hash que `getMailSafetyIdentifier` (se asserta, el mail no cambia) |
 | `lib/ai/call-settings.ts` | `buildAgentCallSettings(spec, { actorId })` → `{ model, reasoning, temperature, providerOptions: { openai: { store: false, safetyIdentifier, parallelToolCalls: false } } }` |
-| `lib/ai/pricing.ts` | Puro. `MODEL_PRICES: Record<modelId, { inputPerMillion, cachedInputPerMillion, outputPerMillion } \| null>`, override `AI_PRICE_<MODELO>=entrada,cacheada,salida`, `estimateUsageCost(modelId, usage) → { costUsd: number \| null, priced: boolean }`, `formatUsd` |
-| `lib/ai/usage.ts` | Puro. `normalizeUsage(totalUsage)` → `{ inputTokens, outputTokens, cachedInputTokens, reasoningTokens }` (aísla la forma del SDK); `readGatewayCost(providerMetadata)` para cuando el gateway informa costo |
+| `lib/ai/pricing.ts` | Puro. `MODEL_PRICES: Record<modelId, { inputPerMillion, cachedInputPerMillion, cacheWritePerMillion, outputPerMillion }>`, override `AI_PRICE_<MODELO>=entrada,cacheada,salida[,escritura]`, `estimateUsageCost(modelId, usage) → { costUsd: number \| null, priced: boolean }`, `formatUsd` |
+| `lib/ai/usage.ts` | Puro. `normalizeUsage(totalUsage)` → `{ inputTokens, outputTokens, cachedInputTokens, cacheWriteTokens, reasoningTokens }` (aísla la forma del SDK), `sumUsage`; `readGatewayCost(providerMetadata)` para cuando el gateway informa costo |
 | `docs/agent.md` | Contrato de producto y entorno, como `docs/email-agent.md` |
 | `scripts/check-ai-gateway.ts` | `check:ai-gateway` en `package.json` |
 
@@ -129,9 +149,8 @@ Overrides de entorno: `AI_PROVIDER` (`openai` | `gateway`),
 `AI_DEFAULT_MODE`, `AI_GATEWAY_API_KEY`, `AI_PRICE_<MODELO>`. Con proveedor
 `gateway` y modelo sin `/`, se antepone `openai/`.
 
-Cómo se conecta el gateway pendiente, sin tocar código: Vercel AI Gateway u
-OpenRouter vía gateway con `AI_PROVIDER=gateway` y, por ejemplo,
-`AI_MODEL_ALTO=anthropic/claude-...`. Un proveedor directo nuevo (por ejemplo
+Cómo se conecta el gateway pendiente, sin tocar código: Vercel AI Gateway con
+`AI_PROVIDER=gateway` y, por ejemplo, `AI_MODEL_ALTO=anthropic/claude-...`. Un proveedor directo nuevo (por ejemplo
 `@ai-sdk/anthropic`) es un literal más en la unión `provider` y una factory.
 
 Check: defaults por modo (Luna xhigh, Terra high, Sol medium); overrides;
@@ -154,7 +173,7 @@ Rama `feature/39-agent-core`.
   createdAt }` + índice `[conversationId, createdAt]`.
 - `AgentUsageEvent { id, conversationId (Cascade), messageId?, kind enum
   TURN|SKILL|TITLE, mode, modelId, inputTokens, outputTokens,
-  cachedInputTokens, reasoningTokens, costUsd Decimal(12,6)?, priced Boolean,
+  cachedInputTokens, cacheWriteTokens, reasoningTokens, costUsd Decimal(12,6)?, priced Boolean,
   createdAt }` + índices `[conversationId, createdAt]`, `[createdAt]`,
   `[modelId, createdAt]`. El costo se calcula al persistir, así el histórico
   no cambia cuando cambian los precios.
@@ -434,14 +453,14 @@ cambia el viewport):
   historial a 24 mensajes, título en `after()`, `maxDuration` al máximo del
   plan (verificar en Vercel; con Fluid compute Hobby permite hasta 300 s) y
   `AI_REASONING_BAJO` para bajar el esfuerzo si hace falta.
-- **Ids `gpt-5.6-terra` y `gpt-5.6-sol` por `@ai-sdk/openai`**: se pasan
-  como string; confirmar con un turno real por modo al instalar. Fallback:
+- **Ids `gpt-5.6-terra` y `gpt-5.6-sol` por `@ai-sdk/openai`**: confirmados
+  con un turno real por modo el 2026-09-18 (el SDK ya los tipa). Fallback:
   `AI_MODEL_<MODO>`.
 - **Precios**: se cargan a mano desde la página de precios de OpenAI; un
   modelo sin precio muestra tokens y "precio no configurado". El costo es una
   estimación salvo que el gateway informe el costo real.
-- **Forma de `totalUsage`**: `normalizeUsage` aísla la forma del SDK; se
-  ajusta al instalar.
+- **Forma de `totalUsage`**: confirmada al instalar (anidada, con escritura
+  de caché); `normalizeUsage` la aísla y `check:ai-gateway` la fija.
 - **`updateBudget`** borra y recrea opciones y publica versión oficial nueva:
   se avisa en la tarjeta y en el texto de confirmación.
 - **`duplicateBudget`** exige ser dueño del presupuesto: la propuesta lo
