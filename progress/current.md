@@ -57,6 +57,39 @@ Status: in_progress
 - Decisión pendiente: `maxDuration` es 60. El turno más largo medido fue de
   38,9 s en Medio; con Fluid compute confirmado conviene subirlo a 300.
 
+### Feature 40 - `agent_proposals`
+
+- Implementada en la rama `feature/40-agent-proposals` (encima de la 39).
+  Detalle en `progress/impl_agent_proposals.md`; contrato en `docs/agent.md`
+  (sección "Propuestas") y ajustes en `docs/agent-plan.md`.
+- `AgentProposal` con migración aditiva `20260918180000_agent_proposals`,
+  cuatro tools `propose*` que guardan PENDING sin escribir presupuestos,
+  `confirmAgentProposal` (claim atómico, re-validación contra una lectura
+  fresca, acciones existentes, CONFIRMED o FAILED, idempotente),
+  `rejectAgentProposal`, `listAgentProposals`, vencimiento a 24 horas y
+  auditoría `proposal.*`.
+- Avisos de guardar cambios: opciones recreadas (con los trabajos que pierden
+  el vínculo a su opción, porque `Job.sourceBudgetOptionId` es SET NULL),
+  versión oficial N+1, dirección nueva, opción con productos y precios
+  guardados que no salen del cálculo.
+- PASS: `check:agent-proposals` con 9 de 9 mutaciones detectadas, regresiones
+  de agente, oficiales, mail y finanzas, `tsc`, `.\init.ps1` y `next build`.
+- La migración `20260918180000_agent_proposals` ya está aplicada, con
+  confirmación del usuario, en la base del `.env` (21 de 21).
+- PASS: prueba autenticada con OpenAI (US$ 0,0635): crear, guardar el margen
+  y duplicar, cada uno con precios iguales a la tarjeta. Confirmar repetido
+  o en paralelo escribe una sola vez; un presupuesto cambiado falla sin
+  tocar nada; rechazar, vencer y regenerar se comportan como se esperaba.
+  Todo quedó auditado y los datos de prueba se borraron (200 presupuestos).
+- Hallazgo de la prueba: el modelo creía pendientes propuestas ya resueltas
+  (la salida guardada de la tool dice PENDING). Corregido con el estado vivo
+  en el historial que ve el modelo y los cambios en cada línea del bloque.
+- Falta la revisión y el cambio de estado.
+- Para la 41: la tarjeta lee el estado vivo con `listAgentProposals`, no la
+  salida guardada de la tool, y al confirmar invalida presupuestos,
+  oficiales y propuestas. Un `result.slug` distinto del actual implica
+  redirigir, igual que el formulario de edición.
+
 ## Feature 37 - Sueldos a mes vencido
 
 - Feature 37 - `ops_payroll_paid_in_arrears`, sin commitear en `main`. Queda
