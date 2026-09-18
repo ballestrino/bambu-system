@@ -2,6 +2,20 @@
 
 Status: in_progress
 
+## Planificado - Agente de Bambú (features 38-41)
+
+- Plan aprobado en `docs/agent-plan.md`. Todavía
+  sin código: las features 38 (`ai_model_gateway`), 39
+  (`agent_core_skills_and_stream`), 40 (`agent_proposals`) y 41
+  (`agent_budget_sheet`) están `pending` en `feature_list.json`.
+- Orden: 38 → 39 → 40 → 41, cada una en su rama (`feature/38-ai-model-gateway`,
+  etc.). Se marcan `in_progress` recién cuando la 35 libere el único slot.
+- Antes de la 38: `pnpm add ai @ai-sdk/openai @ai-sdk/react` (v7, Node ≥ 22,
+  ESM-only) y cargar los precios reales de `gpt-5.6-luna`, `gpt-5.6-terra` y
+  `gpt-5.6-sol` desde la página de precios de OpenAI. No inventar precios.
+- Supuestos a confirmar con el usuario si hace falta: modo por conversación con
+  default Medio, habilidad por mensaje con default General, costos en USD.
+
 ## Feature 37 - Sueldos a mes vencido
 
 - Feature 37 - `ops_payroll_paid_in_arrears`, sin commitear en `main`. Queda

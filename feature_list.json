@@ -581,6 +581,71 @@
         "check:finance covers the previous-month rule including the year boundary, plus TypeScript, lint, harness, and authenticated browser smoke"
       ],
       "status": "pending"
+    },
+    {
+      "id": 38,
+      "name": "ai_model_gateway",
+      "title": "Add a provider-agnostic model gateway with quality modes and cost estimation",
+      "description": "Introduce lib/ai on the Vercel AI SDK v7 with Bajo, Medio, and Alto modes (gpt-5.6-luna xhigh, gpt-5.6-terra high, gpt-5.6-sol medium), lazy providers, environment overrides, and a pricing table so a later gateway or vendor change is configuration only. See docs/agent-plan.md.",
+      "acceptance": [
+        "ai, @ai-sdk/openai, and @ai-sdk/react are added with Node 22+ and zod 4 compatibility verified",
+        "resolveModelSpec maps Bajo to gpt-5.6-luna xhigh, Medio to gpt-5.6-terra high, and Alto to gpt-5.6-sol medium, with AI_PROVIDER, AI_MODEL_<MODE>, AI_REASONING_<MODE>, and AI_DEFAULT_MODE overrides",
+        "OpenAI and gateway providers initialize lazily and fail with clear errors when keys are missing",
+        "Shared call settings send store false and a namespaced pseudonymous safety identifier equivalent to the mail one",
+        "A pricing table estimates USD cost from normalized token usage and reports unpriced models explicitly",
+        "Switching a mode to the Vercel AI Gateway or another vendor is an environment change only",
+        "Focused gateway checks, TypeScript, lint, and build when available are recorded"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": 39,
+      "name": "agent_core_skills_and_stream",
+      "title": "Add the agent core, skills, tools, usage tracking, and streaming route",
+      "description": "Build lib/agent with the business profile, approved-knowledge injection, Spanish system prompt, Presupuestos, Emails, and Consejos skills, read and calculation tools over existing data and lib functions, the validated draftEmail tool, new Agent* Prisma models with per-turn usage and cost, and the admin-only /api/agent/chat streaming route. See docs/agent-plan.md.",
+      "acceptance": [
+        "AgentConversation, AgentMessage, AgentUsageEvent, and AgentAuditEvent arrive through an additive migration and Chat/Message stay untouched",
+        "The business profile consolidates company facts, IVA 22, Literal E, BPS rates, 4.32, and transport constants in one lib module and approved mail memories feed the prompt as read-only knowledge",
+        "Presupuestos, Emails, and Consejos skills define instructions, tool allowlists, and suggestions, and General exposes every tool",
+        "The system prompt is Spanish, includes the mandatory Literal E note, and forbids quoting prices without official or computed evidence",
+        "Read and calculation tools map to existing data and lib functions, return a stable ok or error shape with Decimal-free JSON, and never write operational rows",
+        "draftEmail writes with the active mode, refuses ungrounded or mismatched amounts and missing Literal E notes, and records official sources",
+        "/api/agent/chat requires an admin session, validates mode, skill, and body, persists UIMessages with parts and per-turn usage events with estimated cost in onEnd, and stays thin",
+        "Focused tool, skill, and prompt checks, Prisma validate, migration verification, TypeScript, lint, and build are recorded"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": 40,
+      "name": "agent_proposals",
+      "title": "Propose-and-confirm writes for budgets and official budgets",
+      "description": "Add AgentProposal persistence, the four propose* tools that never write during the model turn, and the idempotent confirmAgentProposal and reject actions that execute the existing createBudget, updateBudget, duplicateBudget, and publishOfficialBudget flows after an explicit administrator confirmation. See docs/agent-plan.md.",
+      "acceptance": [
+        "proposeCreateBudget, proposeUpdateBudget, proposeDuplicateBudget, and proposePublishOfficialBudget persist PENDING proposals and never write budgets during the model turn",
+        "Update proposals show before and after totals and warn about option recreation and automatic official versions",
+        "confirmAgentProposal re-validates, claims atomically, executes the existing actions, records result or failure, and is idempotent",
+        "Rejection, expiry after 24 hours, and audit events are recorded",
+        "Focused proposal checks, TypeScript, lint, and build are recorded"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": 41,
+      "name": "agent_budget_sheet",
+      "title": "Replace the budget chat sheet with the agent, modes, skills, and cost reporting",
+      "description": "Replace components/ai/AIChat.tsx in the budget detail and create pages with host-agnostic components/agent/** inside the same sheet: useChat transport, mode selector, skill chips, message parts with cards, proposal confirmation, conversation history, per-turn usage line, conversation cost badge, and the AI cost dialog; remove the legacy chat route and actions. See docs/agent-plan.md.",
+      "acceptance": [
+        "The budget detail and create pages open the agent in the existing sheet with saved or unsaved form context",
+        "The sheet exposes the Bajo, Medio, and Alto mode selector, skill chips, conversation history with rename and delete, and a conversation cost badge",
+        "Messages render text, tool chips, budget totals, proposal, email, and finance cards from message parts, and each assistant turn shows model, mode, tokens, and estimated cost",
+        "The email card copies as email or WhatsApp through the existing copy formatter",
+        "The composer sends on Enter, inserts newlines on Shift+Enter, and can stop a stream",
+        "Proposal cards confirm or reject through the server actions and invalidate budget and official-budget queries",
+        "The AI cost dialog reports this conversation, the current month by model and mode, and unpriced usage",
+        "AIChat.tsx, the ai-chat stream route, save-chat, upload-chat-image, and ai-system-message are removed and feature 7 is marked superseded",
+        "Loading, empty, error, desktop, and 390x844 states pass authenticated browser smoke with lint and build"
+      ],
+      "status": "pending"
     }
   ]
 }

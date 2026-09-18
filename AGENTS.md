@@ -26,6 +26,7 @@ map, not a complete rule book: read the referenced file when the task needs it.
 | `docs/architecture.md` | System boundaries and data flow | Before implementation |
 | `docs/conventions.md` | Code style and file ownership rules | Before editing |
 | `docs/verification.md` | Required proof before closing work | Before marking done |
+| `docs/agent-plan.md` | Approved plan for the Bambú agent (features 38-41) | Before implementing features 38-41 |
 | `CHECKPOINTS.md` | Reviewer checklist | During review |
 | `.codex/agents/` | Codex leader, implementer, reviewer roles | When orchestrating |
 | `scripts/harness-validate.mjs` | Machine checks for harness health | When init fails |
