@@ -2,12 +2,13 @@
 
 Status: in_progress
 
-## Agente de Bambú (features 38-41)
+## Agente de Bambú (features 38-42)
 
 - Plan aprobado en `docs/agent-plan.md`; contrato vivo en `docs/agent.md`.
-  Orden: 38 → 39 → 40 → 41, cada una en su rama. Se marcan `in_progress`
-  recién cuando la 35 libere el único slot, así que las cuatro siguen
-  `pending` en `feature_list.json`.
+  Orden: 38 → 39 → 40 → 41 → 42, cada una en su rama. Se marcan
+  `in_progress` recién cuando la 35 libere el único slot, así que las cinco
+  siguen `pending` en `feature_list.json`. La 42 (la página del agente) la
+  pidió el usuario el 2026-09-21, después de commitear la 41.
 - Supuestos a confirmar con el usuario si hace falta: modo por conversación con
   default Medio, habilidad por mensaje con default General, costos en USD.
 - Revisiones (2026-09-18): tres revisores independientes, uno por feature,
@@ -16,7 +17,7 @@ Status: in_progress
   sección "Correcciones de la revisión" de cada `impl_*.md`. La re-revisión
   sobre `b6becae` aprobó las tres; sus menores nuevos (título al regenerar y
   aserciones faltantes) quedaron resueltos en el commit siguiente.
-- Para cerrar 38, 39, 40 y 41 falta la decisión del usuario de pasarlas a
+- Para cerrar de la 38 a la 42 falta la decisión del usuario de pasarlas a
   `done` con la 35 todavía en `in_progress`. Decisiones abiertas:
   `engines`/Node del deploy y `maxDuration` (con el consumo guardado por
   paso).
@@ -147,8 +148,36 @@ Status: in_progress
 - NOT RUN: 403 de un usuario logueado que no es admin (no hay uno) y la
   redirección por cambio de dirección del presupuesto abierto (cubierta por
   lectura de código).
+- Commiteada el 2026-09-21 (`e4b89c8` y `595870c`) a pedido del usuario,
+  después de volver a pasar harness, ESLint, `tsc` y `check:agent-sheet`.
 - Siguiente paso: revisión independiente (`progress/review_agent_budget_sheet.md`)
-  y decidir el cierre de 38-41 con la 35 todavía `in_progress`.
+  y decidir el cierre de 38-42 con la 35 todavía `in_progress`.
+
+### Feature 42 - `agent_page` (implementada, falta revisión)
+
+- Rama `feature/42-agent-page`, encima de la 41, sin commitear. Sigue
+  `pending` por lo mismo que 38-41. Detalle en `progress/impl_agent_page.md`.
+- `/dashboard/agent` con "Agente" en el sidebar: el mismo agente a ancho
+  completo, con todas las conversaciones (las 100 más recientes) en una
+  columna que depende del ancho del panel, o en el diálogo de historial.
+  Una conversación de un presupuesto manda ese presupuesto como contexto y
+  linkea a él; las nuevas van sin contexto.
+- La conversación guardada va en `?conversacion=` (con `replaceState`, sin
+  remontar el chat). El Sheet tiene "Abrir en página", deshabilitado
+  mientras responde. `useAgentSession` recibe un `scope`.
+- PASS: `check:agent-page` (nuevo, 16 de 16 mutaciones), `check:agent-sheet`,
+  `check:agent-tools`, `check:agent-proposals`, `tsc`, `.\init.ps1` y
+  `pnpm exec next build` (38 rutas).
+- PASS: smoke autenticado con OpenAI real (US$ 0,0033): página nueva, turno,
+  dirección, recarga, Sheet → "Abrir en página", contexto `saved` en el
+  cuerpo del pedido, búsqueda sin acentos, renombrar, diálogo de borrar,
+  costos, modo, id inexistente o inválido, link del sidebar, historial del
+  Sheet de crear y del presupuesto, 1024, 1440 y 390x844, claro y oscuro.
+- Quedan dos conversaciones de prueba para borrar desde la página. Apareció
+  otra con la misma cuenta ("Presupuesto de oficina 3 días semanales") que
+  no salió del smoke; no se tocó.
+- Siguiente paso: commit (cuando el usuario lo pida) y revisión
+  independiente (`progress/review_agent_page.md`).
 
 ## Feature 37 - Sueldos a mes vencido
 
