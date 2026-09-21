@@ -16,9 +16,10 @@ Status: in_progress
   sección "Correcciones de la revisión" de cada `impl_*.md`. La re-revisión
   sobre `b6becae` aprobó las tres; sus menores nuevos (título al regenerar y
   aserciones faltantes) quedaron resueltos en el commit siguiente.
-- Para cerrar 38, 39 y 40 falta la decisión del usuario de pasarlas a `done`
-  con la 35 todavía en `in_progress`. Decisiones abiertas: `engines`/Node del
-  deploy y `maxDuration` (con el consumo guardado por paso).
+- Para cerrar 38, 39, 40 y 41 falta la decisión del usuario de pasarlas a
+  `done` con la 35 todavía en `in_progress`. Decisiones abiertas:
+  `engines`/Node del deploy y `maxDuration` (con el consumo guardado por
+  paso).
 
 ### Feature 38 - `ai_model_gateway`
 
@@ -109,6 +110,45 @@ Status: in_progress
   salida guardada de la tool, y al confirmar invalida presupuestos,
   oficiales y propuestas. Un `result.slug` distinto del actual implica
   redirigir, igual que el formulario de edición.
+
+### Feature 41 - `agent_budget_sheet` (implementada, falta revisión)
+
+- Rama `feature/41-agent-budget-sheet`, encima de la 40. Sigue `pending` en
+  `feature_list.json` por el mismo motivo que 38-40 (la 35 ocupa el slot).
+- Diseño: el host del Sheet es dueño de la sesión (una instancia `Chat` del
+  AI SDK guardada en estado), así cerrar y reabrir el Sheet no corta ni
+  pierde la conversación. El transport es un módulo fijo y el modo, la
+  habilidad y el contexto viajan con cada `sendMessage`, sin refs.
+- En un presupuesto guardado se retoma la última conversación; en crear se
+  arranca una nueva. El formulario se lee al enviar (`getValues`), no en
+  cada tecla, y los campos inválidos no viajan (el servidor usa los
+  defaults).
+- Implementado: `components/agent/**` (Sheet, modo, habilidades, tarjetas,
+  propuestas, historial, costos), acciones `actions/agent/usage.ts` y
+  `settings.ts`, helpers puros (`chat-request`, `form-context`,
+  `usage-format`, `proposal-outcome`) y el retiro del chat viejo. Feature 7
+  marcada como reemplazada por la 41 y la 5 acotada a Resend y Cloudinary.
+- PASS: `check:agent-sheet` (nuevo), regresiones `check:agent-tools`,
+  `check:agent-proposals`, `check:ai-gateway`, `check:official-budgets` y
+  `check:mail-agent`, `tsc`, `pnpm lint`, `pnpm harness` y
+  `pnpm exec next build` (37 rutas, sin `/api/ai-chat/stream`).
+- PASS: smoke autenticado (navegador integrado, `next dev` del puerto 3000 y
+  un `next start` de prueba en el 3100 para el error sin clave y el modelo
+  sin precio), con OpenAI real por US$ 0,24. Detalle en
+  `progress/impl_agent_budget_sheet.md`. Los datos de prueba se borraron
+  desde la UI: 200 presupuestos, 0 conversaciones, 0 propuestas.
+- El smoke encontró y se corrigió: numeración y saltos de línea del
+  Markdown, chip de habilidad que se reiniciaba, foco perdido al renombrar
+  desde el menú, selector de modo de 32px en el teléfono, meses con "De",
+  uso sin precio mostrado como US$ 0,00 y respuesta detenida sin marca
+  después de recargar.
+- Límite documentado: una respuesta detenida a mitad de un paso no registra
+  el consumo de ese paso (OpenAI lo informa al terminar la respuesta).
+- NOT RUN: 403 de un usuario logueado que no es admin (no hay uno) y la
+  redirección por cambio de dirección del presupuesto abierto (cubierta por
+  lectura de código).
+- Siguiente paso: revisión independiente (`progress/review_agent_budget_sheet.md`)
+  y decidir el cierre de 38-41 con la 35 todavía `in_progress`.
 
 ## Feature 37 - Sueldos a mes vencido
 
