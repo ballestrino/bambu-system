@@ -21,7 +21,7 @@ import {
   resolveBudgetBase,
   type AgentToolContext,
 } from "@/lib/agent/tools/context";
-import { runTool, toolError, toolOk, type ToolResult } from "@/lib/agent/tool-result";
+import { hideFromModel, runTool, toolError, toolOk, type ToolResult } from "@/lib/agent/tool-result";
 import {
   proposeBudgetTargetInputSchema,
   proposeCreateBudgetInputSchema,
@@ -33,7 +33,8 @@ type Proposal = Extract<BuiltProposal, { ok: true }>;
 // Guarda la propuesta PENDING y devuelve la tarjeta. Estas tools nunca
 // escriben presupuestos: eso pasa solo al confirmar, en actions/agent. La
 // tarjeta sale de la fila guardada: si la misma llamada llega dos veces, lo
-// que se muestra es lo que se ejecutaría.
+// que se muestra es lo que se ejecutaría. Crear suma los valores completos
+// para editar la propuesta antes de guardarla; el modelo no los ve.
 const saveProposal = async (ctx: AgentToolContext, toolCallId: string, built: Proposal) => {
   const proposal = await saveAgentProposal({
     conversationId: ctx.conversationId,
@@ -54,6 +55,7 @@ const saveProposal = async (ctx: AgentToolContext, toolCallId: string, built: Pr
     expiresAt: proposal.expiresAt.toISOString(),
     summary,
     grounding,
+    ...(built.kind === "CREATE_BUDGET" && "values" in built.payload ? { values: built.payload.values } : {}),
   });
 };
 
@@ -99,6 +101,7 @@ export const createProposalTools = (ctx: AgentToolContext) => ({
         }
         return saveProposal(ctx, toolCallId, built);
       }),
+    toModelOutput: hideFromModel("values"),
   }),
 
   proposeUpdateBudget: tool({

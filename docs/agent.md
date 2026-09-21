@@ -1,6 +1,6 @@
 # Agente de Bambú
 
-Contrato de producto y entorno del agente (features 38-42). El plan completo
+Contrato de producto y entorno del agente (features 38-43). El plan completo
 está en `docs/agent-plan.md`; este documento describe lo que ya existe y se
 actualiza con cada feature.
 
@@ -19,6 +19,9 @@ actualiza con cada feature.
 - Feature 42: la página `/dashboard/agent` ("Agente" en el sidebar), el mismo
   agente a ancho completo con todas las conversaciones. Comparte las
   conversaciones con el Sheet, que abre la suya en la página.
+- Feature 43: los presupuestos que arma el agente (cálculos y propuestas de
+  crear) se ven en detalle, se editan con el formulario del generador en un
+  Sheet y se guardan en el generador desde el chat.
 - El agente de correo (`lib/mail-agent/**`) no usa esta capa y no cambia.
 
 ## Núcleo (feature 39)
@@ -243,6 +246,48 @@ los mismos componentes que el Sheet: `AgentPageHost` es otro host para
   lectura (`max-w-3xl`), que en el Sheet no cambia nada.
 - Una propuesta confirmada desde la página invalida además el historial: el
   nombre del presupuesto de la lista y de la cabecera puede cambiar.
+
+## Editor de presupuestos (feature 43)
+
+Las tarjetas de `calculateBudget`, `solveForTargetPrice` y
+`proposeCreateBudget` tienen "Ver detalle" y "Editar". Los dos abren
+`AgentBudgetSheet` (`components/agent/budget-editor/**`), a la derecha y
+encima del chat o del Sheet de Presupuestos, con dos pestañas sobre el mismo
+formulario:
+
+- Detalle: los `BudgetDetails` sin y con productos de la página del
+  presupuesto, recalculados en vivo.
+- Editar: `CreateBudgetForm`, el formulario del generador, validado con
+  `agentBudgetEditorSchema` (mensajes en castellano, los números del input
+  convertidos y los límites de una propuesta).
+- Pie: los finales con IVA y "Guardar en el generador".
+
+| Tarjeta | Valores iniciales | Guardar |
+| --- | --- | --- |
+| Cálculo | `values` de la salida (o sus insumos, si es vieja). Nombre vacío salvo que venga del formulario de crear | Una propuesta CREATE_BUDGET nueva de esa llamada, confirmada en el momento |
+| Propuesta de crear | Los `values` vivos de la propuesta | La misma propuesta, revisada con los valores editados y confirmada |
+
+- `values` (el `BudgetFormValues` completo) sale en la salida de las tres
+  tools para la UI; `toModelOutput: hideFromModel("values")` se lo saca al
+  modelo, que ya tiene los insumos.
+- `saveAgentBudget` (`actions/agent/save-budget.ts`): admin, valores
+  válidos, la llamada a tool tiene que estar en una conversación del usuario
+  y haber armado un presupuesto (`data/agent/tool-calls.ts`), y el slug libre
+  (si no, el error va al campo nombre). `reviseAgentProposal` deja la
+  propuesta de esa llamada (nueva, o la existente si está PENDING, REJECTED,
+  EXPIRED o FAILED, con auditoría `proposal.revise`) y `confirmAgentProposal`
+  la ejecuta: una sola escritura aunque se repita, y el agente la ve en el
+  bloque de propuestas de los turnos siguientes.
+- Un cálculo que parte de un presupuesto guardado se guarda como uno nuevo:
+  el editor lo dice. Guardar cambios en ese presupuesto sigue siendo pedírselo
+  al agente (`proposeUpdateBudget`).
+- Guardado (CONFIRMED) o guardándose (EXECUTING), el editor es de solo
+  lectura, con "Abrir" y "Editar en el generador". La tarjeta del cálculo dice
+  "Guardado en el generador"; la de la propuesta muestra el resumen vivo.
+- Los cambios sin guardar quedan por llamada a tool en una ref del chat (sin
+  re-render por tecla): reabrir el editor los recupera y la tarjeta avisa.
+  Se pierden al recargar, al cambiar de conversación o al cerrar el Sheet de
+  Presupuestos (que desmonta el chat).
 
 ## Modos
 

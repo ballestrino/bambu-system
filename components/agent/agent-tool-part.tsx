@@ -57,7 +57,7 @@ export function AgentToolPart({ part }: { part: AgentToolUIPart }) {
         state={state}
       />
       {errorText && <p className="text-xs text-muted-foreground">{errorText}</p>}
-      {output?.ok && <AgentToolCard data={output.data} />}
+      {output?.ok && <AgentToolCard data={output.data} toolCallId={part.toolCallId} />}
     </div>
   );
 }

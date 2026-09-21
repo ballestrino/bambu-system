@@ -15,7 +15,7 @@ import {
   type AgentToolContext,
   type BudgetBase,
 } from "@/lib/agent/tools/context";
-import { runTool, toolError, toolOk } from "@/lib/agent/tool-result";
+import { hideFromModel, runTool, toolError, toolOk } from "@/lib/agent/tool-result";
 import {
   calculateBudgetInputSchema,
   solveForTargetPriceInputSchema,
@@ -28,6 +28,8 @@ const describeBase = (base: BudgetBase) => ({
 });
 
 // Cálculos puros sobre las fórmulas del formulario. Nunca guardan nada.
+// values (el formulario completo) es para editar y guardar desde la tarjeta:
+// el modelo no lo ve.
 export const createCalculationTools = (ctx: AgentToolContext) => ({
   calculateBudget: tool({
     description:
@@ -50,8 +52,10 @@ export const createCalculationTools = (ctx: AgentToolContext) => ({
           inputs: describeBudgetInputs(values),
           calculation,
           grounding,
+          values,
         });
       }),
+    toModelOutput: hideFromModel("values"),
   }),
 
   solveForTargetPrice: tool({
@@ -87,7 +91,9 @@ export const createCalculationTools = (ctx: AgentToolContext) => ({
           inputs: describeBudgetInputs(solved.values),
           calculation,
           grounding,
+          values: solved.values,
         });
       }),
+    toModelOutput: hideFromModel("values"),
   }),
 });

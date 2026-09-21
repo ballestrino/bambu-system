@@ -46,6 +46,19 @@ export const toPlainJson = (value: unknown): PlainJson => {
 
 export const roundMoney = (value: number) => Math.round(value * 100) / 100;
 
+// toModelOutput de las tools que devuelven campos solo para la UI (los valores
+// completos de un presupuesto, para editarlo): el modelo ya tiene los insumos
+// y esos campos solo le sumarían tokens. Un error pasa entero.
+export const hideFromModel =
+  (...keys: string[]) =>
+  ({ output }: { output: unknown }) => {
+    const result = output as ToolResult<Record<string, PlainJson>>;
+    const value = result?.ok
+      ? { ...result, data: Object.fromEntries(Object.entries(result.data).filter(([key]) => !keys.includes(key))) }
+      : result;
+    return { type: "json" as const, value: value as PlainJson };
+  };
+
 // La salida de una tool como JSON plano: aunque una lectura empiece a devolver
 // Decimal o Date, lo que llega al modelo y se guarda es JSON.
 export const toPlainResult = <T>(result: ToolResult<T>): ToolResult<T> =>

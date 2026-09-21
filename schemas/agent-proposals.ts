@@ -1,6 +1,7 @@
 import { z } from "zod";
 
 import type { AgentProposalKind } from "@/lib/agent/proposals";
+import { agentClientIdSchema } from "@/schemas/agent";
 import { BudgetSchema } from "@/schemas/BudgetSchema";
 
 // Payloads de las propuestas del agente. Se validan al proponer y otra vez al
@@ -53,3 +54,21 @@ export const parseProposalPayload = (
 };
 
 export const agentProposalIdSchema = idSchema;
+
+// El formulario del editor del chat: el del generador con los límites de una
+// propuesta y los mensajes en castellano. Convierte los números (los inputs
+// dan texto): lo que sale de acá ya se puede mandar a guardar.
+export const agentBudgetEditorSchema = BudgetSchema.extend({
+  name: z.string().trim().min(1, "Poné un nombre para guardarlo en el generador."),
+  visits: z.coerce.number().int("Las visitas van sin decimales.").min(0, "Las visitas no pueden ser negativas."),
+  employees: z.coerce.number().int("Las empleadas van sin decimales.").min(1, "Tiene que haber al menos una empleada."),
+  iva: z.coerce.number().positive("El IVA tiene que ser mayor que 0."),
+});
+
+// Guardar desde el chat un presupuesto que armó el agente: la llamada a tool
+// que lo armó y los valores, quizás editados.
+export const agentSaveBudgetSchema = z.object({
+  conversationId: agentClientIdSchema,
+  toolCallId: z.string().trim().min(1).max(128),
+  values: proposalBudgetValuesSchema,
+});

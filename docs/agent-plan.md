@@ -628,6 +628,79 @@ Smoke de la 42 (además de las regresiones del Sheet):
   80 px de más, y la rueda al final de la lista arrastraba la página.
 - La búsqueda de la página mira también el nombre del presupuesto.
 
+## Feature 43: editar, guardar y ver el detalle de un presupuesto del agente
+
+Rama `feature/43-agent-budget-editor`, encima de la 42. Pedido del usuario el
+2026-09-21: cuando el agente arma un presupuesto, poder editarlo en el
+momento, guardarlo en el generador y ver el detalle en un Sheet. Decidido con
+el usuario: se edita en el Sheet con el formulario del generador, y aplica a
+los cálculos (`calculateBudget`, `solveForTargetPrice`) y a las propuestas de
+crear (`proposeCreateBudget`).
+
+- Tarjetas: "Ver detalle" y "Editar" abren un Sheet a la derecha (también
+  encima del Sheet de Presupuestos) con dos pestañas sobre el mismo
+  formulario: Detalle (los `BudgetDetails` sin y con productos de la página
+  del presupuesto, recalculados en vivo) y Editar (`CreateBudgetForm`, el
+  formulario del generador). El pie tiene los finales y "Guardar en el
+  generador".
+- Valores: las tres tools devuelven `values` (el `BudgetFormValues` completo)
+  para la UI y `toModelOutput` se lo saca al modelo, que ya tiene los
+  insumos. Las salidas viejas, sin `values`, se reconstruyen de sus insumos
+  (alcanza para el cálculo: `nominal_salary` y `products_iva` no entran). El
+  DTO de las propuestas de crear trae sus `values` vivos.
+- Guardar (`actions/agent/save-budget.ts`): valida los valores, que la
+  conversación sea del usuario y que la llamada a tool exista en ella y sea
+  de un presupuesto; si el slug está tomado lo dice en el nombre. Después deja
+  una propuesta CREATE_BUDGET de esa llamada (nueva para un cálculo; la de la
+  propuesta, revisada con los valores editados, si todavía no se ejecutó) y la
+  confirma con `confirmAgentProposal`: una sola escritura aunque se repita,
+  auditada (`proposal.revise` nuevo) y el agente la ve en el bloque de
+  propuestas de los turnos siguientes.
+- Ya guardado (propuesta CONFIRMED) o guardándose (EXECUTING), el Sheet es
+  de solo lectura, con links a abrir y editar el presupuesto en el generador.
+  La tarjeta del cálculo muestra "Guardado en el generador".
+- Los cambios sin guardar quedan en memoria por llamada a tool mientras dure
+  la sesión: cerrar y reabrir el Sheet no los pierde, y la tarjeta avisa.
+- La tarjeta de propuesta muestra el resumen vivo: si se guardó editada, el
+  de lo que se guardó.
+- `check:agent-budget-editor` nuevo.
+
+Smoke de la 43:
+
+1. En la página, "Armá un presupuesto de limpieza de oficina, 2 veces por
+   semana" → tarjeta de cálculo → Ver detalle: sin y con productos iguales a
+   la tarjeta.
+2. Editar: cambiar horas y margen, el detalle y los finales cambian; cerrar y
+   reabrir conserva los cambios. Guardar sin nombre marca el nombre; con uno
+   tomado, también.
+3. Guardar con nombre nuevo: la tarjeta pasa a "Guardado", el presupuesto
+   existe en el generador con esos valores, y el turno siguiente el agente lo
+   conoce.
+4. Una propuesta de crear: Editar, cambiar un valor y guardar la confirma
+   con el cambio (la tarjeta muestra el resumen nuevo).
+5. En el Sheet de un presupuesto, el editor se abre encima y al cerrarlo
+   vuelve al agente. 390x844, claro y oscuro, consola limpia.
+
+### Ajustes al implementar la 43 (2026-09-21)
+
+- `lib/agent/proposals.ts` pasaba las 200 líneas con los `values` del DTO:
+  las precondiciones de confirmar pasaron a `proposal-preconditions.ts`, y
+  `proposals.ts` las reexporta (ningún import cambió).
+- Guardar llama a `confirmAgentProposal` tal cual, sin mover su código: los
+  checks de propuestas no cambian.
+- Los números del formulario llegan como texto: el editor valida con un
+  schema que convierte (`agentBudgetEditorSchema`) y manda lo convertido.
+- Los borradores se anotan con `form.subscribe` (el lint del compilador de
+  React marca `watch`) y solo con el formulario modificado. Los valores
+  armados con los insumos traen el precio calculado: si no, abrir el editor
+  lo recalculaba y contaba como cambio.
+- Hallazgos del smoke: el detalle tenía doble scroll (las tarjetas de la
+  página traen alto máximo propio); cerrar el editor encima del Sheet dejaba
+  el foco en `BODY` (ahora vuelve al botón que lo abrió); un cálculo ya
+  guardado mostraba, después de recargar, los valores del agente y no los
+  guardados (ahora el editor parte de los `values` de su propuesta); el
+  cierre y las pestañas medían 16 y 37 px en el teléfono (ahora 44).
+
 ## Verificación
 
 Por feature: `pnpm exec tsc --noEmit`, `pnpm lint`, `pnpm harness`, `pnpm exec
@@ -759,5 +832,24 @@ cambia el viewport):
   opens the current conversation in the page, disabled while a response
   streams · Mode selector, skill chips, tool cards, proposals, usage line, cost
   badge, and the AI cost dialog behave on the page as in the sheet · Focused
+  checks, TypeScript, lint, build, and authenticated browser smoke on desktop
+  and 390x844 pass.
+- **43 `agent_budget_editor`** — "Edit agent budgets in a sheet and save them
+  to the generator". Acceptance: Calculation cards and create-budget proposal
+  cards offer Ver detalle and Editar, which open a sheet over the chat, also
+  over the budget sheet, with the budget detail and the generator form · The
+  detail shows the without- and with-products breakdown of the budget page and
+  recalculates live as the form changes · Guardar en el generador validates the
+  name and values with Spanish messages, reports a taken slug on the name
+  field, and creates the budget with the edited values · Saving goes through a
+  CREATE_BUDGET proposal tied to that tool call, new for a calculation and the
+  pending one revised for a proposal, confirmed in the same action:
+  idempotent, audited, and listed for the agent in later turns · After saving,
+  the card and the sheet show the saved budget with links to open and edit it
+  in the generator, and a saved or executing budget is read-only ·
+  calculateBudget, solveForTargetPrice, and proposeCreateBudget return the
+  full values for the UI while the model receives the output without them, and
+  older outputs fall back to their inputs · Unsaved edits survive closing and
+  reopening the sheet during the session and the card says so · Focused
   checks, TypeScript, lint, build, and authenticated browser smoke on desktop
   and 390x844 pass.

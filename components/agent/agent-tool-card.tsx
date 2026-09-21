@@ -9,14 +9,15 @@ import { AgentProposalCard } from "@/components/agent/cards/agent-proposal-card"
 import type { AgentToolData, AgentToolName, ListCardData } from "@/components/agent/types";
 
 // La tarjeta de una salida de tool según su discriminador `card`. Los datos
-// del negocio (card "business") no llevan tarjeta: alcanza con el chip.
-export function AgentToolCard({ data }: { data: AgentToolData<AgentToolName> }) {
+// del negocio (card "business") no llevan tarjeta: alcanza con el chip. Las
+// de presupuestos reciben su llamada a tool: con ella se editan y se guardan.
+export function AgentToolCard({ data, toolCallId }: { data: AgentToolData<AgentToolName>; toolCallId: string }) {
   switch (data.card) {
     case "budget":
     case "budget-totals":
-      return <AgentBudgetTotalsCard data={data} />;
+      return <AgentBudgetTotalsCard data={data} toolCallId={toolCallId} />;
     case "proposal":
-      return <AgentProposalCard data={data} />;
+      return <AgentProposalCard data={data} toolCallId={toolCallId} />;
     case "email":
       return <AgentEmailCard data={data} />;
     case "finance":

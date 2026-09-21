@@ -1,10 +1,13 @@
 import { Calculator, FileText } from "lucide-react";
 import Link from "next/link";
 
+import type { BudgetEditorTarget } from "@/components/agent/budget-editor/use-budget-editor";
+import { AgentBudgetActions } from "@/components/agent/cards/agent-budget-actions";
 import { AgentCard, CardNote, CardRow } from "@/components/agent/cards/agent-card";
 import { formatHours, formatMoney, formatPercent, formatVisits } from "@/components/agent/format";
 import type { BudgetTotalsCardData } from "@/components/agent/types";
 import type { BudgetCalculation } from "@/lib/agent/budget-calculation";
+import { valuesFromInputs } from "@/lib/agent/budget-draft";
 import { FIELD_LABELS } from "@/lib/agent/proposal-summary";
 import { getBudgetUrl } from "@/lib/agent/proposals";
 
@@ -16,6 +19,24 @@ const BASE_LABELS = {
 } as const;
 
 type Inputs = BudgetTotalsCardData["inputs"];
+
+type CalculationData = Exclude<BudgetTotalsCardData, { card: "budget" }>;
+
+// Lo que abre el editor desde un cálculo. Se guarda como un presupuesto
+// nuevo: si partió de uno guardado (o de los valores por defecto) el nombre
+// queda vacío, para no chocar con el que ya existe. Una salida anterior a
+// values se arma con sus insumos.
+const calculationTarget = (data: CalculationData, toolCallId: string): BudgetEditorTarget => {
+  const values = ("values" in data && data.values) || valuesFromInputs(data.inputs, data.base.name);
+  const savedBase = data.base.source === "context" || data.base.source === "budget";
+  return {
+    toolCallId,
+    source: "calculation",
+    title: `Cálculo · ${data.base.name}`,
+    values: data.base.source === "form" ? values : { ...values, name: "" },
+    basedOn: savedBase ? data.base.name : null,
+  };
+};
 
 const describeInputs = (inputs: Inputs) =>
   [
@@ -74,7 +95,7 @@ function CostBreakdown({ calculation }: { calculation: BudgetCalculation }) {
   );
 }
 
-export function AgentBudgetTotalsCard({ data }: { data: BudgetTotalsCardData }) {
+export function AgentBudgetTotalsCard({ data, toolCallId }: { data: BudgetTotalsCardData; toolCallId: string }) {
   const saved = data.card === "budget";
   const name = saved ? data.name : data.base.name;
   const slug = saved ? data.slug : data.base.slug;
@@ -105,6 +126,7 @@ export function AgentBudgetTotalsCard({ data }: { data: BudgetTotalsCardData }) 
       )}
       <BudgetPriceTable calculation={data.calculation} />
       <CostBreakdown calculation={data.calculation} />
+      {data.card === "budget-totals" && <AgentBudgetActions target={calculationTarget(data, toolCallId)} showSaved />}
     </AgentCard>
   );
 }

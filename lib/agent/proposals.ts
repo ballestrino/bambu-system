@@ -1,6 +1,6 @@
 import type { BudgetCalculation, describeBudgetInputs } from "@/lib/agent/budget-calculation";
 import { hasUnknownOutcome } from "@/lib/agent/proposal-outcome";
-import type { ParsedProposal } from "@/schemas/agent-proposals";
+import type { BudgetFormValues } from "@/schemas/BudgetSchema";
 
 // Propuestas del agente: escrituras que se preparan durante el turno y se
 // ejecutan solo cuando quien conversa las confirma. Puro: lo usan las tools,
@@ -87,6 +87,7 @@ export const proposalSelect = {
   id: true,
   kind: true,
   status: true,
+  payload: true,
   summary: true,
   result: true,
   error: true,
@@ -102,6 +103,7 @@ export type ProposalRow = {
   id: string;
   kind: AgentProposalKind;
   status: AgentProposalStatus;
+  payload?: unknown;
   summary: unknown;
   result: unknown;
   error: string | null;
@@ -113,11 +115,22 @@ export type ProposalRow = {
   updatedAt: Date;
 };
 
+const isRecord = (value: unknown): value is Record<string, unknown> =>
+  typeof value === "object" && value !== null && !Array.isArray(value);
+
+// Los valores de una propuesta de crear: la tarjeta los edita antes de
+// guardar. Las demás no se editan desde el chat y el payload no sale.
+const readCreateValues = (row: ProposalRow) =>
+  row.kind === "CREATE_BUDGET" && isRecord(row.payload) && isRecord(row.payload.values)
+    ? (row.payload.values as BudgetFormValues)
+    : null;
+
 // unknownOutcome sale con la hora del servidor: la UI y el prompt lo leen hecho.
 export const serializeProposal = (row: ProposalRow, now = new Date()) => ({
   id: row.id,
   kind: row.kind,
   status: resolveProposalStatus(row, now),
+  values: readCreateValues(row),
   summary: row.summary as ProposalSummary,
   result: (row.result ?? null) as ProposalResult | null,
   error: row.error,
@@ -160,38 +173,15 @@ export const describeRejectOutcome = (proposal: AgentProposalDto) =>
     ? { success: "Propuesta rechazada", proposal }
     : { error: REJECT_ERRORS[proposal.status], proposal };
 
-export const PROPOSAL_STALE_MESSAGE =
-  "El presupuesto cambió desde la propuesta: pedile al asistente una nueva.";
-
 export type ProposalBudgetState = {
   userId: string;
   updatedAt: Date;
   officialBudget: { id: string } | null;
 };
 
-export const getProposalBudgetId = (proposal: ParsedProposal) => {
-  if (proposal.kind === "CREATE_BUDGET") return null;
-  if (proposal.kind === "PUBLISH_OFFICIAL_BUDGET") return proposal.payload.sourceBudgetId;
-  return proposal.payload.budgetId;
-};
-
-// Se re-valida al confirmar, contra una lectura fresca: el presupuesto tiene
-// que ser el mismo que mostró la tarjeta. null = se puede ejecutar.
-export const checkProposalPreconditions = (
-  proposal: ParsedProposal,
-  state: ProposalBudgetState | null,
-  actorId: string
-) => {
-  if (proposal.kind === "CREATE_BUDGET") return null;
-  if (!state) return "El presupuesto ya no existe.";
-  if (state.updatedAt.toISOString() !== proposal.payload.baseUpdatedAt) return PROPOSAL_STALE_MESSAGE;
-  if (proposal.kind === "UPDATE_BUDGET") {
-    return (state.officialBudget?.id ?? null) === proposal.payload.officialBudgetId
-      ? null
-      : PROPOSAL_STALE_MESSAGE;
-  }
-  if (proposal.kind === "DUPLICATE_BUDGET") {
-    return state.userId === actorId ? null : "Solo quien creó el presupuesto puede duplicarlo.";
-  }
-  return state.officialBudget ? "El presupuesto ya está publicado como oficial." : null;
-};
+// Las precondiciones viven en su módulo; se reexportan para no cambiar imports.
+export {
+  checkProposalPreconditions,
+  getProposalBudgetId,
+  PROPOSAL_STALE_MESSAGE,
+} from "@/lib/agent/proposal-preconditions";

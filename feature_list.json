@@ -661,6 +661,23 @@
         "Focused checks, TypeScript, lint, build, and authenticated browser smoke on desktop and 390x844 pass"
       ],
       "status": "pending"
+    },
+    {
+      "id": 43,
+      "name": "agent_budget_editor",
+      "title": "Edit agent budgets in a sheet and save them to the generator",
+      "description": "Calculation cards and create-budget proposals open a sheet with the generator form and the live budget detail. Saving creates the generator budget through a CREATE_BUDGET proposal tied to that tool call (new for a calculation, the pending one revised for a proposal) confirmed in the same action, so it is audited and the agent sees it. Tool outputs carry the full values for the UI and hide them from the model. See docs/agent-plan.md.",
+      "acceptance": [
+        "Calculation cards and create-budget proposal cards offer Ver detalle and Editar, which open a sheet over the chat, also over the budget sheet, with the budget detail and the generator form",
+        "The detail shows the without- and with-products breakdown of the budget page and recalculates live as the form changes",
+        "Guardar en el generador validates the name and values with Spanish messages, reports a taken slug on the name field, and creates the budget with the edited values",
+        "Saving goes through a CREATE_BUDGET proposal tied to that tool call, new for a calculation and the pending one revised for a proposal, confirmed in the same action: idempotent, audited, and listed for the agent in later turns",
+        "After saving, the card and the sheet show the saved budget with links to open and edit it in the generator, and a saved or executing budget is read-only",
+        "calculateBudget, solveForTargetPrice, and proposeCreateBudget return the full values for the UI while the model receives the output without them, and older outputs fall back to their inputs",
+        "Unsaved edits survive closing and reopening the sheet during the session and the card says so",
+        "Focused checks, TypeScript, lint, build, and authenticated browser smoke on desktop and 390x844 pass"
+      ],
+      "status": "pending"
     }
   ]
 }

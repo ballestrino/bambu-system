@@ -3,6 +3,7 @@ import "server-only";
 import { Prisma } from "@prisma/client";
 
 import { recordAgentAudit } from "@/lib/agent/audit";
+import { REVISABLE_PROPOSAL_STATUSES } from "@/lib/agent/budget-draft";
 import {
   getProposalExpiry,
   proposalSelect,
@@ -68,6 +69,54 @@ export const saveAgentProposal = async (input: {
       select: proposalSelect,
     });
   }
+};
+
+// Guardar desde el chat un presupuesto que armó el agente deja una propuesta
+// de esa llamada a tool: nueva (un cálculo), o la existente con los valores
+// editados si todavía no se ejecutó (una rechazada o vencida vuelve a
+// pendiente). Una confirmada o en ejecución no cambia: confirmarla después
+// devuelve su estado. La condición del update cierra la carrera con otro
+// guardado o con confirmar desde la tarjeta.
+export const reviseAgentProposal = async (input: {
+  conversationId: string;
+  actorId: string;
+  toolCallId: string;
+  kind: AgentProposalKind;
+  payload: unknown;
+  summary: ProposalSummary;
+}) => {
+  const existing = await db.agentProposal.findUnique({
+    where: {
+      conversationId_toolCallId: { conversationId: input.conversationId, toolCallId: input.toolCallId },
+    },
+    select: { id: true, kind: true, status: true, actorId: true },
+  });
+  if (!existing) return { ok: true as const, id: (await saveAgentProposal(input)).id };
+  if (existing.actorId !== input.actorId || existing.kind !== input.kind) {
+    return { ok: false as const, error: "Ese presupuesto no se puede guardar desde acá." };
+  }
+
+  const { count } = await db.agentProposal.updateMany({
+    where: { id: existing.id, status: { in: [...REVISABLE_PROPOSAL_STATUSES] } },
+    data: {
+      payload: toJson(input.payload),
+      summary: toJson(input.summary),
+      status: "PENDING",
+      error: null,
+      resolvedAt: null,
+      expiresAt: getProposalExpiry(new Date()),
+    },
+  });
+  if (count) {
+    await auditProposal({
+      actorId: input.actorId,
+      action: "proposal.revise",
+      entityType: "AgentProposal",
+      entityId: existing.id,
+      metadata: { kind: input.kind, previousStatus: existing.status },
+    });
+  }
+  return { ok: true as const, id: existing.id };
 };
 
 // Las últimas propuestas de la conversación: el bloque del prompt y el estado
