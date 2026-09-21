@@ -82,6 +82,7 @@ assert.equal(resolveProposalStatus({ status: "CONFIRMED", expiresAt }, new Date(
 const row: ProposalRow = {
   id: "prop_1", kind: "UPDATE_BUDGET", status: "PENDING", summary: { title: "Guardar cambios en “Limpieza Norte”" },
   result: null, error: null, toolCallId: "call_1", conversationId: "conv_1", expiresAt, resolvedAt: null, createdAt,
+  updatedAt: createdAt,
 };
 const overdue = serializeProposal(row, new Date(expiresAt.getTime() + 1));
 assert.deepEqual([overdue.status, overdue.expiresAt, overdue.resolvedAt], ["EXPIRED", expiresAt.toISOString(), null]);

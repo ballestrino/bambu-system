@@ -35,6 +35,9 @@ const toCostRow = ({ _sum, _count }: UsageSums) => ({
   cacheWriteTokens: _sum.cacheWriteTokens ?? 0,
   reasoningTokens: _sum.reasoningTokens ?? 0,
   costUsd: _sum.costUsd === null ? 0 : Number(_sum.costUsd),
+  // Postgres suma NULL como NULL: ningún registro del grupo tenía precio. La
+  // UI dice "sin precio" en vez de mostrar US$ 0,00.
+  priced: _sum.costUsd !== null,
   events: _count._all,
 });
 

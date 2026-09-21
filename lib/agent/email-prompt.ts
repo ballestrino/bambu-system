@@ -2,8 +2,8 @@ import { BUSINESS_PROFILE, LITERAL_E_NOTE } from "@/lib/agent/business-profile";
 import type { OfficialSource } from "@/lib/agent/grounding";
 
 // Instrucciones de draftEmail. El esquema del correo viene del chat de
-// presupuestos anterior (data/ai-system-message.ts), con la regla de precios
-// del agente: solo importes con fuente.
+// presupuestos anterior (su prompt se borró en la feature 41), con la regla de
+// precios del agente: solo importes con fuente.
 const EMAIL_SCHEME = [
   "Estimado/a [Nombre del cliente],",
   "",

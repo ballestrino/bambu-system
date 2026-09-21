@@ -7,21 +7,6 @@ import { useCreateBudgetMutation } from '../../hooks/useCreateBudgetMutation';
 export default function useCreateBudgetForm() {
     const router = useRouter();
 
-    const handleGenerateAI = () => {
-        // Mock AI generation
-        console.log("AI Generation Triggered");
-        // Example: fill form with random data
-        form.reset({
-            ...defaultBudgetValues,
-            visits: 4,
-            hours_per_visit: 2,
-            nominal_hour: 15,
-            employees: 2,
-            products_price: 100,
-            transportation_cost: 50
-        })
-    };
-
     const form = useForm<BudgetFormValues>({
         resolver: zodResolver(BudgetSchema) as unknown as Resolver<BudgetFormValues>,
         defaultValues: defaultBudgetValues,
@@ -45,6 +30,5 @@ export default function useCreateBudgetForm() {
         form,
         isPending: isCreating,
         onSubmit,
-        handleGenerateAI,
     }
 }

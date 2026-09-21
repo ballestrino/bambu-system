@@ -12,6 +12,8 @@ export type AgentMessageMetadata = {
   skill?: AgentSkillId;
   createdAt?: string;
   usage?: TurnUsageSummary;
+  // La respuesta se detuvo antes de terminar (Stop o pedido cortado).
+  stopped?: boolean;
 };
 
 export type AgentUITools = InferUITools<AgentTools>;

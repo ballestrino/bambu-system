@@ -7,7 +7,9 @@ import {
 // Lo que el modelo ve de las propuestas. La salida guardada de una tool
 // propose* dice PENDING para siempre: en la prueba real el modelo dio por
 // pendientes propuestas ya confirmadas, rechazadas o vencidas. Puro.
-export type ProposalPromptItem = Pick<AgentProposalDto, "status" | "summary" | "result" | "error">;
+export type ProposalPromptItem = Pick<AgentProposalDto, "status" | "summary" | "result" | "error"> & {
+  unknownOutcome?: boolean;
+};
 
 type LiveProposal = Pick<AgentProposalDto, "id" | "status" | "result" | "error">;
 
@@ -31,11 +33,15 @@ const describeChanges = (changes: ProposalChange[] = []) => {
   return ` (${listed.join(", ")}${rest})`;
 };
 
-// Una línea por propuesta con su estado vivo.
+// Una línea por propuesta con su estado vivo. Una que quedó ejecutándose
+// cuando se cortó el servidor tiene resultado desconocido: repetirla podría
+// escribir dos veces.
 export const formatProposalsForPrompt = (proposals: ProposalPromptItem[]) =>
   proposals
-    .map(({ status, summary, result, error }) => {
-      const line = `- ${summary.title}${describeChanges(summary.changes)}: ${PROPOSAL_STATUS_LABELS[status]}`;
+    .map(({ status, summary, result, error, unknownOutcome }) => {
+      const label = unknownOutcome ? "resultado desconocido" : PROPOSAL_STATUS_LABELS[status];
+      const line = `- ${summary.title}${describeChanges(summary.changes)}: ${label}`;
+      if (unknownOutcome) return `${line} (se cortó mientras se ejecutaba: revisá el presupuesto antes de proponerla de nuevo).`;
       if (status === "CONFIRMED" && result) return `${line}. Quedó en ${result.url}.`;
       if ((status === "FAILED" || status === "EXPIRED") && error) return `${line} (${error}).`;
       return `${line}.`;

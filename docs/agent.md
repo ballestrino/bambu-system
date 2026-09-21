@@ -12,7 +12,10 @@ actualiza con cada feature.
   cálculo, `draftEmail`, persistencia `Agent*` y la ruta `/api/agent/chat`.
 - Feature 40: propuestas. El agente prepara crear, guardar, duplicar o
   publicar como oficial un presupuesto y solo se escribe cuando el usuario
-  confirma. Todavía sin UI (41): las acciones existen, la tarjeta no.
+  confirma.
+- Feature 41: el agente en el Sheet de Presupuestos (detalle y crear), con
+  modos, habilidades, tarjetas, propuestas, historial y costos. Reemplazó al
+  chat viejo (`AIChat`, `/api/ai-chat/stream`, `save-chat`), que se borró.
 - El agente de correo (`lib/mail-agent/**`) no usa esta capa y no cambia.
 
 ## Núcleo (feature 39)
@@ -69,6 +72,10 @@ actualiza con cada feature.
   subir a 300 si los turnos de Bajo lo necesitan. El consumo se guarda en
   `onEnd`: si Vercel corta la función por `maxDuration`, el de ese turno se
   pierde (decisión pendiente junto con el valor de `maxDuration`).
+- Una respuesta detenida (Stop o pedido cortado) se guarda con lo que llegó y
+  la marca `stopped`. Si se corta a mitad de un paso, ese paso no informa
+  consumo (OpenAI lo manda al terminar la respuesta) y no se registra: se
+  cuentan solo los pasos que terminaron.
 - El top 10 del informe del mes ordena por uso con precio; el uso sin precio
   lo cuenta `unpricedEvents`.
 
@@ -132,8 +139,10 @@ Proponer y confirmar: ninguna tool escribe presupuestos durante el turno.
   siempre, y en la prueba real el modelo le creyó a ella antes que al bloque.
 - Presupuestos y General tienen las cuatro tools; Emails y Consejos no.
 - Si el servidor se corta en plena ejecución, la propuesta queda `EXECUTING`:
-  no se puede saber si la escritura llegó, así que no se reintenta sola. La
-  UI tiene que mostrar una EXECUTING vieja como "resultado desconocido".
+  no se puede saber si la escritura llegó, así que no se reintenta sola.
+  Pasados 6 minutos (más que el máximo de una función en Vercel) el DTO trae
+  `unknownOutcome: true` (`lib/agent/proposal-outcome.ts`): la tarjeta y el
+  prompt la muestran como "resultado desconocido".
 - La tarjeta de duplicar no predice la dirección (`duplicateBudget` agrega
   -2, -3…): la real llega en `result`. El número de trabajos que pierden el
   vínculo es el del momento de proponer.
@@ -144,6 +153,53 @@ Proponer y confirmar: ninguna tool escribe presupuestos durante el turno.
   oficial entre la re-validación y `updateBudget` (el vínculo no mueve
   `Budget.updatedAt`), y publicar o duplicar sobre valores guardados en el
   medio por otra confirmación.
+
+## Sheet (feature 41)
+
+`AgentSheetHost` (`components/agent/**`) no sabe en qué pantalla está: recibe
+el contexto y el botón que lo abre.
+
+| Pantalla | Contexto | Al abrir |
+| --- | --- | --- |
+| Detalle (`BudgetView.tsx`) | `{ kind: "saved", budgetId }`, leído fresco por el servidor | Retoma la última conversación del presupuesto |
+| Crear (`create-budget/Header.tsx`) | `{ kind: "form", values }` con `getValues()` al enviar | Arranca una nueva |
+
+- La sesión (`useAgentSession`) vive en el host y es dueña de la instancia
+  `Chat` del AI SDK: cerrar el Sheet no corta el stream ni pierde mensajes.
+  Cambiar de conversación o salir de la página la detiene.
+- Un solo transport (`agent-transport.ts`) para todas las conversaciones:
+  modo, habilidad y contexto viajan en el body de cada envío o reintento.
+  Una redirección (sesión vencida) se informa como tal.
+- Los valores inválidos del formulario (un número a medio escribir,
+  empleadas vacía) no viajan (`sanitizeFormContextValues`): el servidor usa
+  el valor por defecto en vez de rechazar el turno.
+- Cabecera: título (el del modelo llega unos segundos después del primer
+  turno), contexto, historial, nueva conversación, modo y costo. El modo
+  muestra el modelo real de cada uno (`getAgentSettings`, con los overrides
+  del entorno) y aplica a los turnos siguientes; si la conversación ya existe
+  se guarda en el momento.
+- Chips Presupuestos, Emails y Consejos (ninguno = General). La habilidad
+  viaja con cada mensaje, se ve en la burbuja y sigue marcada al reabrir.
+- Cada tool se ve como un chip con su tipo (Lectura, Cálculo, Propuesta,
+  Borrador) y al terminar su tarjeta, según `card`. Un error de la tool se
+  muestra sin alarma: el modelo suele corregirse.
+- Cada respuesta cierra con "Terra · Medio · 3,2k tokens · US$ 0,03" (o
+  "precio no configurado"). Una detenida lo dice, también al recargar.
+- La tarjeta de correo copia como email (texto y HTML), WhatsApp o Markdown
+  con `getChatCopyPayload` (`lib/ai-chat-copy.ts`), más el asunto.
+- La tarjeta de propuesta usa el estado vivo (`listAgentProposals`, releído
+  cada 3 s mientras una se ejecuta) y no ofrece confirmar sin él. Confirmar
+  invalida presupuestos, detalle, oficiales y propuestas; si cambió la
+  dirección del presupuesto abierto, redirige a la nueva.
+- Historial: conversaciones del presupuesto (o sin presupuesto en crear),
+  búsqueda sin acentos, costo por fila, renombrar y borrar. Borrar la activa
+  arranca una nueva.
+- "Costos de IA": esta conversación por tipo y modelo, el mes del equipo por
+  modelo y modo (con navegación hacia atrás desde el mes del servidor) y el
+  top 10. Un grupo sin precio dice "sin precio", nunca US$ 0,00.
+- Errores: el `{ error }` de la ruta y el texto del stream se muestran tal
+  cual; el resto, con un mensaje genérico. Reintentar reenvía el último
+  mensaje (el servidor no lo duplica) con su habilidad y el modo actual.
 
 ## Modos
 
@@ -287,3 +343,11 @@ millón de tokens:
   claim de `confirm-proposal.ts`, el compare-and-set de `updateBudget`, la
   auditoría antes del cierre, el vencimiento condicional por propuesta y que
   la migración es aditiva. IVA 0 se rechaza al proponer y al confirmar.
+- `pnpm check:agent-sheet`: el cuerpo del pedido pasa el schema de la ruta
+  (envío, reintento y formulario), el formulario sin campos inválidos, la
+  lectura de errores, la línea de uso, los saltos de línea del Markdown, el
+  resultado desconocido (DTO y prompt), las dos formas de confirmar y, por
+  texto fuente, que el chat viejo no existe, que el cliente no importa código
+  `server-only`, que cada tarjeta que puede devolver una tool tiene su
+  componente, el transport, la sesión, el composer, las invalidaciones y el
+  tamaño de los archivos.

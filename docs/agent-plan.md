@@ -527,6 +527,35 @@ líneas por archivo, patrón TanStack de `components/official-budgets/**`.
   `AgentChat`; hand-off a `/dashboard/email`; almacén de conocimiento editable;
   adjuntar imágenes.
 
+### Ajustes al implementar la 41 (2026-09-21)
+
+- La instancia `Chat` vive en el host (`useAgentSession`) y `useChat` la
+  recibe con `{ chat }`: con `useChat({ id })` dentro del Sheet, cerrarlo
+  desmontaba el chat y perdía la conversación en curso.
+- En vez de refs en `prepareSendMessagesRequest`, el transport es un módulo
+  fijo y modo, habilidad y contexto viajan en el body de cada `sendMessage` y
+  `regenerate`. El lint del compilador de React no acepta refs leídas en
+  render, y así tampoco hacen falta.
+- El host recibe `getFormValues` (se llama al enviar) en vez de
+  `formValues={form.watch()}`: sin re-render por tecla. Los campos inválidos
+  no viajan (`lib/agent/form-context.ts`).
+- En un presupuesto guardado se retoma su última conversación; en crear se
+  arranca una nueva. `budgetSlug` se suma a las props para redirigir si una
+  propuesta confirmada cambia la dirección del presupuesto abierto.
+- Acciones nuevas para el cliente: `actions/agent/usage.ts` (los lectores de
+  `data/agent/usage.ts` son `server-only`) y `actions/agent/settings.ts`
+  (modelo real y modo por defecto, que dependen del entorno del servidor).
+- Cambios en código de 39 y 40: el DTO de propuestas trae `updatedAt` y
+  `unknownOutcome` (EXECUTING de más de 6 minutos, también en el prompt), los
+  grupos de costo traen `priced` (sin precio no es US$ 0,00) y la respuesta
+  detenida se guarda con `stopped` (el paso cortado no informa consumo).
+- Tarjetas de sueldos, tendencia y precios oficiales, además de las del plan:
+  cada `card` que puede devolver una tool tiene componente (lo verifica el
+  check). La de datos del negocio queda solo en chip.
+- Saltos de línea: el Markdown convierte los saltos simples en duros
+  (`lib/agent/markdown-breaks.ts`), como el formato copiado, sin sumar
+  `remark-breaks`.
+
 ## Verificación
 
 Por feature: `pnpm exec tsc --noEmit`, `pnpm lint`, `pnpm harness`, `pnpm exec

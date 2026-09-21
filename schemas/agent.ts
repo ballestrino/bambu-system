@@ -15,16 +15,17 @@ export const agentClientIdSchema = z
   .string()
   .regex(/^[A-Za-z0-9_-]{8,64}$/, "Id inválido");
 
+// Valores del formulario sin guardar: pueden venir incompletos y sin nombre.
+export const agentFormContextValuesSchema = BudgetSchema.partial().extend({
+  name: z.string().max(200).optional(),
+  description: z.string().max(2000).optional(),
+});
+
+export type AgentFormContextValues = z.infer<typeof agentFormContextValuesSchema>;
+
 export const agentBudgetContextSchema = z.discriminatedUnion("kind", [
   z.object({ kind: z.literal("saved"), budgetId: z.string().min(1).max(64) }),
-  // Valores del formulario sin guardar: pueden venir incompletos y sin nombre.
-  z.object({
-    kind: z.literal("form"),
-    values: BudgetSchema.partial().extend({
-      name: z.string().max(200).optional(),
-      description: z.string().max(2000).optional(),
-    }),
-  }),
+  z.object({ kind: z.literal("form"), values: agentFormContextValuesSchema }),
 ]);
 
 export type AgentBudgetContextInput = z.infer<typeof agentBudgetContextSchema>;

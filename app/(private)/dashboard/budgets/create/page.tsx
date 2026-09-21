@@ -7,7 +7,7 @@ import Header from "@/components/budgets/create-budget/Header";
 import useCreateBudgetForm from "@/components/budgets/create-budget/hooks/useCreateBudgetForm";
 
 export default function CreateBudgetPage() {
-    const { form, onSubmit, handleGenerateAI, isPending } = useCreateBudgetForm();
+    const { form, onSubmit, isPending } = useCreateBudgetForm();
 
     return (
         <FormProvider {...form}>
@@ -18,7 +18,6 @@ export default function CreateBudgetPage() {
                         <Header
                             onSave={form.handleSubmit(onSubmit)}
                             isPending={isPending}
-                            onGenerateAI={handleGenerateAI}
                             form={form}
                         />
 

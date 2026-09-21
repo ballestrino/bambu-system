@@ -107,6 +107,7 @@ export const finishAgentTurn = async (input: {
   mode: AgentMode;
   skill: AgentSkillId;
   entries: UsageEntry[];
+  stopped: boolean;
 }) => {
   try {
     await persistUsageEntries({
@@ -119,12 +120,17 @@ export const finishAgentTurn = async (input: {
     console.error("Agent usage persistence failed:", error);
   }
   // Un turno cortado no llega al finish que trae la línea de uso: se arma con
-  // lo que alcanzó a correr.
+  // lo que alcanzó a correr. Si se detuvo, queda marcado: el paso cortado no
+  // informa consumo (OpenAI lo manda al terminar la respuesta).
   const metadata = input.responseMessage.metadata;
-  const message =
-    metadata?.usage || !input.entries.length
-      ? input.responseMessage
-      : { ...input.responseMessage, metadata: { ...metadata, usage: summarizeUsage(input.entries) } };
+  const message = {
+    ...input.responseMessage,
+    metadata: {
+      ...metadata,
+      ...(!metadata?.usage && input.entries.length ? { usage: summarizeUsage(input.entries) } : {}),
+      ...(input.stopped ? { stopped: true } : {}),
+    },
+  };
   try {
     await saveAssistantMessage({
       conversationId: input.conversationId,

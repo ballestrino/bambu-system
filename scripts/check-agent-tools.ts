@@ -1,5 +1,4 @@
 import assert from "node:assert/strict";
-import { readFileSync } from "node:fs";
 
 import { Prisma } from "@prisma/client";
 
@@ -109,7 +108,9 @@ assert.equal(BUSINESS_PROFILE.ivaPercent, 22);
 assert.equal(BUSINESS_PROFILE.productMarginPercent, PRODUCT_MARGIN_PCT);
 assert.equal(BUSINESS_PROFILE.employerBpsPercent, URUGUAY_EMPLOYER_BPS_PERCENT);
 assert.equal(BUSINESS_PROFILE.personalBpsPercent, 18.1);
-assert.ok(readFileSync("data/ai-system-message.ts", "utf8").includes(LITERAL_E_NOTE));
+// The exact phrase of the retired budget chat prompt (data/ai-system-message.ts,
+// removed in feature 41): clients already receive it word for word.
+assert.equal(LITERAL_E_NOTE, "Nota: Mientras la empresa continúe bajo régimen Literal E, se aplicará el monto sin IVA.");
 
 // --- The prompt carries the price rule, Literal E, the phone, the skill and
 // the budget in context.

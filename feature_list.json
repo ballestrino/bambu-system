@@ -75,13 +75,12 @@
       "id": 5,
       "name": "runtime_lazy_sdk_initialization",
       "title": "Lazy initialize runtime SDK clients",
-      "description": "Move OpenAI, Resend, Cloudinary, and runtime URL configuration out of module scope so Next.js build and runtime contexts load safely.",
+      "description": "Move Resend, Cloudinary, and runtime URL configuration out of module scope so Next.js build and runtime contexts load safely. OpenAI access for the agent is already lazy in lib/ai (feature 38) and the legacy AI chat route was removed by feature 41.",
       "acceptance": [
-        "OpenAI, Resend, and Cloudinary clients are created through lazy getters or one-time configuration helpers",
+        "Resend and Cloudinary clients are created through lazy getters or one-time configuration helpers",
         "Environment variables and base URLs are read close to use and fail with clear errors when required values are missing",
-        "The AI chat streaming route imports domain helpers and keeps route-handler logic focused on request parsing, auth, and streaming response",
         "No runtime SDK performs network-client initialization solely because a module was imported",
-        "Verification includes init.ps1 and pnpm build when the environment permits, plus focused smoke for affected AI, email, or upload paths"
+        "Verification includes init.ps1 and pnpm build when the environment permits, plus focused smoke for affected email or upload paths"
       ],
       "status": "pending"
     },
@@ -103,7 +102,7 @@
       "id": 7,
       "name": "ai_chat_modularization",
       "title": "Split AI chat UI, streaming, history, and upload responsibilities",
-      "description": "Reduce the AI chat monolith by moving chat state, history, image upload, rendering, and server message construction into focused modules.",
+      "description": "Superseded by feature 41: the legacy AIChat sheet, its stream route, save-chat, upload-chat-image, and ai-system-message were removed and replaced by the host-agnostic agent under components/agent/**, with chat state, history, rendering, and server logic already split by responsibility.",
       "acceptance": [
         "AIChat.tsx is reduced to a small shell or orchestrator under the repository file-size guidance",
         "Session state, history, and image upload live in focused hooks that can be reasoned about independently",
@@ -112,7 +111,7 @@
         "BudgetContext coupling is isolated behind an adapter instead of being buried throughout reusable UI",
         "Manual smoke covers streaming, abort or error handling, image upload, save history, rename, and delete"
       ],
-      "status": "pending"
+      "status": "done"
     },
     {
       "id": 8,

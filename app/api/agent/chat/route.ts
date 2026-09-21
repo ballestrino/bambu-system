@@ -76,13 +76,15 @@ export async function POST(request: Request) {
         if (part.type === "finish") return { usage: summarizeUsage(usage.entries()) };
         return undefined;
       },
-      onEnd: ({ responseMessage }) =>
+      onEnd: ({ responseMessage, isAborted }) =>
         finishAgentTurn({
           conversationId: body.id,
           responseMessage,
           mode: body.mode,
           skill: body.skill,
           entries: usage.entries(),
+          // Si el cliente cortó, el stream puede cerrarse antes de ver el abort.
+          stopped: isAborted || request.signal.aborted,
         }),
       onError: toAgentErrorMessage,
     });

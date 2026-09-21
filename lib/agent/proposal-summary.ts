@@ -22,7 +22,7 @@ export type ProposalBudget = {
   officialBudget: { id: string; status: string; currentVersion: number } | null;
 };
 
-const FIELD_LABELS: Record<"name" | "description" | (typeof CHANGEABLE_FIELDS)[number], string> = {
+export const FIELD_LABELS: Record<"name" | "description" | (typeof CHANGEABLE_FIELDS)[number], string> = {
   name: "Nombre",
   description: "Descripción",
   visits: "Visitas",

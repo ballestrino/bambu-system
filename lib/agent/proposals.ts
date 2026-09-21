@@ -1,4 +1,5 @@
 import type { BudgetCalculation, describeBudgetInputs } from "@/lib/agent/budget-calculation";
+import { hasUnknownOutcome } from "@/lib/agent/proposal-outcome";
 import type { ParsedProposal } from "@/schemas/agent-proposals";
 
 // Propuestas del agente: escrituras que se preparan durante el turno y se
@@ -14,12 +15,7 @@ export const AGENT_PROPOSAL_KINDS = [
 export type AgentProposalKind = (typeof AGENT_PROPOSAL_KINDS)[number];
 
 export const AGENT_PROPOSAL_STATUSES = [
-  "PENDING",
-  "EXECUTING",
-  "CONFIRMED",
-  "REJECTED",
-  "EXPIRED",
-  "FAILED",
+  "PENDING", "EXECUTING", "CONFIRMED", "REJECTED", "EXPIRED", "FAILED",
 ] as const;
 
 export type AgentProposalStatus = (typeof AGENT_PROPOSAL_STATUSES)[number];
@@ -99,6 +95,7 @@ export const proposalSelect = {
   expiresAt: true,
   resolvedAt: true,
   createdAt: true,
+  updatedAt: true,
 } as const;
 
 export type ProposalRow = {
@@ -113,8 +110,10 @@ export type ProposalRow = {
   expiresAt: Date;
   resolvedAt: Date | null;
   createdAt: Date;
+  updatedAt: Date;
 };
 
+// unknownOutcome sale con la hora del servidor: la UI y el prompt lo leen hecho.
 export const serializeProposal = (row: ProposalRow, now = new Date()) => ({
   id: row.id,
   kind: row.kind,
@@ -127,6 +126,8 @@ export const serializeProposal = (row: ProposalRow, now = new Date()) => ({
   expiresAt: row.expiresAt.toISOString(),
   resolvedAt: row.resolvedAt?.toISOString() ?? null,
   createdAt: row.createdAt.toISOString(),
+  updatedAt: row.updatedAt.toISOString(),
+  unknownOutcome: hasUnknownOutcome(row, now),
 });
 
 export type AgentProposalDto = ReturnType<typeof serializeProposal>;
