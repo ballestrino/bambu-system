@@ -10,6 +10,7 @@
     "check:agent-tools": "tsx scripts/check-agent-tools.ts",
     "check:agent-proposals": "tsx scripts/check-agent-proposals.ts",
     "check:agent-sheet": "tsx scripts/check-agent-sheet.ts",
+    "check:agent-page": "tsx scripts/check-agent-page.ts",
     "check:employee-accruals": "tsx scripts/check-employee-accruals.ts",
     "check:finance": "tsx scripts/check-finance.ts",
     "check:finance-trend": "tsx scripts/check-finance-trend.ts",

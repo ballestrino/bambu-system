@@ -9,12 +9,13 @@ import {
   monthlyCostQuery,
   proposalsQuery,
 } from "@/components/agent/queries";
+import type { AgentConversationScope } from "@/lib/agent/conversation-scope";
 import type { AgentProposalDto } from "@/lib/agent/proposals";
 
 export const useAgentSettings = (enabled = true) => useQuery({ ...agentSettingsQuery(), enabled });
 
-export const useAgentConversations = (budgetId: string | null, enabled = true) =>
-  useQuery({ ...conversationListQuery(budgetId), enabled });
+export const useAgentConversations = (scope: AgentConversationScope, enabled = true) =>
+  useQuery({ ...conversationListQuery(scope), enabled });
 
 const PROPOSAL_POLL_MS = 3000;
 

@@ -80,9 +80,11 @@ export function AgentChat({
             onDismiss={view.clearError}
           />
         )}
-        <div className="space-y-2 border-t px-4 pt-3 pb-[max(0.75rem,env(safe-area-inset-bottom))]">
-          <AgentSkillChips value={skill} onChange={onSkillChange} />
-          <AgentComposer busy={view.busy} onSend={(text) => view.send(text, skill)} onStop={view.stop} />
+        <div className="border-t px-4 pt-3 pb-[max(0.75rem,env(safe-area-inset-bottom))]">
+          <div className="mx-auto max-w-3xl space-y-2">
+            <AgentSkillChips value={skill} onChange={onSkillChange} />
+            <AgentComposer busy={view.busy} onSend={(text) => view.send(text, skill)} onStop={view.stop} />
+          </div>
         </div>
       </div>
     </AgentChatProvider>

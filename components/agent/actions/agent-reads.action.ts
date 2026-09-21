@@ -6,8 +6,9 @@ import { listAgentProposals } from "@/actions/agent/proposals";
 import { getAgentSettings } from "@/actions/agent/settings";
 import { getAgentConversationCost, getAgentMonthlyCost } from "@/actions/agent/usage";
 import ValidationError from "@/instances/validation-error";
+import { conversationListInput, type AgentConversationScope } from "@/lib/agent/conversation-scope";
 
-// Lecturas del Sheet para TanStack Query: un { error } de la acción se lanza
+// Lecturas del agente para TanStack Query: un { error } de la acción se lanza
 // como ValidationError y la query queda en error con ese mensaje. Se mira el
 // campo de éxito: TypeScript normaliza la unión y "error" existe en todas.
 const READ_ERROR = "No se pudieron leer los datos del asistente";
@@ -18,8 +19,8 @@ export const getAgentSettingsAction = async () => {
   return { defaultMode: result.defaultMode, modes: result.modes };
 };
 
-export const listConversationsAction = async (budgetId: string | null) => {
-  const result = await listAgentConversations({ budgetId });
+export const listConversationsAction = async (scope: AgentConversationScope) => {
+  const result = await listAgentConversations(conversationListInput(scope));
   if (!result.conversations) throw new ValidationError(result.error ?? READ_ERROR);
   return result.conversations;
 };

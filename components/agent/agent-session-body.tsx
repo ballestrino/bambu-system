@@ -22,8 +22,9 @@ function LoadingConversation() {
 }
 
 // Lo que se ve según el estado de la sesión: cargando, error al abrir o la
-// conversación (con su instancia Chat, que vive en el host).
-export function AgentSheetBody({
+// conversación (con su instancia Chat, que vive en el host). Igual en el Sheet
+// y en la página.
+export function AgentSessionBody({
   session,
   contextLabel,
   getContext,

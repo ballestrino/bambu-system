@@ -5,11 +5,14 @@ import { rowToAgentMessage } from "@/lib/agent/messages";
 import { db } from "@/lib/db";
 import { requireAdminSession } from "@/lib/require-admin-session";
 
+// El presupuesto va con nombre y slug: la página lista conversaciones de
+// todos y linkea a cada uno.
 const conversationSelect = {
   id: true,
   title: true,
   mode: true,
   budgetId: true,
+  budget: { select: { id: true, name: true, slug: true } },
   contextKind: true,
   lastMessageAt: true,
   createdAt: true,
@@ -21,6 +24,7 @@ type ConversationRow = {
   title: string;
   mode: Parameters<typeof fromDbAgentMode>[0];
   budgetId: string | null;
+  budget: { id: string; name: string; slug: string } | null;
   contextKind: string | null;
   lastMessageAt: Date | null;
   createdAt: Date;
@@ -37,24 +41,26 @@ const serializeConversation = (row: ConversationRow) => ({
 
 export type AgentConversationDto = ReturnType<typeof serializeConversation>;
 
-// Las conversaciones son de cada usuario: las del presupuesto abierto, o las
-// que no tienen presupuesto (la pantalla de crear).
+// Las conversaciones son de cada usuario: las del presupuesto abierto, las que
+// no tienen presupuesto (la pantalla de crear) o, con all, todas (la página).
 export const getAgentConversations = async ({
   budgetId,
+  all,
   query,
 }: {
   budgetId?: string | null;
+  all?: boolean;
   query?: string;
 }) => {
   const session = await requireAdminSession();
   const rows = await db.agentConversation.findMany({
     where: {
       userId: session.user.id,
-      budgetId: budgetId ?? null,
+      ...(all ? {} : { budgetId: budgetId ?? null }),
       title: query ? { contains: query, mode: "insensitive" } : undefined,
     },
     orderBy: { updatedAt: "desc" },
-    take: 50,
+    take: all ? 100 : 50,
     select: conversationSelect,
   });
   return rows.map(serializeConversation);

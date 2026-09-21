@@ -1,10 +1,11 @@
 "use client";
 
 import Link from "next/link";
-import { BadgeDollarSign, Calculator, List, Mail } from "lucide-react";
+import { BadgeDollarSign, Calculator, List, Mail, Sparkles } from "lucide-react";
 import { usePathname } from "next/navigation";
 
 import { isOpsNavItemActive, opsNavItems } from "@/components/ops/nav-items";
+import { AGENT_PAGE_PATH } from "@/lib/agent/page-url";
 import {
   Sidebar,
   SidebarContent,
@@ -69,6 +70,18 @@ const groups = [
         url: "/dashboard/email",
         icon: Mail,
         match: (pathname: string) => pathname.startsWith("/dashboard/email"),
+      },
+    ],
+  },
+  {
+    label: "Asistente",
+    items: [
+      {
+        title: "Agente",
+        description: "Presupuestos, correos y consejos",
+        url: AGENT_PAGE_PATH,
+        icon: Sparkles,
+        match: (pathname: string) => pathname.startsWith(AGENT_PAGE_PATH),
       },
     ],
   },

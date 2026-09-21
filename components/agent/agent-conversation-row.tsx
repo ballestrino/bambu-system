@@ -1,6 +1,6 @@
 "use client";
 
-import { MoreHorizontal, Pencil, Trash2 } from "lucide-react";
+import { FileText, MoreHorizontal, Pencil, Trash2 } from "lucide-react";
 import { useRef } from "react";
 
 import { formatDateTime } from "@/components/agent/format";
@@ -25,12 +25,15 @@ type RowAction = (trigger: HTMLElement | null) => void;
 export function AgentConversationRow({
   conversation,
   active,
+  showBudget,
   onSelect,
   onRename,
   onDelete,
 }: {
   conversation: AgentConversationItem;
   active: boolean;
+  // En la página, que lista conversaciones de todos los presupuestos.
+  showBudget: boolean;
   onSelect: () => void;
   onRename: RowAction;
   onDelete: RowAction;
@@ -52,6 +55,12 @@ export function AgentConversationRow({
         className="min-h-11 min-w-0 flex-1 rounded-lg px-3 py-2 text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/50"
       >
         <p className="truncate text-sm font-medium">{conversation.title}</p>
+        {showBudget && conversation.budget && (
+          <p className="flex items-center gap-1 text-xs text-muted-foreground">
+            <FileText className="size-3 shrink-0" aria-hidden />
+            <span className="min-w-0 truncate">{conversation.budget.name}</span>
+          </p>
+        )}
         <p className="truncate text-xs text-muted-foreground tabular-nums">
           {formatDateTime(conversation.lastMessageAt ?? conversation.updatedAt)} ·{" "}
           {AGENT_MODES[conversation.mode].label} · {formatUsd(conversation.costUsd)}

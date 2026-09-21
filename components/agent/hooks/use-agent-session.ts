@@ -9,27 +9,24 @@ import { createAgentChat } from "@/components/agent/agent-transport";
 import { useAgentConversationMutations } from "@/components/agent/hooks/use-agent-conversation-mutations";
 import { useAgentConversations, useAgentSettings } from "@/components/agent/hooks/use-agent-queries";
 import { conversationListQuery, conversationQuery, refreshAfterTurn } from "@/components/agent/queries";
-import type { AgentUIMessage } from "@/components/agent/types";
+import type { AgentConversationDetail, AgentUIMessage } from "@/components/agent/types";
+import type { AgentConversationScope } from "@/lib/agent/conversation-scope";
 import { DEFAULT_AGENT_SKILL, type AgentSkillId } from "@/lib/agent/skills";
 import { DEFAULT_AGENT_MODE, type AgentMode } from "@/lib/ai/modes";
 
 export type TurnNotice = "stopped" | "interrupted";
 
+// saved: la conversación como estaba en la base al abrirla; null si es nueva.
 type SessionState =
   | { status: "idle" }
   | { status: "loading"; id: string | null }
   | { status: "error"; id: string; message: string }
-  | {
-      status: "ready";
-      id: string;
-      chat: Chat<AgentUIMessage>;
-      savedMode: AgentMode | null;
-      savedTitle: string | null;
-    };
+  | { status: "ready"; id: string; chat: Chat<AgentUIMessage>; saved: AgentConversationDetail | null };
 
-// La sesión del Sheet: qué conversación está abierta, su instancia Chat y el
-// modo. Vive en el host, así cerrar el Sheet no la pierde.
-export const useAgentSession = ({ budgetId }: { budgetId: string | null }) => {
+// La sesión del agente: qué conversación está abierta, su instancia Chat y el
+// modo. Vive en el host (el Sheet o la página), así cerrar el Sheet no la
+// pierde. El scope dice qué historial acompaña a la sesión.
+export const useAgentSession = ({ scope }: { scope: AgentConversationScope }) => {
   const queryClient = useQueryClient();
   const [state, setState] = useState<SessionState>({ status: "idle" });
   const [modeOverride, setModeOverride] = useState<AgentMode | null>(null);
@@ -41,7 +38,7 @@ export const useAgentSession = ({ budgetId }: { budgetId: string | null }) => {
   const requestRef = useRef(0);
   const started = state.status !== "idle";
   const settings = useAgentSettings(started);
-  const conversations = useAgentConversations(budgetId, started);
+  const conversations = useAgentConversations(scope, started);
   const { setMode } = useAgentConversationMutations();
 
   const chat = state.status === "ready" ? state.chat : null;
@@ -75,7 +72,7 @@ export const useAgentSession = ({ budgetId }: { budgetId: string | null }) => {
 
   const startNew = () => {
     const id = generateId();
-    begin({ status: "ready", id, chat: createChat(id, []), savedMode: null, savedTitle: null });
+    begin({ status: "ready", id, chat: createChat(id, []), saved: null });
   };
 
   const openConversation = async (id: string) => {
@@ -83,13 +80,7 @@ export const useAgentSession = ({ budgetId }: { budgetId: string | null }) => {
     try {
       const data = await queryClient.fetchQuery(conversationQuery(id));
       if (request !== requestRef.current) return;
-      setState({
-        status: "ready",
-        id,
-        chat: createChat(id, data.messages),
-        savedMode: data.conversation.mode,
-        savedTitle: data.conversation.title,
-      });
+      setState({ status: "ready", id, chat: createChat(id, data.messages), saved: data.conversation });
     } catch (error) {
       if (request !== requestRef.current) return;
       const message = error instanceof Error ? error.message : "No se pudo abrir la conversación.";
@@ -101,10 +92,10 @@ export const useAgentSession = ({ budgetId }: { budgetId: string | null }) => {
   // su última conversación; en crear (sin presupuesto) se arranca una nueva.
   const ensureStarted = async () => {
     if (started) return;
-    if (!budgetId) return startNew();
+    if (scope.kind !== "budget") return startNew();
     const request = begin({ status: "loading", id: null });
     const latest = await queryClient
-      .fetchQuery(conversationListQuery(budgetId))
+      .fetchQuery(conversationListQuery(scope))
       .then((list) => list[0]?.id ?? null, () => null);
     if (request !== requestRef.current) return;
     if (latest) await openConversation(latest);
@@ -112,18 +103,19 @@ export const useAgentSession = ({ budgetId }: { budgetId: string | null }) => {
   };
 
   const id = state.status === "idle" ? null : state.id;
-  const current = id ? conversations.data?.find((item) => item.id === id) : undefined;
-  const mode =
-    modeOverride ??
-    (state.status === "ready" ? state.savedMode : null) ??
-    settings.data?.defaultMode ??
-    DEFAULT_AGENT_MODE;
+  const saved = state.status === "ready" ? state.saved : null;
+  // La fila del historial está al día (título del modelo, renombres); la leída
+  // al abrir cubre una conversación que no entra en la lista.
+  const conversation: AgentConversationDetail | null =
+    (id ? conversations.data?.find((item) => item.id === id) : undefined) ?? saved;
+  const persisted = conversation !== null;
+  const mode = modeOverride ?? saved?.mode ?? settings.data?.defaultMode ?? DEFAULT_AGENT_MODE;
 
   // El modo aplica a los turnos siguientes. Si la conversación ya existe en
   // la base se guarda ya; si no, viaja con el primer mensaje.
   const changeMode = (next: AgentMode) => {
     setModeOverride(next);
-    if (id && current) setMode.mutate({ id, mode: next });
+    if (id && persisted) setMode.mutate({ id, mode: next });
   };
 
   const onConversationDeleted = (deletedId: string) => {
@@ -134,8 +126,9 @@ export const useAgentSession = ({ budgetId }: { budgetId: string | null }) => {
     state,
     chat,
     conversationId: id,
-    persisted: Boolean(current),
-    title: current?.title ?? (state.status === "ready" ? state.savedTitle : null),
+    conversation,
+    persisted,
+    title: conversation?.title ?? null,
     mode,
     modes: settings.data?.modes ?? null,
     skill,

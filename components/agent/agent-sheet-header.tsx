@@ -4,12 +4,13 @@ import { History, PanelRightClose, SquarePen } from "lucide-react";
 
 import { AgentCostBadge } from "@/components/agent/agent-cost-badge";
 import { AgentModeSelect } from "@/components/agent/agent-mode-select";
+import { AgentOpenPageButton } from "@/components/agent/agent-open-page-button";
 import type { AgentSession } from "@/components/agent/hooks/use-agent-session";
 import { Button } from "@/components/ui/button";
 import { SheetClose, SheetDescription, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 
-// Cabecera del Sheet: título de la conversación, contexto, historial, nueva
-// conversación, modo y costo. En el teléfono va en dos filas.
+// Cabecera del Sheet: título de la conversación, contexto, abrir en la página,
+// historial, nueva conversación, modo y costo. En el teléfono va en dos filas.
 export function AgentSheetHeader({
   session,
   contextLabel,
@@ -33,6 +34,11 @@ export function AgentSheetHeader({
           <SheetTitle className="truncate text-base">{session.title ?? "Nueva conversación"}</SheetTitle>
           <SheetDescription className="truncate text-xs">{contextLabel}</SheetDescription>
         </div>
+        <AgentOpenPageButton
+          chat={session.chat}
+          conversationId={session.conversationId}
+          persisted={session.persisted}
+        />
         <Button
           variant="ghost"
           size="icon"

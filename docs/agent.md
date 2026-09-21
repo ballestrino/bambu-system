@@ -1,6 +1,6 @@
 # Agente de Bambú
 
-Contrato de producto y entorno del agente (features 38-41). El plan completo
+Contrato de producto y entorno del agente (features 38-42). El plan completo
 está en `docs/agent-plan.md`; este documento describe lo que ya existe y se
 actualiza con cada feature.
 
@@ -16,6 +16,9 @@ actualiza con cada feature.
 - Feature 41: el agente en el Sheet de Presupuestos (detalle y crear), con
   modos, habilidades, tarjetas, propuestas, historial y costos. Reemplazó al
   chat viejo (`AIChat`, `/api/ai-chat/stream`, `save-chat`), que se borró.
+- Feature 42: la página `/dashboard/agent` ("Agente" en el sidebar), el mismo
+  agente a ancho completo con todas las conversaciones. Comparte las
+  conversaciones con el Sheet, que abre la suya en la página.
 - El agente de correo (`lib/mail-agent/**`) no usa esta capa y no cambia.
 
 ## Núcleo (feature 39)
@@ -174,7 +177,10 @@ el contexto y el botón que lo abre.
   empleadas vacía) no viajan (`sanitizeFormContextValues`): el servidor usa
   el valor por defecto en vez de rechazar el turno.
 - Cabecera: título (el del modelo llega unos segundos después del primer
-  turno), contexto, historial, nueva conversación, modo y costo. El modo
+  turno), contexto, abrir en la página, historial, nueva conversación, modo y
+  costo. "Abrir en página" lleva a `/dashboard/agent?conversacion=<id>` (sin
+  id si todavía no se guardó) y está deshabilitado mientras responde: salir de
+  la pantalla corta el stream. El modo
   muestra el modelo real de cada uno (`getAgentSettings`, con los overrides
   del entorno) y aplica a los turnos siguientes; si la conversación ya existe
   se guarda en el momento.
@@ -200,6 +206,43 @@ el contexto y el botón que lo abre.
 - Errores: el `{ error }` de la ruta y el texto del stream se muestran tal
   cual; el resto, con un mensaje genérico. Reintentar reenvía el último
   mensaje (el servidor no lo duplica) con su habilidad y el modo actual.
+
+## Página (feature 42)
+
+`/dashboard/agent` (`app/(private)/dashboard/agent/page.tsx`), bajo el layout
+privado que exige admin, con "Agente" en el sidebar (grupo "Asistente"). Usa
+los mismos componentes que el Sheet: `AgentPageHost` es otro host para
+`useAgentSession`, `AgentSessionBody` y `AgentChat`.
+
+| Conversación | Contexto de cada turno | Cabecera |
+| --- | --- | --- |
+| De un presupuesto guardado | `{ kind: "saved", budgetId }`, como su Sheet | "Presupuesto: nombre", con link al presupuesto |
+| Nueva, general o empezada en crear | Ninguno (el formulario de crear no existe acá) | "Sin presupuesto" |
+
+- Historial: todas las conversaciones del usuario (las 100 más recientes),
+  con el presupuesto de cada una. La búsqueda sin acentos mira el título y el
+  presupuesto. `useAgentSession` recibe un `scope` (`budget`, `no-budget` o
+  `all`, `lib/agent/conversation-scope.ts`): el Sheet sigue listando las de su
+  presupuesto, o las sin presupuesto en crear, que ahora incluyen las
+  generales de la página.
+- La columna del historial depende del ancho del panel (container query
+  `@4xl/panel`, 56rem), no de la ventana: con el sidebar abierto a 1024 px el
+  chat quedaría más angosto que el Sheet. Sin lugar, el historial va en su
+  diálogo, como en el teléfono.
+- Dirección: la conversación abierta, si ya está guardada, va en
+  `?conversacion=<id>` (`lib/agent/page-url.ts`). La sesión se refleja con
+  `history.replaceState` (sin ida al servidor, sin remontar el chat y sin
+  entradas nuevas en el historial del navegador) y solo cuando la
+  conversación está lista. Un cambio que llega de afuera (entrar con el link,
+  el link del sidebar) abre esa conversación o arranca una nueva. Un id que no
+  existe muestra "Conversación no encontrada" con Reintentar y "Nueva
+  conversación"; un valor que no puede ser un id se ignora.
+- Alto fijo (la pantalla menos el nav y el padding del dashboard): los
+  mensajes scrollean adentro, sin arrastrar la página (`overscroll-contain`),
+  y el composer queda a la vista. Los mensajes y el composer van en un ancho de
+  lectura (`max-w-3xl`), que en el Sheet no cambia nada.
+- Una propuesta confirmada desde la página invalida además el historial: el
+  nombre del presupuesto de la lista y de la cabecera puede cambiar.
 
 ## Modos
 

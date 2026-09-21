@@ -68,8 +68,11 @@ assert.equal(chatHook.match(/body: requestOptions\(/g)?.length, 2);
 assert.match(chatHook, /context: getContext\(\)/);
 
 // --- The Chat instance lives in the host session (closing the Sheet keeps
-// it) and switching conversations stops the previous stream.
-assert.match(read("components/agent/agent-sheet-host.tsx"), /useAgentSession\(\{ budgetId: budgetId \?\? null \}\)/);
+// it) and switching conversations stops the previous stream. The Sheet's
+// history is its budget's (or, in create, the one without budget).
+const sheetHost = read("components/agent/agent-sheet-host.tsx");
+assert.match(sheetHost, /const scope = budgetConversationScope\(budgetId \?\? null\);/);
+assert.match(sheetHost, /useAgentSession\(\{ scope \}\)/);
 const session = read("components/agent/hooks/use-agent-session.ts");
 assert.match(session, /useEffect\(\(\) => \(\) => void chat\?\.stop\(\), \[chat\]\);/);
 assert.match(session, /if \(request !== requestRef\.current\) return;/);

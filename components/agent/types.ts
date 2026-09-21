@@ -1,4 +1,4 @@
-import type { listAgentConversations } from "@/actions/agent/conversations";
+import type { getAgentConversationAction, listAgentConversations } from "@/actions/agent/conversations";
 import type { getAgentSettings } from "@/actions/agent/settings";
 import type { getAgentConversationCost, getAgentMonthlyCost } from "@/actions/agent/usage";
 import type { AgentUIMessage, AgentUITools } from "@/lib/agent/messages";
@@ -51,6 +51,12 @@ export type ListCardData = {
 export type AgentConversationItem = Success<
   ReturnType<typeof listAgentConversations>
 >["conversations"][number];
+
+// La conversación leída al abrirla: lo mismo que una fila del historial, sin el
+// costo.
+export type AgentConversationDetail = Success<
+  ReturnType<typeof getAgentConversationAction>
+>["conversation"];
 
 export type AgentSettings = Success<ReturnType<typeof getAgentSettings>>;
 

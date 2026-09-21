@@ -1,5 +1,6 @@
 import { z } from "zod";
 
+import { AGENT_CLIENT_ID_PATTERN } from "@/lib/agent/client-id";
 import { AGENT_SKILL_IDS } from "@/lib/agent/skills/types";
 import { AGENT_MODE_IDS } from "@/lib/ai/modes";
 import { BudgetSchema } from "@/schemas/BudgetSchema";
@@ -11,9 +12,7 @@ export const agentModeSchema = z.enum(AGENT_MODE_IDS);
 export const agentSkillSchema = z.enum(AGENT_SKILL_IDS);
 
 // Los ids de conversación y de mensaje los genera el AI SDK en el cliente.
-export const agentClientIdSchema = z
-  .string()
-  .regex(/^[A-Za-z0-9_-]{8,64}$/, "Id inválido");
+export const agentClientIdSchema = z.string().regex(AGENT_CLIENT_ID_PATTERN, "Id inválido");
 
 // Valores del formulario sin guardar: pueden venir incompletos y sin nombre.
 export const agentFormContextValuesSchema = BudgetSchema.partial().extend({
@@ -52,3 +51,11 @@ export const agentChatRequestSchema = z.object({
 export type AgentChatRequest = z.infer<typeof agentChatRequestSchema>;
 
 export const agentConversationTitleSchema = z.string().trim().min(1).max(120);
+
+// Filtro del historial: las de un presupuesto, las sin presupuesto
+// (budgetId null) o, con all, todas las del usuario (la página del agente).
+export const agentConversationListSchema = z.object({
+  budgetId: z.string().min(1).max(64).nullable().optional(),
+  all: z.boolean().optional(),
+  query: z.string().trim().max(120).optional(),
+});

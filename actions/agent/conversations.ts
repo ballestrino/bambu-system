@@ -13,6 +13,7 @@ import {
 } from "@/lib/require-admin-session";
 import {
   agentClientIdSchema,
+  agentConversationListSchema,
   agentConversationTitleSchema,
   agentModeSchema,
 } from "@/schemas/agent";
@@ -20,16 +21,12 @@ import {
 const actionError = (error: unknown, fallback: string) =>
   error instanceof AdminAuthorizationError ? error.message : fallback;
 
-const listSchema = z.object({
-  budgetId: z.string().min(1).max(64).nullable().optional(),
-  query: z.string().trim().max(120).optional(),
-});
-
-// El historial del Sheet: conversaciones del usuario con su costo acumulado.
+// El historial del Sheet y de la página: conversaciones del usuario con su
+// costo acumulado.
 export const listAgentConversations = async (values: unknown) => {
   try {
     await requireAdminSession();
-    const parsed = listSchema.safeParse(values ?? {});
+    const parsed = agentConversationListSchema.safeParse(values ?? {});
     if (!parsed.success) return { error: "Filtros inválidos" };
     const conversations = await getAgentConversations(parsed.data);
     const costs = await getConversationCostTotals(conversations.map(({ id }) => id));

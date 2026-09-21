@@ -645,6 +645,22 @@
         "Loading, empty, error, desktop, and 390x844 states pass authenticated browser smoke with lint and build"
       ],
       "status": "pending"
+    },
+    {
+      "id": 42,
+      "name": "agent_page",
+      "title": "Add the agent page to the dashboard with every conversation",
+      "description": "Add /dashboard/agent with a sidebar entry that hosts the same host-agnostic agent components at full width: every conversation of the user in a searchable list with its budget, the saved budget as context for conversations that belong to one, the active conversation in ?conversacion=, and an open-in-page action in the budget sheet, which keeps its behavior. See docs/agent-plan.md.",
+      "acceptance": [
+        "/dashboard/agent renders the agent under the admin-only private layout and the sidebar shows an Agente entry that is active on that route",
+        "The page lists every conversation of the user, from budgets, the create form, and the page, with accent-insensitive search, its budget, cost, rename, and delete, in a side column on desktop and in the history dialog on phones",
+        "Opening a conversation that belongs to a saved budget sends that budget as context on every turn and links to it, while new page conversations carry no budget context",
+        "The active saved conversation is kept in ?conversacion= so reload and links reopen it, an unknown id shows an error with a way to start over, and the sidebar link starts a new conversation",
+        "The budget sheet keeps its per-budget history and its header opens the current conversation in the page, disabled while a response streams",
+        "Mode selector, skill chips, tool cards, proposals, usage line, cost badge, and the AI cost dialog behave on the page as in the sheet",
+        "Focused checks, TypeScript, lint, build, and authenticated browser smoke on desktop and 390x844 pass"
+      ],
+      "status": "pending"
     }
   ]
 }

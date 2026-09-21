@@ -5,12 +5,13 @@ import { useState } from "react";
 
 import { AgentCostDialog } from "@/components/agent/agent-cost-dialog";
 import { AgentHistoryDialog } from "@/components/agent/agent-history-dialog";
-import { AgentSheetBody } from "@/components/agent/agent-sheet-body";
+import { AgentSessionBody } from "@/components/agent/agent-session-body";
 import { AgentSheetHeader } from "@/components/agent/agent-sheet-header";
 import { useAgentSession } from "@/components/agent/hooks/use-agent-session";
 import { AIButton } from "@/components/budgets/create-budget/AiButton";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { TooltipProvider } from "@/components/ui/tooltip";
+import { budgetConversationScope } from "@/lib/agent/conversation-scope";
 import { sanitizeFormContextValues } from "@/lib/agent/form-context";
 import { getBudgetUrl, type ProposalResult } from "@/lib/agent/proposals";
 import type { AgentBudgetContextInput } from "@/schemas/agent";
@@ -32,7 +33,8 @@ export function AgentSheetHost({ budgetId, budgetSlug, budgetName, getFormValues
   const router = useRouter();
   const [open, setOpen] = useState(false);
   const [dialog, setDialog] = useState<"history" | "costs" | null>(null);
-  const session = useAgentSession({ budgetId: budgetId ?? null });
+  const scope = budgetConversationScope(budgetId ?? null);
+  const session = useAgentSession({ scope });
 
   const contextLabel = budgetId
     ? `Presupuesto: ${budgetName ?? "guardado"}`
@@ -78,7 +80,7 @@ export function AgentSheetHost({ budgetId, budgetSlug, budgetName, getFormValues
             onOpenHistory={() => setDialog("history")}
             onOpenCosts={() => setDialog("costs")}
           />
-          <AgentSheetBody
+          <AgentSessionBody
             session={session}
             contextLabel={contextLabel}
             getContext={getContext}
@@ -87,7 +89,7 @@ export function AgentSheetHost({ budgetId, budgetSlug, budgetName, getFormValues
           <AgentHistoryDialog
             open={dialog === "history"}
             onOpenChange={(next) => setDialog(next ? "history" : null)}
-            budgetId={budgetId ?? null}
+            scope={scope}
             activeId={session.conversationId}
             onSelect={(id) => {
               setDialog(null);

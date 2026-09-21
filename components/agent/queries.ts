@@ -9,9 +9,10 @@ import {
   listProposalsAction,
 } from "@/components/agent/actions/agent-reads.action";
 import { agentKeys } from "@/components/agent/query-keys";
+import type { AgentConversationScope } from "@/lib/agent/conversation-scope";
 
-// Las queries del Sheet, compartidas por los hooks y por las lecturas que se
-// hacen al abrir (fetchQuery).
+// Las queries del agente (Sheet y página), compartidas por los hooks y por las
+// lecturas que se hacen al abrir (fetchQuery).
 export const agentSettingsQuery = () =>
   queryOptions({
     queryKey: agentKeys.settings(),
@@ -20,10 +21,10 @@ export const agentSettingsQuery = () =>
     staleTime: 10 * 60 * 1000,
   });
 
-export const conversationListQuery = (budgetId: string | null) =>
+export const conversationListQuery = (scope: AgentConversationScope) =>
   queryOptions({
-    queryKey: agentKeys.conversationList(budgetId),
-    queryFn: () => listConversationsAction(budgetId),
+    queryKey: agentKeys.conversationList(scope),
+    queryFn: () => listConversationsAction(scope),
   });
 
 // Siempre fresca: se lee para abrir una conversación y tiene que traer los

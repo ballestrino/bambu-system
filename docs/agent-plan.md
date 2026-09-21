@@ -26,7 +26,8 @@ presupuestos, consejos) y, por ahora, viviendo dentro de Presupuestos.
 1. **Superficie (por ahora)**: el agente reemplaza al chat actual en el mismo
    Sheet de Presupuestos (detalle y crear). Sin ruta nueva ni entrada en el
    sidebar. La página propia queda como mejora posterior; los componentes se
-   hacen independientes del host para que ese paso sea barato.
+   hacen independientes del host para que ese paso sea barato. El 2026-09-21
+   el usuario pidió la página: es la feature 42, y el Sheet se queda.
 2. **Escrituras**: proponer y confirmar. Las tools que persisten nunca escriben
    durante el turno; devuelven una propuesta con Confirmar/Rechazar que ejecuta
    las actions existentes.
@@ -523,8 +524,8 @@ líneas por archivo, patrón TanStack de `components/official-budgets/**`.
   descripción "superseded by feature 41"; feature 5 se acota a Resend y
   Cloudinary y sigue `pending`.
 - Mejora posterior (fuera de este plan, ya preparada por el diseño): página
-  propia `/dashboard/agente` con entrada en el sidebar, reutilizando
-  `AgentChat`; hand-off a `/dashboard/email`; almacén de conocimiento editable;
+  propia con entrada en el sidebar, reutilizando `AgentChat` (es la feature
+  42); hand-off a `/dashboard/email`; almacén de conocimiento editable;
   adjuntar imágenes.
 
 ### Ajustes al implementar la 41 (2026-09-21)
@@ -555,6 +556,77 @@ líneas por archivo, patrón TanStack de `components/official-budgets/**`.
 - Saltos de línea: el Markdown convierte los saltos simples en duros
   (`lib/agent/markdown-breaks.ts`), como el formato copiado, sin sumar
   `remark-breaks`.
+
+## Feature 42: la página del agente
+
+Rama `feature/42-agent-page`, encima de la 41. El usuario la pidió el
+2026-09-21: la página propia que había quedado como mejora posterior. "Generar
+con IA" sigue en Presupuestos como acceso rápido y comparte las
+conversaciones con la página.
+
+- Ruta `/dashboard/agent`, en inglés como el resto (`budgets`, `financial`,
+  `email`), bajo el layout privado que ya exige admin. Entrada "Agente" en el
+  sidebar, grupo "Asistente", ícono `Sparkles` (el del botón de IA).
+- `app/(private)/dashboard/agent/page.tsx`: Server Component con `<Suspense>`
+  alrededor del host, que lee la dirección con `useSearchParams`.
+- `agent-page-host.tsx`: dueño de la sesión, a ancho completo y con alto fijo
+  (los mensajes scrollean adentro y el composer queda abajo). En escritorio
+  (`lg`) la lista de conversaciones va en una columna; en el teléfono, en el
+  diálogo de historial de siempre.
+- Historial: `listAgentConversations({ all: true })` trae todas las
+  conversaciones del usuario (las 100 más recientes), cada una con su
+  presupuesto (`budget: { id, name, slug }` en el select). El Sheet sigue
+  listando las de su presupuesto, o las sin presupuesto en crear. La lista sale
+  de `AgentHistoryDialog` a `AgentConversationList` para usarla en los dos
+  lugares.
+- Contexto: una conversación de un presupuesto manda `{ kind: "saved",
+  budgetId }` en cada turno, como el Sheet, y la cabecera linkea al
+  presupuesto. Las nuevas de la página van sin contexto. Las que empezaron en
+  crear siguen sin el formulario, que acá no existe.
+- Dirección: la conversación activa, si ya está guardada, vive en
+  `?conversacion=`. El estado se refleja con `history.replaceState` (sin ida
+  al servidor ni remontar el chat). Un cambio que llega de afuera (el link del
+  sidebar, una dirección pegada) abre esa conversación o arranca una nueva. Un
+  id que no existe muestra el error con "Nueva conversación".
+- Sheet: botón "Abrir en página" en la cabecera, a `?conversacion=<id>` si la
+  conversación ya está guardada. Deshabilitado mientras responde: salir de la
+  pantalla corta el stream.
+- `useAgentSession` recibe un `scope` (`budget`, `no-budget` o `all`) en vez de
+  `budgetId`, guarda la conversación leída al abrir y la expone como
+  `conversation` (título, modo y presupuesto).
+- Sin cambios en la ruta del agente ni en la base: solo el filtro y el select
+  del historial.
+- `check:agent-page` nuevo; `check:agent-sheet` sigue pasando.
+
+Smoke de la 42 (además de las regresiones del Sheet):
+
+1. Sidebar → Agente: conversación nueva, "Sin presupuesto", sugerencias.
+2. Un turno en Bajo: línea de uso, la conversación aparece en la lista y la
+   dirección pasa a `?conversacion=`. Recargar la conserva.
+3. En un presupuesto, un turno en el Sheet → "Abrir en página": la misma
+   conversación con el link al presupuesto, y el turno siguiente manda el
+   contexto `saved`.
+4. Lista: búsqueda sin acentos, presupuesto en la fila, renombrar, diálogo de
+   borrar. Costos de IA y cambio de modo.
+5. `?conversacion=` inválido o ajeno: error con "Nueva conversación". El link
+   del sidebar, estando en una conversación, arranca una nueva.
+6. 390x844: historial en diálogo, targets de 44 px, sin desborde. Claro y
+   oscuro, consola limpia.
+
+### Ajustes al implementar la 42 (2026-09-21)
+
+- La columna del historial no depende de `lg` sino del ancho del panel
+  (container query `@4xl/panel`, 56rem). Con `lg`, a 1024 px con el sidebar
+  abierto el chat quedaba en 383 px, más angosto que el Sheet.
+- La forma del id de conversación pasó a `lib/agent/client-id.ts`, sin
+  dependencias: la usan el schema de la ruta y la dirección de la página, que
+  importa el sidebar (así el sidebar no carga zod ni el schema del agente).
+- `AgentSheetBody` pasó a `AgentSessionBody`: es igual en los dos hosts.
+- La lista y el composer van en `max-w-3xl` (en el Sheet no cambia nada) y los
+  scrolls internos llevan `overscroll-contain`: el wrapper del sidebar mide
+  `min-h-svh` debajo de un nav de 80 px, así que todo el dashboard scrollea
+  80 px de más, y la rueda al final de la lista arrastraba la página.
+- La búsqueda de la página mira también el nombre del presupuesto.
 
 ## Verificación
 
@@ -672,3 +744,20 @@ cambia el viewport):
   save-chat, upload-chat-image, and ai-system-message are removed and feature 7
   is marked superseded · Loading, empty, error, desktop, and 390x844 states pass
   authenticated browser smoke with lint and build.
+- **42 `agent_page`** — "Add the agent page to the dashboard with every
+  conversation". Acceptance: /dashboard/agent renders the agent under the
+  admin-only private layout and the sidebar shows an Agente entry that is
+  active on that route · The page lists every conversation of the user, from
+  budgets, the create form, and the page, with accent-insensitive search, its
+  budget, cost, rename, and delete, in a side column on desktop and in the
+  history dialog on phones · Opening a conversation that belongs to a saved
+  budget sends that budget as context on every turn and links to it, while new
+  page conversations carry no budget context · The active saved conversation is
+  kept in ?conversacion= so reload and links reopen it, an unknown id shows an
+  error with a way to start over, and the sidebar link starts a new
+  conversation · The budget sheet keeps its per-budget history and its header
+  opens the current conversation in the page, disabled while a response
+  streams · Mode selector, skill chips, tool cards, proposals, usage line, cost
+  badge, and the AI cost dialog behave on the page as in the sheet · Focused
+  checks, TypeScript, lint, build, and authenticated browser smoke on desktop
+  and 390x844 pass.

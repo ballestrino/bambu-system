@@ -65,12 +65,14 @@ export function AgentMessageList({
       role="log"
       aria-busy={busy}
       aria-label="Conversación con el asistente"
-      className="min-h-0 flex-1 overflow-y-auto px-4 py-4"
+      className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-4 py-4"
     >
       {messages.length === 0 && !busy ? (
         emptyState
       ) : (
-        <div className="space-y-5">
+        // En la página la columna es ancha: los mensajes quedan en un ancho de
+        // lectura (en el Sheet no cambia nada).
+        <div className="mx-auto max-w-3xl space-y-5">
           {messages.map((message) => (
             <AgentMessage
               key={message.id}
