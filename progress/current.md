@@ -2,13 +2,14 @@
 
 Status: in_progress
 
-## Agente de Bambú (features 38-42)
+## Agente de Bambú (features 38-43)
 
 - Plan aprobado en `docs/agent-plan.md`; contrato vivo en `docs/agent.md`.
-  Orden: 38 → 39 → 40 → 41 → 42, cada una en su rama. Se marcan
-  `in_progress` recién cuando la 35 libere el único slot, así que las cinco
-  siguen `pending` en `feature_list.json`. La 42 (la página del agente) la
-  pidió el usuario el 2026-09-21, después de commitear la 41.
+  Orden: 38 → 39 → 40 → 41 → 42 → 43, cada una en su rama. Se marcan
+  `in_progress` recién cuando la 35 libere el único slot, así que las seis
+  siguen `pending` en `feature_list.json`. La 42 (la página del agente) y la
+  43 (editar y guardar los presupuestos del agente) las pidió el usuario el
+  2026-09-21.
 - Supuestos a confirmar con el usuario si hace falta: modo por conversación con
   default Medio, habilidad por mensaje con default General, costos en USD.
 - Revisiones (2026-09-18): tres revisores independientes, uno por feature,
@@ -17,7 +18,7 @@ Status: in_progress
   sección "Correcciones de la revisión" de cada `impl_*.md`. La re-revisión
   sobre `b6becae` aprobó las tres; sus menores nuevos (título al regenerar y
   aserciones faltantes) quedaron resueltos en el commit siguiente.
-- Para cerrar de la 38 a la 42 falta la decisión del usuario de pasarlas a
+- Para cerrar de la 38 a la 43 falta la decisión del usuario de pasarlas a
   `done` con la 35 todavía en `in_progress`. Decisiones abiertas:
   `engines`/Node del deploy y `maxDuration` (con el consumo guardado por
   paso).
@@ -151,12 +152,13 @@ Status: in_progress
 - Commiteada el 2026-09-21 (`e4b89c8` y `595870c`) a pedido del usuario,
   después de volver a pasar harness, ESLint, `tsc` y `check:agent-sheet`.
 - Siguiente paso: revisión independiente (`progress/review_agent_budget_sheet.md`)
-  y decidir el cierre de 38-42 con la 35 todavía `in_progress`.
+  y decidir el cierre de 38-43 con la 35 todavía `in_progress`.
 
 ### Feature 42 - `agent_page` (implementada, falta revisión)
 
-- Rama `feature/42-agent-page`, encima de la 41, sin commitear. Sigue
-  `pending` por lo mismo que 38-41. Detalle en `progress/impl_agent_page.md`.
+- Rama `feature/42-agent-page`, encima de la 41. Commiteada el 2026-09-21
+  (`35e5c22` y `01e6226`). Sigue `pending` por lo mismo que 38-41. Detalle en
+  `progress/impl_agent_page.md`.
 - `/dashboard/agent` con "Agente" en el sidebar: el mismo agente a ancho
   completo, con todas las conversaciones (las 100 más recientes) en una
   columna que depende del ancho del panel, o en el diálogo de historial.
@@ -176,8 +178,38 @@ Status: in_progress
 - Quedan dos conversaciones de prueba para borrar desde la página. Apareció
   otra con la misma cuenta ("Presupuesto de oficina 3 días semanales") que
   no salió del smoke; no se tocó.
-- Siguiente paso: commit (cuando el usuario lo pida) y revisión
-  independiente (`progress/review_agent_page.md`).
+- Siguiente paso: revisión independiente (`progress/review_agent_page.md`).
+
+### Feature 43 - `agent_budget_editor` (implementada, falta revisión)
+
+- Rama `feature/43-agent-budget-editor`, encima de la 42. Sigue `pending`
+  por lo mismo que 38-42. Detalle en
+  `progress/impl_agent_budget_editor.md`.
+- Las tarjetas de cálculo y de propuesta de crear tienen "Ver detalle" y
+  "Editar": un Sheet con el detalle de la página del presupuesto y el
+  formulario del generador sobre los mismos valores, y "Guardar en el
+  generador".
+- Guardar deja una propuesta CREATE_BUDGET de esa llamada a tool (nueva o
+  revisada) y la confirma con `confirmAgentProposal`: auditado, una sola
+  escritura, y el agente lo ve después. `values` viaja en la salida de las
+  tools para la UI y `toModelOutput` se lo saca al modelo.
+- PASS: `check:agent-budget-editor` (nuevo, 20 de 20 mutaciones), las
+  regresiones del agente, oficiales y mail, `tsc`, `.\init.ps1` y
+  `pnpm exec next build`.
+- PASS: smoke autenticado con OpenAI real (unos US$ 0,03): detalle igual a
+  la tarjeta, edición en vivo, borrador al cerrar y reabrir, nombre vacío y
+  tomado, guardar un cálculo y una propuesta editada, el agente conoce lo
+  guardado, editor encima del Sheet de Presupuestos, recarga, 390x844, claro
+  y oscuro.
+- El smoke encontró y se corrigió: doble scroll en el detalle, foco en
+  `BODY` al cerrar encima del Sheet, un cálculo guardado que se reabría con
+  los valores del agente y targets de 16 y 37 px en el teléfono.
+- Datos: con permiso del usuario quedaron "Prueba agente 43 cálculo" y
+  "Prueba agente 43 propuesta" en el generador, para borrar.
+- Commiteada el 2026-09-21 a pedido del usuario, después de volver a pasar
+  harness, ESLint, `tsc` y `check:agent-budget-editor`.
+- Siguiente paso: revisión independiente
+  (`progress/review_agent_budget_editor.md`).
 
 ## Feature 37 - Sueldos a mes vencido
 
