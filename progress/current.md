@@ -2,14 +2,14 @@
 
 Status: in_progress
 
-## Agente de Bambú (features 38-43)
+## Agente de Bambú (features 38-44)
 
 - Plan aprobado en `docs/agent-plan.md`; contrato vivo en `docs/agent.md`.
-  Orden: 38 → 39 → 40 → 41 → 42 → 43, cada una en su rama. Se marcan
-  `in_progress` recién cuando la 35 libere el único slot, así que las seis
-  siguen `pending` en `feature_list.json`. La 42 (la página del agente) y la
-  43 (editar y guardar los presupuestos del agente) las pidió el usuario el
-  2026-09-21.
+  Orden: 38 → 39 → 40 → 41 → 42 → 43 → 44, cada una en su rama. Se marcan
+  `in_progress` recién cuando la 35 libere el único slot, así que las siete
+  siguen `pending` en `feature_list.json`. La 42 (la página del agente), la
+  43 (editar y guardar los presupuestos del agente) y la 44 (reglas de
+  precio) las pidió el usuario el 2026-09-21.
 - Supuestos a confirmar con el usuario si hace falta: modo por conversación con
   default Medio, habilidad por mensaje con default General, costos en USD.
 - Revisiones (2026-09-18): tres revisores independientes, uno por feature,
@@ -18,7 +18,7 @@ Status: in_progress
   sección "Correcciones de la revisión" de cada `impl_*.md`. La re-revisión
   sobre `b6becae` aprobó las tres; sus menores nuevos (título al regenerar y
   aserciones faltantes) quedaron resueltos en el commit siguiente.
-- Para cerrar de la 38 a la 43 falta la decisión del usuario de pasarlas a
+- Para cerrar de la 38 a la 44 falta la decisión del usuario de pasarlas a
   `done` con la 35 todavía en `in_progress`. Decisiones abiertas:
   `engines`/Node del deploy y `maxDuration` (con el consumo guardado por
   paso).
@@ -206,10 +206,48 @@ Status: in_progress
   los valores del agente y targets de 16 y 37 px en el teléfono.
 - Datos: con permiso del usuario quedaron "Prueba agente 43 cálculo" y
   "Prueba agente 43 propuesta" en el generador, para borrar.
-- Commiteada el 2026-09-21 a pedido del usuario, después de volver a pasar
-  harness, ESLint, `tsc` y `check:agent-budget-editor`.
+- Commiteada el 2026-09-21 (`a4311e3` y `40c586d`) a pedido del usuario,
+  después de volver a pasar harness, ESLint, `tsc` y
+  `check:agent-budget-editor`.
 - Siguiente paso: revisión independiente
   (`progress/review_agent_budget_editor.md`).
+
+### Feature 44 - `agent_pricing_rules` (implementada, falta revisión)
+
+- Rama `feature/44-agent-pricing-rules`, encima de la 43. Sigue `pending`
+  por lo mismo que 38-43. Detalle en `progress/impl_agent_pricing_rules.md`.
+- Pedido del usuario: nada de precios con números raros, precio lindo
+  moviendo el presupuesto hasta $ 100, productos en múltiplos de $ 500,
+  buscar si ya existe uno igual, y responder un mail que pide presupuesto
+  con el precio (generándolo si no existe). Decidido con el usuario: el
+  precio sube siempre al próximo múltiplo de $ 100 y los productos van al
+  múltiplo de $ 500 más cercano, con mínimo de $ 500.
+- El redondeo lo hace el cálculo (`applyAgentChanges`), no el prompt:
+  `draftEmail` solo acepta importes de una tool. Lo usan `calculateBudget` y
+  las propuestas de crear y guardar. No redondea un margen pedido, un precio
+  objetivo, un guardado que solo se abre ni lo editado a mano en la 43.
+- Un presupuesto nuevo estima transporte y productos con sus horas (antes
+  quedaban los de 1 visita semanal: se vio en el smoke de la 43). El precio
+  por hora va en pesos.
+- `findMatchingBudgets` busca guardados con el mismo servicio; la propuesta
+  de crear avisa si hay. Emails suma esa tool y `proposeCreateBudget`.
+  `MAX_STEPS` pasa de 6 a 8.
+- PASS: `check:agent-pricing` (nuevo, 19 de 19 mutaciones), regresiones del
+  agente, oficiales y mail, `tsc`, `.\init.ps1` y `pnpm exec next build`.
+- PASS: smoke autenticado con OpenAI real (unos US$ 0,18): presupuesto que ya
+  existe (usa el guardado), uno nuevo ($ 54.062,33 → $ 54.100,00, productos
+  $ 5.500), margen 40 % sin redondear, mail para un servicio nuevo (calcula,
+  redacta y propone; 6 pasos, 26 s) y mail para uno que existe (precio
+  guardado, sin propuesta).
+- Datos: quedaron dos conversaciones de prueba ("Presupuesto de limpieza de
+  oficina" y "Cotización de limpieza para ferretería") y dos propuestas de
+  crear pendientes, que vencen solas en 24 horas. No se guardó ningún
+  presupuesto.
+- Commiteada el 2026-09-22 a pedido del usuario, después de volver a pasar
+  harness, ESLint, `tsc`, `check:agent-pricing` y las regresiones del
+  agente, oficiales y mail.
+- Siguiente paso: revisión independiente
+  (`progress/review_agent_pricing_rules.md`).
 
 ## Feature 37 - Sueldos a mes vencido
 
