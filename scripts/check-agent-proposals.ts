@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 
 import "./agent-proposal-source-checks";
+import { applyAgentChanges } from "../lib/agent/agent-pricing";
 import {
   applyBudgetChanges,
   budgetOptionToFormValues,
@@ -79,7 +80,8 @@ const create = buildCreateBudgetProposal({ base: { source: "form", values: formV
 assert.ok(create.ok);
 assert.equal(create.summary.slug, "oficina-centro");
 assert.deepEqual([create.payload.values.visits, create.payload.values.categoryIds], [2, ["cat_9"]]);
-assert.deepEqual(create.summary.after, runBudgetCalculation(applyBudgetChanges(formValues, { visits: 2 }).values));
+// The same price rules as calculateBudget (feature 44): the change rounds the price.
+assert.deepEqual(create.summary.after, runBudgetCalculation(applyAgentChanges({ source: "form", values: formValues }, { visits: 2 }).values));
 assert.match(create.summary.warnings[0], /formulario abierto no se guarda/);
 const defaults = { source: "defaults" as const, values: defaultBudgetValues };
 const unnamed = buildCreateBudgetProposal({ base: defaults, name: null, description: null, changes: {} });

@@ -15,6 +15,7 @@ export const AGENT_TOOL_CATALOG = {
   listOfficialBudgets: { label: "Lista presupuestos oficiales", kind: "read" },
   getOfficialBudget: { label: "Abre un presupuesto oficial", kind: "read" },
   searchBudgets: { label: "Busca presupuestos", kind: "read" },
+  findMatchingBudgets: { label: "Busca presupuestos iguales", kind: "read" },
   getBudget: { label: "Abre un presupuesto", kind: "read" },
   calculateBudget: { label: "Calcula un presupuesto", kind: "calc" },
   solveForTargetPrice: { label: "Calcula el margen para un precio", kind: "calc" },

@@ -701,6 +701,93 @@ Smoke de la 43:
   guardados (ahora el editor parte de los `values` de su propuesta); el
   cierre y las pestañas medían 16 y 37 px en el teléfono (ahora 44).
 
+## Feature 44: reglas de precio del agente
+
+Rama `feature/44-agent-pricing-rules`, encima de la 43. Pedido del usuario el
+2026-09-21: no dar precios con números raros, buscar el precio lindo moviendo
+el presupuesto hasta $ 100 (preferentemente hacia arriba), productos en
+múltiplos de $ 500, fijarse si ya hay un presupuesto igual antes de generar
+uno, y al responder un mail que pide presupuesto, buscarlo y, si no existe,
+generarlo para responder con el precio. Decidido con el usuario: el precio
+sube siempre al próximo múltiplo de $ 100 (nunca baja) y los productos van
+al múltiplo de $ 500 más cercano, con un mínimo de $ 500.
+
+No alcanza con el prompt: la regla de precios prohíbe redondear a mano y
+`draftEmail` rechaza importes que no salieron de una tool. El redondeo lo
+hace el cálculo.
+
+- `lib/agent/price-rounding.ts` (puro): `roundUpToPriceStep` (en centavos,
+  para que $ 23.400,00 no suba por coma flotante) y `roundProductsPrice`. Las
+  cifras (`priceStep` 100 y `productsStep` 500) van en el perfil del negocio.
+- `lib/agent/agent-pricing.ts` (puro): `applyAgentChanges(base, changes)`
+  envuelve `applyBudgetChanges` y lo usan `calculateBudget` y las propuestas
+  de crear y guardar, así lo guardado es lo calculado.
+  - Precio lindo: el total mensual del servicio sin IVA sube al próximo
+    múltiplo de $ 100 subiendo el margen, con la cuenta del precio objetivo
+    (`calculateRevenuePercentForServiceTarget`). `rounding` dice de cuánto a
+    cuánto y con qué margen; `changedFields` sigue siendo lo pedido.
+  - Se redondea cuando el precio es nuevo o cambia. No se redondea al abrir
+    uno guardado, con un cambio de IVA solo (no mueve el precio sin IVA), con
+    un margen pedido ni con `roundPrice: false`. `roundPrice: true` redondea
+    también un margen pedido.
+  - Un presupuesto nuevo (`fromDefaults`) estima transporte y productos con
+    sus horas, salvo que vengan los montos: los valores por defecto son de 1
+    visita semanal de 4 horas, y en el smoke de la 43 un presupuesto de 2
+    visitas semanales salió con los productos y el transporte de 1.
+- `applyBudgetChanges`: el estimado de productos va al múltiplo de $ 500 más
+  cercano; `roundPrice` no se copia como campo.
+- `runBudgetCalculation`: el precio por hora va redondeado a pesos, así el
+  modelo lo cita sin redondear a mano. Es citable, como los totales
+  redondeados; el precio sin redondear no.
+- `solveForTargetPrice` estima un presupuesto nuevo pero no redondea: el
+  objetivo es el precio pedido.
+- El editor de la 43 guarda con la fuente `edited`: lo tipeado a mano no pasa
+  por las reglas.
+- `findMatchingBudgets` (lectura, `data/agent/budgets.ts`): presupuestos
+  guardados con la misma frecuencia, visitas, horas por visita y empleadas (y
+  la opción con productos si se pide), los 10 más recientes, con sus precios
+  guardados citables y si son oficiales vigentes. Usa los mismos nombres que
+  `searchOfficialBudgets`. La propuesta de crear avisa si ya hay guardados
+  con el mismo servicio.
+- Prompt: `NEW_BUDGET_RULE` va con las habilidades que calculan (General,
+  Presupuestos y Emails): precio oficial, después uno guardado igual, y recién
+  entonces calcular. Emails suma `findMatchingBudgets` y
+  `proposeCreateBudget`: al responder un pedido de presupuesto sin uno
+  guardado, calcula, redacta con ese precio y propone guardarlo.
+- `MAX_STEPS` pasa de 6 a 8: ese flujo usa 6 pasos (buscar el oficial,
+  buscar uno igual, calcular, redactar, proponer y contestar).
+- `check:agent-pricing` nuevo.
+
+Smoke de la 44:
+
+1. Chip Presupuestos, "Armá un presupuesto de limpieza de oficina, 2 veces
+   por semana, 4 horas por visita" → busca el oficial y uno igual, y calcula:
+   sin IVA en múltiplo de $ 100 con la nota del redondeo, productos en
+   múltiplo de $ 500 y precio por hora en pesos.
+2. "Ajustá el margen a 40 %" no redondea; "redondealo" sí (`roundPrice`).
+3. Chip Emails, pegar un mail que pide presupuesto para un servicio que ya
+   existe → responde con el precio guardado, sin proponer crear.
+4. Otro mail con un servicio que no existe → calcula, redacta con el precio
+   redondeado y propone guardarlo. Rechazar la propuesta.
+
+### Ajustes al implementar la 44 (2026-09-21)
+
+- `budget-calculation.ts` quedaba en 202 líneas: los comentarios se
+  compactaron (199). El redondeo vive en `price-rounding.ts`, que no importa
+  el cálculo, así `applyBudgetChanges` lo usa sin un ciclo con
+  `agent-pricing.ts`.
+- `getStoredPrices` acepta cualquier objeto con opciones (precio, IVA y si
+  lleva productos): lo usan la tarjeta de una propuesta y
+  `findMatchingBudgets`.
+- Hallazgos del smoke: con "2 veces por semana, 4 horas" el agente primero
+  preguntó cuántas empleadas (cambia el precio) y después encontró 6
+  guardados iguales y citó el más reciente. Los guardados de antes de la 44
+  tienen precios con centavos ($ 14.000,15) y se citan tal cual; uno tenía el
+  precio con productos distinto del cálculo (deriva de constantes, anterior a
+  esta feature). Con un margen pedido no redondeó, y lo dijo. Un slug con
+  "Ferretería" perdió la "í" (`lib/budget-slug.ts` borra los acentos en vez
+  de sacarlos): queda como tarea aparte.
+
 ## Verificación
 
 Por feature: `pnpm exec tsc --noEmit`, `pnpm lint`, `pnpm harness`, `pnpm exec
@@ -853,3 +940,25 @@ cambia el viewport):
   reopening the sheet during the session and the card says so · Focused
   checks, TypeScript, lint, build, and authenticated browser smoke on desktop
   and 390x844 pass.
+- **44 `agent_pricing_rules`** — "Round the agent's prices, reuse equal
+  budgets, and answer quote requests with a price". Acceptance:
+  calculateBudget and the create and update proposals share
+  applyAgentChanges: a new or changed price without IVA goes up to the next
+  multiple of $ 100 by raising the service margin, never down and by less
+  than $ 100, and the tool output and the proposal card say from what to what
+  · An explicit margin, a target price from solveForTargetPrice, roundPrice
+  false, opening a saved budget, an IVA-only change, and the values edited by
+  hand in the feature 43 editor are not rounded, while roundPrice true rounds
+  an explicit margin · A new budget estimates transport and products for its
+  own hours unless amounts are given, and every products estimate goes to the
+  nearest multiple of $ 500, at least $ 500 · The hourly price of the agent's
+  calculations is given in whole pesos, and the rounded totals and hourly
+  price are citable while the unrounded price is not · findMatchingBudgets
+  returns the saved budgets with the same frequency, visits, hours per visit,
+  employees, and products option with their citable stored prices, and a
+  create proposal warns when the same service is already saved · Skills that
+  calculate budgets search the official price and an equal saved budget
+  before calculating a new one, and the Emails skill answers a quote request
+  with that price and proposes saving a budget it had to calculate · Focused
+  checks, the agent regression checks, TypeScript, lint, build, and an
+  authenticated smoke with OpenAI pass.

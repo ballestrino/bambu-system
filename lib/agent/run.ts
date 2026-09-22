@@ -13,8 +13,11 @@ import type { AgentMode } from "@/lib/ai/modes";
 import { resolveModelSpec } from "@/lib/ai/model-spec";
 import { normalizeUsage, readGatewayCost } from "@/lib/ai/usage";
 
-// Pasos del modelo por turno (llamadas a tools incluidas).
-const MAX_STEPS = 6;
+// Pasos del modelo por turno (llamadas a tools incluidas). Responder un
+// pedido de presupuesto sin uno guardado usa 6 (buscar el oficial, buscar uno
+// igual, calcular, redactar, proponer y contestar): 8 deja lugar a un
+// reintento.
+const MAX_STEPS = 8;
 
 // Tope por paso. Incluye el razonamiento, que en Luna con xhigh puede ser
 // largo: con 4000 un paso podía quedarse sin lugar para la respuesta.

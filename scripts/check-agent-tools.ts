@@ -53,12 +53,13 @@ const readBack = budgetOptionToFormValues({
   .forEach((field) => assert.equal(readBack[field], defaultBudgetValues[field], field));
 assert.deepEqual([readBack.name, readBack.personal_enabled], ["Limpieza Norte", false]);
 
-// --- The agent calculation is the form calculation, rounded to cents.
+// --- The agent calculation is the form calculation, rounded to cents (the
+// hourly price, a reference, to pesos since feature 44).
 const totals = calculateBudgetTotals(defaultBudgetValues);
 const calculation = runBudgetCalculation(defaultBudgetValues);
 assert.equal(calculation.withoutProducts.final, round(totals.finalPriceService));
 assert.equal(calculation.withProducts?.final, round(totals.totalFinalWithProducts));
-assert.equal(calculation.withProducts?.hourlyNet, round(totals.hourlyPriceNoTaxWithProducts));
+assert.equal(calculation.withProducts?.hourlyNet, Math.round(totals.hourlyPriceNoTaxWithProducts));
 assert.equal(calculation.serviceCost, round(totals.costBasisNoProducts));
 assert.equal(runBudgetCalculation({ ...defaultBudgetValues, products_price: 0 }).withProducts, null);
 assert.deepEqual(getStoredOptionAmounts([{ price: 1220, iva: 22 }]), [1000, 220, 1220]);

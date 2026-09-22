@@ -678,6 +678,22 @@
         "Focused checks, TypeScript, lint, build, and authenticated browser smoke on desktop and 390x844 pass"
       ],
       "status": "pending"
+    },
+    {
+      "id": 44,
+      "name": "agent_pricing_rules",
+      "title": "Round the agent's prices, reuse equal budgets, and answer quote requests with a price",
+      "description": "The agent's calculations and budget proposals raise the monthly service price without IVA to the next multiple of $ 100 through the service margin, estimate transport and products for a new budget with products at the nearest multiple of $ 500 (at least $ 500), and give the hourly price in whole pesos. findMatchingBudgets looks for saved budgets with the same service before a new one is calculated, create proposals warn about them, and the Emails skill answers a quote request with the official, the saved, or a calculated price and proposes saving a calculated one. See docs/agent-plan.md.",
+      "acceptance": [
+        "calculateBudget and the create and update proposals share applyAgentChanges: a new or changed price without IVA goes up to the next multiple of $ 100 by raising the service margin, never down and by less than $ 100, and the tool output and the proposal card say from what to what",
+        "An explicit margin, a target price from solveForTargetPrice, roundPrice false, opening a saved budget, an IVA-only change, and the values edited by hand in the feature 43 editor are not rounded, while roundPrice true rounds an explicit margin",
+        "A new budget estimates transport and products for its own hours unless amounts are given, and every products estimate goes to the nearest multiple of $ 500, at least $ 500",
+        "The hourly price of the agent's calculations is given in whole pesos, and the rounded totals and hourly price are citable while the unrounded price is not",
+        "findMatchingBudgets returns the saved budgets with the same frequency, visits, hours per visit, employees, and products option with their citable stored prices, and a create proposal warns when the same service is already saved",
+        "Skills that calculate budgets search the official price and an equal saved budget before calculating a new one, and the Emails skill answers a quote request with that price and proposes saving a budget it had to calculate",
+        "Focused checks, the agent regression checks, TypeScript, lint, build, and an authenticated smoke with OpenAI pass"
+      ],
+      "status": "pending"
     }
   ]
 }

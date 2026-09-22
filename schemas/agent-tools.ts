@@ -45,7 +45,16 @@ export const budgetChangesSchema = z.object({
   company_enabled: z.boolean().nullable().describe(`Solo si piden habilitar o quitar los aportes patronales${keep}`),
   personal_enabled: z.boolean().nullable().describe(`Solo si piden habilitar o quitar los aportes personales${keep}`),
   estimateTransport: z.boolean().nullable().describe("true recalcula el transporte: visitas del mes x empleadas x $ 52"),
-  estimateProducts: z.boolean().nullable().describe("true recalcula los productos: $ 175 cada 4 horas de servicio"),
+  estimateProducts: z
+    .boolean()
+    .nullable()
+    .describe("true recalcula los productos: $ 175 cada 4 horas de servicio, al múltiplo de $ 500 más cercano"),
+  roundPrice: z
+    .boolean()
+    .nullable()
+    .describe(
+      "null sube el precio sin IVA al próximo múltiplo de $ 100, salvo que pidan un margen exacto; true lo redondea igual; false solo si piden el precio exacto"
+    ),
 });
 
 export type AgentBudgetChanges = Partial<z.infer<typeof budgetChangesSchema>>;
@@ -80,6 +89,16 @@ export const searchBudgetsInputSchema = z.object({
   query: z.string().trim().max(120).nullable().describe("Palabras del nombre o la descripción"),
   page: z.number().int().min(1).max(50).nullable(),
   limit: z.number().int().min(1).max(20).nullable(),
+});
+
+// El mismo servicio que busca searchOfficialBudgets, con los mismos nombres:
+// el modelo puede buscar en los dos con los mismos datos.
+export const findMatchingBudgetsInputSchema = z.object({
+  frequency: z.enum(["days", "week", "month"]).describe("days: puntuales; week: por semana; month: por mes"),
+  visits: z.number().int().positive().describe("Visitas por período"),
+  hoursPerVisit: z.number().positive().describe("Horas por visita"),
+  employees: z.number().int().positive().nullable().describe("Empleadas por visita; null es 1"),
+  hasProducts: z.boolean().nullable().describe("true si lleva productos; false o null no filtra"),
 });
 
 export const getBudgetInputSchema = z.object({

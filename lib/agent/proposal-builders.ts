@@ -1,5 +1,5 @@
+import { applyAgentChanges, describeRounding } from "@/lib/agent/agent-pricing";
 import {
-  applyBudgetChanges,
   budgetOptionToFormValues,
   describeBudgetInputs,
   runBudgetCalculation,
@@ -46,11 +46,14 @@ const withText = (values: BudgetFormValues, name: string, description: string | 
   description: description ?? values.description,
 });
 
+// "edited" son los valores del editor de la 43, guardados tal cual: sin
+// cambios que describir ni reglas de precio.
 const CREATE_NOTES = {
   form: "Crea un presupuesto nuevo con estos valores: el formulario abierto no se guarda ni cambia.",
   context: "Crea un presupuesto nuevo: el presupuesto en contexto no cambia.",
   budget: "Crea un presupuesto nuevo: el presupuesto de base no cambia.",
   defaults: null,
+  edited: null,
 } as const;
 
 export const buildCreateBudgetProposal = (input: {
@@ -65,10 +68,11 @@ export const buildCreateBudgetProposal = (input: {
   const slug = slugifyBudgetName(name);
   if (!slug) return refuse("invalid_name", INVALID_NAME);
 
-  const { values } = applyBudgetChanges(base.values, input.changes);
+  const { values, rounding } = applyAgentChanges(base, input.changes);
   const parsed = proposalBudgetValuesSchema.safeParse(withText(values, name, input.description));
   if (!parsed.success) return refuseInvalid(parsed.error.issues);
   const after = runBudgetCalculation(parsed.data);
+  const fromScratch = base.source === "defaults" || base.source === "edited";
   return {
     ok: true,
     kind: "CREATE_BUDGET",
@@ -77,12 +81,12 @@ export const buildCreateBudgetProposal = (input: {
       title: `Crear “${name}”`,
       name,
       slug,
-      changes: base.source === "defaults" ? [] : describeChanges(base.values, parsed.data),
+      changes: fromScratch ? [] : describeChanges(base.values, parsed.data),
       inputs: describeBudgetInputs(parsed.data),
       before: null,
       after,
       stored: [],
-      warnings: onlyText([CREATE_NOTES[base.source]]),
+      warnings: onlyText([CREATE_NOTES[base.source], describeRounding(rounding)]),
     },
   };
 };
@@ -97,7 +101,7 @@ export const buildUpdateBudgetProposal = (input: {
   const { budget } = input;
   const existing = budgetOptionToFormValues(budget);
   const name = input.name?.trim() || budget.name;
-  const { values } = applyBudgetChanges(existing, input.changes);
+  const { values, rounding } = applyAgentChanges({ source: "budget", values: existing }, input.changes);
   const parsed = proposalBudgetValuesSchema.safeParse(withText(values, name, input.description));
   if (!parsed.success) return refuseInvalid(parsed.error.issues);
   const changes = describeChanges(existing, parsed.data);
@@ -135,6 +139,7 @@ export const buildUpdateBudgetProposal = (input: {
         newSlug === budget.slug ? null : `Cambia la dirección del presupuesto a ${getBudgetUrl(newSlug)}.`,
         productsWarning(existing, parsed.data),
         drift,
+        describeRounding(rounding),
       ]),
     },
   };

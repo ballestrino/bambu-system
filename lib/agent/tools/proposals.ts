@@ -2,7 +2,7 @@ import "server-only";
 
 import { tool } from "ai";
 
-import { getAgentBudget, type AgentBudget } from "@/data/agent/budgets";
+import { findAgentBudgetsByService, getAgentBudget, type AgentBudget } from "@/data/agent/budgets";
 import { addToolGrounding } from "@/lib/agent/grounding";
 import {
   buildCreateBudgetProposal,
@@ -10,7 +10,7 @@ import {
   type BuiltProposal,
 } from "@/lib/agent/proposal-builders";
 import { saveAgentProposal } from "@/lib/agent/proposal-store";
-import { getSummaryAmounts } from "@/lib/agent/proposal-summary";
+import { getSummaryAmounts, onlyText, sameServiceWarning } from "@/lib/agent/proposal-summary";
 import type { ProposalSummary } from "@/lib/agent/proposals";
 import {
   buildDuplicateBudgetProposal,
@@ -59,6 +59,18 @@ const saveProposal = async (ctx: AgentToolContext, toolCallId: string, built: Pr
   });
 };
 
+// Crear avisa si ya hay presupuestos guardados con el mismo servicio: la
+// tarjeta lo muestra y el usuario decide.
+const withSameServiceWarning = async (built: Proposal): Promise<Proposal> => {
+  if (built.kind !== "CREATE_BUDGET" || !("values" in built.payload)) return built;
+  const { values } = built.payload;
+  const matches = await findAgentBudgetsByService({ ...values, withProducts: values.products_price > 0 });
+  const warning = sameServiceWarning(matches.map((budget) => budget.name));
+  return warning
+    ? { ...built, summary: { ...built.summary, warnings: onlyText([...built.summary.warnings, warning]) } }
+    : built;
+};
+
 const slugTaken = (slug: string) =>
   toolError("slug_taken", `Ya existe un presupuesto con la dirección "${slug}": pedí otro nombre.`);
 
@@ -99,7 +111,7 @@ export const createProposalTools = (ctx: AgentToolContext) => ({
         if (built.summary.slug && (await getAgentBudget({ slug: built.summary.slug }))) {
           return slugTaken(built.summary.slug);
         }
-        return saveProposal(ctx, toolCallId, built);
+        return saveProposal(ctx, toolCallId, await withSameServiceWarning(built));
       }),
     toModelOutput: hideFromModel("values"),
   }),

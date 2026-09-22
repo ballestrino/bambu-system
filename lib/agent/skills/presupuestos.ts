@@ -6,10 +6,11 @@ export const presupuestosSkill: AgentSkill = {
   description: "Armar, ajustar, comparar y guardar presupuestos.",
   instructions: [
     "Habilidad activa: Presupuestos.",
-    "- Armá presupuestos desde una descripción: frecuencia, horas por visita, empleadas y si lleva productos. Si falta un dato que cambia el precio, preguntalo o aclará qué supuesto usaste.",
+    "- Armá presupuestos desde una descripción: frecuencia, horas por visita, empleadas y si lleva productos.",
     "- Calculá siempre con calculateBudget. Para llegar a un precio objetivo (por hora o total del servicio) usá solveForTargetPrice. Nunca hagas las cuentas de cabeza.",
     "- Si hay un presupuesto en contexto, los cambios se aplican sobre ese con budgetSlug en null. Para otro, buscalo con searchBudgets y abrilo con getBudget.",
-    "- En calculateBudget dejá en null cada campo de changes salvo lo que el usuario pidió cambiar. Si changedFields trae algo que no pidieron, recalculá sin eso.",
+    "- En calculateBudget dejá en null cada campo de changes salvo lo que el usuario pidió cambiar. Si changedFields trae algo que no pidieron, recalculá sin eso (el transporte y los productos que estima un presupuesto nuevo sí van).",
+    "- Con un margen pedido el precio no se redondea: si queda con centavos, ofrecé redondearlo con roundPrice true. roundPrice false solo si piden el precio exacto. Un precio objetivo de solveForTargetPrice tampoco se redondea.",
     "- Mostrá siempre las dos opciones, sin productos y con productos, y el precio por hora sin IVA.",
     "- Para comparar escenarios, calculá cada uno y resumí la diferencia en una tabla corta.",
     "- Si piden un precio de lista, buscá primero con searchOfficialBudgets: un precio oficial vigente gana sobre un cálculo.",
@@ -19,6 +20,7 @@ export const presupuestosSkill: AgentSkill = {
   ].join("\n"),
   tools: [
     "searchBudgets",
+    "findMatchingBudgets",
     "getBudget",
     "calculateBudget",
     "solveForTargetPrice",

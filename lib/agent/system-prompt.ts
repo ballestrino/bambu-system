@@ -18,10 +18,19 @@ const TOOL_POLICY = [
   "- Las lecturas y los cálculos son libres: usalos antes de responder con datos del negocio.",
   "- No inventes datos: si ninguna tool trae lo que te piden, decilo.",
   "- Guardar siempre es una propuesta: las tools propose* preparan crear, modificar, duplicar o publicar como oficial un presupuesto, y el usuario la confirma o la rechaza en su tarjeta. Nada queda guardado hasta que la confirme. No podés borrar nada.",
-  "- Proponé solo cuando piden guardar, crear, duplicar o publicar. Si no tenés las tools propose* en esta habilidad, explicá que para guardar hay que elegir la habilidad Presupuestos o ninguna.",
+  "- Proponé solo cuando piden guardar, crear, duplicar o publicar, o cuando respondés un pedido de presupuesto con uno que tuviste que calcular. Si no tenés las tools propose* en esta habilidad, explicá que para guardar hay que elegir la habilidad Presupuestos o ninguna.",
   `- Nunca digas que algo quedó guardado si en "${PROPOSALS_HEADING}" no figura como confirmada.`,
   "- Si una tool devuelve ok false, explicá el problema en palabras simples y proponé el paso siguiente.",
   "- Las tools devuelven tarjetas que el usuario ve: no repitas todas sus cifras, resumí lo importante.",
+].join("\n");
+
+// Para las habilidades que calculan presupuestos (feature 44): antes de armar
+// uno nuevo se busca si ya existe, y el precio lo redondea el cálculo.
+export const NEW_BUDGET_RULE = [
+  "Presupuesto nuevo (también para responder a un cliente que pide uno):",
+  "- Antes de calcular, buscá si ya existe con los mismos datos del servicio: searchOfficialBudgets (un precio oficial vigente gana) y findMatchingBudgets. Si hay uno guardado igual, usá su precio y no propongas crear otro salvo que lo pidan.",
+  "- Si no existe, calculalo con calculateBudget (fromDefaults true si no parte del presupuesto en contexto). Si falta un dato que cambia el precio, preguntalo o aclará qué supuesto usaste.",
+  "- El cálculo estima transporte y productos y sube el precio sin IVA al próximo múltiplo de $ 100: si trae rounding, decilo en una línea.",
 ].join("\n");
 
 const TONE = [
@@ -58,6 +67,7 @@ export const buildAgentInstructions = ({
       : null,
     TOOL_POLICY,
     PRICE_RULE,
+    skill.tools.includes("calculateBudget") ? NEW_BUDGET_RULE : null,
     skill.instructions,
     budgetContextText
       ? `Presupuesto en contexto. El usuario lo está viendo: si pide cambios sin nombrar otro, son sobre este.\n${budgetContextText}`

@@ -102,6 +102,8 @@ export function AgentBudgetTotalsCard({ data, toolCallId }: { data: BudgetTotals
   const labels: Record<string, string> = FIELD_LABELS;
   const changed = saved ? [] : data.changedFields.map((field) => labels[field] ?? field);
   const target = "target" in data ? data : null;
+  // Las salidas anteriores a la feature 44 no traen rounding.
+  const rounding = "rounding" in data ? data.rounding : null;
 
   return (
     <AgentCard
@@ -117,6 +119,12 @@ export function AgentBudgetTotalsCard({ data, toolCallId }: { data: BudgetTotals
       }
     >
       {changed.length > 0 && <CardNote>Cambia: {changed.join(", ")}.</CardNote>}
+      {rounding && (
+        <CardNote>
+          Precio redondeado: {formatMoney(rounding.from)} → {formatMoney(rounding.to)} sin IVA, con margen{" "}
+          {formatPercent(rounding.revenuePercentTo)} (era {formatPercent(rounding.revenuePercentFrom)}).
+        </CardNote>
+      )}
       {target && (
         <CardNote tone={target.wasClamped ? "warning" : "muted"}>
           {target.wasClamped

@@ -1,6 +1,6 @@
 # Agente de Bambú
 
-Contrato de producto y entorno del agente (features 38-43). El plan completo
+Contrato de producto y entorno del agente (features 38-44). El plan completo
 está en `docs/agent-plan.md`; este documento describe lo que ya existe y se
 actualiza con cada feature.
 
@@ -22,6 +22,9 @@ actualiza con cada feature.
 - Feature 43: los presupuestos que arma el agente (cálculos y propuestas de
   crear) se ven en detalle, se editan con el formulario del generador en un
   Sheet y se guardan en el generador desde el chat.
+- Feature 44: reglas de precio. El precio sin IVA sube al próximo múltiplo de
+  $ 100, los productos van en múltiplos de $ 500, antes de calcular uno nuevo
+  se busca uno igual, y Emails responde un pedido de presupuesto con precio.
 - El agente de correo (`lib/mail-agent/**`) no usa esta capa y no cambia.
 
 ## Núcleo (feature 39)
@@ -51,7 +54,8 @@ actualiza con cada feature.
   tools de otra habilidad.
 - Tools en `lib/agent/tools/**`, sin escrituras: `getBusinessProfile`,
   `searchOfficialBudgets`, `listOfficialBudgets`, `getOfficialBudget`,
-  `searchBudgets`, `getBudget`, `calculateBudget`, `solveForTargetPrice`,
+  `searchBudgets`, `findMatchingBudgets` (feature 44), `getBudget`,
+  `calculateBudget`, `solveForTargetPrice`,
   `getFinancialSnapshot`, `getFinancialTrend`, `getJobProfitability`,
   `getPayrollSummary`, `queryOperations` y `draftEmail`. Devuelven
   `{ ok, data } | { ok: false, error }` con `card` para la UI; `runTool` pasa
@@ -143,7 +147,9 @@ Proponer y confirmar: ninguna tool escribe presupuestos durante el turno.
   cada tool `propose*` (`withLiveProposals`, `lib/agent/proposal-context.ts`);
   la base conserva la salida original. La salida guardada dice PENDING para
   siempre, y en la prueba real el modelo le creyó a ella antes que al bloque.
-- Presupuestos y General tienen las cuatro tools; Emails y Consejos no.
+- Presupuestos y General tienen las cuatro tools; Consejos ninguna. Emails
+  tiene `proposeCreateBudget` desde la feature 44, para guardar el
+  presupuesto que calculó al responder un pedido.
 - Si el servidor se corta en plena ejecución, la propuesta queda `EXECUTING`:
   no se puede saber si la escritura llegó, así que no se reintenta sola.
   Pasados 6 minutos (más que el máximo de una función en Vercel) el DTO trae
@@ -289,6 +295,58 @@ formulario:
   Se pierden al recargar, al cambiar de conversación o al cerrar el Sheet de
   Presupuestos (que desmonta el chat).
 
+## Reglas de precio (feature 44)
+
+Las aplica el cálculo, no el modelo: la regla de precios prohíbe redondear a
+mano y `draftEmail` solo acepta importes que salieron de una tool.
+`applyAgentChanges` (`lib/agent/agent-pricing.ts`) envuelve
+`applyBudgetChanges` y lo usan `calculateBudget`, `proposeCreateBudget` y
+`proposeUpdateBudget`: lo que se guarda es lo que se calculó. Las cifras
+(`priceStep` 100, `productsStep` 500) están en el perfil del negocio.
+
+| Regla | Cuándo |
+| --- | --- |
+| El total mensual del servicio sin IVA sube al próximo múltiplo de $ 100 subiendo el margen (nunca baja, menos de $ 100) | Presupuesto nuevo o un cambio que mueve el precio sin IVA. No al abrir uno guardado, con un cambio de IVA solo, con un margen pedido ni con `roundPrice: false`; `roundPrice: true` redondea también un margen pedido |
+| Transporte y productos se estiman con las horas del presupuesto | Presupuesto nuevo (`fromDefaults`), salvo que vengan los montos o `estimate*: false` |
+| El estimado de productos va al múltiplo de $ 500 más cercano, mínimo $ 500 | Todo estimado (`estimateProducts`). Un monto dado se respeta |
+| El precio por hora va redondeado a pesos | Todo cálculo del agente (`runBudgetCalculation`) |
+
+- La salida de `calculateBudget` trae `rounding` (`from`, `to` y el margen
+  antes y después); `changedFields` sigue siendo lo pedido. La tarjeta lo
+  muestra y la de una propuesta lo lleva como aviso.
+- Son citables los totales redondeados y el precio por hora en pesos; el
+  precio sin redondear no.
+- `solveForTargetPrice` estima un presupuesto nuevo pero no redondea: el
+  objetivo es el precio pedido.
+- El editor de la 43 guarda con la fuente `edited`: lo tipeado a mano no pasa
+  por las reglas.
+- Los presupuestos guardados antes de la 44 conservan sus precios (con
+  centavos) y se citan tal cual. Pedir "redondealo y guardalo" propone el
+  cambio con `roundPrice: true`.
+- Con margen de productos (opcional, 15 %), lo que paga el cliente por
+  productos deja de ser múltiplo de $ 500: el redondeo es del campo
+  productos, que por defecto no tiene margen.
+
+Presupuestos iguales y pedidos de presupuesto:
+
+- `findMatchingBudgets` (`data/agent/budgets.ts`): presupuestos guardados con
+  la misma frecuencia, visitas, horas por visita y empleadas (y la opción con
+  productos si se pide), los 10 más recientes, con sus precios guardados
+  (citables) y si son oficiales vigentes. Mismos nombres de entrada que
+  `searchOfficialBudgets`.
+- `proposeCreateBudget` avisa en la tarjeta si ya hay guardados con el mismo
+  servicio.
+- `NEW_BUDGET_RULE` (`lib/agent/system-prompt.ts`) va con las habilidades que
+  calculan (General, Presupuestos y Emails): precio oficial, después uno
+  guardado igual, y recién entonces calcular.
+- Emails, ante un correo que pide presupuesto: saca el servicio del correo,
+  sigue esos pasos, redacta con el precio y, si lo tuvo que calcular,
+  propone guardarlo. El correo se pega en el chat: el agente no lee la
+  bandeja.
+- `MAX_STEPS` es 8: ese flujo usa 6 pasos (buscar el oficial, buscar uno
+  igual, calcular, redactar, proponer y contestar). En el smoke tardó 26 s en
+  Medio; el turno más largo fue de 32 s.
+
 ## Modos
 
 | Modo | Modelo | Razonamiento | Uso |
@@ -431,6 +489,16 @@ millón de tokens:
   claim de `confirm-proposal.ts`, el compare-and-set de `updateBudget`, la
   auditoría antes del cierre, el vencimiento condicional por propuesta y que
   la migración es aditiva. IVA 0 se rechaza al proponer y al confirmar.
+- `pnpm check:agent-pricing`: los redondeos (centavos, nunca hacia abajo,
+  productos al más cercano con mínimo), un presupuesto nuevo (estimados,
+  precio en centenas, `rounding`, margen, precio por hora en pesos), montos
+  dados, margen pedido, `roundPrice` en sus tres valores, guardado, IVA solo
+  y formulario sin redondeo, propuestas de crear y guardar con los mismos
+  valores y el aviso, el editor (`edited`) tal cual, el precio sin redondear
+  que no se puede citar, el aviso de mismo servicio, la entrada de
+  `findMatchingBudgets`, el prompt por habilidad y, por texto fuente, quién
+  usa `applyAgentChanges`, la búsqueda, `MAX_STEPS`, las tarjetas y el
+  tamaño de los archivos.
 - `pnpm check:agent-sheet`: el cuerpo del pedido pasa el schema de la ruta
   (envío, reintento y formulario), el formulario sin campos inválidos, la
   lectura de errores, la línea de uso, los saltos de línea del Markdown, el

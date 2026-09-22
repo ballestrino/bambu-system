@@ -35,8 +35,10 @@ export const saveAgentBudget = async (input: unknown) => {
     const call = await findSavableBudgetCall({ conversationId, toolCallId, userId: actorId });
     if (!call) return { error: "Ese presupuesto ya no está en la conversación." };
 
+    // "edited": lo editado a mano se guarda tal cual, sin las reglas de
+    // precio del agente.
     const built = buildCreateBudgetProposal({
-      base: { source: "defaults", values },
+      base: { source: "edited", values },
       name: values.name,
       description: values.description ?? null,
       changes: {},

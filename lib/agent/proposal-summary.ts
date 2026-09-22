@@ -57,7 +57,9 @@ export const describeChanges = (before: BudgetFormValues, after: BudgetFormValue
   });
 
 // Las opciones guardadas, sin productos primero: son los precios vigentes.
-export const getStoredPrices = (budget: ProposalBudget): StoredOptionPrice[] =>
+export const getStoredPrices = (budget: {
+  budgetOptions: { has_products: boolean; price: number; iva: number }[];
+}): StoredOptionPrice[] =>
   [...budget.budgetOptions]
     .sort((a, b) => Number(a.has_products) - Number(b.has_products))
     .map((option) => {
@@ -110,6 +112,15 @@ export const productsWarning = (before: BudgetFormValues, after: BudgetFormValue
     return "Se agrega la opción con productos.";
   }
   return null;
+};
+
+// Crear uno nuevo cuando ya hay guardados con el mismo servicio: puede ser
+// un duplicado.
+export const sameServiceWarning = (names: string[]) => {
+  if (!names.length) return null;
+  const shown = names.slice(0, 3).map((name) => `“${name}”`).join(", ");
+  const more = names.length > 3 ? ` y ${names.length - 3} más` : "";
+  return `Ya hay presupuestos guardados con el mismo servicio: ${shown}${more}. Revisá que no sea un duplicado.`;
 };
 
 export const onlyText = (warnings: (string | null)[]) =>

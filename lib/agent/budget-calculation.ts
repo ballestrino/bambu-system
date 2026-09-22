@@ -4,6 +4,7 @@ import {
   calculateRevenuePercentForHourlyTarget,
   calculateRevenuePercentForServiceTarget,
 } from "@/lib/budget-calculations";
+import { roundProductsPrice } from "@/lib/agent/price-rounding";
 import { roundMoney } from "@/lib/agent/tool-result";
 import { defaultBudgetValues, type BudgetFormValues } from "@/schemas/BudgetSchema";
 import type { AgentBudgetChanges } from "@/schemas/agent-tools";
@@ -60,11 +61,12 @@ export const budgetOptionToFormValues = (budget: BudgetRow): BudgetFormValues =>
   });
 };
 
+// El precio por hora es una referencia: va redondeado a pesos (feature 44).
 const priceOption = (net: number, iva: number, final: number, hourlyNet: number) => ({
   net: roundMoney(net),
   iva: roundMoney(iva),
   final: roundMoney(final),
-  hourlyNet: roundMoney(hourlyNet),
+  hourlyNet: Math.round(hourlyNet),
 });
 
 export type BudgetCalculation = ReturnType<typeof runBudgetCalculation>;
@@ -148,15 +150,15 @@ export const CHANGEABLE_FIELDS = [
   "incidence_contribution", "company_contribution", "personal_contribution",
 ] as const;
 
-// Aplica cambios como lo haría el formulario, incluido el precio final que el
-// formulario recalcula solo. Un aporte que se habilita con 0 % toma el
-// porcentaje por defecto. changedFields compara contra la base: si el modelo
-// reenvía un valor igual no cuenta, y si pisa uno que no debía queda a la vista.
+// Aplica cambios como el formulario, que recalcula solo el precio final. Un
+// aporte habilitado con 0 % toma el default y el estimado de productos va en
+// múltiplos de $ 500 (roundPrice es de agent-pricing.ts). changedFields
+// compara con la base: un valor igual no cuenta y uno pisado queda a la vista.
 export const applyBudgetChanges = (values: BudgetFormValues, changes: AgentBudgetChanges) => {
   const { estimateTransport, estimateProducts, ...fields } = changes;
   const next: BudgetFormValues = { ...values };
   Object.entries(fields).forEach(([key, value]) => {
-    if (value !== undefined && value !== null) (next as Record<string, unknown>)[key] = value;
+    if (key !== "roundPrice" && value !== undefined && value !== null) (next as Record<string, unknown>)[key] = value;
   });
   CONTRIBUTIONS.forEach(([enabledKey, percentKey]) => {
     if (next[enabledKey] && !(Number(next[percentKey]) > 0)) {
@@ -165,7 +167,7 @@ export const applyBudgetChanges = (values: BudgetFormValues, changes: AgentBudge
   });
   const estimates = calculateEstimates(next);
   if (estimateTransport) next.transportation_cost = estimates.transportation_cost;
-  if (estimateProducts) next.products_price = estimates.products_price;
+  if (estimateProducts) next.products_price = roundProductsPrice(estimates.products_price);
   next.price = Number(calculateBudgetTotals(next).totalFinalWithProducts.toFixed(2));
 
   const changedFields = CHANGEABLE_FIELDS.filter((key) => next[key] !== values[key]);

@@ -9,7 +9,7 @@ export const generalSkill: AgentSkill = {
   instructions: [
     "Sin habilidad fija.",
     "- Elegí las tools según el pedido: presupuestos y cálculos, correos para clientes o números del negocio.",
-    "- Los correos y mensajes para clientes se escriben con draftEmail, con importes que salieron de una tool.",
+    "- Los correos y mensajes para clientes se escriben con draftEmail, con importes que salieron de una tool. Si un correo pide un presupuesto, conseguí el precio con los pasos de presupuesto nuevo antes de redactar y, si lo calculaste, proponé guardarlo.",
     "- Guardar, crear, duplicar o publicar un presupuesto se propone con las tools propose*, con los mismos changes del cálculo: el usuario confirma en la tarjeta.",
   ].join("\n"),
   tools: AGENT_TOOL_NAMES,

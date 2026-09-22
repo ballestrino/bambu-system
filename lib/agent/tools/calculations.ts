@@ -2,8 +2,8 @@ import "server-only";
 
 import { tool } from "ai";
 
+import { applyAgentChanges } from "@/lib/agent/agent-pricing";
 import {
-  applyBudgetChanges,
   describeBudgetInputs,
   getCalculationAmounts,
   runBudgetCalculation,
@@ -29,18 +29,20 @@ const describeBase = (base: BudgetBase) => ({
 
 // Cálculos puros sobre las fórmulas del formulario. Nunca guardan nada.
 // values (el formulario completo) es para editar y guardar desde la tarjeta:
-// el modelo no lo ve.
+// el modelo no lo ve. Las reglas de precio (precio lindo, productos en
+// múltiplos de $ 500, estimados de un presupuesto nuevo) son las de
+// agent-pricing.ts, las mismas que usan las propuestas.
 export const createCalculationTools = (ctx: AgentToolContext) => ({
   calculateBudget: tool({
     description:
-      "Calcula un presupuesto con las fórmulas del formulario: parte del presupuesto en contexto (u otro por slug, o de los valores por defecto) y aplica cambios de margen, horas, visitas, empleadas, productos o transporte. En changes, null en todo salvo lo que el usuario pidió cambiar: el resto sale de la base, no copies valores. changedFields dice qué cambió de verdad. Devuelve totales sin y con productos, IVA y precio por hora. No guarda nada.",
+      "Calcula un presupuesto con las fórmulas del formulario: parte del presupuesto en contexto (u otro por slug, o de los valores por defecto) y aplica cambios de margen, horas, visitas, empleadas, productos o transporte. En changes, null en todo salvo lo que el usuario pidió cambiar: el resto sale de la base, no copies valores. changedFields dice qué cambió de verdad. Un presupuesto nuevo estima transporte y productos. Si el precio cambia, sube el total sin IVA al próximo múltiplo de $ 100 ajustando el margen, y rounding dice de cuánto a cuánto. Devuelve totales sin y con productos, IVA y precio por hora. No guarda nada.",
     inputSchema: calculateBudgetInputSchema,
     execute: (input) =>
       runTool("calculateBudget", async () => {
         const base = await resolveBudgetBase(ctx, input);
         if ("error" in base) return toolError("not_found", base.error);
 
-        const { values, changedFields } = applyBudgetChanges(base.values, input.changes ?? {});
+        const { values, changedFields, rounding } = applyAgentChanges(base, input.changes ?? {});
         const calculation = runBudgetCalculation(values);
         const grounding = { amounts: getCalculationAmounts(calculation) };
         addToolGrounding(ctx.grounding, grounding);
@@ -49,6 +51,7 @@ export const createCalculationTools = (ctx: AgentToolContext) => ({
           card: "budget-totals" as const,
           base: describeBase(base),
           changedFields,
+          rounding,
           inputs: describeBudgetInputs(values),
           calculation,
           grounding,
@@ -60,14 +63,16 @@ export const createCalculationTools = (ctx: AgentToolContext) => ({
 
   solveForTargetPrice: tool({
     description:
-      "Calcula el margen de servicio necesario para llegar a un precio objetivo sin IVA: por hora (hourly) o total mensual del servicio sin productos (service). Si el objetivo no cubre el costo, el margen queda en 0 y wasClamped es true. No guarda nada.",
+      "Calcula el margen de servicio necesario para llegar a un precio objetivo sin IVA: por hora (hourly) o total mensual del servicio sin productos (service). El precio objetivo no se redondea. Si el objetivo no cubre el costo, el margen queda en 0 y wasClamped es true. No guarda nada.",
     inputSchema: solveForTargetPriceInputSchema,
     execute: (input) =>
       runTool("solveForTargetPrice", async () => {
         const base = await resolveBudgetBase(ctx, input);
         if ("error" in base) return toolError("not_found", base.error);
 
-        const { values } = applyBudgetChanges(base.values, input.changes ?? {});
+        // El objetivo es el precio pedido: se estima un presupuesto nuevo,
+        // pero no se redondea.
+        const { values } = applyAgentChanges(base, { ...input.changes, roundPrice: false });
         const solved = solveTargetPrice(values, { kind: input.target, amount: input.amount });
         if (!solved) {
           return toolError(

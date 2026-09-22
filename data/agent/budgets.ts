@@ -23,6 +23,45 @@ export const getAgentBudget = async (where: { id: string } | { slug: string }) =
 
 export type AgentBudget = NonNullable<Awaited<ReturnType<typeof getAgentBudget>>>;
 
+export const MATCHING_BUDGETS_LIMIT = 10;
+
+// Presupuestos guardados con el mismo servicio: frecuencia, visitas, horas
+// por visita y empleadas, y la opción con productos si se pide. Todas las
+// opciones de un presupuesto comparten esos datos. Los más recientes primero;
+// trae uno de más para saber si hay más.
+export const findAgentBudgetsByService = async (service: {
+  visit_type: "days" | "week" | "month";
+  visits: number;
+  hours_per_visit: number;
+  employees: number;
+  withProducts: boolean;
+}) => {
+  await requireAdminSession();
+  return db.budget.findMany({
+    where: {
+      budgetOptions: {
+        some: {
+          visit_type: service.visit_type,
+          visits: service.visits,
+          hours_per_visit: service.hours_per_visit,
+          employees: service.employees,
+          ...(service.withProducts ? { has_products: true } : {}),
+        },
+      },
+    },
+    orderBy: [{ updatedAt: "desc" }, { id: "asc" }],
+    take: MATCHING_BUDGETS_LIMIT + 1,
+    select: {
+      id: true,
+      slug: true,
+      name: true,
+      updatedAt: true,
+      budgetOptions: { select: { has_products: true, price: true, iva: true } },
+      officialBudget: { select: { status: true, currentVersion: true } },
+    },
+  });
+};
+
 // Lo que se re-valida al confirmar una propuesta: que el presupuesto siga
 // siendo el mismo que mostró la tarjeta.
 export const getAgentBudgetState = async (budgetId: string) => {

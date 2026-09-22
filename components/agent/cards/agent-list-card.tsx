@@ -12,6 +12,14 @@ const text = (value: unknown) => (typeof value === "string" && value ? value : n
 
 const joined = (...parts: unknown[]) => parts.map(text).filter(Boolean).join(" · ");
 
+// El precio sin IVA guardado de una opción de findMatchingBudgets.
+const storedNet = (row: Row, hasProducts: boolean) =>
+  Array.isArray(row.prices)
+    ? (row.prices as { hasProducts: boolean; net: number }[]).find((price) => price.hasProducts === hasProducts)?.net
+    : undefined;
+
+const isActiveOfficial = (row: Row) => (row.official as { status?: string } | null)?.status === "ACTIVE";
+
 // Cómo se muestra cada tipo de lista: título, detalle, importe y a dónde lleva.
 const KINDS: Record<
   string,
@@ -28,6 +36,19 @@ const KINDS: Record<
     primary: (row) => text(row.name),
     href: (row) => (text(row.slug) ? getBudgetUrl(String(row.slug)) : null),
     detail: (row) => joined(row.description, Array.isArray(row.categories) ? row.categories.join(", ") : null),
+  },
+  matchingBudgets: {
+    title: "Presupuestos iguales · sin IVA",
+    primary: (row) => text(row.name),
+    href: (row) => (text(row.slug) ? getBudgetUrl(String(row.slug)) : null),
+    detail: (row) => {
+      const withProducts = storedNet(row, true);
+      return joined(
+        withProducts === undefined ? "Sin opción con productos" : `Con productos ${formatMoney(withProducts)}`,
+        isActiveOfficial(row) ? "Precio oficial vigente" : null
+      );
+    },
+    amount: (row) => storedNet(row, false),
   },
   officialBudgets: {
     title: "Presupuestos oficiales",

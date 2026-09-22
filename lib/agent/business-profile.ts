@@ -25,6 +25,11 @@ export const BUSINESS_PROFILE = {
   transportPerVisit: 52,
   productsPricePerFourHours: 175,
   productMarginPercent: PRODUCT_MARGIN_PCT,
+  // Reglas de precio del agente (feature 44): el total mensual del servicio
+  // sin IVA sube al próximo múltiplo de priceStep y los productos van al
+  // múltiplo de productsStep más cercano.
+  priceStep: 100,
+  productsStep: 500,
   employerBpsPercent: URUGUAY_EMPLOYER_BPS_PERCENT,
   personalBpsPercent: URUGUAY_PERSONAL_BPS_BASE_PERCENT,
   budgetDefaults: {
@@ -52,7 +57,8 @@ export const formatBusinessProfile = () => {
     `- Régimen Literal E: debajo de todo precio para un cliente va, textual: "${profile.literalENote}"`,
     `- Visitas semanales: por mes se multiplican por ${profile.weeklyMultiplier.toLocaleString("es-UY")}.`,
     `- Transporte: $ ${profile.transportPerVisit} por visita y por empleada (boletos).`,
-    `- Productos: se estiman $ ${profile.productsPricePerFourHours} cada 4 horas de servicio; margen opcional de ${percent(profile.productMarginPercent)}.`,
+    `- Productos: se estiman $ ${profile.productsPricePerFourHours} cada 4 horas de servicio, redondeado al múltiplo de $ ${profile.productsStep} más cercano (mínimo $ ${profile.productsStep}); margen opcional de ${percent(profile.productMarginPercent)}.`,
+    `- Precio: el total mensual del servicio sin IVA sube al próximo múltiplo de $ ${profile.priceStep} (hasta $ ${profile.priceStep - 1} más) ajustando el margen, y el precio por hora se da redondeado a pesos. Lo hacen los cálculos: citá sus importes.`,
     `- Aportes BPS: patronales ${percent(profile.employerBpsPercent)}, personales ${percent(profile.personalBpsPercent)}.`,
     `- Presupuesto nuevo por defecto: hora nominal $ ${defaults.nominalHour}, margen ${percent(defaults.revenuePercent)}, incidencia ${percent(defaults.incidencePercent)}, aportes patronales ${percent(defaults.companyPercent)} y personales ${percent(defaults.personalPercent)}.`,
     `- ${profile.payrollInArrears}`,

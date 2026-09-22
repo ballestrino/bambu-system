@@ -146,7 +146,8 @@ assert.doesNotMatch(bare, /no podés crear, modificar ni borrar/);
 assert.doesNotMatch(AGENT_SKILLS.presupuestos.instructions, /Todavía no podés guardar/);
 
 // --- The four tools are proposals: Presupuestos and General have them,
-// Emails and Consejos don't.
+// Consejos doesn't, and Emails only creates (the budget it calculated to
+// answer a quote request, feature 44).
 const PROPOSE_TOOLS = ["proposeCreateBudget", "proposeUpdateBudget", "proposeDuplicateBudget", "proposePublishOfficialBudget"] as const;
 assert.deepEqual(
   AGENT_TOOL_NAMES.filter((name) => AGENT_TOOL_CATALOG[name].kind === "proposal").sort(),
@@ -155,6 +156,6 @@ assert.deepEqual(
 PROPOSE_TOOLS.forEach((name) => {
   assert.ok(resolveSkillToolNames(AGENT_SKILLS.presupuestos).includes(name), name);
   assert.ok(resolveSkillToolNames(AGENT_SKILLS.general).includes(name), name);
-  assert.ok(!resolveSkillToolNames(AGENT_SKILLS.emails).includes(name), name);
+  assert.equal(resolveSkillToolNames(AGENT_SKILLS.emails).includes(name), name === "proposeCreateBudget", name);
   assert.ok(!resolveSkillToolNames(AGENT_SKILLS.consejos).includes(name), name);
 });
