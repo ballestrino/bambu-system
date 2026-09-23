@@ -12,13 +12,12 @@ import {
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Button } from "@/components/ui/button"
-import { updateEmail } from "@/actions/settings"
+import { updateEmail } from "@/actions/settings/account"
 import { FormError } from "@/components/ui/form-error"
 import { User } from "next-auth"
-import { useSession } from "next-auth/react"
+import { toast } from "sonner"
 
 export default function ChangeEmail({ user }: { user: User }) {
-  const { update } = useSession()
   const [password, setPassword] = useState("")
   const [newEmail, setNewEmail] = useState("")
   const [error, setError] = useState<string | null>(null)
@@ -26,16 +25,15 @@ export default function ChangeEmail({ user }: { user: User }) {
   const [loading, setLoading] = useState(false)
 
   const handleSave = async () => {
+    const email = newEmail.trim()
+    if (!password || !email) return
     setError(null)
     setLoading(true)
-    if (!user) return
-    if (!user.id) return
-    if (!user.email) return
-    if (!password) return
-    if (!newEmail) return
-    const result = await updateEmail(user.id, newEmail, password, user.email)
+    const result = await updateEmail({ email, password })
     if (result.success) {
-      update()
+      toast.success(result.success, {
+        description: `Abrí el enlace que enviamos a ${email} para confirmar el cambio`
+      })
       setOpen(false)
       setPassword("")
       setNewEmail("")

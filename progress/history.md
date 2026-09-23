@@ -441,3 +441,24 @@
 - PASS: checks del agente con `scripts/agent-price-format-checks.ts`,
   `check:official-budgets`, los tres del correo, TypeScript, lint, build y el
   smoke del usuario.
+
+## 2026-09-23 - Feature 4 acciones de settings seguras
+
+- Las acciones de settings no llamaban a `auth()` y tomaban el id del
+  cliente. `updateEmail` además tomaba del cliente el email a reemplazar, y
+  eso permitía quedarse con la cuenta de otro.
+- Ahora viven en `actions/settings/account.ts` y `security.ts`. Arrancan con
+  `getSessionUser()` (`lib/session-user.ts`), validan con
+  `schemas/settings.ts` y escriben solo sobre el usuario de la sesión. El
+  email a reemplazar sale de la base.
+- `data/user.ts`, `lib/tokens.ts` y los `data/*token*` dejaron de ser
+  `"use server"`, así que ya no son endpoints públicos. `/settings` pasó a
+  Server Component, y se borraron cuatro componentes de 2FA que no usaba
+  nadie.
+- Hallado en el smoke: los enlaces de los correos (`/auth/new-verification`
+  y `/auth/new-password`) mandaban al home a los usuarios logueados. Pasaron
+  a `publicRoutes`, y confirmar un cambio de email vuelve a `/settings`.
+- PASS: `check:settings-auth` (nuevo, 15 mutaciones detectadas), `tsc`,
+  ESLint, `.\init.ps1`, `next build`, el manifiesto de acciones sin helpers
+  de auth y el smoke del usuario con sesión (nombre, correo, contraseña y
+  2FA). Detalle en `progress/impl_settings_server_action_auth.md`.

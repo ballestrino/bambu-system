@@ -1,6 +1,7 @@
 "use client"
 
-import { UpdateSession } from "next-auth/react"
+import { useSession } from "next-auth/react"
+import { useRouter } from "next/navigation"
 import { useState } from "react"
 import {
   Dialog,
@@ -13,31 +14,30 @@ import {
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Button } from "@/components/ui/button"
-import { updateName } from "@/actions/settings"
+import { updateName } from "@/actions/settings/account"
 import { FormError } from "@/components/ui/form-error"
 import { User } from "next-auth"
 import { toast } from "sonner"
 import { CheckCircle } from "lucide-react"
 
-export default function ChangeName({ user, update }: { user: User, update: UpdateSession }) {
+export default function ChangeName({ user }: { user: User }) {
+  const { update } = useSession()
+  const router = useRouter()
   const [name, setName] = useState("")
   const [error, setError] = useState<string | null>(null)
   const [open, setOpen] = useState(false)
   const [loading, setLoading] = useState(false)
 
   const handleSave = async () => {
+    if (!name) return
     setError(null)
     setLoading(true)
-    if (!user) return
-    if (!user.id) return
-    if (!name) return
-    const result = await updateName(user.id, name)
+    const result = await updateName({ name })
     if (result.success) {
-      update()
+      await update()
+      router.refresh()
       setOpen(false)
       toast("Nombre cambiado exitosamente", {
-        description: "Refresca la página para ver los cambios",
-        descriptionClassName: "!text-gray-500",
         position: "top-center",
         icon: <CheckCircle className='h-5 w-5 text-green-500' />
       })

@@ -8,7 +8,6 @@ import {
   FormMessage,
 } from '@/components/ui/form'
 import { useForm } from 'react-hook-form'
-import { z } from 'zod'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useState } from 'react'
 import { Input } from '@/components/ui/input'
@@ -16,20 +15,11 @@ import { Button } from '@/components/ui/button'
 import { Label } from '@/components/ui/label'
 import { FormError } from '@/components/ui/form-error'
 import { FormSuccess } from '@/components/ui/form-success'
-import { updatePassword } from '@/actions/settings'
-import { useSession } from 'next-auth/react'
-
-const schema = z.object({
-  password: z.string().min(6, {
-    message: 'La contraseña debe tener al menos 6 caracteres',
-  }),
-  newPassword: z.string().min(6, {
-    message: 'La contraseña debe tener al menos 6 caracteres',
-  }),
-  confirmPassword: z.string().min(6, {
-    message: 'La contraseña debe tener al menos 6 caracteres',
-  }),
-})
+import { updatePassword } from '@/actions/settings/security'
+import {
+  UpdatePasswordSchema,
+  type UpdatePasswordValues,
+} from '@/schemas/settings'
 
 export default function ChangePasswordForm({
   onConfirm,
@@ -39,26 +29,16 @@ export default function ChangePasswordForm({
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
-  const form = useForm<z.infer<typeof schema>>({
-    resolver: zodResolver(schema),
+  const form = useForm<UpdatePasswordValues>({
+    resolver: zodResolver(UpdatePasswordSchema),
+    defaultValues: { password: '', newPassword: '', confirmPassword: '' },
   })
 
-  const { data: session } = useSession()
-
-  const onSubmit = async (data: z.infer<typeof schema>) => {
+  const onSubmit = async (data: UpdatePasswordValues) => {
     setError(null)
     setSuccess(null)
     setLoading(true)
-    if (!session?.user?.id) {
-      setError('No se encontro el usuario')
-      setLoading(false)
-      return
-    }
-    const result = await updatePassword(
-      session.user.id,
-      data.password,
-      data.newPassword,
-    )
+    const result = await updatePassword(data)
     if (result.error) {
       setError(result.error)
       setLoading(false)
