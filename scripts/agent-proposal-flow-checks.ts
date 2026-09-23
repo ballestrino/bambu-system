@@ -52,21 +52,22 @@ const parse = (built: BuiltProposal) => {
 const state = { userId: "user_1", updatedAt: budget.updatedAt, officialBudget: null };
 const later = new Date(budget.updatedAt.getTime() + 1000);
 const update = parse(buildUpdateBudgetProposal({ budget, name: null, description: null, changes: { revenue_percent: 40 } }));
-assert.equal(checkProposalPreconditions(update, state, "user_1"), null);
-assert.equal(checkProposalPreconditions(update, { ...state, updatedAt: later }, "user_1"), PROPOSAL_STALE_MESSAGE);
+assert.equal(checkProposalPreconditions(update, state), null);
+assert.equal(checkProposalPreconditions(update, { ...state, updatedAt: later }), PROPOSAL_STALE_MESSAGE);
 // Published as official in between: saving would publish a version the card never announced.
-assert.equal(checkProposalPreconditions(update, { ...state, officialBudget: { id: "off_9" } }, "user_1"), PROPOSAL_STALE_MESSAGE);
-assert.equal(checkProposalPreconditions(update, null, "user_1"), "El presupuesto ya no existe.");
-const duplicate = parse(buildDuplicateBudgetProposal({ budget, actorId: "user_1" }));
-assert.match(checkProposalPreconditions(duplicate, state, "user_2") ?? "", /Solo quien creó/);
-assert.equal(checkProposalPreconditions(duplicate, { ...state, updatedAt: later }, "user_1"), PROPOSAL_STALE_MESSAGE);
+assert.equal(checkProposalPreconditions(update, { ...state, officialBudget: { id: "off_9" } }), PROPOSAL_STALE_MESSAGE);
+assert.equal(checkProposalPreconditions(update, null), "El presupuesto ya no existe.");
+const duplicate = parse(buildDuplicateBudgetProposal({ budget }));
+// Another admin duplicates it too: budgets are shared since feature 3.
+assert.equal(checkProposalPreconditions(duplicate, { ...state, userId: "user_2" }), null);
+assert.equal(checkProposalPreconditions(duplicate, { ...state, updatedAt: later }), PROPOSAL_STALE_MESSAGE);
 const publish = parse(buildPublishOfficialBudgetProposal({ budget }));
-assert.equal(checkProposalPreconditions(publish, state, "user_1"), null);
-assert.match(checkProposalPreconditions(publish, { ...state, officialBudget: { id: "off_1" } }, "user_1") ?? "", /ya está publicado/);
+assert.equal(checkProposalPreconditions(publish, state), null);
+assert.match(checkProposalPreconditions(publish, { ...state, officialBudget: { id: "off_1" } }) ?? "", /ya está publicado/);
 const create = parse(buildCreateBudgetProposal({
   base: { source: "defaults", values: defaultBudgetValues }, name: "Oficina Sur", description: null, changes: {},
 }));
-assert.equal(checkProposalPreconditions(create, null, "user_1"), null);
+assert.equal(checkProposalPreconditions(create, null), null);
 
 // --- Expiry: 24 hours, exactly the boundary the claim uses (expiresAt > now).
 const createdAt = new Date("2026-09-18T15:00:00.000Z");

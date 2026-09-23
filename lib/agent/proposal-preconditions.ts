@@ -16,8 +16,7 @@ export const getProposalBudgetId = (proposal: ParsedProposal) => {
 // que ser el mismo que mostró la tarjeta. null = se puede ejecutar.
 export const checkProposalPreconditions = (
   proposal: ParsedProposal,
-  state: ProposalBudgetState | null,
-  actorId: string
+  state: ProposalBudgetState | null
 ) => {
   if (proposal.kind === "CREATE_BUDGET") return null;
   if (!state) return "El presupuesto ya no existe.";
@@ -27,8 +26,7 @@ export const checkProposalPreconditions = (
       ? null
       : PROPOSAL_STALE_MESSAGE;
   }
-  if (proposal.kind === "DUPLICATE_BUDGET") {
-    return state.userId === actorId ? null : "Solo quien creó el presupuesto puede duplicarlo.";
-  }
+  // Budgets are shared by every admin (feature 3): any admin duplicates any.
+  if (proposal.kind === "DUPLICATE_BUDGET") return null;
   return state.officialBudget ? "El presupuesto ya está publicado como oficial." : null;
 };

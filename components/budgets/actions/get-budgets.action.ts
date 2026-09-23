@@ -1,4 +1,4 @@
-import { getBudgets } from "@/data/budgets"
+import { readBudgets } from "./budget-reads"
 import ValidationError from "@/instances/validation-error"
 import { BudgetFilters } from "../interfaces/budget-filters"
 
@@ -12,8 +12,7 @@ export const getBudgetsAction = async (filters: BudgetFilters): Promise<{
     currentPage: number;
 }> => {
   try {
-    const { query, page, limit, ...restFilters } = filters;
-    const result = await getBudgets(query, page, limit, restFilters)
+    const result = await readBudgets(filters)
 
     if ('error' in result && result.error) {
       throw new ValidationError(result.error)

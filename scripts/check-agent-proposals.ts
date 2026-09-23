@@ -92,11 +92,9 @@ assert.equal(symbols.ok ? null : symbols.code, "invalid_name");
 const fractional = buildCreateBudgetProposal({ base: { source: "form", values: { ...formValues, visits: 1.5 } }, name: null, description: null, changes: {} });
 assert.equal(fractional.ok ? null : fractional.code, "invalid_values");
 
-// --- Duplicate needs the owner (duplicateBudget enforces it); publish needs
-// an unlinked budget with options.
-const notOwner = buildDuplicateBudgetProposal({ budget, actorId: "user_2" });
-assert.equal(notOwner.ok ? null : notOwner.code, "not_owner");
-const duplicate = buildDuplicateBudgetProposal({ budget, actorId: "user_1" });
+// --- Duplicate works for any admin (budgets are shared since feature 3);
+// publish needs an unlinked budget with options.
+const duplicate = buildDuplicateBudgetProposal({ budget });
 assert.ok(duplicate.ok);
 // duplicateBudget picks the address when saving (-2, -3...): the card does not guess it.
 assert.deepEqual([duplicate.summary.name, duplicate.summary.slug], ["Limpieza Norte (copia)", null]);

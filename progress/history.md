@@ -481,3 +481,23 @@
   smoke con sesión en el Chrome del usuario: navegación del dashboard, el
   agente en Medio y un login nuevo con credenciales. Detalle en
   `progress/impl_platform_dependency_patch_review.md`.
+
+## 2026-09-23 - Feature 3 permisos de presupuestos y categorías
+
+- Decisión del usuario: presupuestos y categorías son un espacio compartido
+  entre admins. `Budget.userId` guarda el autor, y queda documentado en
+  `docs/architecture.md`.
+- Las acciones de categorías no pedían sesión, y las lecturas de
+  `data/budget*` eran `"use server"`, así que eran endpoints públicos. Ahora
+  todas las lecturas y acciones de presupuestos y categorías pasan por
+  `getBudgetAdminSession` (`lib/budget-admin.ts`) y validan con schemas
+  (`BudgetIdSchema`, `BudgetSlugSchema` y `schemas/budget-category.ts`).
+- Las lecturas son `server-only`, y el cliente las usa por archivos de
+  lectura `"use server"`, como los oficiales. Duplicar deja de exigir ser el
+  autor, también en el agente, al proponer y al confirmar.
+- Se sacaron los cinco `console.log` de los flujos de presupuestos.
+- PASS: `check:budget-auth` (nuevo, 16 de 16 mutaciones), los 25 `check:*`,
+  `tsc`, ESLint, `.\init.ps1`, `next build`, el manifiesto sin acciones de
+  `data/` ni `lib/`, y el smoke con sesión en el Chrome del usuario: crear,
+  editar, duplicar y borrar un presupuesto y una categoría de prueba, que se
+  borraron. Detalle en `progress/impl_budget_authorization_contracts.md`.

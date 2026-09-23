@@ -38,6 +38,15 @@ export const BudgetSchema = z.object({
 
 export type BudgetFormValues = z.infer<typeof BudgetSchema>;
 
+export const BudgetIdSchema = z.string().cuid({ message: "Presupuesto inválido" });
+
+// The same shape slugifyBudgetName produces.
+export const BudgetSlugSchema = z
+  .string()
+  .regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/, {
+    message: "La URL solo puede tener minúsculas, números y guiones",
+  });
+
 export const defaultBudgetValues: BudgetFormValues = {
   name: "",
   visits: 1,

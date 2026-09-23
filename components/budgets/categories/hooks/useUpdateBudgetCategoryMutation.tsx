@@ -1,7 +1,7 @@
 "use client"
 
 import { useMutation, useQueryClient } from "@tanstack/react-query"
-import updateNameBudgetCategory from "@/actions/budgetCategories/update-budget-category"
+import updateBudgetCategory from "@/actions/budgetCategories/update-budget-category"
 import { toast } from "sonner"
 import { BudgetCategoryWithCount } from "../../interfaces/category"
 
@@ -17,12 +17,13 @@ export const useUpdateBudgetCategoryMutation = () => {
     const queryClient = useQueryClient()
 
     const mutation = useMutation({
-        mutationFn: (values: UpdateBudgetCategoryValues) => updateNameBudgetCategory(values.id, values.name, values.description, values.color, values.isActive),
-        onSuccess: (updatedCategory) => {
-            if (!updatedCategory || "error" in updatedCategory) {
-                toast.error("Error al actualizar la categoría")
+        mutationFn: (values: UpdateBudgetCategoryValues) => updateBudgetCategory(values),
+        onSuccess: (result) => {
+            if ("error" in result) {
+                toast.error(result.error)
                 return
             }
+            const updatedCategory = result.category
 
             if (updatedCategory.parentCategoryId) {
                 queryClient.setQueryData<BudgetCategoryWithCount[]>(["sub-categories", updatedCategory.parentCategoryId], (old) => {

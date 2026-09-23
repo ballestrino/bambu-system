@@ -1,26 +1,30 @@
 "use server"
 
+import { getBudgetAdminSession } from "@/lib/budget-admin"
 import { db } from "@/lib/db"
-
-export interface CreateBudgetCategoryValues {
-    name: string
-    description: string
-    color: string
-    isActive: boolean
-    parentCategoryId?: string
-}
+import {
+    CreateBudgetCategorySchema,
+    type CreateBudgetCategoryValues,
+} from "@/schemas/budget-category"
 
 export default async function createBudgetCategory(data: CreateBudgetCategoryValues) {
+    const admin = await getBudgetAdminSession()
+    if ("error" in admin) return { error: admin.error }
 
-    const trimedName = data.name.trim()
+    const validatedFields = CreateBudgetCategorySchema.safeParse(data)
+    if (!validatedFields.success) {
+        return { error: validatedFields.error.issues[0]?.message ?? "Campos inválidos" }
+    }
+
+    const { name, description, color, isActive, parentCategoryId } = validatedFields.data
     try {
         const exists = await db.budgetCategory.findFirst({
             where: {
                 name: {
-                    equals: trimedName,
+                    equals: name,
                     mode: "insensitive"
                 },
-                parentCategoryId: data.parentCategoryId ?? null
+                parentCategoryId: parentCategoryId ?? null
             },
         })
 
@@ -29,12 +33,12 @@ export default async function createBudgetCategory(data: CreateBudgetCategoryVal
         }
 
         const category = await db.budgetCategory.create({
-         data : { 
-            name : trimedName,
-            description : data.description.trim(),
-            color : data.color,
-            isActive : data.isActive,
-            parentCategoryId : data.parentCategoryId
+         data : {
+            name,
+            description,
+            color,
+            isActive,
+            parentCategoryId
          }
         })
 

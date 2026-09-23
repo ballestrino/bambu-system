@@ -8,6 +8,10 @@ Status: idle
 
 ## Last Closed Features
 
+- 2026-09-23: la 3 (permisos de presupuestos y categorías, compartidos entre
+  admins). Detalle en `progress/impl_budget_authorization_contracts.md`. En
+  la rama `feature/3-budget-authorization`, sin mergear.
+
 - 2026-09-23: la 6 (`next` 16.3.5, React 19.3.0, `next-auth` beta.32 y
   `@auth/prisma-adapter` 2.11.3). Las críticas del audit bajaron de 6 a 0.
   Detalle en `progress/impl_platform_dependency_patch_review.md`. Mergeada en
@@ -25,7 +29,7 @@ Status: idle
 ## Auditoría de las `pending` (2026-09-23)
 
 - Se revisaron la 3, 4, 5, 6, 8, 9, 11, 25, 26 y 27 contra sus criterios en
-  `main`. Ninguna estaba hecha. La 4 y la 6 ya se cerraron.
+  `main`. Ninguna estaba hecha. La 4, la 6 y la 3 ya se cerraron.
 - Seguridad, a priorizar:
   - `next` 16.3.6: desde el 2026-09-23 a las 16:19 UTC pasa el
     `minimum-release-age` de pnpm. Es un patch sin cambios para esta app, que
@@ -33,17 +37,14 @@ Status: idle
   - Quedan 22 altas del audit en otras dependencias: nodemailer, postcss (el
     directo), minimatch, brace-expansion, nanoid, browserslist y otras. No hay
     feature que las cubra.
-  - 3: `actions/budgetCategories/*` no piden sesión, y solo `duplicateBudget`
-    mira el dueño del presupuesto. Además, `data/budget.ts`, `budgets.ts` y
-    `budgetCategory.ts` siguen siendo `"use server"`: sus lecturas son
-    acciones públicas y las de categorías no piden sesión.
 - Casi hechas:
   - 9: falta que `getJobOccurrences` y `visit-feed` no generen visitas al leer,
     `enabled: open` en jobs y empleadas del diálogo y la medición.
   - 26: falta "Cards" → "Tarjetas", la intención de completar dentro del
     diálogo y el smoke en desktop y 390x844.
 - Sin empezar o casi: 5 (Resend y Cloudinary en el scope del módulo;
-  `lib/cloudinary.ts` no se usa), 8, 11 (cinco `console.log` de depuración),
+  `lib/cloudinary.ts` no se usa), 8, 11 (los `console.log` de presupuestos
+  ya los sacó la 3; quedan los de `data/user.ts`),
   25 (`<html lang="en">`, calendario en inglés con semana desde el domingo) y
   27.
 

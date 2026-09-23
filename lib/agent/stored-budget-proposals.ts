@@ -15,18 +15,11 @@ import {
 // publicarlo como oficial. Usan sus precios guardados, no un cálculo nuevo.
 // Puro, como proposal-builders.ts.
 
-// duplicateBudget exige ser quien creó el presupuesto: se avisa al proponer.
+// Cualquier admin duplica cualquier presupuesto (feature 3): son compartidos.
 export const buildDuplicateBudgetProposal = (input: {
   budget: ProposalBudget;
-  actorId: string;
 }): BuiltProposal<"DUPLICATE_BUDGET"> => {
   const { budget } = input;
-  if (budget.userId !== input.actorId) {
-    return refuse(
-      "not_owner",
-      "Solo quien creó este presupuesto puede duplicarlo. Como alternativa, proponé crear uno nuevo con este de base (proposeCreateBudget con su slug)."
-    );
-  }
   const name = `${budget.name} (copia)`;
   return {
     ok: true,

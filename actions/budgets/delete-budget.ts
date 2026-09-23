@@ -2,24 +2,25 @@
 
 import { Prisma } from "@prisma/client";
 
+import { getBudgetAdminSession } from "@/lib/budget-admin";
 import { db } from "@/lib/db";
 import { getActionErrorMessage } from "@/lib/ops/action-error";
 import { getLinkedBudgetDeletionError } from "@/lib/official-budgets/deletion-guard";
-import { requireAdminSession } from "@/lib/require-admin-session";
-import { PublishOfficialBudgetSchema } from "@/schemas/official-budget";
+import { BudgetIdSchema } from "@/schemas/BudgetSchema";
 
 export default async function deleteBudget(budgetId: string) {
   try {
-    await requireAdminSession();
-    const parsed = PublishOfficialBudgetSchema.safeParse({
-      sourceBudgetId: budgetId,
-    });
+    const admin = await getBudgetAdminSession();
+    if ("error" in admin) {
+      return { error: admin.error };
+    }
+    const parsed = BudgetIdSchema.safeParse(budgetId);
     if (!parsed.success) {
       return { error: "Presupuesto invalido" };
     }
 
     const linkedOfficialBudget = await db.officialBudget.findUnique({
-      where: { sourceBudgetId: parsed.data.sourceBudgetId },
+      where: { sourceBudgetId: parsed.data },
       select: { id: true },
     });
     const deletionError = getLinkedBudgetDeletionError(
@@ -30,7 +31,7 @@ export default async function deleteBudget(budgetId: string) {
     }
 
     await db.budget.delete({
-      where: { id: parsed.data.sourceBudgetId },
+      where: { id: parsed.data },
     });
 
     return { success: "Presupuesto eliminado exitosamente" };

@@ -51,6 +51,13 @@ Client Component -> hook -> component action wrapper -> actions/* -> Prisma
 
 ## Budget Model
 
+- Budgets and budget categories are one workspace shared by every admin. Any
+  admin reads, edits, duplicates, and deletes any budget, and
+  `Budget.userId` only records who created it (a duplicate belongs to whoever
+  duplicates it). Every budget and category read in `data/` and every action
+  checks the admin session through `getBudgetAdminSession`
+  (`lib/budget-admin.ts`). Those reads are `server-only`, and the client
+  reaches them through the `"use server"` read files in `components/budgets/`.
 - A budget can have multiple `BudgetOption` pricing scenarios.
 - Budgets relate many-to-many with `BudgetCategory`.
 - `BudgetCategory` supports a one-level parent-child hierarchy.

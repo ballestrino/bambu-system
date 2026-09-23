@@ -45,8 +45,9 @@ const budgetResult = (
   officialVersion: official?.currentVersion ?? null,
 });
 
-// createBudget y duplicateBudget fallan con un "error" sin detalle. El
-// compare-and-set de updateBudget se informa como propuesta vieja.
+// Sin mensaje (o con el "error" genérico de antes de la feature 3) se usa el
+// de cada tipo. El compare-and-set de updateBudget se informa como propuesta
+// vieja.
 const failure = (error: string | undefined, fallback: string): Outcome => ({
   ok: false,
   error:
@@ -106,8 +107,7 @@ const execute = async (proposal: ParsedProposal, summary: ProposalSummary): Prom
 // Re-valida el payload guardado y las precondiciones contra una lectura
 // fresca antes de ejecutar. Un error inesperado deja la propuesta FAILED.
 const runClaimed = async (
-  stored: { kind: AgentProposalKind; payload: unknown; summary: unknown },
-  actorId: string
+  stored: { kind: AgentProposalKind; payload: unknown; summary: unknown }
 ): Promise<Outcome> => {
   try {
     const proposal = parseProposalPayload(stored.kind, stored.payload);
@@ -116,7 +116,7 @@ const runClaimed = async (
     }
     const budgetId = getProposalBudgetId(proposal);
     const state = budgetId ? await getAgentBudgetState(budgetId) : null;
-    const blocked = checkProposalPreconditions(proposal, state, actorId);
+    const blocked = checkProposalPreconditions(proposal, state);
     if (blocked) return { ok: false, error: blocked };
     return await execute(proposal, stored.summary as ProposalSummary);
   } catch (error) {
@@ -160,7 +160,7 @@ export const confirmAgentProposal = async (proposalId: unknown) => {
       return describeConfirmOutcome(await loadProposal(id));
     }
 
-    const outcome = await runClaimed(stored, actorId);
+    const outcome = await runClaimed(stored);
     // La auditoría va primero: la escritura ya pasó (o falló) y queda
     // registrada aunque el cierre de abajo no llegue.
     await auditProposal({

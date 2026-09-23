@@ -1,12 +1,12 @@
 "use client"
 
 import { useQuery } from "@tanstack/react-query"
-import { getBudgetCategories } from "@/data/budgetCategory"
+import { readBudgetCategories } from "../actions/budget-category-reads"
 
 export default function useBudgetCategories() {
     const query = useQuery({
         queryKey: ["budget-categories"],
-        queryFn: () => getBudgetCategories(),
+        queryFn: () => readBudgetCategories(),
         staleTime: 1000 * 60 * 5, // 5 minutes
     })
 

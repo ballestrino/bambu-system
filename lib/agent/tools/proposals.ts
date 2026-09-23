@@ -137,13 +137,13 @@ export const createProposalTools = (ctx: AgentToolContext) => ({
 
   proposeDuplicateBudget: tool({
     description:
-      "Prepara duplicar un presupuesto propio (la copia se llama igual con \"(copia)\") para que el usuario lo confirme: no guarda nada. Solo si piden duplicar o copiar uno.",
+      "Prepara duplicar un presupuesto guardado (la copia se llama igual con \"(copia)\") para que el usuario lo confirme: no guarda nada. Solo si piden duplicar o copiar uno.",
     inputSchema: proposeBudgetTargetInputSchema,
     execute: (input, { toolCallId }) =>
       runTool("proposeDuplicateBudget", async () => {
         const target = await loadTarget(ctx, input.budgetSlug);
         if (!target.ok) return target.error;
-        const built = buildDuplicateBudgetProposal({ budget: target.budget, actorId: ctx.actorId });
+        const built = buildDuplicateBudgetProposal({ budget: target.budget });
         if (!built.ok) return toolError(built.code, built.message);
         return saveProposal(ctx, toolCallId, built);
       }),

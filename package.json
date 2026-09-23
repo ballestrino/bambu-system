@@ -13,6 +13,7 @@
     "check:agent-page": "tsx scripts/check-agent-page.ts",
     "check:agent-budget-editor": "tsx scripts/check-agent-budget-editor.ts",
     "check:agent-pricing": "tsx scripts/check-agent-pricing.ts",
+    "check:budget-auth": "tsx scripts/check-budget-auth.ts",
     "check:employee-accruals": "tsx scripts/check-employee-accruals.ts",
     "check:finance": "tsx scripts/check-finance.ts",
     "check:finance-trend": "tsx scripts/check-finance-trend.ts",
