@@ -96,7 +96,7 @@
         "Verification includes init.ps1 and pnpm build when environment variables permit",
         "Manual smoke covers auth, dashboard navigation, and AI chat after the upgrade"
       ],
-      "status": "pending"
+      "status": "done"
     },
     {
       "id": 7,

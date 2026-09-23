@@ -462,3 +462,22 @@
   ESLint, `.\init.ps1`, `next build`, el manifiesto de acciones sin helpers
   de auth y el smoke del usuario con sesión (nombre, correo, contraseña y
   2FA). Detalle en `progress/impl_settings_server_action_auth.md`.
+
+## 2026-09-23 - Feature 6 Next.js, React y Auth.js parchados
+
+- `next` y `eslint-config-next` 16.1.1 → 16.3.5 (16.x es la Active LTS).
+  React y React DOM 19.2.3 → 19.3.0, con sus tipos. `next-auth` beta.30 →
+  beta.32 y `@auth/prisma-adapter` 2.11.1 → 2.11.3, así que queda una sola
+  `@auth/core`, la 0.41.3. El lockfile solo cambia dependencias de esos
+  paquetes, y no hizo falta tocar código de la app.
+- La 16.3.6 (RCE en el `ImageResponse` Node de `next/og`) todavía no pasaba
+  el `minimum-release-age` de 24 h de pnpm. La app no usa `next/og`, así que
+  el usuario eligió la 16.3.5 y la 16.3.6 queda para después.
+- `pnpm audit --prod`: de 6 críticas y 42 altas a 0 críticas y 22 altas.
+  `next`, `next-auth`, `@auth/core` y `sharp` salen del reporte.
+- `scripts/agent-usage-rows-checks.ts` (de la 45) ahora normaliza CRLF, igual
+  que los demás checks.
+- PASS: `tsc`, lint, `next build`, los 25 `check:*`, el dev sin sesión, y el
+  smoke con sesión en el Chrome del usuario: navegación del dashboard, el
+  agente en Medio y un login nuevo con credenciales. Detalle en
+  `progress/impl_platform_dependency_patch_review.md`.
