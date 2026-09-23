@@ -4,8 +4,8 @@ import { AlertTriangle } from "lucide-react";
 
 import type { AgentConversationCost, AgentMonthlyCost } from "@/components/agent/types";
 import { Skeleton } from "@/components/ui/skeleton";
-import { formatModelLabel, formatTokenCount, USAGE_KIND_LABELS } from "@/lib/agent/usage-format";
-import { AGENT_MODES } from "@/lib/ai/modes";
+import { formatModelWithReasoning, formatTokenCount, USAGE_KIND_LABELS } from "@/lib/agent/usage-format";
+import { formatAgentModeLabel } from "@/lib/ai/modes";
 import { formatUsd } from "@/lib/ai/pricing";
 
 type CostRow = { key: string; label: string; detail: string; tokens: number; costUsd: number; priced: boolean };
@@ -17,8 +17,16 @@ const EVENT_NAMES = {
   TITLE: ["título", "títulos"],
 } as const;
 
-const countEvents = (kind: keyof typeof EVENT_NAMES, events: number) =>
+type EventKind = keyof typeof EVENT_NAMES;
+
+const countEvents = (kind: EventKind, events: number) =>
   `${events} ${EVENT_NAMES[kind][events === 1 ? 0 : 1]}`;
+
+// "5 turnos · 2 borradores": una fila del mes junta turnos y borradores.
+const countEventsByKind = (eventsByKind: Partial<Record<EventKind, number>>) =>
+  (Object.keys(EVENT_NAMES) as EventKind[])
+    .flatMap((kind) => (eventsByKind[kind] ? [countEvents(kind, eventsByKind[kind])] : []))
+    .join(" · ");
 
 function CostTable({ rows, total }: { rows: CostRow[]; total: { tokens: number; costUsd: number } }) {
   return (
@@ -71,9 +79,9 @@ export function ConversationCostSection({ cost }: { cost: AgentConversationCost 
     return <p className="text-xs text-muted-foreground">Esta conversación todavía no tiene consumo.</p>;
   }
   const rows = cost.rows.map((row) => ({
-    key: `${row.kind}-${row.modelId}`,
+    key: `${row.kind}-${row.modelId}-${row.reasoning}`,
     label: USAGE_KIND_LABELS[row.kind],
-    detail: `${formatModelLabel(row.modelId)} · ${countEvents(row.kind, row.events)}`,
+    detail: `${formatModelWithReasoning(row.modelId, row.reasoning)} · ${countEvents(row.kind, row.events)}`,
     tokens: row.inputTokens + row.outputTokens,
     costUsd: row.costUsd,
     priced: row.priced,
@@ -89,14 +97,15 @@ export function ConversationCostSection({ cost }: { cost: AgentConversationCost 
   );
 }
 
-// El gasto del equipo en el mes, por modelo y modo, con las conversaciones
-// que más gastaron (el título solo de las propias).
+// El gasto del equipo en el mes, por modelo, razonamiento y modo ("Luna 6
+// Extra alto · Medio"), con los títulos aparte y las conversaciones que más
+// gastaron (el título solo de las propias).
 export function MonthlyCostSection({ cost }: { cost: AgentMonthlyCost }) {
   if (!cost.rows.length) return <p className="text-xs text-muted-foreground">Sin consumo en este mes.</p>;
   const rows = cost.rows.map((row) => ({
-    key: `${row.modelId}-${row.mode}`,
-    label: `${formatModelLabel(row.modelId)} · ${AGENT_MODES[row.mode].label}`,
-    detail: `${row.events} ${row.events === 1 ? "registro" : "registros"}`,
+    key: `${row.modelId}-${row.reasoning}-${row.mode}-${row.titles}`,
+    label: `${formatModelWithReasoning(row.modelId, row.reasoning)} · ${row.titles ? "Títulos" : formatAgentModeLabel(row.mode)}`,
+    detail: countEventsByKind(row.eventsByKind),
     tokens: row.inputTokens + row.outputTokens,
     costUsd: row.costUsd,
     priced: row.priced,

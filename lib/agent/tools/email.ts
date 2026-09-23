@@ -48,6 +48,7 @@ export const createEmailTools = (ctx: AgentToolContext) => ({
         ctx.usage.add({
           kind: "SKILL",
           modelId: spec.modelId,
+          reasoning: spec.reasoning,
           usage: normalizeUsage(result.totalUsage),
           gatewayCostUsd: result.steps.reduce<number | null>((total, step) => {
             const cost = readGatewayCost(step.providerMetadata);

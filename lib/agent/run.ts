@@ -66,6 +66,7 @@ export const runAgentTurn = async (input: {
       input.usage.add({
         kind: "TURN",
         modelId: step.model.modelId,
+        reasoning: spec.reasoning,
         usage: normalizeUsage(step.usage),
         gatewayCostUsd: readGatewayCost(step.providerMetadata),
       }),

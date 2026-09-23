@@ -53,7 +53,7 @@ const linked = { id: "budget_1", name: "Limpieza Norte", slug: "limpieza-norte" 
 const context = pageBudgetContext(linked);
 assert.deepEqual(context, { kind: "saved", budgetId: "budget_1" });
 assert.ok(agentBudgetContextSchema.safeParse(context).success);
-const turn = { id: "conv_12345678", message: { id: "user_1_abcdef", role: "user", parts: [{ type: "text", text: "Hola" }] }, mode: "bajo", skill: "general" };
+const turn = { id: "conv_12345678", message: { id: "user_1_abcdef", role: "user", parts: [{ type: "text", text: "Hola" }] }, mode: "alto", skill: "general" };
 assert.deepEqual(agentChatRequestSchema.parse({ ...turn, context }).context, context);
 assert.equal(agentChatRequestSchema.parse({ ...turn, context: pageBudgetContext(null) }).context, undefined);
 assert.equal(pageBudgetContext(null), undefined);

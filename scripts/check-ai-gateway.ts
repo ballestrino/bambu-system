@@ -5,63 +5,37 @@ import { join } from "node:path";
 import type { generateText, LanguageModelUsage } from "ai";
 
 import { buildAgentCallSettings } from "../lib/ai/call-settings";
-import { AGENT_MODE_IDS, AGENT_MODES } from "../lib/ai/modes";
-import { resolveDefaultMode, resolveModelSpec, resolveTitleModelSpec } from "../lib/ai/model-spec";
+import { resolveModelSpec, resolveTitleModelSpec } from "../lib/ai/model-spec";
 import { MODEL_PRICES, estimateUsageCost, formatUsd, getPriceEnvKey } from "../lib/ai/pricing";
 import { getGatewayProvider, getOpenAIProvider, hasGatewayCredentials, resolveLanguageModel } from "../lib/ai/providers";
 import { getAiSafetyIdentifier } from "../lib/ai/safety-identifier";
 import { EMPTY_USAGE, normalizeUsage, readGatewayCost, sumUsage } from "../lib/ai/usage";
 import { getMailSafetyIdentifier } from "../lib/mail-agent/openai-client";
 
+import "./ai-mode-checks";
+
 // The check must not depend on the developer's shell or real credentials.
 ["OPENAI_API_KEY", "AI_GATEWAY_API_KEY", "VERCEL", "VERCEL_OIDC_TOKEN"].forEach(
   (key) => delete process.env[key]
 );
 
-// --- Modes: Bajo is Luna xhigh, Medio is Terra high, Alto is Sol medium.
-assert.deepEqual(Object.keys(AGENT_MODES), [...AGENT_MODE_IDS]);
-assert.deepEqual(resolveModelSpec("bajo", {}), {
-  mode: "bajo", provider: "openai", modelId: "gpt-5.6-luna", reasoning: "xhigh",
-});
-assert.deepEqual(resolveModelSpec("medio", {}), {
-  mode: "medio", provider: "openai", modelId: "gpt-5.6-terra", reasoning: "high",
-});
-assert.deepEqual(resolveModelSpec("alto", {}), {
-  mode: "alto", provider: "openai", modelId: "gpt-5.6-sol", reasoning: "medium",
-});
-assert.equal(resolveDefaultMode({}), "medio");
-assert.equal(resolveDefaultMode({ AI_DEFAULT_MODE: " Alto " }), "alto");
-assert.throws(() => resolveDefaultMode({ AI_DEFAULT_MODE: "maximo" }), /AI_DEFAULT_MODE inválido/);
-
-// --- Overrides only touch their own mode, and blank values count as unset
-// (the .env.template ships them empty).
-const overrides = {
-  AI_MODEL_MEDIO: "gpt-5.6-sol", AI_REASONING_MEDIO: "LOW", AI_MODEL_BAJO: "  ", AI_PROVIDER: "",
-};
-assert.deepEqual(resolveModelSpec("medio", overrides), {
-  mode: "medio", provider: "openai", modelId: "gpt-5.6-sol", reasoning: "low",
-});
-assert.deepEqual(resolveModelSpec("bajo", overrides), resolveModelSpec("bajo", {}));
-assert.throws(() => resolveModelSpec("alto", { AI_REASONING_ALTO: "maximo" }), /AI_REASONING_ALTO inválido/);
-assert.throws(() => resolveModelSpec("alto", { AI_PROVIDER: "anthropic" }), /AI_PROVIDER inválido/);
-assert.throws(
-  () => resolveModelSpec("alto", { AI_MODEL_ALTO: "anthropic/claude-sonnet-5" }),
-  /AI_PROVIDER=gateway/
-);
-assert.throws(() => resolveModelSpec("extremo" as never, {}), /Modo de IA desconocido/);
-
 // --- Gateway: bare ids get the openai/ prefix, other vendors pass through.
 // Switching vendors is an environment change only.
 const gatewayEnv = { AI_PROVIDER: "Gateway", AI_MODEL_ALTO: "anthropic/claude-sonnet-5" };
-assert.equal(resolveModelSpec("medio", gatewayEnv).modelId, "openai/gpt-5.6-terra");
+assert.equal(resolveModelSpec("medio", gatewayEnv).modelId, "openai/gpt-6-luna");
 assert.equal(resolveModelSpec("alto", gatewayEnv).modelId, "anthropic/claude-sonnet-5");
 assert.equal(resolveModelSpec("alto", gatewayEnv).provider, "gateway");
 
-// --- Title: a cheap call. "none", not "minimal": gpt-5.6 rejects "minimal".
+// --- Title: a small task, Luna 6 with medium reasoning. Its output tokens
+// leave room for that reasoning.
 assert.deepEqual(resolveTitleModelSpec({}), {
-  provider: "openai", modelId: "gpt-5.6-luna", reasoning: "none",
+  provider: "openai", modelId: "gpt-6-luna", reasoning: "medium",
 });
-assert.equal(resolveTitleModelSpec(gatewayEnv).modelId, "openai/gpt-5.6-luna");
+assert.equal(resolveTitleModelSpec(gatewayEnv).modelId, "openai/gpt-6-luna");
+assert.match(
+  readFileSync(join(process.cwd(), "lib/agent/conversation-title.ts"), "utf8"),
+  /TITLE_MAX_OUTPUT_TOKENS = 8_000;/
+);
 
 // --- Safety identifier: the mail namespace stays byte-identical to the mail
 // agent's, and the agent namespace never collides with it.
@@ -88,8 +62,8 @@ assert.equal(
 // --- Shared call settings.
 const settings = buildAgentCallSettings(resolveModelSpec("medio", {}), { actorId: "user-1" });
 assert.equal(settings.model.provider, "openai.responses");
-assert.equal(settings.model.modelId, "gpt-5.6-terra");
-assert.equal(settings.reasoning, "high");
+assert.equal(settings.model.modelId, "gpt-6-luna");
+assert.equal(settings.reasoning, "xhigh");
 assert.equal("temperature" in settings, false);
 assert.deepEqual(settings.providerOptions.openai, {
   store: false,
@@ -98,7 +72,7 @@ assert.deepEqual(settings.providerOptions.openai, {
 });
 // Compile time: the settings spread straight into an SDK call.
 const callOptions: Parameters<typeof generateText>[0] = { ...settings, prompt: "ping" };
-assert.equal(callOptions.reasoning, "high");
+assert.equal(callOptions.reasoning, "xhigh");
 
 // --- Normalized usage from the v7 shape, where cached and reasoning tokens
 // are nested.
@@ -120,7 +94,10 @@ assert.deepEqual(sumUsage(turn, turn), {
 assert.deepEqual(sumUsage(), EMPTY_USAGE);
 
 // --- Cost in USD from the OpenAI Standard prices per million tokens.
-assert.deepEqual(Object.keys(MODEL_PRICES).sort(), ["gpt-5.6-luna", "gpt-5.6-sol", "gpt-5.6-terra"]);
+assert.deepEqual(
+  Object.keys(MODEL_PRICES).sort(),
+  ["gpt-5.6-luna", "gpt-5.6-sol", "gpt-5.6-terra", "gpt-6-luna", "gpt-6-sol"]
+);
 const usage = {
   ...EMPTY_USAGE, inputTokens: 10_000, cachedInputTokens: 2_000, outputTokens: 1_000, reasoningTokens: 400,
 };
@@ -128,6 +105,10 @@ const usage = {
 // Reasoning is already inside outputTokens and is not billed twice.
 assert.deepEqual(estimateUsageCost("gpt-5.6-terra", usage, {}), { costUsd: 0.0284, priced: true });
 assert.deepEqual(estimateUsageCost("openai/gpt-5.6-terra", usage, {}), { costUsd: 0.0284, priced: true });
+// The same usage on the gpt-6 modes: Luna 6 (Medio) and Sol 6 (Alto) both cost
+// less than Terra, the Medio they replaced.
+assert.deepEqual(estimateUsageCost("gpt-6-luna", usage, {}), { costUsd: 0.00132, priced: true });
+assert.deepEqual(estimateUsageCost("openai/gpt-6-sol", usage, {}), { costUsd: 0.0264, priced: true });
 assert.deepEqual(
   estimateUsageCost("gpt-5.6-sol", { ...EMPTY_USAGE, inputTokens: 1e6, outputTokens: 1e6 }, {}),
   { costUsd: 24, priced: true }

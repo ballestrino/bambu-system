@@ -75,11 +75,12 @@ assert.equal(failure(`Te paso el precio: $ 9.760\n*${LITERAL_E_NOTE}*`), "ok");
 // (draftEmail) count as SKILL, and the gateway cost wins over the estimate.
 const step = { ...EMPTY_USAGE, inputTokens: 10_000, cachedInputTokens: 2_000, outputTokens: 1_000 };
 const collector = createUsageCollector();
-collector.add({ kind: "TURN", modelId: "gpt-5.6-terra", usage: step, gatewayCostUsd: null });
-collector.add({ kind: "TURN", modelId: "gpt-5.6-terra", usage: step, gatewayCostUsd: null });
+collector.add({ kind: "TURN", modelId: "gpt-5.6-terra", reasoning: "high", usage: step, gatewayCostUsd: null });
+collector.add({ kind: "TURN", modelId: "gpt-5.6-terra", reasoning: "high", usage: step, gatewayCostUsd: null });
 collector.add({
   kind: "SKILL",
   modelId: "gpt-5.6-terra",
+  reasoning: "high",
   usage: { ...EMPTY_USAGE, inputTokens: 1_000_000 },
   gatewayCostUsd: null,
 });
@@ -88,13 +89,17 @@ assert.equal(groups.length, 2);
 const turnGroup = groups.find((group) => group.kind === "TURN");
 assert.equal(turnGroup?.usage.inputTokens, 20_000);
 assert.equal(turnGroup?.costUsd, 0.0568);
+assert.equal(turnGroup?.reasoning, "high");
+// Another reasoning on the same model and kind is its own row.
+const lighter = { kind: "TURN" as const, modelId: "gpt-5.6-terra", reasoning: "medium" as const, usage: step, gatewayCostUsd: null };
+assert.equal(groupUsageEntries([...collector.entries(), lighter], {}).length, 3);
 const summary = summarizeUsage(collector.entries(), {});
 assert.equal(summary.modelId, "gpt-5.6-terra");
 assert.equal(summary.costUsd, 2.0568);
 assert.equal(summary.priced, true);
 assert.equal(summary.tokens.total, 1_020_000 + 2_000);
 
-const vendor = { kind: "TURN" as const, modelId: "anthropic/claude-sonnet-5", usage: step };
+const vendor = { kind: "TURN" as const, modelId: "anthropic/claude-sonnet-5", reasoning: "medium" as const, usage: step };
 const mixed = summarizeUsage(
   [{ ...vendor, gatewayCostUsd: null }, { ...vendor, gatewayCostUsd: 0.5 }],
   {}
@@ -109,7 +114,7 @@ const logError = console.error;
 console.error = () => {};
 assert.deepEqual(
   priceUsageEntry(
-    { kind: "TURN", modelId: "gpt-5.6-terra", usage: step, gatewayCostUsd: null },
+    { kind: "TURN", modelId: "gpt-5.6-terra", reasoning: "high", usage: step, gatewayCostUsd: null },
     { AI_PRICE_GPT_5_6_TERRA: "caro" }
   ),
   { costUsd: null, priced: false }
@@ -130,7 +135,7 @@ assert.throws(() => parseMonthKey("2026-9"), /Mes inválido/);
 
 // --- Config errors reach the user as they are; anything else stays generic.
 assert.equal(toAgentErrorMessage(new Error("Falta configurar OPENAI_API_KEY")), "Falta configurar OPENAI_API_KEY");
-assert.match(toAgentErrorMessage(new Error('AI_REASONING_BAJO inválido: "max"')), /^AI_REASONING_BAJO/);
+assert.match(toAgentErrorMessage(new Error('AI_REASONING_MEDIO inválido: "max"')), /^AI_REASONING_MEDIO/);
 assert.equal(
   toAgentErrorMessage(new Error("connect ECONNREFUSED 10.0.0.1:5432")),
   "El asistente no pudo responder. Probá de nuevo en un momento."

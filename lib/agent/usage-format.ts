@@ -1,17 +1,32 @@
 import type { TurnUsageSummary } from "@/lib/agent/usage-collector";
-import { AGENT_MODES, type AgentMode } from "@/lib/ai/modes";
+import {
+  REASONING_LABELS,
+  formatAgentModeLabel,
+  type AgentReasoning,
+  type RecordedAgentMode,
+} from "@/lib/ai/modes";
 import { formatUsd } from "@/lib/ai/pricing";
 
 // Cómo se muestran el modelo, los tokens y el costo en el Sheet. Puro: lo
 // usan la línea de uso, el badge, los diálogos y el check.
 
-// "gpt-5.6-terra" → "Terra". Con el gateway llega "openai/gpt-5.6-terra".
-// Otro modelo se muestra con su id, sin el proveedor.
+// "gpt-6-luna" → "Luna 6", "gpt-5.6-luna" → "Luna 5.6": el historial tiene
+// las dos generaciones. Con el gateway llega "openai/gpt-6-luna". Otro modelo
+// se muestra con su id, sin el proveedor.
 export const formatModelLabel = (modelId: string | null | undefined) => {
   if (!modelId) return "Modelo desconocido";
   const bare = modelId.split("/").pop() || modelId;
-  const family = bare.match(/^gpt-5\.6-([a-z]+)$/)?.[1];
-  return family ? `${family[0].toUpperCase()}${family.slice(1)}` : bare;
+  const [, version, family] = bare.match(/^gpt-(6|5\.6)-([a-z]+)$/) ?? [];
+  return family ? `${family[0].toUpperCase()}${family.slice(1)} ${version}` : bare;
+};
+
+// "Luna 6 Extra alto". Los consumos anteriores al 2026-09-23 no guardaron el
+// razonamiento y se muestran solo con el modelo.
+export const formatModelWithReasoning = (modelId: string, reasoning: string | null) => {
+  const label = reasoning && Object.hasOwn(REASONING_LABELS, reasoning)
+    ? REASONING_LABELS[reasoning as AgentReasoning]
+    : null;
+  return label ? `${formatModelLabel(modelId)} ${label}` : formatModelLabel(modelId);
 };
 
 const integer = new Intl.NumberFormat("es-UY");
@@ -35,11 +50,11 @@ export const formatUsageCost = (usage: { costUsd: number | null; priced: boolean
   return "precio no configurado";
 };
 
-// "Terra · Medio · 3,2k tokens · US$ 0,03"
-export const formatUsageLine = (usage: TurnUsageSummary, mode?: AgentMode) =>
+// "Luna 6 · Medio · 3,2k tokens · US$ 0,03"
+export const formatUsageLine = (usage: TurnUsageSummary, mode?: RecordedAgentMode) =>
   [
     formatModelLabel(usage.modelId),
-    mode ? AGENT_MODES[mode].label : null,
+    mode ? formatAgentModeLabel(mode) : null,
     `${formatTokenCount(usage.tokens.total)} tokens`,
     formatUsageCost(usage),
   ]

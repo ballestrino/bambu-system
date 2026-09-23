@@ -7,8 +7,8 @@ import { toDbAgentMode } from "@/lib/agent/conversation-mode";
 import type { AgentMode } from "@/lib/ai/modes";
 import { db } from "@/lib/db";
 
-// Un AgentUsageEvent por tipo y modelo. El costo se fija ahora: si después
-// cambian los precios, el histórico no se mueve.
+// Un AgentUsageEvent por tipo, modelo y razonamiento. El costo se fija ahora:
+// si después cambian los precios, el histórico no se mueve.
 export const persistUsageEntries = async ({
   conversationId,
   messageId,
@@ -30,6 +30,7 @@ export const persistUsageEntries = async ({
       kind: group.kind,
       mode: toDbAgentMode(mode),
       modelId: group.modelId,
+      reasoning: group.reasoning,
       inputTokens: group.usage.inputTokens,
       outputTokens: group.usage.outputTokens,
       cachedInputTokens: group.usage.cachedInputTokens,

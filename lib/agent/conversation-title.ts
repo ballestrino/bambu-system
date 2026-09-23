@@ -18,6 +18,8 @@ const sanitizeTitle = (text: string) =>
     .trim()
     .slice(0, TITLE_MAX_LENGTH);
 
+const TITLE_MAX_OUTPUT_TOKENS = 8_000;
+
 // Corre con after() después de la respuesta: no suma tiempo al primer turno.
 // Su consumo queda registrado como TITLE. Solo reemplaza el título que tenía
 // la conversación al empezar el turno: un renombrado del usuario gana.
@@ -35,7 +37,9 @@ export const generateConversationTitle = async (input: {
       instructions:
         "Escribí un título de 3 a 6 palabras, en español, para una conversación que empieza con el mensaje del usuario. Solo el título, sin comillas ni punto final.",
       prompt: input.text.slice(0, 2000),
-      maxOutputTokens: 60,
+      // Incluye el razonamiento: con 60 no quedaba lugar para el título. El
+      // largo del título lo acota sanitizeTitle.
+      maxOutputTokens: TITLE_MAX_OUTPUT_TOKENS,
     });
     await persistUsageEntries({
       conversationId: input.conversationId,
@@ -45,6 +49,7 @@ export const generateConversationTitle = async (input: {
         {
           kind: "TITLE",
           modelId: spec.modelId,
+          reasoning: spec.reasoning,
           usage: normalizeUsage(result.totalUsage),
           gatewayCostUsd: readGatewayCost(result.providerMetadata),
         },

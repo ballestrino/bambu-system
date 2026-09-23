@@ -10,13 +10,27 @@ export type ModelPrice = {
 };
 
 // Tier Standard y contexto corto de OpenAI, tomados de
-// https://developers.openai.com/api/docs/pricing el 2026-09-18. La escritura
-// de caché se cobra 1,25 veces la entrada. Por encima de 272K tokens de
-// entrada OpenAI cobra el doble de entrada y 1,5 veces la salida; no se modela
-// porque el agente recorta el historial muy por debajo de ese tope.
-// El precio de Sol es promocional "at least through November 21, 2026": si
+// https://developers.openai.com/api/docs/pricing (gpt-6 el 2026-09-23,
+// gpt-5.6 el 2026-09-18). La escritura de caché se cobra 1,25 veces la
+// entrada. Por encima de 272K tokens de entrada OpenAI cobra el doble de
+// entrada y 1,5 veces la salida; no se modela porque el agente recorta el
+// historial muy por debajo de ese tope.
+// gpt-5.6 queda para volver a un modo con AI_MODEL_*. El precio de
+// gpt-5.6-sol es promocional "at least through November 21, 2026": si
 // cambia, actualizar la tabla o fijarlo con AI_PRICE_GPT_5_6_SOL.
 export const MODEL_PRICES: Readonly<Record<string, ModelPrice>> = {
+  "gpt-6-luna": {
+    inputPerMillion: 0.1,
+    cachedInputPerMillion: 0.01,
+    cacheWritePerMillion: 0.125,
+    outputPerMillion: 0.5,
+  },
+  "gpt-6-sol": {
+    inputPerMillion: 2,
+    cachedInputPerMillion: 0.2,
+    cacheWritePerMillion: 2.5,
+    outputPerMillion: 10,
+  },
   "gpt-5.6-luna": {
     inputPerMillion: 0.2,
     cachedInputPerMillion: 0.02,
@@ -39,11 +53,11 @@ export const MODEL_PRICES: Readonly<Record<string, ModelPrice>> = {
 
 export type UsageCost = { costUsd: number | null; priced: boolean };
 
-// "openai/gpt-5.6-terra" -> "AI_PRICE_OPENAI_GPT_5_6_TERRA".
+// "openai/gpt-6-luna" -> "AI_PRICE_OPENAI_GPT_6_LUNA".
 export const getPriceEnvKey = (modelId: string) =>
   `AI_PRICE_${modelId.toUpperCase().replace(/[^A-Z0-9]+/g, "_")}`;
 
-// Sin el cuarto valor, la escritura de caché se cobra como en gpt-5.6.
+// Sin el cuarto valor, la escritura de caché se cobra como en gpt-6 y gpt-5.6.
 const DEFAULT_CACHE_WRITE_MULTIPLIER = 1.25;
 
 // Un número con punto decimal, sin signo, exponente ni hexadecimal. Number()

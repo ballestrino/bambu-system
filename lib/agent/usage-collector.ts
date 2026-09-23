@@ -1,4 +1,5 @@
 import type { AiEnv } from "@/lib/ai/model-spec";
+import type { AgentReasoning } from "@/lib/ai/modes";
 import { estimateUsageCost, type UsageCost } from "@/lib/ai/pricing";
 import { sumUsage, type NormalizedUsage } from "@/lib/ai/usage";
 
@@ -10,6 +11,8 @@ export type AgentUsageKind = "TURN" | "SKILL" | "TITLE";
 export type UsageEntry = {
   kind: AgentUsageKind;
   modelId: string;
+  // El razonamiento pedido: "Costos de IA" separa Luna 6 Extra alto de Medio.
+  reasoning: AgentReasoning;
   usage: NormalizedUsage;
   gatewayCostUsd: number | null;
 };
@@ -41,6 +44,7 @@ export const priceUsageEntry = (entry: UsageEntry, env?: AiEnv): UsageCost => {
 export type PricedUsageGroup = {
   kind: AgentUsageKind;
   modelId: string;
+  reasoning: AgentReasoning;
   usage: NormalizedUsage;
   costUsd: number | null;
   priced: boolean;
@@ -48,15 +52,16 @@ export type PricedUsageGroup = {
 
 const roundUsd = (value: number) => Math.round(value * 1_000_000) / 1_000_000;
 
-// Un registro por tipo y modelo: los pasos de un turno se suman.
+// Un registro por tipo, modelo y razonamiento: los pasos de un turno se suman.
 export const groupUsageEntries = (entries: UsageEntry[], env?: AiEnv) => {
   const groups = new Map<string, PricedUsageGroup>();
   entries.forEach((entry) => {
-    const key = `${entry.kind}:${entry.modelId}`;
+    const key = `${entry.kind}:${entry.modelId}:${entry.reasoning}`;
     const cost = priceUsageEntry(entry, env);
     const current = groups.get(key);
     if (!current) {
-      groups.set(key, { kind: entry.kind, modelId: entry.modelId, usage: entry.usage, ...cost });
+      const { kind, modelId, reasoning, usage } = entry;
+      groups.set(key, { kind, modelId, reasoning, usage, ...cost });
       return;
     }
     current.usage = sumUsage(current.usage, entry.usage);

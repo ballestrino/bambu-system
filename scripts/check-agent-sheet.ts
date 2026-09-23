@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 
 import "./agent-sheet-source-checks";
+import "./agent-usage-rows-checks";
 import { capitalizeFirst } from "../components/agent/format";
 import { buildAgentChatBody, readAgentError, SESSION_EXPIRED_MESSAGE } from "../lib/agent/chat-request";
 import { sanitizeFormContextValues } from "../lib/agent/form-context";
@@ -50,7 +51,7 @@ const form = sanitizeFormContextValues({
 });
 assert.deepEqual(form, { name: "Oficina Centro", visits: 3, revenue_percent: 40, visit_type: "week", categoryIds: ["cat_1"] });
 assert.ok(agentBudgetContextSchema.safeParse({ kind: "form", values: form }).success);
-const formBody = buildAgentChatBody({ id: "conv_12345678", messages: history, trigger: "submit-message", messageId: undefined, options: { mode: "bajo", skill: "general", context: { kind: "form", values: form } } });
+const formBody = buildAgentChatBody({ id: "conv_12345678", messages: history, trigger: "submit-message", messageId: undefined, options: { mode: "alto", skill: "general", context: { kind: "form", values: form } } });
 assert.ok(agentChatRequestSchema.safeParse(JSON.parse(JSON.stringify(formBody))).success);
 assert.equal(agentChatRequestSchema.safeParse({ ...submit, context: { kind: "form", values: { employees: 0 } } }).success, false);
 
@@ -66,14 +67,14 @@ assert.equal(readAgentError(new Error(SESSION_EXPIRED_MESSAGE)), SESSION_EXPIRED
 assert.match(readAgentError(Object.assign(new Error("Unexpected token <"), { name: "AI_JSONParseError" })) ?? "", /no pudo responder/);
 assert.equal(readAgentError(undefined), null);
 
-// --- The usage line: "Terra · Medio · 3,2k tokens · US$ 0,03", and never an
+// --- The usage line: "Luna 6 · Medio · 3,2k tokens · US$ 0,03", and never an
 // invented price.
 const tokens = { inputTokens: 2400, outputTokens: 800, cachedInputTokens: 0, cacheWriteTokens: 0, reasoningTokens: 300, total: 3200 };
-const usage: TurnUsageSummary = { modelId: "gpt-5.6-terra", tokens, costUsd: 0.03, priced: true };
+const usage: TurnUsageSummary = { modelId: "gpt-6-luna", tokens, costUsd: 0.03, priced: true };
 // Intl separa "US$" del número con un espacio duro.
 const plain = (text: string) => text.replace(/\s/g, " ");
-assert.equal(plain(formatUsageLine(usage, "medio")), "Terra · Medio · 3,2k tokens · US$ 0,03");
-assert.equal(formatModelLabel("openai/gpt-5.6-sol"), "Sol");
+assert.equal(plain(formatUsageLine(usage, "medio")), "Luna 6 · Medio · 3,2k tokens · US$ 0,03");
+assert.equal(formatModelLabel("openai/gpt-6-sol"), "Sol 6");
 assert.equal(formatModelLabel("anthropic/claude-sonnet-5"), "claude-sonnet-5");
 assert.deepEqual([850, 3250, 999_960, 1_500_000].map(formatTokenCount), ["850", "3,3k", "1M", "1,5M"]);
 assert.equal(formatUsageCost({ costUsd: null, priced: false }), "precio no configurado");
