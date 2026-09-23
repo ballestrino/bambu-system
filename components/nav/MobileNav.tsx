@@ -7,7 +7,8 @@ import {
     SheetContent,
     SheetTrigger,
 } from "@/components/ui/sheet"
-import { BadgeDollarSign, Calculator, CircleDollarSign, Menu, LayoutDashboard, Settings } from "lucide-react"
+import { BadgeDollarSign, Calculator, CircleDollarSign, Menu, LayoutDashboard, Settings, Sparkles } from "lucide-react"
+import { AGENT_PAGE_PATH } from "@/lib/agent/page-url"
 import NavLogo from "./NavLogo"
 import Link from "next/link"
 import { useState } from "react"
@@ -78,6 +79,14 @@ export default function MobileNav({ admin, user }: MobileNavProps) {
                                         {item.title}
                                     </Link>
                                 ))}
+                                <Link
+                                    href={AGENT_PAGE_PATH}
+                                    className={getLinkClass(pathname.startsWith(AGENT_PAGE_PATH))}
+                                    onClick={() => setOpen(false)}
+                                >
+                                    <Sparkles className="h-4 w-4" />
+                                    Agente
+                                </Link>
                             </div>
                         </div>
                     )}
