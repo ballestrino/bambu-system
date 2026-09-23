@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 
 import "./agent-matching-checks";
+import "./agent-price-format-checks";
 import "./agent-pricing-source-checks";
 import { applyAgentChanges, applyNicePrice, describeRounding } from "../lib/agent/agent-pricing";
 import {

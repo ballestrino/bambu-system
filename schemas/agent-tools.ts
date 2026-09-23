@@ -76,7 +76,10 @@ const budgetBaseShape = {
 
 export const emptyInputSchema = z.object({});
 
-export const searchOfficialBudgetsInputSchema = officialBudgetSearchCriteriaSchema;
+// Los criterios del agente de correo, con empleadas null como 1 (feature 46).
+export const searchOfficialBudgetsInputSchema = officialBudgetSearchCriteriaSchema.extend({
+  employees: z.number().int().positive().nullable().describe("Empleadas por visita; null es 1"),
+});
 
 export const listOfficialBudgetsInputSchema = z.object({
   query: z.string().trim().max(120).nullable(),
