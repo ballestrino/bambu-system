@@ -38,6 +38,11 @@ Status: in_progress
 - Decisiones del usuario que dejaron las revisiones: precios con centavos de
   los guardados de antes de la 44 (44), medir Emails en Bajo y Alto o subir
   `maxDuration` (44) y "Abrir en página" desde el Sheet de crear (42).
+- En `main` (2026-09-22): a pedido del usuario, merge `83d7e3b` de
+  `feature/44-agent-pricing-rules` (38-44 con sus correcciones), sin PR, y
+  push a `origin/main`. La base del `.env` es la de producción: `prisma
+  migrate status` dio 21 de 21 aplicadas. Queda por confirmar en Vercel:
+  `OPENAI_API_KEY` (o el gateway), Node 22.x o 24.x y el `maxDuration`.
 - Para cerrar de la 38 a la 44 falta la decisión del usuario de pasarlas a
   `done` con la 35 todavía en `in_progress`. Decisiones abiertas:
   `engines`/Node del deploy y `maxDuration` (con el consumo guardado por
