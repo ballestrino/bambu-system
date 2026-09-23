@@ -8,25 +8,15 @@ Status: idle
 
 ## Last Closed Features
 
-- 2026-09-23: la 3 (permisos de presupuestos y categorías, compartidos entre
-  admins). Detalle en `progress/impl_budget_authorization_contracts.md`.
-  Mergeada en `main` (`59f932d`) **sin push**, igual que la 4 y la 6.
-- 2026-09-23: `next` y `eslint-config-next` 16.3.6, en la rama
-  `chore/next-16.3.6`. Detalle en `progress/history.md`.
-
-- 2026-09-23: la 6 (`next` 16.3.5, React 19.3.0, `next-auth` beta.32 y
-  `@auth/prisma-adapter` 2.11.3). Las críticas del audit bajaron de 6 a 0.
-  Detalle en `progress/impl_platform_dependency_patch_review.md`. Mergeada en
-  `main` **sin push**, igual que la 4.
-
+- 2026-09-23: la 4 (acciones de settings seguras), la 6 (`next` 16.3.5,
+  React 19.3.0, `next-auth` beta.32 y `@auth/prisma-adapter` 2.11.3), la 3
+  (permisos de presupuestos y categorías, compartidos entre admins) y `next`
+  16.3.6. Detalle en `progress/history.md` y en los `impl_*.md` de cada una.
 - 2026-09-23: la 28, la 35, la 36, la 37 y de la 38 a la 46 pasaron a `done`.
-- 2026-09-23: la 4 (acciones de settings seguras). Detalle en
-  `progress/history.md` y `progress/impl_settings_server_action_auth.md`.
-  Mergeada en `main` (`7426d1f`) **sin push**: el usuario no quiere gastar el
-  storage de funciones de Vercel. Hasta que se suba, producción sigue con la
-  toma de cuentas abierta.
-- Ramas locales: se borraron las 24 ya mergeadas en `main`, así que solo queda
-  `main`. Las remotas (`origin/*`) siguen, porque borrarlas requiere push.
+- Push a `origin/main` el 2026-09-23, a pedido del usuario, con la 4, la 6, la
+  3 y `next` 16.3.6. Falta confirmar que el deploy de Vercel haya terminado
+  bien: hasta entonces, producción sigue con los agujeros que corrigen.
+- Ramas locales: solo queda `main`. Las remotas viejas (`origin/*`) siguen.
 
 ## Auditoría de las `pending` (2026-09-23)
 
