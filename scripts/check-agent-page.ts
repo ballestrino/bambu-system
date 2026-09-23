@@ -8,11 +8,18 @@ import {
   ALL_AGENT_CONVERSATIONS,
   budgetConversationScope,
   conversationListInput,
+  conversationListLimit,
   conversationScopeKey,
   pageBudgetContext,
   pageContextLabel,
 } from "../lib/agent/conversation-scope";
-import { AGENT_PAGE_PATH, getAgentPageUrl, readConversationParam } from "../lib/agent/page-url";
+import {
+  AGENT_PAGE_PATH,
+  getAgentPageUrl,
+  pageUrlTarget,
+  readConversationParam,
+  startsNewWithoutUrlId,
+} from "../lib/agent/page-url";
 import {
   agentBudgetContextSchema,
   agentChatRequestSchema,
@@ -71,5 +78,25 @@ for (let index = 0; index < 50; index += 1) {
   const id = generateId();
   assert.equal(readConversationParam(new URL(getAgentPageUrl(id), "http://localhost").searchParams.get("conversacion")), id);
 }
+
+// --- The address and the session: without an id in the address a new one
+// starts, unless the session is already a new, ready, unsaved one (maybe in its
+// first turn); also from the "not found" screen or while another one opens.
+// The address shows a ready saved one, the one that failed to open (a reload
+// shows the same error), and stays as it is while opening.
+const at = (status: "idle" | "loading" | "ready" | "error", conversationId: string | null, persisted: boolean) =>
+  ({ state: { status }, conversationId, persisted });
+assert.equal(startsNewWithoutUrlId(at("idle", null, false)), true);
+assert.equal(startsNewWithoutUrlId(at("ready", "new000001", false)), false);
+assert.equal(startsNewWithoutUrlId(at("ready", "convA0001", true)), true);
+assert.equal(startsNewWithoutUrlId(at("error", "missing01", false)), true);
+assert.equal(startsNewWithoutUrlId(at("loading", "convOLD01", false)), true);
+assert.equal(pageUrlTarget(at("ready", "convA0001", true)), "convA0001");
+assert.equal(pageUrlTarget(at("ready", "new000001", false)), null);
+assert.equal(pageUrlTarget(at("error", "convB0001", true)), "convB0001");
+assert.equal(pageUrlTarget(at("loading", "convOLD01", false)), undefined);
+assert.equal(pageUrlTarget(at("idle", null, false)), undefined);
+// The page lists the latest 100 and a Sheet the latest 50 of its budget.
+assert.deepEqual([conversationListLimit(true), conversationListLimit(false), conversationListLimit(undefined)], [100, 50, 50]);
 
 console.log("Agent page checks passed");

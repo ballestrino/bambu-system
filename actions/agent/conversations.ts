@@ -22,7 +22,7 @@ const actionError = (error: unknown, fallback: string) =>
   error instanceof AdminAuthorizationError ? error.message : fallback;
 
 // El historial del Sheet y de la página: conversaciones del usuario con su
-// costo acumulado.
+// costo acumulado y cuántos registros de uso no tenían precio.
 export const listAgentConversations = async (values: unknown) => {
   try {
     await requireAdminSession();
@@ -34,6 +34,7 @@ export const listAgentConversations = async (values: unknown) => {
       conversations: conversations.map((conversation) => ({
         ...conversation,
         costUsd: costs[conversation.id]?.costUsd ?? 0,
+        unpricedEvents: costs[conversation.id]?.unpricedEvents ?? 0,
       })),
     };
   } catch (error) {

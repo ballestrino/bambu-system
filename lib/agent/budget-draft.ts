@@ -22,6 +22,32 @@ export const REVISABLE_PROPOSAL_STATUSES = ["PENDING", "REJECTED", "EXPIRED", "F
 export const isBudgetLocked = (status: AgentProposalStatus | null | undefined) =>
   status === "CONFIRMED" || status === "EXECUTING";
 
+// Lo que muestra el editor al abrir: guardado o guardándose, los valores de la
+// propuesta (un borrador no es lo que se guardó); si no, el borrador o los de
+// la tarjeta.
+export const resolveEditorValues = (input: {
+  values: BudgetFormValues;
+  draft: BudgetFormValues | null;
+  proposal?: { status: AgentProposalStatus; values: BudgetFormValues | null } | null;
+}) =>
+  isBudgetLocked(input.proposal?.status) && input.proposal?.values
+    ? input.proposal.values
+    : (input.draft ?? input.values);
+
+// Los inputs dan texto ("4" es 4) y el orden de las categorías no importa.
+const comparable = (value: unknown) => {
+  if (Array.isArray(value)) return [...value].sort().join("\n");
+  if (typeof value === "string" && value.trim() !== "" && Number.isFinite(Number(value))) return Number(value);
+  return value ?? "";
+};
+
+// Un borrador que volvió a los valores de la tarjeta ya no es un borrador. El
+// precio no cuenta: el formulario lo recalcula un render después.
+export const isSameBudgetDraft = (values: BudgetFormValues, base: BudgetFormValues) => {
+  const keys = new Set([...Object.keys(values), ...Object.keys(base)] as (keyof BudgetFormValues)[]);
+  return [...keys].every((key) => key === "price" || comparable(values[key]) === comparable(base[key]));
+};
+
 type BudgetInputs = ReturnType<typeof describeBudgetInputs>;
 
 const contribution = (percent: number, fallback: number) => ({

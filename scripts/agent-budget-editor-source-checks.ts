@@ -3,8 +3,9 @@ import { readFileSync } from "node:fs";
 import { join } from "node:path";
 
 // Invariantes del editor de presupuestos del agente que se ven en el código
-// fuente. Lo usa check:agent-budget-editor.
-const read = (path: string) => readFileSync(join(process.cwd(), path), "utf8");
+// fuente. Lo usa check:agent-budget-editor. Un checkout con core.autocrlf deja
+// CRLF: se normaliza para que las regex con \n valgan igual.
+const read = (path: string) => readFileSync(join(process.cwd(), path), "utf8").replace(/\r\n/g, "\n");
 
 // --- The three budget tools return values for the UI and hide them from the model.
 const calculations = read("lib/agent/tools/calculations.ts");
@@ -13,7 +14,9 @@ assert.match(calculations, /grounding,\n\s+values,\n/);
 assert.match(calculations, /values: solved\.values,/);
 const proposalTools = read("lib/agent/tools/proposals.ts");
 assert.equal(proposalTools.match(/toModelOutput: hideFromModel\("values"\)/g)?.length, 1);
-assert.match(proposalTools, /built\.kind === "CREATE_BUDGET" && "values" in built\.payload \? \{ values: built\.payload\.values \}/);
+// The values come from the stored row, like the rest of the card (also when
+// the same call arrives twice).
+assert.match(proposalTools, /const values = readCreateValues\(proposal\);[\s\S]*?\.\.\.\(values \? \{ values \} : \{\}\),/);
 // The history the model reads goes through the same tools (and toModelOutput).
 assert.match(read("lib/agent/run.ts"), /convertToModelMessages\(input\.messages, \{\n\s+tools,/);
 
@@ -35,7 +38,7 @@ assert.match(save, /if \(!call\) return \{ error: "Ese presupuesto ya no está e
 assert.doesNotMatch(save, /createBudget\(|db\.budget\./);
 
 const calls = read("data/agent/tool-calls.ts");
-["conversation: { userId: input.userId }", 'role: "ASSISTANT"', "isSavableBudgetPartType(part.type)", 'part.state === "output-available"', "output?.ok === true"]
+["await requireAdminSession();", "conversation: { userId: input.userId }", 'role: "ASSISTANT"', "isSavableBudgetPartType(part.type)", 'part.state === "output-available"', "output?.ok === true"]
   .forEach((text) => assert.ok(calls.includes(text), `tool-calls.ts: ${text}`));
 
 // Revising only touches a proposal that has not run, and audits only then.
@@ -45,20 +48,29 @@ assert.match(store, /if \(count\) \{\n\s+await auditProposal\(\{[\s\S]*?action: 
 assert.match(store, /existing\.actorId !== input\.actorId \|\| existing\.kind !== input\.kind/);
 
 // --- The editor: the generator form and the budget page detail over one form
-// validated with the editor schema; drafts only from real edits; a saved or
-// executing budget is read-only; a name error lands on the field.
+// validated with the editor schema (and Spanish messages for the rest of the
+// fields); drafts only while it can be saved, compared with the card; a saved
+// or executing budget is read-only and shows what was saved, never a draft; a
+// name error lands on the field; no saving while the agent answers.
 const sheet = read("components/agent/budget-editor/agent-budget-sheet.tsx");
 [
-  "zodResolver(agentBudgetEditorSchema)",
+  "zodResolver(agentBudgetEditorSchema, { error: agentBudgetEditorErrors })",
+  "defaultValues: resolveEditorValues({ values: target.values, draft: target.draft, proposal })",
   "<FormProvider {...form}>",
   "<CreateBudgetForm />",
   "<AgentBudgetDetail />",
-  "if (isDirty) onChange(values as BudgetFormValues);",
+  "if (!locked) editor.recordDraft(target.toolCallId, values, target.values);",
+  'const saved = proposal?.status === "CONFIRMED" ? proposal.values : null;',
+  "form.reset(values);",
+  "if (saved) onSaved(saved);",
   'value={locked ? "detail" : editor.tab}',
   'disabled={locked}',
   "form.setError(failure.field, { message: failure.message });",
   "onSuccess: () => editor.dropDraft(target.toolCallId)",
+  'if (proposal?.status === "EXECUTING") return { kind: proposal.unknownOutcome ? "unknown" : "executing" };',
 ].forEach((text) => assert.ok(sheet.includes(text), `agent-budget-sheet.tsx: ${text}`));
+assert.match(read("components/agent/budget-editor/agent-budget-footer.tsx"), /disabled=\{busy \|\| waiting\}/);
+assert.match(read("components/agent/agent-chat.tsx"), /waiting=\{view\.busy\}/);
 const detail = read("components/agent/budget-editor/agent-budget-detail.tsx");
 assert.match(detail, /<BudgetDetails option=\{\{ \.\.\.values, has_products: false \}\}/);
 assert.match(detail, /hasProducts && <BudgetDetails option=\{\{ \.\.\.values, has_products: true \}\}/);
@@ -66,13 +78,20 @@ assert.match(detail, /hasProducts && <BudgetDetails option=\{\{ \.\.\.values, ha
 assert.match(detail, /\[&_\[data-slot=card\]\]:max-h-none \[&_\[data-slot=card\]\]:overflow-visible/);
 // Closing gives the focus back to the button that opened the editor.
 assert.match(sheet, /onCloseAutoFocus=\{editor\.restoreFocus\}/);
-assert.match(read("components/agent/budget-editor/use-budget-editor.ts"), /opener\.current = document\.activeElement instanceof HTMLElement/);
+assert.match(read("components/agent/hooks/use-budget-editor.ts"), /opener\.current = document\.activeElement instanceof HTMLElement/);
 // With a proposal, the editor starts from its values: what was saved (or
 // tried), not what the agent calculated.
-assert.match(
-  read("components/agent/cards/agent-budget-actions.tsx"),
-  /openBudget\(proposal\?\.values \? \{ \.\.\.target, values: proposal\.values \} : target, tab\)/
-);
+const actions = read("components/agent/cards/agent-budget-actions.tsx");
+assert.match(actions, /openBudget\(proposal\?\.values \? \{ \.\.\.target, values: proposal\.values \} : target, tab\)/);
+// Confirming a proposal with a draft saves the proposal as it is: the card says so.
+assert.match(actions, /Confirmar guarda la propuesta sin ellos/);
+assert.match(actions, /proposal\?\.status === "EXECUTING" && proposal\.unknownOutcome/);
+
+// --- The model reads the live summary of a revised proposal (and quotes its
+// amounts), and what was saved from the editor can be quoted.
+const context = read("lib/agent/proposal-context.ts");
+assert.match(context, /summary: live\.summary,\n\s+grounding: \{ amounts: getSummaryAmounts\(live\.summary\) \},/);
+assert.match(read("lib/agent/turn.ts"), /addGroundedAmounts\(grounding, getConfirmedAmounts\(proposals\)\);/);
 
 // --- Cards: only calculations and create proposals open the editor, with
 // their tool call; the proposal card shows the live summary.
@@ -93,7 +112,11 @@ assert.match(mutation, /onSettled: \(\) => queryClient\.invalidateQueries\(\{ qu
 assert.match(mutation, /queryKey: \["budgets"\]/);
 
 // --- Size and harness state.
-["lib/agent/budget-draft.ts", "lib/agent/proposals.ts", "lib/agent/proposal-store.ts", "actions/agent/save-budget.ts", "data/agent/tool-calls.ts"]
+[
+  "lib/agent/budget-draft.ts", "lib/agent/proposals.ts", "lib/agent/proposal-store.ts", "lib/agent/proposal-context.ts",
+  "actions/agent/save-budget.ts", "data/agent/tool-calls.ts", "components/agent/hooks/use-budget-editor.ts",
+  "components/agent/budget-editor/agent-budget-sheet.tsx", "components/agent/budget-editor/agent-budget-footer.tsx",
+]
   .forEach((path) => assert.ok(read(path).trimEnd().split("\n").length <= 200, `${path} supera las 200 líneas`));
 const features = JSON.parse(read("feature_list.json")).features as { id: number; name: string }[];
 assert.equal(features.find((feature) => feature.id === 43)?.name, "agent_budget_editor");

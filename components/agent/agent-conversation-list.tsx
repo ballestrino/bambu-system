@@ -10,7 +10,7 @@ import type { AgentConversationItem } from "@/components/agent/types";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
-import type { AgentConversationScope } from "@/lib/agent/conversation-scope";
+import { conversationListLimit, type AgentConversationScope } from "@/lib/agent/conversation-scope";
 import { createSearchMatcher } from "@/lib/search-text";
 
 // El diálogo de una fila. Cerrar solo apaga open: la conversación y el botón
@@ -56,6 +56,9 @@ export function AgentConversationList({
   const rows = (list.data ?? []).filter((conversation) =>
     matches([conversation.title, showBudget ? conversation.budget?.name : null])
   );
+  // La búsqueda es sobre lo cargado: si llegó al tope, las más viejas no están.
+  const limit = conversationListLimit(scope.kind === "all");
+  const capped = (list.data?.length ?? 0) >= limit;
 
   return (
     <>
@@ -102,6 +105,11 @@ export function AgentConversationList({
               />
             ))}
           </ul>
+        )}
+        {capped && !list.isError && (
+          <p className="pt-3 text-center text-xs text-muted-foreground">
+            Se muestran las {limit} conversaciones más recientes{query ? ": la búsqueda es sobre esas" : ""}.
+          </p>
         )}
       </div>
       <AgentRenameDialog {...dialogFor("rename")} />

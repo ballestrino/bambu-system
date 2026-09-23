@@ -7,8 +7,16 @@ import { sanitizeFormContextValues } from "../lib/agent/form-context";
 import { withHardLineBreaks } from "../lib/agent/markdown-breaks";
 import type { AgentUIMessage } from "../lib/agent/messages";
 import { formatProposalsForPrompt } from "../lib/agent/proposal-context";
-import { EXECUTING_UNKNOWN_AFTER_MS, hasUnknownOutcome, readConfirmResponse } from "../lib/agent/proposal-outcome";
-import { serializeProposal, type ProposalSummary } from "../lib/agent/proposals";
+import {
+  canActOnProposal,
+  EXECUTING_UNKNOWN_AFTER_MS,
+  getDisplayStatus,
+  hasRunningProposal,
+  hasUnknownOutcome,
+  readConfirmResponse,
+  savedSlugRedirect,
+} from "../lib/agent/proposal-outcome";
+import { serializeProposal, type AgentProposalStatus, type ProposalSummary } from "../lib/agent/proposals";
 import type { TurnUsageSummary } from "../lib/agent/usage-collector";
 import { formatModelLabel, formatTokenCount, formatUsageCost, formatUsageLine } from "../lib/agent/usage-format";
 import { agentBudgetContextSchema, agentChatRequestSchema } from "../schemas/agent";
@@ -105,5 +113,27 @@ assert.deepEqual(readConfirmResponse({ success: "Propuesta confirmada", proposal
 assert.deepEqual(readConfirmResponse({ success: "Propuesta confirmada", result }), { ok: true, message: "Propuesta confirmada", result });
 assert.deepEqual(readConfirmResponse({ error: "La propuesta venció.", proposal: { result: null } }), { ok: false, error: "La propuesta venció." });
 assert.deepEqual(readConfirmResponse({ error: "No autorizado" }), { ok: false, error: "No autorizado" });
+
+// --- The card's rules: the live status wins over the tool output (which says
+// PENDING forever) and a stale EXECUTING is unknown; only a live pending one
+// can be confirmed or rejected, one at a time; only a running one is polled;
+// and only the open budget's new address is followed (a copy is not).
+const live = (status: AgentProposalStatus, unknownOutcome = false) => ({ status, unknownOutcome });
+assert.equal(getDisplayStatus(undefined, "PENDING"), "PENDING");
+assert.equal(getDisplayStatus(live("CONFIRMED"), "PENDING"), "CONFIRMED");
+assert.equal(getDisplayStatus(live("EXECUTING", true), "PENDING"), "UNKNOWN");
+assert.equal(canActOnProposal("PENDING", live("PENDING"), null), true);
+assert.equal(canActOnProposal("PENDING", undefined, null), false);
+assert.equal(canActOnProposal("PENDING", live("PENDING"), "prop_2"), false);
+assert.equal(canActOnProposal("UNKNOWN", live("EXECUTING", true), null), false);
+assert.equal(hasRunningProposal([live("PENDING"), live("EXECUTING")]), true);
+assert.equal(hasRunningProposal([live("EXECUTING", true), live("CONFIRMED")]), false);
+assert.equal(hasRunningProposal(undefined), false);
+const open = { budgetId: "budget_1", budgetSlug: "ln-2026" };
+assert.equal(savedSlugRedirect(result, open), "limpieza-norte");
+assert.equal(savedSlugRedirect(result, { ...open, budgetSlug: "limpieza-norte" }), null);
+assert.equal(savedSlugRedirect({ ...result, budgetId: "budget_2" }, open), null);
+assert.equal(savedSlugRedirect(result, { budgetId: null, budgetSlug: null }), null);
+assert.equal(savedSlugRedirect(null, open), null);
 
 console.log("Agent sheet checks passed");

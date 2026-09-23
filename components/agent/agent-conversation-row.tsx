@@ -64,6 +64,8 @@ export function AgentConversationRow({
         <p className="truncate text-xs text-muted-foreground tabular-nums">
           {formatDateTime(conversation.lastMessageAt ?? conversation.updatedAt)} ·{" "}
           {AGENT_MODES[conversation.mode].label} · {formatUsd(conversation.costUsd)}
+          {/* Como el badge: el uso sin precio no se muestra como US$ 0,00. */}
+          {conversation.unpricedEvents > 0 && " + sin precio"}
         </p>
       </button>
       <DropdownMenu modal={false}>

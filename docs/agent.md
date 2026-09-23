@@ -143,10 +143,16 @@ Proponer y confirmar: ninguna tool escribe presupuestos durante el turno.
 - El prompt lleva "Propuestas de esta conversación" con el estado vivo de las
   últimas 30, y cada línea dice qué cambia ("Margen del servicio 45 → 40"):
   dos propuestas sobre el mismo presupuesto tienen el mismo título.
-- El historial que se manda al modelo lleva el estado vivo en la salida de
-  cada tool `propose*` (`withLiveProposals`, `lib/agent/proposal-context.ts`);
-  la base conserva la salida original. La salida guardada dice PENDING para
-  siempre, y en la prueba real el modelo le creyó a ella antes que al bloque.
+- El historial que se manda al modelo lleva el estado y el resumen vivos en
+  la salida de cada tool `propose*`, con los importes citables de ese resumen
+  (`withLiveProposals`, `lib/agent/proposal-context.ts`); la base conserva la
+  salida original. La salida guardada dice PENDING para siempre, y en la
+  prueba real el modelo le creyó a ella antes que al bloque. Una propuesta
+  guardada desde el editor de la 43 tiene el resumen de lo editado.
+- Una propuesta confirmada con cálculo (crear o guardar cambios) lleva en su
+  línea del bloque los finales guardados, que se pueden citar
+  (`getConfirmedAmounts`): un cálculo guardado desde el editor no tiene una
+  salida `propose*` que los diga.
 - Presupuestos y General tienen las cuatro tools; Consejos ninguna. Emails
   tiene `proposeCreateBudget` desde la feature 44, para guardar el
   presupuesto que calculó al responder un pedido.
@@ -188,8 +194,10 @@ el contexto y el botón que lo abre.
 - Cabecera: título (el del modelo llega unos segundos después del primer
   turno), contexto, abrir en la página, historial, nueva conversación, modo y
   costo. "Abrir en página" lleva a `/dashboard/agent?conversacion=<id>` (sin
-  id si todavía no se guardó) y está deshabilitado mientras responde: salir de
-  la pantalla corta el stream. El modo
+  id si todavía no se guardó) y está deshabilitado mientras responde (salir de
+  la pantalla corta el stream) y mientras una conversación con mensajes
+  todavía no figura guardada: el historial se relee al terminar el turno, y
+  antes el link abriría una nueva. El modo
   muestra el modelo real de cada uno (`getAgentSettings`, con los overrides
   del entorno) y aplica a los turnos siguientes; si la conversación ya existe
   se guarda en el momento.
@@ -205,10 +213,14 @@ el contexto y el botón que lo abre.
 - La tarjeta de propuesta usa el estado vivo (`listAgentProposals`, releído
   cada 3 s mientras una se ejecuta) y no ofrece confirmar sin él. Confirmar
   invalida presupuestos, detalle, oficiales y propuestas; si cambió la
-  dirección del presupuesto abierto, redirige a la nueva.
+  dirección del presupuesto abierto, redirige a la nueva. Esas reglas son
+  puras y tienen prueba (`lib/agent/proposal-outcome.ts`).
 - Historial: conversaciones del presupuesto (o sin presupuesto en crear),
-  búsqueda sin acentos, costo por fila, renombrar y borrar. Borrar la activa
-  arranca una nueva.
+  búsqueda sin acentos, costo por fila (con "+ sin precio" si hubo uso sin
+  precio, como el badge), renombrar y borrar. Borrar la activa arranca una
+  nueva, aunque el historial se cierre antes de que responda el servidor.
+- Un link de una respuesta va por `next/link` solo si es una ruta de la app
+  (`/…`); `//dominio` es externo y abre en otra pestaña.
 - "Costos de IA": esta conversación por tipo y modelo, el mes del equipo por
   modelo y modo (con navegación hacia atrás desde el mes del servidor) y el
   top 10. Un grupo sin precio dice "sin precio", nunca US$ 0,00.
@@ -230,7 +242,8 @@ los mismos componentes que el Sheet: `AgentPageHost` es otro host para
 
 - Historial: todas las conversaciones del usuario (las 100 más recientes),
   con el presupuesto de cada una. La búsqueda sin acentos mira el título y el
-  presupuesto. `useAgentSession` recibe un `scope` (`budget`, `no-budget` o
+  presupuesto. Cuando la lista llega al tope lo dice (la búsqueda es sobre
+  esas); una más vieja se abre igual por link. `useAgentSession` recibe un `scope` (`budget`, `no-budget` o
   `all`, `lib/agent/conversation-scope.ts`): el Sheet sigue listando las de su
   presupuesto, o las sin presupuesto en crear, que ahora incluyen las
   generales de la página.
@@ -243,9 +256,12 @@ los mismos componentes que el Sheet: `AgentPageHost` es otro host para
   `history.replaceState` (sin ida al servidor, sin remontar el chat y sin
   entradas nuevas en el historial del navegador) y solo cuando la
   conversación está lista. Un cambio que llega de afuera (entrar con el link,
-  el link del sidebar) abre esa conversación o arranca una nueva. Un id que no
-  existe muestra "Conversación no encontrada" con Reintentar y "Nueva
-  conversación"; un valor que no puede ser un id se ignora.
+  el link del sidebar) abre esa conversación o arranca una nueva: sin id se
+  arranca una nueva salvo que ya lo sea (lista y sin guardar), también desde
+  el error o mientras abre otra. Un id que no existe muestra "Conversación no
+  encontrada" con Reintentar y "Nueva conversación", y la dirección queda con
+  ese id (recargar da lo mismo); un valor que no puede ser un id se ignora.
+  Las reglas son puras (`startsNewWithoutUrlId` y `pageUrlTarget`).
 - Alto fijo (la pantalla menos el nav y el padding del dashboard): los
   mensajes scrollean adentro, sin arrastrar la página (`overscroll-contain`),
   y el composer queda a la vista. Los mensajes y el composer van en un ancho de
@@ -265,8 +281,12 @@ formulario:
   presupuesto, recalculados en vivo.
 - Editar: `CreateBudgetForm`, el formulario del generador, validado con
   `agentBudgetEditorSchema` (mensajes en castellano, los números del input
-  convertidos y los límites de una propuesta).
-- Pie: los finales con IVA y "Guardar en el generador".
+  convertidos y los límites de una propuesta). Los demás campos del
+  generador responden en castellano con `agentBudgetEditorErrors`, que el
+  resolver pasa al validar.
+- Pie: los finales con IVA y "Guardar en el generador". Mientras el agente
+  responde, Guardar espera: la respuesta, con la llamada a tool, se guarda en
+  la base al terminar el turno.
 
 | Tarjeta | Valores iniciales | Guardar |
 | --- | --- | --- |
@@ -283,17 +303,28 @@ formulario:
   propuesta de esa llamada (nueva, o la existente si está PENDING, REJECTED,
   EXPIRED o FAILED, con auditoría `proposal.revise`) y `confirmAgentProposal`
   la ejecuta: una sola escritura aunque se repita, y el agente la ve en el
-  bloque de propuestas de los turnos siguientes.
+  bloque de propuestas de los turnos siguientes, con el resumen y los finales
+  de lo guardado (ver "Propuestas").
+- Lo editado se guarda como se tipeó, igual que en el generador (fuente
+  `edited`): sin reglas del agente, y un aporte habilitado en 0 % (o vacío)
+  queda en 0, como lo muestra el editor.
 - Un cálculo que parte de un presupuesto guardado se guarda como uno nuevo:
   el editor lo dice. Guardar cambios en ese presupuesto sigue siendo pedírselo
   al agente (`proposeUpdateBudget`).
 - Guardado (CONFIRMED) o guardándose (EXECUTING), el editor es de solo
-  lectura, con "Abrir" y "Editar en el generador". La tarjeta del cálculo dice
+  lectura, con "Abrir" y "Editar en el generador", y muestra lo guardado
+  (`resolveEditorValues`), nunca un borrador. Si se guarda con el editor
+  abierto (desde la tarjeta o desde otra pestaña), pasa a lo guardado y
+  descarta el borrador. Una EXECUTING vieja dice "resultado desconocido", en
+  el editor y en la tarjeta del cálculo. La tarjeta del cálculo dice
   "Guardado en el generador"; la de la propuesta muestra el resumen vivo.
 - Los cambios sin guardar quedan por llamada a tool en una ref del chat (sin
-  re-render por tecla): reabrir el editor los recupera y la tarjeta avisa.
-  Se pierden al recargar, al cambiar de conversación o al cerrar el Sheet de
-  Presupuestos (que desmonta el chat).
+  re-render por tecla, `components/agent/hooks/use-budget-editor.ts`): se
+  anotan en cada cambio mientras se puede guardar, y si vuelven a los valores
+  de la tarjeta dejan de ser borrador (`isSameBudgetDraft`). Reabrir el editor
+  los recupera y la tarjeta avisa; en una propuesta pendiente, avisa además
+  que Confirmar la guarda sin ellos. Se pierden al recargar, al cambiar de
+  conversación o al cerrar el Sheet de Presupuestos (que desmonta el chat).
 
 ## Reglas de precio (feature 44)
 
@@ -306,7 +337,7 @@ mano y `draftEmail` solo acepta importes que salieron de una tool.
 
 | Regla | Cuándo |
 | --- | --- |
-| El total mensual del servicio sin IVA sube al próximo múltiplo de $ 100 subiendo el margen (nunca baja, menos de $ 100) | Presupuesto nuevo o un cambio que mueve el precio sin IVA. No al abrir uno guardado, con un cambio de IVA solo, con un margen pedido ni con `roundPrice: false`; `roundPrice: true` redondea también un margen pedido |
+| El total mensual del servicio sin IVA sube al próximo múltiplo de $ 100 subiendo el margen (nunca baja, menos de $ 100) | Presupuesto nuevo o un cambio que mueve el precio del servicio sin IVA. No al abrir uno guardado, con un cambio de IVA o de productos solo, con un margen pedido ni con `roundPrice: false`; `roundPrice: true` redondea también un margen pedido |
 | Transporte y productos se estiman con las horas del presupuesto | Presupuesto nuevo (`fromDefaults`), salvo que vengan los montos o `estimate*: false` |
 | El estimado de productos va al múltiplo de $ 500 más cercano, mínimo $ 500 | Todo estimado (`estimateProducts`). Un monto dado se respeta |
 | El precio por hora va redondeado a pesos | Todo cálculo del agente (`runBudgetCalculation`) |
@@ -318,8 +349,12 @@ mano y `draftEmail` solo acepta importes que salieron de una tool.
   precio sin redondear no.
 - `solveForTargetPrice` estima un presupuesto nuevo pero no redondea: el
   objetivo es el precio pedido.
+- El margen del redondeo va con 6 decimales. Con costos de más de
+  $ 1.000.000 por mes puede no dar la centena: entonces el precio no se toca
+  (el presupuesto guardado más caro anda por $ 360.000 con IVA).
 - El editor de la 43 guarda con la fuente `edited`: lo tipeado a mano no pasa
-  por las reglas.
+  por las reglas (ni estimados, ni redondeo, ni el porcentaje por defecto de
+  un aporte habilitado en 0).
 - Los presupuestos guardados antes de la 44 conservan sus precios (con
   centavos) y se citan tal cual. Pedir "redondealo y guardalo" propone el
   cambio con `roundPrice: true`.
@@ -329,13 +364,16 @@ mano y `draftEmail` solo acepta importes que salieron de una tool.
 
 Presupuestos iguales y pedidos de presupuesto:
 
-- `findMatchingBudgets` (`data/agent/budgets.ts`): presupuestos guardados con
-  la misma frecuencia, visitas, horas por visita y empleadas (y la opción con
-  productos si se pide), los 10 más recientes, con sus precios guardados
-  (citables) y si son oficiales vigentes. Mismos nombres de entrada que
-  `searchOfficialBudgets`.
+- `findMatchingBudgets`: presupuestos guardados con la misma frecuencia,
+  visitas, horas por visita y empleadas (y la opción con productos si se
+  pide), los 10 más recientes, con sus precios guardados (citables) y si son
+  oficiales vigentes. Mismos nombres de entrada que `searchOfficialBudgets`.
+  La búsqueda, las filas y el aviso son puros (`lib/agent/matching-budgets.ts`)
+  y la lectura, con el guard admin, está en `data/agent/budgets.ts`.
 - `proposeCreateBudget` avisa en la tarjeta si ya hay guardados con el mismo
-  servicio.
+  servicio: nombra tres y cuenta el resto, o dice "y más" si pasan de 10.
+- La regla de precios (`PRICE_RULE`) nombra a uno guardado igual
+  (`findMatchingBudgets`) entre las fuentes citables.
 - `NEW_BUDGET_RULE` (`lib/agent/system-prompt.ts`) va con las habilidades que
   calculan (General, Presupuestos y Emails): precio oficial, después uno
   guardado igual, y recién entonces calcular.
@@ -345,7 +383,8 @@ Presupuestos iguales y pedidos de presupuesto:
   bandeja.
 - `MAX_STEPS` es 8: ese flujo usa 6 pasos (buscar el oficial, buscar uno
   igual, calcular, redactar, proponer y contestar). En el smoke tardó 26 s en
-  Medio; el turno más largo fue de 32 s.
+  Medio; el turno más largo fue de 32 s. Falta medirlo en Bajo y en Alto: con
+  `maxDuration` en 60 s, sigue abierta la decisión de subirlo (ver "Núcleo").
 
 ## Modos
 
@@ -492,18 +531,35 @@ millón de tokens:
 - `pnpm check:agent-pricing`: los redondeos (centavos, nunca hacia abajo,
   productos al más cercano con mínimo), un presupuesto nuevo (estimados,
   precio en centenas, `rounding`, margen, precio por hora en pesos), montos
-  dados, margen pedido, `roundPrice` en sus tres valores, guardado, IVA solo
-  y formulario sin redondeo, propuestas de crear y guardar con los mismos
-  valores y el aviso, el editor (`edited`) tal cual, el precio sin redondear
-  que no se puede citar, el aviso de mismo servicio, la entrada de
-  `findMatchingBudgets`, el prompt por habilidad y, por texto fuente, quién
-  usa `applyAgentChanges`, la búsqueda, `MAX_STEPS`, las tarjetas y el
-  tamaño de los archivos.
+  dados, margen pedido, `roundPrice` en sus tres valores, guardado, IVA solo,
+  productos solos y formulario sin redondeo, costos de más de $ 1.000.000,
+  propuestas de crear y guardar con los mismos valores y el aviso, el editor
+  (`edited`) tal cual (también con un aporte en 0), el precio sin redondear
+  que no se puede citar, la búsqueda de iguales (entrada, filas, importes
+  citables, tope y aviso, en `scripts/agent-matching-checks.ts`), la regla de
+  precios, el prompt por habilidad y, por texto fuente, quién usa
+  `applyAgentChanges`, el guard y el grounding de la búsqueda, `MAX_STEPS`,
+  las tarjetas y el tamaño de los archivos.
 - `pnpm check:agent-sheet`: el cuerpo del pedido pasa el schema de la ruta
   (envío, reintento y formulario), el formulario sin campos inválidos, la
   lectura de errores, la línea de uso, los saltos de línea del Markdown, el
-  resultado desconocido (DTO y prompt), las dos formas de confirmar y, por
-  texto fuente, que el chat viejo no existe, que el cliente no importa código
-  `server-only`, que cada tarjeta que puede devolver una tool tiene su
-  componente, el transport, la sesión, el composer, las invalidaciones y el
-  tamaño de los archivos.
+  resultado desconocido (DTO y prompt), las dos formas de confirmar, las
+  reglas de la tarjeta de propuesta (estado vivo, cuándo se puede confirmar,
+  cuándo se relee y a dónde se redirige) y, por texto fuente, que el chat
+  viejo no existe, que el cliente no importa código `server-only`, que cada
+  tarjeta que puede devolver una tool tiene su componente, el transport, la
+  instancia `Chat` del host, la sesión, el composer, las invalidaciones, los
+  links, el uso sin precio del historial y el tamaño de los archivos.
+- `pnpm check:agent-page`: los scopes del historial y sus topes, el contexto
+  de cada conversación, la dirección (`?conversacion=`, ids válidos, cuándo
+  se arranca una nueva y qué refleja) y, por texto fuente, la ruta bajo el
+  layout de admin, el sidebar, el host, la lectura propia del historial, la
+  búsqueda por presupuesto, el borrado que sobrevive al cierre del historial,
+  "Abrir en página" y la sesión con `scope`.
+- `pnpm check:agent-budget-editor`: los valores de las salidas viejas, que el
+  modelo no ve `values`, la validación del editor en castellano, que guardar
+  arma la misma propuesta con lo editado (aportes en 0 incluidos), qué
+  muestra el editor según el estado de la propuesta, cuándo un cambio es
+  borrador, los estados bloqueados, el DTO y, por texto fuente, la acción de
+  guardar con su guard, el editor, las tarjetas, el resumen vivo que ve el
+  modelo y el tamaño de los archivos.

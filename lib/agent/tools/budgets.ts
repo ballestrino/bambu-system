@@ -2,7 +2,7 @@ import "server-only";
 
 import { tool } from "ai";
 
-import { findAgentBudgetsByService, MATCHING_BUDGETS_LIMIT } from "@/data/agent/budgets";
+import { findAgentBudgetsByService } from "@/data/agent/budgets";
 import { getBudgetById, getBudgetBySlug } from "@/data/budget";
 import { getBudgets } from "@/data/budgets";
 import {
@@ -13,7 +13,7 @@ import {
   runBudgetCalculation,
 } from "@/lib/agent/budget-calculation";
 import { addToolGrounding } from "@/lib/agent/grounding";
-import { getStoredPrices } from "@/lib/agent/proposal-summary";
+import { serviceFromInput, toMatchingBudgets } from "@/lib/agent/matching-budgets";
 import type { AgentToolContext } from "@/lib/agent/tools/context";
 import { runTool, toolError, toolOk } from "@/lib/agent/tool-result";
 import {
@@ -77,35 +77,9 @@ export const createBudgetTools = (ctx: AgentToolContext) => ({
     inputSchema: findMatchingBudgetsInputSchema,
     execute: (input) =>
       runTool("findMatchingBudgets", async () => {
-        const found = await findAgentBudgetsByService({
-          visit_type: input.frequency,
-          visits: input.visits,
-          hours_per_visit: input.hoursPerVisit,
-          employees: input.employees ?? 1,
-          withProducts: input.hasProducts === true,
-        });
-        const budgets = found.slice(0, MATCHING_BUDGETS_LIMIT);
-        const grounding = {
-          amounts: budgets.flatMap((budget) => getStoredOptionAmounts(budget.budgetOptions)),
-        };
-        addToolGrounding(ctx.grounding, grounding);
-        return toolOk({
-          card: "list" as const,
-          kind: "matchingBudgets" as const,
-          total: budgets.length,
-          truncated: found.length > budgets.length,
-          rows: budgets.map((budget) => ({
-            id: budget.id,
-            slug: budget.slug,
-            name: budget.name,
-            official: budget.officialBudget
-              ? { status: budget.officialBudget.status, version: budget.officialBudget.currentVersion }
-              : null,
-            updatedAt: budget.updatedAt.toISOString(),
-            prices: getStoredPrices(budget),
-          })),
-          grounding,
-        });
+        const matches = toMatchingBudgets(await findAgentBudgetsByService(serviceFromInput(input)));
+        addToolGrounding(ctx.grounding, matches.grounding);
+        return toolOk({ card: "list" as const, kind: "matchingBudgets" as const, ...matches });
       }),
   }),
 

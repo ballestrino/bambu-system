@@ -41,8 +41,9 @@ const components: Components = {
       {children}
     </td>
   ),
+  // "//dominio" no tiene protocolo pero es externo: no va por next/link.
   a: ({ href, children }) =>
-    href?.startsWith("/") ? (
+    href?.startsWith("/") && !href.startsWith("//") ? (
       <Link href={href} className="text-primary underline underline-offset-4">
         {children}
       </Link>

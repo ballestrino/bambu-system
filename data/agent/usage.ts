@@ -89,13 +89,16 @@ export const getConversationCostTotals = async (conversationIds: string[]) => {
     by: ["conversationId"],
     where: { conversationId: { in: conversationIds } },
     _sum: sumFields,
-    _count: { _all: true },
+    // _count.costUsd cuenta los registros con precio: el resto no lo tenía.
+    _count: { _all: true, costUsd: true },
   });
   return Object.fromEntries(
     groups.flatMap((group) =>
-      group.conversationId ? [[group.conversationId, toCostRow(group)]] : []
+      group.conversationId
+        ? [[group.conversationId, { ...toCostRow(group), unpricedEvents: group._count._all - group._count.costUsd }]]
+        : []
     )
-  ) as Record<string, CostRow>;
+  ) as Record<string, CostRow & { unpricedEvents: number }>;
 };
 
 // Gasto del mes (en Montevideo) de todo el equipo, por modelo y modo. Incluye

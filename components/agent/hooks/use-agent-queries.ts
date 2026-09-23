@@ -10,7 +10,7 @@ import {
   proposalsQuery,
 } from "@/components/agent/queries";
 import type { AgentConversationScope } from "@/lib/agent/conversation-scope";
-import type { AgentProposalDto } from "@/lib/agent/proposals";
+import { hasRunningProposal } from "@/lib/agent/proposal-outcome";
 
 export const useAgentSettings = (enabled = true) => useQuery({ ...agentSettingsQuery(), enabled });
 
@@ -19,12 +19,10 @@ export const useAgentConversations = (scope: AgentConversationScope, enabled = t
 
 const PROPOSAL_POLL_MS = 3000;
 
-const hasRunningProposal = (proposals: AgentProposalDto[] | undefined) =>
-  proposals?.some((proposal) => proposal.status === "EXECUTING" && !proposal.unknownOutcome) ?? false;
-
 // El estado vivo de las propuestas: la salida guardada de la tool dice
 // PENDING para siempre. Mientras una se ejecuta (quizás en otra pestaña) se
-// relee; una EXECUTING vieja tiene resultado desconocido y ya no cambia sola.
+// relee; una EXECUTING vieja tiene resultado desconocido y ya no cambia sola
+// (hasRunningProposal).
 export const useAgentProposals = (conversationId: string, enabled: boolean) =>
   useQuery({
     ...proposalsQuery(conversationId),

@@ -8,65 +8,81 @@ import { FormProvider, useForm, useWatch, type Resolver } from "react-hook-form"
 import { BudgetFieldError } from "@/components/agent/actions/agent-writes.action";
 import { AgentBudgetDetail } from "@/components/agent/budget-editor/agent-budget-detail";
 import { AgentBudgetFooter, type BudgetEditorStatus } from "@/components/agent/budget-editor/agent-budget-footer";
-import type { BudgetEditor, BudgetEditorTab, BudgetEditorTarget } from "@/components/agent/budget-editor/use-budget-editor";
+import type { BudgetEditor, BudgetEditorTab, OpenBudgetTarget } from "@/components/agent/hooks/use-budget-editor";
 import { useAgentBudgetSave } from "@/components/agent/hooks/use-agent-budget-save";
 import { CreateBudgetForm } from "@/components/budgets/create-budget/CreateBudgetForm";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetClose, SheetContent, SheetDescription, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { isBudgetLocked } from "@/lib/agent/budget-draft";
+import { isBudgetLocked, resolveEditorValues } from "@/lib/agent/budget-draft";
 import type { AgentProposalDto } from "@/lib/agent/proposals";
-import { agentBudgetEditorSchema } from "@/schemas/agent-proposals";
+import { agentBudgetEditorErrors, agentBudgetEditorSchema } from "@/schemas/agent-proposals";
 import type { BudgetFormValues } from "@/schemas/BudgetSchema";
 
-const SOURCE_LABELS: Record<BudgetEditorTarget["source"], string> = {
+const SOURCE_LABELS: Record<OpenBudgetTarget["source"], string> = {
   calculation: "Cálculo del agente",
   proposal: "Propuesta del agente: guardar la confirma con estos valores",
 };
 
-const describeStatus = (status: BudgetEditorStatus) =>
-  status.kind === "saved" ? "guardado en el generador" : status.kind === "executing" ? "guardándose" : "sin guardar";
+const STATUS_LABELS: Record<BudgetEditorStatus["kind"], string> = {
+  editable: "sin guardar",
+  executing: "guardándose",
+  unknown: "resultado desconocido",
+  saved: "guardado en el generador",
+};
+
+// Una EXECUTING vieja se cortó con el servidor: no se sabe si se guardó.
+const editorStatus = (proposal: AgentProposalDto | undefined): BudgetEditorStatus => {
+  if (proposal?.status === "CONFIRMED") return { kind: "saved", result: proposal.result };
+  if (proposal?.status === "EXECUTING") return { kind: proposal.unknownOutcome ? "unknown" : "executing" };
+  return { kind: "editable" };
+};
 
 function EditorForm({
   target,
   editor,
   conversationId,
   proposal,
+  waiting,
 }: {
-  target: BudgetEditorTarget;
+  target: OpenBudgetTarget;
   editor: BudgetEditor;
   conversationId: string;
   proposal: AgentProposalDto | undefined;
+  waiting: boolean;
 }) {
+  const locked = isBudgetLocked(proposal?.status);
   const form = useForm<BudgetFormValues>({
-    resolver: zodResolver(agentBudgetEditorSchema) as unknown as Resolver<BudgetFormValues>,
-    defaultValues: target.values,
+    resolver: zodResolver(agentBudgetEditorSchema, { error: agentBudgetEditorErrors }) as unknown as Resolver<BudgetFormValues>,
+    defaultValues: resolveEditorValues({ values: target.values, draft: target.draft, proposal }),
     mode: "onChange",
   });
   const name = useWatch({ control: form.control, name: "name" });
   const save = useAgentBudgetSave(conversationId);
   const [error, setError] = useState<string | null>(null);
 
-  // Cada cambio queda como borrador en una ref del editor: sin re-render.
-  const onChange = useEffectEvent((values: BudgetFormValues) => editor.recordDraft(target.toolCallId, values));
+  // Cada cambio queda como borrador en una ref del editor, sin re-render.
+  // Guardado o guardándose no hay borrador: no sería lo que se guarda.
+  const onChange = useEffectEvent((values: BudgetFormValues) => {
+    if (!locked) editor.recordDraft(target.toolCallId, values, target.values);
+  });
   useEffect(
-    () =>
-      form.subscribe({
-        formState: { values: true, isDirty: true },
-        callback: ({ values, isDirty }) => {
-          if (isDirty) onChange(values as BudgetFormValues);
-        },
-      }),
+    () => form.subscribe({ formState: { values: true }, callback: ({ values }) => onChange(values as BudgetFormValues) }),
     [form]
   );
 
-  const status: BudgetEditorStatus =
-    proposal?.status === "CONFIRMED"
-      ? { kind: "saved", result: proposal.result }
-      : proposal?.status === "EXECUTING"
-        ? { kind: "executing" }
-        : { kind: "editable" };
-  const locked = isBudgetLocked(proposal?.status);
+  // Guardada con el editor abierto (desde la tarjeta o desde otra pestaña): se
+  // ve lo guardado y el borrador se descarta, porque ya no se puede guardar.
+  const saved = proposal?.status === "CONFIRMED" ? proposal.values : null;
+  const onSaved = useEffectEvent((values: BudgetFormValues) => {
+    form.reset(values);
+    editor.dropDraft(target.toolCallId);
+  });
+  useEffect(() => {
+    if (saved) onSaved(saved);
+  }, [saved]);
+
+  const status = editorStatus(proposal);
 
   // Un error del nombre (vacío o con la dirección tomada) se marca en el
   // campo, en la pestaña Editar; el resto, arriba del botón.
@@ -97,7 +113,7 @@ function EditorForm({
         <div className="min-w-0 flex-1 space-y-1">
           <SheetTitle className="truncate">{name?.trim() || target.title}</SheetTitle>
           <SheetDescription>
-            {SOURCE_LABELS[target.source]} · {describeStatus(status)}
+            {SOURCE_LABELS[target.source]} · {STATUS_LABELS[status.kind]}
           </SheetDescription>
         </div>
         <SheetClose asChild>
@@ -136,7 +152,7 @@ function EditorForm({
           </form>
         </TabsContent>
       </Tabs>
-      <AgentBudgetFooter status={status} saving={save.isPending} error={error} onSave={handleSave} />
+      <AgentBudgetFooter status={status} saving={save.isPending} waiting={waiting} error={error} onSave={handleSave} />
     </FormProvider>
   );
 }
@@ -144,15 +160,19 @@ function EditorForm({
 // El editor de un presupuesto que armó el agente, encima del chat (y del
 // Sheet de Presupuestos): el detalle de la página del presupuesto y el
 // formulario del generador sobre los mismos valores, y Guardar en el
-// generador. Una propuesta guardada o guardándose es de solo lectura.
+// generador. Una propuesta guardada o guardándose es de solo lectura, y
+// mientras el agente responde no se guarda: la respuesta, con la llamada a
+// tool, se guarda en la base al terminar.
 export function AgentBudgetSheet({
   editor,
   conversationId,
   proposalFor,
+  waiting,
 }: {
   editor: BudgetEditor;
   conversationId: string;
   proposalFor: (toolCallId: string) => AgentProposalDto | undefined;
+  waiting: boolean;
 }) {
   const { target } = editor;
   return (
@@ -169,6 +189,7 @@ export function AgentBudgetSheet({
             editor={editor}
             conversationId={conversationId}
             proposal={proposalFor(target.toolCallId)}
+            waiting={waiting}
           />
         )}
       </SheetContent>

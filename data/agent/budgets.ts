@@ -1,5 +1,6 @@
 import "server-only";
 
+import { MATCHING_BUDGETS_LIMIT, type MatchingService } from "@/lib/agent/matching-budgets";
 import { db } from "@/lib/db";
 import { requireAdminSession } from "@/lib/require-admin-session";
 
@@ -23,19 +24,11 @@ export const getAgentBudget = async (where: { id: string } | { slug: string }) =
 
 export type AgentBudget = NonNullable<Awaited<ReturnType<typeof getAgentBudget>>>;
 
-export const MATCHING_BUDGETS_LIMIT = 10;
-
 // Presupuestos guardados con el mismo servicio: frecuencia, visitas, horas
 // por visita y empleadas, y la opción con productos si se pide. Todas las
 // opciones de un presupuesto comparten esos datos. Los más recientes primero;
 // trae uno de más para saber si hay más.
-export const findAgentBudgetsByService = async (service: {
-  visit_type: "days" | "week" | "month";
-  visits: number;
-  hours_per_visit: number;
-  employees: number;
-  withProducts: boolean;
-}) => {
+export const findAgentBudgetsByService = async (service: MatchingService) => {
   await requireAdminSession();
   return db.budget.findMany({
     where: {

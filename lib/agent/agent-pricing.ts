@@ -1,4 +1,4 @@
-import { applyBudgetChanges } from "@/lib/agent/budget-calculation";
+import { applyBudgetChanges, type CHANGEABLE_FIELDS } from "@/lib/agent/budget-calculation";
 import { BUSINESS_PROFILE } from "@/lib/agent/business-profile";
 import { roundUpToPriceStep } from "@/lib/agent/price-rounding";
 import { roundMoney } from "@/lib/agent/tool-result";
@@ -25,7 +25,9 @@ const serviceNet = (values: BudgetFormValues) =>
 
 // El precio lindo: el total mensual del servicio sin IVA sube al próximo
 // múltiplo de $ 100 subiendo el margen, con la cuenta del precio objetivo. Si
-// ya es múltiplo, o no hay horas ni costo, queda igual.
+// ya es múltiplo, o no hay horas ni costo, queda igual. El margen va con 6
+// decimales: con costos de más de $ 1.000.000 por mes el precio puede no caer
+// en la centena, y entonces tampoco se toca.
 export const applyNicePrice = (values: BudgetFormValues) => {
   const totals = calculateBudgetTotals(values);
   const from = roundMoney(totals.priceNoTaxService);
@@ -35,9 +37,10 @@ export const applyNicePrice = (values: BudgetFormValues) => {
   if (!solved.canCalculate) return { values, rounding: null };
 
   const next = applyBudgetChanges(values, { revenue_percent: solved.revenuePercent }).values;
+  if (serviceNet(next) !== target) return { values, rounding: null };
   const rounding: PriceRounding = {
     from,
-    to: serviceNet(next),
+    to: target,
     revenuePercentFrom: Number(values.revenue_percent) || 0,
     revenuePercentTo: next.revenue_percent,
   };
@@ -53,25 +56,39 @@ const withNewBudgetEstimates = (changes: AgentBudgetChanges): AgentBudgetChanges
   estimateProducts: changes.estimateProducts ?? changes.products_price == null,
 });
 
-// Se redondea cuando el precio es nuevo o cambia (el IVA no mueve el precio
-// sin IVA). Un margen pedido se respeta salvo roundPrice true, y roundPrice
-// false deja el precio exacto.
-const shouldRoundPrice = (changes: AgentBudgetChanges, isNew: boolean, changedFields: readonly string[]) => {
+// Se redondea cuando el presupuesto es nuevo o cambia su precio sin IVA (el
+// IVA y los productos no lo mueven). Un margen pedido se respeta salvo
+// roundPrice true, y roundPrice false deja el precio exacto.
+const shouldRoundPrice = (
+  changes: AgentBudgetChanges,
+  isNew: boolean,
+  before: BudgetFormValues,
+  after: BudgetFormValues
+) => {
   if (changes.roundPrice != null) return changes.roundPrice;
   if (changes.revenue_percent != null) return false;
-  return isNew || changedFields.some((field) => field !== "iva");
+  return isNew || serviceNet(after) !== serviceNet(before);
+};
+
+// Lo que se tipeó en el editor de la 43 ("edited") se guarda como en el
+// generador: sin cambios, estimados ni redondeo, y un aporte habilitado en 0
+// queda en 0. Solo se recalcula el precio final, como hace el formulario.
+const asEdited = (values: BudgetFormValues) => {
+  const changedFields: (typeof CHANGEABLE_FIELDS)[number][] = [];
+  const price = Number(calculateBudgetTotals(values).totalFinalWithProducts.toFixed(2));
+  return { values: { ...values, price }, changedFields, rounding: null };
 };
 
 // changedFields es lo que se pidió (y lo que estima un presupuesto nuevo): el
-// margen del redondeo va aparte, en rounding. "edited" (el editor de la 43) no
-// es nuevo: lo editado a mano se guarda tal cual.
+// margen del redondeo va aparte, en rounding.
 export const applyAgentChanges = (
   base: { source: string; values: BudgetFormValues },
   changes: AgentBudgetChanges
 ) => {
+  if (base.source === "edited") return asEdited(base.values);
   const isNew = base.source === "defaults";
   const applied = applyBudgetChanges(base.values, isNew ? withNewBudgetEstimates(changes) : changes);
-  if (!shouldRoundPrice(changes, isNew, applied.changedFields)) return { ...applied, rounding: null };
+  if (!shouldRoundPrice(changes, isNew, base.values, applied.values)) return { ...applied, rounding: null };
   const nice = applyNicePrice(applied.values);
   return { values: nice.values, changedFields: applied.changedFields, rounding: nice.rounding };
 };

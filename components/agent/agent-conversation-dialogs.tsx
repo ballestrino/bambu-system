@@ -118,12 +118,16 @@ export function AgentDeleteDialog({
             disabled={!conversation || remove.isPending}
             onClick={() => {
               if (!conversation) return;
-              remove.mutate(conversation.id, {
-                onSuccess: () => {
+              // La promesa (no el callback de mutate) corre aunque se cierre el
+              // historial que contiene este diálogo: borrar la abierta arranca
+              // una nueva igual. El error ya lo avisa el hook.
+              remove.mutateAsync(conversation.id).then(
+                () => {
                   onDeleted(conversation.id);
                   onClose();
                 },
-              });
+                () => undefined
+              );
             }}
           >
             {remove.isPending ? "Borrando…" : "Borrar"}

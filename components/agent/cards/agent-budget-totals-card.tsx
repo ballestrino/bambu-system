@@ -1,7 +1,7 @@
 import { Calculator, FileText } from "lucide-react";
 import Link from "next/link";
 
-import type { BudgetEditorTarget } from "@/components/agent/budget-editor/use-budget-editor";
+import type { BudgetEditorTarget } from "@/components/agent/hooks/use-budget-editor";
 import { AgentBudgetActions } from "@/components/agent/cards/agent-budget-actions";
 import { AgentCard, CardNote, CardRow } from "@/components/agent/cards/agent-card";
 import { formatHours, formatMoney, formatPercent, formatVisits } from "@/components/agent/format";

@@ -3,19 +3,16 @@
 import { AlertTriangle, FileCheck2 } from "lucide-react";
 
 import { useAgentChatContext } from "@/components/agent/agent-chat-context";
-import type { BudgetEditorTarget } from "@/components/agent/budget-editor/use-budget-editor";
 import { AgentBudgetActions } from "@/components/agent/cards/agent-budget-actions";
 import { AgentCard, CardNote } from "@/components/agent/cards/agent-card";
 import { AgentProposalDetails } from "@/components/agent/cards/agent-proposal-details";
-import {
-  getDisplayStatus,
-  ProposalOutcome,
-  ProposalStatusBadge,
-} from "@/components/agent/cards/agent-proposal-status";
+import { ProposalOutcome, ProposalStatusBadge } from "@/components/agent/cards/agent-proposal-status";
 import { formatDateTime } from "@/components/agent/format";
+import type { BudgetEditorTarget } from "@/components/agent/hooks/use-budget-editor";
 import type { ProposalCardData } from "@/components/agent/types";
 import { Button } from "@/components/ui/button";
 import { valuesFromInputs } from "@/lib/agent/budget-draft";
+import { canActOnProposal, getDisplayStatus } from "@/lib/agent/proposal-outcome";
 import type { AgentProposalDto, AgentProposalKind } from "@/lib/agent/proposals";
 
 // Lo que pasa al confirmar, dicho antes del botón.
@@ -52,7 +49,7 @@ export function AgentProposalCard({ data, toolCallId }: { data: ProposalCardData
   const summary = live?.summary ?? data.summary;
   const target = createTarget(data, live, toolCallId);
   const busy = busyProposalId === data.proposalId;
-  const canAct = status === "PENDING" && Boolean(live) && !busyProposalId;
+  const canAct = canActOnProposal(status, live, busyProposalId);
 
   return (
     <AgentCard

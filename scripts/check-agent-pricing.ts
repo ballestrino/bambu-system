@@ -1,5 +1,6 @@
 import assert from "node:assert/strict";
 
+import "./agent-matching-checks";
 import "./agent-pricing-source-checks";
 import { applyAgentChanges, applyNicePrice, describeRounding } from "../lib/agent/agent-pricing";
 import {
@@ -12,7 +13,6 @@ import { BUSINESS_PROFILE, formatBusinessProfile, LITERAL_E_NOTE } from "../lib/
 import { addGroundedAmounts, createGrounding, validateEmailDraft } from "../lib/agent/grounding";
 import { roundProductsPrice, roundUpToPriceStep } from "../lib/agent/price-rounding";
 import { buildCreateBudgetProposal, buildUpdateBudgetProposal } from "../lib/agent/proposal-builders";
-import { sameServiceWarning } from "../lib/agent/proposal-summary";
 import { AGENT_SKILLS, resolveSkillToolNames } from "../lib/agent/skills";
 import { buildAgentInstructions, NEW_BUDGET_RULE } from "../lib/agent/system-prompt";
 import { calculateEstimates } from "../lib/budget-calculations";
@@ -34,7 +34,7 @@ assert.deepEqual(
   [1500, 1500, 2000, 2000, 1000, 500, 500, 0]
 );
 assert.match(formatBusinessProfile(), /múltiplo de \$ 500 más cercano \(mínimo \$ 500\)/);
-assert.match(formatBusinessProfile(), /sube al próximo múltiplo de \$ 100 \(hasta \$ 99 más\)/);
+assert.match(formatBusinessProfile(), /sube al próximo múltiplo de \$ 100 \(menos de \$ 100 más\)/);
 
 // --- A new budget estimates transport and products for its own hours
 // (products in multiples of $ 500) and rounds the price without IVA up.
@@ -65,6 +65,13 @@ assert.equal(fresh.values.price, freshCalc.withProducts.final);
 assert.deepEqual(applyNicePrice(fresh.values), { values: fresh.values, rounding: null });
 // Without hours there is no margin to solve: the price stays.
 assert.equal(applyNicePrice({ ...defaultBudgetValues, visits: 0 }).rounding, null);
+// Above about $ 1.000.000 of monthly cost the 6-decimal margin can miss the
+// hundred: then the price is not touched, never rounded to something else.
+const huge = applyBudgetChanges(defaultBudgetValues, {
+  visits: 12, visit_type: "days", hours_per_visit: 7.25, employees: 41, estimateTransport: true, estimateProducts: true,
+}).values;
+assert.ok(runBudgetCalculation(huge).serviceCost > 1_000_000);
+assert.deepEqual(applyNicePrice(huge), { values: huge, rounding: null });
 
 // --- Amounts the user gives are kept; so is asking not to estimate.
 const given = applyAgentChanges(defaults, { ...office, products_price: 1800, transportation_cost: 300 });
@@ -95,6 +102,12 @@ assert.ok(moreHours.rounding);
 assert.deepEqual(moreHours.changedFields, ["hours_per_visit"]);
 // A saved budget is not new: its transport and products are not re-estimated.
 assert.equal(moreHours.values.products_price, fixtureBase.products_price);
+// Products do not move the service price without IVA: changing them alone
+// rounds nothing.
+[{ products_price: 0 }, { products_revenue_percent: 15 }, { products_price: 1000 }].forEach((change) => {
+  const products = applyAgentChanges(saved, { ...noChanges, ...change });
+  assert.deepEqual([products.rounding, products.values.revenue_percent], [null, fixtureBase.revenue_percent], JSON.stringify(change));
+});
 
 // --- Proposals apply the same rules as calculateBudget and say so on the card.
 const create = buildCreateBudgetProposal({ base: defaults, name: "Oficina Sur", description: null, changes: office });
@@ -114,6 +127,15 @@ const edited = buildCreateBudgetProposal({ base: { source: "edited", values: typ
 assert.ok(edited.ok);
 assert.deepEqual([edited.payload.values.products_price, edited.payload.values.revenue_percent], [1234, typed.revenue_percent]);
 assert.deepEqual([edited.summary.changes, edited.summary.warnings], [[], []]);
+// Also with a contribution switched on at 0 %: it stays at 0 and nothing rounds.
+const zeroed = { ...typed, incidence_enabled: true, incidence_contribution: 0 };
+const editedZero = buildCreateBudgetProposal({ base: { source: "edited", values: zeroed }, name: "Editado", description: null, changes: {} });
+assert.ok(editedZero.ok);
+assert.deepEqual(
+  [editedZero.payload.values.incidence_contribution, editedZero.payload.values.revenue_percent, editedZero.summary.warnings],
+  [0, typed.revenue_percent, []]
+);
+assert.deepEqual(editedZero.summary.after, runBudgetCalculation(zeroed));
 assert.equal(describeRounding(null), null);
 
 // --- The unrounded price cannot be quoted to a client; the rounded one can.
@@ -124,11 +146,6 @@ const quote = (amount: number) => `El servicio sale $ ${money.format(amount)} po
 assert.equal(validateEmailDraft(quote(fresh.rounding.from), grounding).ok, false);
 assert.equal(validateEmailDraft(quote(fresh.rounding.to), grounding).ok, true);
 assert.equal(validateEmailDraft(quote(freshCalc.withoutProducts.hourlyNet), grounding).ok, true);
-
-// --- A new one that already exists: the create card warns.
-assert.equal(sameServiceWarning([]), null);
-assert.match(sameServiceWarning(["Oficina Centro"]) ?? "", /mismo servicio: “Oficina Centro”\. Revisá que no sea un duplicado\./);
-assert.match(sameServiceWarning(["A", "B", "C", "D", "E"]) ?? "", /“A”, “B”, “C” y 2 más\./);
 
 // --- Same service as searchOfficialBudgets: every field is required, the
 // service ones are not nullable.

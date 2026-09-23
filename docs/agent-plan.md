@@ -788,6 +788,57 @@ Smoke de la 44:
   "Ferretería" perdió la "í" (`lib/budget-slug.ts` borra los acentos en vez
   de sacarlos): queda como tarea aparte.
 
+### Correcciones de las revisiones de 41, 42, 43 y 44 (2026-09-22)
+
+La 41, la 42 y la 44 se aprobaron con menores; la 43 pidió cambios con tres
+bloqueantes (`progress/review_*.md`).
+
+- 43, bloqueantes:
+  - Lo editado se guardaba con el porcentaje por defecto de un aporte
+    habilitado en 0 (y la 44 además lo redondeaba). La fuente `edited` ya no
+    pasa por `applyBudgetChanges`: se guarda como se tipeó, igual que en el
+    generador.
+  - Un borrador se mostraba sobre una propuesta ya guardada. Guardado o
+    guardándose, el editor muestra `proposal.values`; si se guarda con el
+    editor abierto pasa a lo guardado y descarta el borrador, y en una
+    propuesta pendiente con borrador la tarjeta avisa que Confirmar la guarda
+    sin esos cambios.
+  - El modelo leía como confirmado el resumen de antes de editar, con sus
+    precios citables. `withLiveProposals` pone el resumen y los importes vivos,
+    y el bloque lleva los finales guardados de una propuesta confirmada, que
+    también se pueden citar.
+- 43, menores: el borrador se anota en cada cambio y deja de serlo si vuelve a
+  los valores de la tarjeta; Guardar espera mientras el agente responde; una
+  EXECUTING vieja dice "resultado desconocido" en la tarjeta del cálculo y en
+  el editor; los demás campos del generador validan en castellano; los checks
+  toleran CRLF; `findSavableBudgetCall` llama al guard; los `values` de una
+  propuesta repetida salen de la fila, y el hook del editor pasó a
+  `components/agent/hooks/`.
+- 44: un cambio solo de productos no redondea (se compara el precio del
+  servicio sin IVA); con costos de más de $ 1.000.000 por mes, si el margen de
+  6 decimales no da la centena, no se toca el precio; el aviso de mismo
+  servicio dice "y más" cuando pasan de 10; `PRICE_RULE` nombra a
+  `findMatchingBudgets`; la búsqueda, las filas y el aviso son puros
+  (`lib/agent/matching-budgets.ts`) y tienen prueba, y el guard de la lectura
+  tiene aserción propia.
+- 41: la fila del historial dice "+ sin precio" como el badge; un link
+  `//dominio` es externo; las reglas de la tarjeta de propuesta (estado vivo,
+  cuándo se puede confirmar, cuándo se relee, a dónde se redirige) son puras
+  y tienen prueba, y el check afirma la instancia `Chat` del host y que
+  confirmar relee las propuestas.
+- 42: sin id en la dirección se arranca una nueva también desde "Conversación
+  no encontrada" o mientras abre otra, y la dirección refleja la que no se
+  pudo abrir; borrar desde un historial que se cierra en el medio arranca una
+  nueva igual; "Abrir en página" espera a que la conversación figure
+  guardada; la lista avisa cuando llega al tope, y el check cubre lo que el
+  revisor rompió sin que fallara.
+- Quedan para decidir con el usuario: los precios con centavos de los
+  guardados de antes de la 44 y la opción con productos de un guardado que
+  cambia (44), el `maxDuration` con el flujo largo de Emails sin medir en Bajo
+  ni en Alto (44), y "Abrir en página" desde el Sheet de crear, que deja el
+  formulario sin guardar (42). A confirmar en el navegador: si un
+  `replaceState` durante una navegación pendiente la descarta (42).
+
 ## Verificación
 
 Por feature: `pnpm exec tsc --noEmit`, `pnpm lint`, `pnpm harness`, `pnpm exec
@@ -819,10 +870,12 @@ cambia el viewport):
 ## Riesgos y decisiones pendientes
 
 - **Tiempo por turno**: Bajo usa Luna con xhigh y puede ser el modo más lento
-  en un loop con tools. Mitigación: `isStepCount(6)`, salidas compactas,
-  historial a 24 mensajes, título en `after()`, `maxDuration` al máximo del
-  plan (verificar en Vercel; con Fluid compute Hobby permite hasta 300 s) y
-  `AI_REASONING_BAJO` para bajar el esfuerzo si hace falta.
+  en un loop con tools. Mitigación: `MAX_STEPS` (6 hasta la 43; 8 desde la
+  44, por el flujo de 6 pasos de responder un pedido de presupuesto, medido
+  solo en Medio), salidas compactas, historial a 24 mensajes, título en
+  `after()`, `maxDuration` al máximo del plan (verificar en Vercel; con Fluid
+  compute Hobby permite hasta 300 s) y `AI_REASONING_BAJO` para bajar el
+  esfuerzo si hace falta.
 - **Ids `gpt-5.6-terra` y `gpt-5.6-sol` por `@ai-sdk/openai`**: confirmados
   con un turno real por modo el 2026-09-18 (el SDK ya los tipa). Fallback:
   `AI_MODEL_<MODO>`.

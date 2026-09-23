@@ -2,6 +2,7 @@ import "server-only";
 
 import { isSavableBudgetPartType } from "@/lib/agent/budget-draft";
 import { db } from "@/lib/db";
+import { requireAdminSession } from "@/lib/require-admin-session";
 
 type StoredToolPart = { type?: unknown; toolCallId?: unknown; state?: unknown; output?: unknown };
 
@@ -13,6 +14,7 @@ export const findSavableBudgetCall = async (input: {
   toolCallId: string;
   userId: string;
 }) => {
+  await requireAdminSession();
   const messages = await db.agentMessage.findMany({
     where: {
       conversationId: input.conversationId,

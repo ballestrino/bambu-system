@@ -9,9 +9,10 @@ import {
   buildUpdateBudgetProposal,
   type BuiltProposal,
 } from "@/lib/agent/proposal-builders";
+import { sameServiceWarning, serviceFromValues } from "@/lib/agent/matching-budgets";
 import { saveAgentProposal } from "@/lib/agent/proposal-store";
-import { getSummaryAmounts, onlyText, sameServiceWarning } from "@/lib/agent/proposal-summary";
-import type { ProposalSummary } from "@/lib/agent/proposals";
+import { getSummaryAmounts, onlyText } from "@/lib/agent/proposal-summary";
+import { readCreateValues, type ProposalSummary } from "@/lib/agent/proposals";
 import {
   buildDuplicateBudgetProposal,
   buildPublishOfficialBudgetProposal,
@@ -34,7 +35,8 @@ type Proposal = Extract<BuiltProposal, { ok: true }>;
 // escriben presupuestos: eso pasa solo al confirmar, en actions/agent. La
 // tarjeta sale de la fila guardada: si la misma llamada llega dos veces, lo
 // que se muestra es lo que se ejecutaría. Crear suma los valores completos
-// para editar la propuesta antes de guardarla; el modelo no los ve.
+// (también de la fila) para editar la propuesta antes de guardarla; el modelo
+// no los ve.
 const saveProposal = async (ctx: AgentToolContext, toolCallId: string, built: Proposal) => {
   const proposal = await saveAgentProposal({
     conversationId: ctx.conversationId,
@@ -47,6 +49,7 @@ const saveProposal = async (ctx: AgentToolContext, toolCallId: string, built: Pr
   const summary = proposal.summary as ProposalSummary;
   const grounding = { amounts: getSummaryAmounts(summary) };
   addToolGrounding(ctx.grounding, grounding);
+  const values = readCreateValues(proposal);
   return toolOk({
     card: "proposal" as const,
     proposalId: proposal.id,
@@ -55,7 +58,7 @@ const saveProposal = async (ctx: AgentToolContext, toolCallId: string, built: Pr
     expiresAt: proposal.expiresAt.toISOString(),
     summary,
     grounding,
-    ...(built.kind === "CREATE_BUDGET" && "values" in built.payload ? { values: built.payload.values } : {}),
+    ...(values ? { values } : {}),
   });
 };
 
@@ -63,9 +66,7 @@ const saveProposal = async (ctx: AgentToolContext, toolCallId: string, built: Pr
 // tarjeta lo muestra y el usuario decide.
 const withSameServiceWarning = async (built: Proposal): Promise<Proposal> => {
   if (built.kind !== "CREATE_BUDGET" || !("values" in built.payload)) return built;
-  const { values } = built.payload;
-  const matches = await findAgentBudgetsByService({ ...values, withProducts: values.products_price > 0 });
-  const warning = sameServiceWarning(matches.map((budget) => budget.name));
+  const warning = sameServiceWarning(await findAgentBudgetsByService(serviceFromValues(built.payload.values)));
   return warning
     ? { ...built, summary: { ...built.summary, warnings: onlyText([...built.summary.warnings, warning]) } }
     : built;

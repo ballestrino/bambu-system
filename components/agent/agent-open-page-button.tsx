@@ -11,12 +11,16 @@ import { getAgentPageUrl } from "@/lib/agent/page-url";
 const LABEL = "Abrir en la página del agente";
 const BUTTON_CLASS = "size-11 shrink-0 sm:size-9";
 
-function OpenPageLink({ chat, href }: { chat: Chat<AgentUIMessage>; href: string }) {
-  const { status } = useChat<AgentUIMessage>({ chat });
-  // Salir de la pantalla corta el stream: mientras responde, se espera.
-  if (status === "submitted" || status === "streaming") {
+function OpenPageLink({ chat, href, persisted }: { chat: Chat<AgentUIMessage>; href: string; persisted: boolean }) {
+  const { status, messages } = useChat<AgentUIMessage>({ chat });
+  // Salir de la pantalla corta el stream: mientras responde, se espera. Una
+  // conversación con mensajes que todavía no figura guardada (el historial se
+  // relee al terminar el turno) abriría una nueva: también se espera.
+  const streaming = status === "submitted" || status === "streaming";
+  if (streaming || (messages.length > 0 && !persisted)) {
+    const until = streaming ? "al terminar la respuesta" : "en un momento";
     return (
-      <Button variant="ghost" size="icon" className={BUTTON_CLASS} disabled aria-label={`${LABEL} (disponible al terminar la respuesta)`}>
+      <Button variant="ghost" size="icon" className={BUTTON_CLASS} disabled aria-label={`${LABEL} (disponible ${until})`}>
         <Maximize2 aria-hidden />
       </Button>
     );
@@ -48,5 +52,5 @@ export function AgentOpenPageButton({
       </Button>
     );
   }
-  return <OpenPageLink chat={chat} href={getAgentPageUrl(persisted ? conversationId : null)} />;
+  return <OpenPageLink chat={chat} href={getAgentPageUrl(persisted ? conversationId : null)} persisted={persisted} />;
 }

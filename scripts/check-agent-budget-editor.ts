@@ -4,7 +4,9 @@ import "./agent-budget-editor-source-checks";
 import { applyBudgetChanges, describeBudgetInputs, runBudgetCalculation } from "../lib/agent/budget-calculation";
 import {
   isBudgetLocked,
+  isSameBudgetDraft,
   isSavableBudgetPartType,
+  resolveEditorValues,
   REVISABLE_PROPOSAL_STATUSES,
   valuesFromInputs,
 } from "../lib/agent/budget-draft";
@@ -12,6 +14,7 @@ import { buildCreateBudgetProposal } from "../lib/agent/proposal-builders";
 import { AGENT_PROPOSAL_STATUSES, serializeProposal } from "../lib/agent/proposals";
 import { hideFromModel } from "../lib/agent/tool-result";
 import {
+  agentBudgetEditorErrors,
   agentBudgetEditorSchema,
   agentSaveBudgetSchema,
   proposalBudgetValuesSchema,
@@ -59,6 +62,14 @@ assert.equal(issue({ ...custom, employees: 0 }), "Tiene que haber al menos una e
 assert.equal(issue({ ...custom, employees: 1.5 }), "Las empleadas van sin decimales.");
 assert.equal(issue({ ...custom, visits: 1.5 }), "Las visitas van sin decimales.");
 assert.equal(issue({ ...custom, iva: 0 }), "El IVA tiene que ser mayor que 0.");
+// The rest of the generator's fields answer in Spanish through the error map
+// the editor's resolver passes; the messages above still win.
+const spanish = (values: object) =>
+  agentBudgetEditorSchema.safeParse(values, { error: agentBudgetEditorErrors }).error?.issues[0]?.message;
+["hours_per_visit", "nominal_hour", "transportation_cost", "products_price", "incidence_contribution", "revenue_percent"]
+  .forEach((field) => assert.equal(spanish({ ...custom, [field]: -1 }), "No puede ser negativo.", field));
+assert.equal(spanish({ ...custom, hours_per_visit: "cuatro" }), "Tiene que ser un número.");
+assert.equal(spanish({ ...custom, employees: 0 }), "Tiene que haber al menos una empleada.");
 const save = { conversationId: "conv_12345678", toolCallId: "call_abc", values: edited };
 assert.ok(agentSaveBudgetSchema.safeParse(save).success);
 assert.equal(agentSaveBudgetSchema.safeParse({ ...save, conversationId: "../x" }).success, false);
@@ -82,6 +93,18 @@ if (built.ok) {
   assert.deepEqual([built.summary.title, built.summary.slug], ["Crear “Oficina Norte”", "oficina-norte"]);
   assert.deepEqual([built.summary.changes, built.summary.warnings], [[], []]);
 }
+// A contribution switched on at 0 % (or left empty) is saved as typed, like
+// the generator does: what the editor shows is what gets saved.
+(["incidence", "company", "personal"] as const).forEach((key) =>
+  [0, ""].forEach((percent) => {
+    const values = agentBudgetEditorSchema.parse({ ...typed, name: "Oficina Norte", [`${key}_enabled`]: true, [`${key}_contribution`]: percent });
+    const result = buildCreateBudgetProposal({ base: { source: "edited", values }, name: values.name, description: null, changes: {} });
+    assert.ok(result.ok, key);
+    assert.equal(result.payload.values[`${key}_contribution`], 0, key);
+    assert.deepEqual(runBudgetCalculation(result.payload.values), runBudgetCalculation(values), key);
+    assert.deepEqual([result.summary.after, result.summary.warnings], [runBudgetCalculation(values), []], key);
+  })
+);
 const refusal = (name: string) => {
   const result = buildCreateBudgetProposal({ base: { source: "edited", values: edited }, name, description: null, changes: {} });
   return result.ok ? null : result.code;
@@ -99,6 +122,25 @@ assert.deepEqual(
   AGENT_PROPOSAL_STATUSES.filter((status) => !isBudgetLocked(status)).sort()
 );
 assert.equal(isBudgetLocked(undefined), false);
+
+// --- A saved or executing proposal opens with what was saved, never with a
+// draft (the draft was not saved); otherwise the draft wins over the card.
+const draft = { ...custom, employees: 3 };
+const proposalWith = (status: (typeof AGENT_PROPOSAL_STATUSES)[number]) => ({ status, values: edited });
+assert.equal(resolveEditorValues({ values: custom, draft, proposal: proposalWith("CONFIRMED") }), edited);
+assert.equal(resolveEditorValues({ values: custom, draft, proposal: proposalWith("EXECUTING") }), edited);
+(["PENDING", "FAILED", "REJECTED", "EXPIRED"] as const).forEach((status) =>
+  assert.equal(resolveEditorValues({ values: custom, draft, proposal: proposalWith(status) }), draft, status)
+);
+assert.equal(resolveEditorValues({ values: custom, draft: null, proposal: null }), custom);
+// An edit that goes back to the card's values is not a draft: text or number,
+// categories in any order, and the price (recalculated a render later) aside.
+const card = { ...custom, categoryIds: ["a", "b"] };
+assert.ok(isSameBudgetDraft({ ...card, visits: "3", hours_per_visit: "2.5", categoryIds: ["b", "a"], price: 1 } as unknown as BudgetFormValues, card));
+assert.ok(isSameBudgetDraft({ ...card, description: "" }, { ...card, description: undefined }));
+assert.equal(isSameBudgetDraft({ ...card, name: "Otro" }, card), false);
+assert.equal(isSameBudgetDraft({ ...card, categoryIds: ["a"] }, card), false);
+assert.equal(isSameBudgetDraft({ ...card, hours_per_visit: "" } as unknown as BudgetFormValues, card), false);
 
 // --- The proposal DTO carries the values of a create proposal only.
 const at = new Date("2026-09-21T12:00:00.000Z");

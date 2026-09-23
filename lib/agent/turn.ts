@@ -17,7 +17,7 @@ import {
 import { addGroundedAmounts, collectGroundingFromMessages } from "@/lib/agent/grounding";
 import { getMessageText, type AgentUIMessage } from "@/lib/agent/messages";
 import { formatToday } from "@/lib/agent/month";
-import { withLiveProposals } from "@/lib/agent/proposal-context";
+import { getConfirmedAmounts, withLiveProposals } from "@/lib/agent/proposal-context";
 import {
   expireDiscardedProposals,
   listConversationProposals,
@@ -78,6 +78,7 @@ export const prepareAgentTurn = async (actor: AgentActor, request: AgentChatRequ
   const proposals = rows.map((row) => serializeProposal(row, now));
   const messages = withLiveProposals(history, proposals);
   const grounding = collectGroundingFromMessages(messages);
+  addGroundedAmounts(grounding, getConfirmedAmounts(proposals));
   addGroundedAmounts(grounding, budgetContext.amounts);
 
   return {

@@ -3,8 +3,8 @@ import { existsSync, readdirSync, readFileSync, statSync } from "node:fs";
 import { join } from "node:path";
 
 // Invariantes del Sheet del agente que se ven en el código fuente. Lo usa
-// check:agent-sheet.
-const read = (path: string) => readFileSync(join(process.cwd(), path), "utf8");
+// check:agent-sheet. Un checkout con core.autocrlf deja CRLF: se normaliza.
+const read = (path: string) => readFileSync(join(process.cwd(), path), "utf8").replace(/\r\n/g, "\n");
 
 const walk = (dir: string): string[] =>
   readdirSync(join(process.cwd(), dir)).flatMap((name) => {
@@ -66,6 +66,8 @@ const transport = read("components/agent/agent-transport.ts");
 const chatHook = read("components/agent/hooks/use-agent-chat.ts");
 assert.equal(chatHook.match(/body: requestOptions\(/g)?.length, 2);
 assert.match(chatHook, /context: getContext\(\)/);
+// The view uses the host's Chat instance (an id would create another one).
+assert.match(chatHook, /useChat<AgentUIMessage>\(\{ chat, throttle: STREAM_THROTTLE_MS \}\)/);
 
 // --- The Chat instance lives in the host session (closing the Sheet keeps
 // it) and switching conversations stops the previous stream. The Sheet's
@@ -91,15 +93,22 @@ assert.match(composer, /aria-label="Detener respuesta"/);
 
 // --- Proposal cards read the live state, show a stale EXECUTING as unknown,
 // accept both confirm answers and refresh budgets and official budgets.
+// The rules themselves are pure (lib/agent/proposal-outcome.ts, tested in
+// check:agent-sheet); these lines are where the UI uses them.
 const card = read("components/agent/cards/agent-proposal-card.tsx");
 assert.match(card, /proposals\?\.get\(data\.proposalId\)/);
 assert.match(card, /getDisplayStatus\(live, data\.status\)/);
-assert.match(read("components/agent/cards/agent-proposal-status.tsx"), /live\.unknownOutcome \? "UNKNOWN"/);
+assert.match(card, /const canAct = canActOnProposal\(status, live, busyProposalId\);/);
+assert.match(read("components/agent/hooks/use-agent-queries.ts"), /hasRunningProposal\(query\.state\.data\) \? PROPOSAL_POLL_MS : false/);
+assert.match(sheetHost, /const slug = savedSlugRedirect\(result, \{ budgetId: budgetId \?\? null, budgetSlug: budgetSlug \?\? null \}\);/);
 assert.match(read("components/agent/actions/agent-writes.action.ts"), /readConfirmResponse\(await confirmAgentProposal\(proposalId\)\)/);
 const mutations = read("components/agent/hooks/use-agent-proposal-mutations.ts");
 ['queryKey: ["budgets"]', 'queryKey: ["budget"]', "queryKey: officialBudgetKeys.all", "agentKeys.proposals(conversationId)"].forEach(
   (text) => assert.ok(mutations.includes(text), `use-agent-proposal-mutations.ts: ${text}`)
 );
+// Confirming always reads the proposals again, success or not.
+const confirmMutation = mutations.slice(mutations.indexOf("const confirm = useMutation({"), mutations.indexOf("const reject"));
+assert.match(confirmMutation, /onSettled: refreshProposals,/);
 
 // --- Markdown: numbered lists keep their start ("2." after a list) and table
 // cells their GFM alignment; single line breaks are kept.
@@ -107,11 +116,18 @@ const markdown = read("components/agent/agent-markdown.tsx");
 ["<ol start={start}", "<th style={style}", "<td style={style}", "withHardLineBreaks(cleanChatContent(content))"].forEach(
   (text) => assert.ok(markdown.includes(text), `agent-markdown.tsx: ${text}`)
 );
+// Only a path of this app goes through next/link: "//dominio" is external.
+assert.match(markdown, /href\?\.startsWith\("\/"\) && !href\.startsWith\("\/\/"\)/);
 
 // --- Unpriced usage never shows as US$ 0,00: a group whose costs are all NULL
-// is "sin precio" in the cost report.
-assert.match(read("data/agent/usage.ts"), /priced: _sum\.costUsd !== null/);
+// is "sin precio" in the cost report, and a history row with unpriced usage
+// says so like the badge.
+const usage = read("data/agent/usage.ts");
+assert.match(usage, /priced: _sum\.costUsd !== null/);
+assert.match(usage, /unpricedEvents: group\._count\._all - group\._count\.costUsd/);
 assert.match(read("components/agent/agent-cost-sections.tsx"), /row\.priced \? formatUsd\(row\.costUsd\) :/);
+assert.match(read("actions/agent/conversations.ts"), /unpricedEvents: costs\[conversation\.id\]\?\.unpricedEvents \?\? 0,/);
+assert.match(read("components/agent/agent-conversation-row.tsx"), /conversation\.unpricedEvents > 0 && " \+ sin precio"/);
 
 // --- The email card copies through the shared formatter (email, WhatsApp).
 assert.match(read("components/agent/cards/agent-copy-menu.tsx"), /getChatCopyPayload\(content, format\)/);

@@ -6,7 +6,7 @@ import type { AgentSkill } from "@/lib/agent/skills";
 // nota de Literal E y los datos del negocio sin llamar al modelo.
 export const PRICE_RULE = [
   "Regla de precios (obligatoria):",
-  "- Nunca cites un importe que no venga de una fuente de esta conversación: searchOfficialBudgets con status exact, getOfficialBudget, el presupuesto (getBudget o el contexto) o un cálculo (calculateBudget, solveForTargetPrice).",
+  "- Nunca cites un importe que no venga de una fuente de esta conversación: searchOfficialBudgets con status exact, getOfficialBudget, el presupuesto (getBudget o el contexto), uno guardado igual (findMatchingBudgets) o un cálculo (calculateBudget, solveForTargetPrice).",
   "- Si no hay fuente, decilo y ofrecé calcularlo. No redondees ni ajustes importes a mano.",
   "- Debajo de cualquier precio para un cliente va la nota de Literal E, textual.",
 ].join("\n");

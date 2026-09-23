@@ -2,6 +2,7 @@
 
 import { useRef, useState } from "react";
 
+import { isSameBudgetDraft } from "@/lib/agent/budget-draft";
 import type { BudgetFormValues } from "@/schemas/BudgetSchema";
 
 export type BudgetEditorTab = "detail" | "edit";
@@ -17,11 +18,15 @@ export type BudgetEditorTarget = {
   basedOn: string | null;
 };
 
+// El presupuesto abierto, con el borrador que tenía al abrirlo.
+export type OpenBudgetTarget = BudgetEditorTarget & { draft: BudgetFormValues | null };
+
 // El Sheet del editor y los borradores. Los cambios sin guardar se anotan en
 // una ref en cada cambio (sin re-render por tecla) y se publican al cerrar:
-// reabrir el Sheet los recupera y la tarjeta avisa que los hay.
+// reabrir el Sheet los recupera y la tarjeta avisa que los hay. Un cambio que
+// vuelve a los valores de la tarjeta deja de ser borrador.
 export const useBudgetEditor = () => {
-  const [target, setTarget] = useState<BudgetEditorTarget | null>(null);
+  const [target, setTarget] = useState<OpenBudgetTarget | null>(null);
   const [tab, setTab] = useState<BudgetEditorTab>("detail");
   const [open, setOpen] = useState(false);
   const [draftIds, setDraftIds] = useState<string[]>([]);
@@ -32,18 +37,18 @@ export const useBudgetEditor = () => {
 
   const openBudget = (next: BudgetEditorTarget, nextTab: BudgetEditorTab) => {
     opener.current = document.activeElement instanceof HTMLElement ? document.activeElement : null;
-    const draft = drafts.current.get(next.toolCallId);
-    setTarget(draft ? { ...next, values: draft } : next);
+    setTarget({ ...next, draft: drafts.current.get(next.toolCallId) ?? null });
     setTab(nextTab);
     setOpen(true);
   };
 
-  const recordDraft = (toolCallId: string, values: BudgetFormValues) => {
-    drafts.current.set(toolCallId, values);
+  const recordDraft = (toolCallId: string, values: BudgetFormValues, base: BudgetFormValues) => {
+    if (isSameBudgetDraft(values, base)) drafts.current.delete(toolCallId);
+    else drafts.current.set(toolCallId, values);
   };
 
   const dropDraft = (toolCallId: string) => {
-    drafts.current.delete(toolCallId);
+    if (!drafts.current.delete(toolCallId)) return;
     setDraftIds([...drafts.current.keys()]);
   };
 

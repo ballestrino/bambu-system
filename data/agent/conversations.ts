@@ -1,6 +1,7 @@
 import "server-only";
 
 import { fromDbAgentMode } from "@/lib/agent/conversation-mode";
+import { conversationListLimit } from "@/lib/agent/conversation-scope";
 import { rowToAgentMessage } from "@/lib/agent/messages";
 import { db } from "@/lib/db";
 import { requireAdminSession } from "@/lib/require-admin-session";
@@ -60,7 +61,7 @@ export const getAgentConversations = async ({
       title: query ? { contains: query, mode: "insensitive" } : undefined,
     },
     orderBy: { updatedAt: "desc" },
-    take: all ? 100 : 50,
+    take: conversationListLimit(all),
     select: conversationSelect,
   });
   return rows.map(serializeConversation);

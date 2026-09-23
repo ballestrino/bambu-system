@@ -16,6 +16,10 @@ export const budgetConversationScope = (budgetId: string | null): AgentConversat
 export const conversationScopeKey = (scope: AgentConversationScope) =>
   scope.kind === "budget" ? scope.budgetId : scope.kind === "no-budget" ? "sin-presupuesto" : "todas";
 
+// Cuántas trae cada historial, las más recientes: la página todas (100) y un
+// Sheet las de su presupuesto (50). La lista avisa cuando llega al tope.
+export const conversationListLimit = (all: boolean | undefined) => (all ? 100 : 50);
+
 // Lo que recibe listAgentConversations: sin presupuesto es budgetId null, no
 // "cualquiera".
 export const conversationListInput = (scope: AgentConversationScope) =>

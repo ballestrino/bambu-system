@@ -4,7 +4,7 @@ import { Eye, Pencil } from "lucide-react";
 import Link from "next/link";
 
 import { useAgentChatContext } from "@/components/agent/agent-chat-context";
-import type { BudgetEditorTarget } from "@/components/agent/budget-editor/use-budget-editor";
+import type { BudgetEditorTarget } from "@/components/agent/hooks/use-budget-editor";
 import { CardNote } from "@/components/agent/cards/agent-card";
 import { Button } from "@/components/ui/button";
 import { isBudgetLocked } from "@/lib/agent/budget-draft";
@@ -19,6 +19,8 @@ export function AgentBudgetActions({ target, showSaved }: { target: BudgetEditor
   const proposal = proposalForCall(target.toolCallId);
   const locked = isBudgetLocked(proposal?.status);
   const saved = proposal?.status === "CONFIRMED" ? proposal.result : null;
+  // Con un borrador, "Confirmar" de la tarjeta guardaría la propuesta sin él.
+  const confirmable = target.source === "proposal" && proposal?.status === "PENDING";
   const open = (tab: "detail" | "edit") =>
     openBudget(proposal?.values ? { ...target, values: proposal.values } : target, tab);
 
@@ -32,11 +34,24 @@ export function AgentBudgetActions({ target, showSaved }: { target: BudgetEditor
           </Link>
         </CardNote>
       )}
-      {showSaved && proposal?.status === "EXECUTING" && <CardNote>Guardando en el generador…</CardNote>}
+      {showSaved && proposal?.status === "EXECUTING" && !proposal.unknownOutcome && (
+        <CardNote>Guardando en el generador…</CardNote>
+      )}
+      {showSaved && proposal?.status === "EXECUTING" && proposal.unknownOutcome && (
+        <CardNote tone="warning">
+          Se cortó mientras se guardaba: no se sabe si quedó guardado. Revisá el generador antes de volver a guardarlo.
+        </CardNote>
+      )}
       {showSaved && proposal?.status === "FAILED" && proposal.error && (
         <CardNote tone="warning">No se pudo guardar: {proposal.error}</CardNote>
       )}
-      {!locked && hasBudgetDraft(target.toolCallId) && <CardNote>Tenés cambios sin guardar.</CardNote>}
+      {!locked && hasBudgetDraft(target.toolCallId) && (
+        <CardNote tone={confirmable ? "warning" : "muted"}>
+          {confirmable
+            ? "Tenés cambios sin guardar en el editor: Confirmar guarda la propuesta sin ellos. Para guardarlos, usá Guardar en el generador del editor."
+            : "Tenés cambios sin guardar."}
+        </CardNote>
+      )}
       <div className="flex flex-col gap-2 sm:flex-row sm:justify-end">
         <Button variant="outline" className="h-11 sm:h-9" onClick={() => open("detail")}>
           <Eye aria-hidden />

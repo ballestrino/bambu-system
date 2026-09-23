@@ -114,14 +114,5 @@ export const productsWarning = (before: BudgetFormValues, after: BudgetFormValue
   return null;
 };
 
-// Crear uno nuevo cuando ya hay guardados con el mismo servicio: puede ser
-// un duplicado.
-export const sameServiceWarning = (names: string[]) => {
-  if (!names.length) return null;
-  const shown = names.slice(0, 3).map((name) => `“${name}”`).join(", ");
-  const more = names.length > 3 ? ` y ${names.length - 3} más` : "";
-  return `Ya hay presupuestos guardados con el mismo servicio: ${shown}${more}. Revisá que no sea un duplicado.`;
-};
-
 export const onlyText = (warnings: (string | null)[]) =>
   warnings.filter((warning): warning is string => Boolean(warning));

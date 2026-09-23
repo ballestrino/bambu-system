@@ -13,6 +13,7 @@ import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { budgetConversationScope } from "@/lib/agent/conversation-scope";
 import { sanitizeFormContextValues } from "@/lib/agent/form-context";
+import { savedSlugRedirect } from "@/lib/agent/proposal-outcome";
 import { getBudgetUrl, type ProposalResult } from "@/lib/agent/proposals";
 import type { AgentBudgetContextInput } from "@/schemas/agent";
 import type { BudgetFormValues } from "@/schemas/BudgetSchema";
@@ -51,9 +52,8 @@ export function AgentSheetHost({ budgetId, budgetSlug, budgetName, getFormValues
   // Guardar cambios con otro nombre cambia la dirección del presupuesto
   // abierto: igual que el formulario de edición, se va a la nueva.
   const handleProposalConfirmed = (result: ProposalResult | null) => {
-    if (result?.slug && budgetId && result.budgetId === budgetId && result.slug !== budgetSlug) {
-      router.replace(getBudgetUrl(result.slug));
-    }
+    const slug = savedSlugRedirect(result, { budgetId: budgetId ?? null, budgetSlug: budgetSlug ?? null });
+    if (slug) router.replace(getBudgetUrl(slug));
   };
 
   const handleOpenChange = (next: boolean) => {

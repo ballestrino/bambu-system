@@ -8,12 +8,16 @@ import { formatMoney } from "@/components/agent/format";
 import { Button } from "@/components/ui/button";
 import type { ProposalResult } from "@/lib/agent/proposals";
 import { calculateBudgetTotals } from "@/lib/budget-calculations";
+import { cn } from "@/lib/utils";
 import type { BudgetFormValues } from "@/schemas/BudgetSchema";
 
 export type BudgetEditorStatus =
   | { kind: "editable" }
   | { kind: "executing" }
+  | { kind: "unknown" }
   | { kind: "saved"; result: ProposalResult | null };
+
+const FOOTER_CLASS = "border-t px-4 pt-3 pb-[max(0.75rem,env(safe-area-inset-bottom))]";
 
 // Los finales con IVA del formulario, siempre a la vista mientras se edita.
 function Finals() {
@@ -36,22 +40,34 @@ function Finals() {
 }
 
 // El pie del editor: Guardar en el generador o, ya guardado, los links al
-// presupuesto en el generador.
+// presupuesto en el generador. Mientras el agente responde, Guardar espera.
 export function AgentBudgetFooter({
   status,
   saving,
+  waiting,
   error,
   onSave,
 }: {
   status: BudgetEditorStatus;
   saving: boolean;
+  waiting: boolean;
   error: string | null;
   onSave: () => void;
 }) {
+  if (status.kind === "unknown") {
+    return (
+      <div className={FOOTER_CLASS}>
+        <p role="status" className="text-sm text-amber-700 dark:text-amber-400">
+          Se cortó mientras se guardaba y no se sabe si quedó guardado. Revisá los presupuestos del generador antes de
+          volver a guardarlo.
+        </p>
+      </div>
+    );
+  }
   if (status.kind === "saved") {
     const { result } = status;
     return (
-      <div className="flex flex-col gap-2 border-t px-4 pt-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] sm:flex-row sm:items-center">
+      <div className={cn(FOOTER_CLASS, "flex flex-col gap-2 sm:flex-row sm:items-center")}>
         <p className="min-w-0 flex-1 text-sm">
           Guardado en el generador{result ? `: ${result.label}` : "."}
         </p>
@@ -75,15 +91,18 @@ export function AgentBudgetFooter({
 
   const busy = saving || status.kind === "executing";
   return (
-    <div className="space-y-2 border-t px-4 pt-3 pb-[max(0.75rem,env(safe-area-inset-bottom))]">
+    <div className={cn(FOOTER_CLASS, "space-y-2")}>
       {error && (
         <p role="alert" className="text-sm text-destructive">
           {error}
         </p>
       )}
+      {waiting && !busy && (
+        <p className="text-xs text-muted-foreground">Esperá a que el agente termine de responder para guardar.</p>
+      )}
       <div className="flex items-center gap-3">
         <Finals />
-        <Button className="ml-auto h-11 shrink-0 sm:h-9" disabled={busy} onClick={onSave}>
+        <Button className="ml-auto h-11 shrink-0 sm:h-9" disabled={busy || waiting} onClick={onSave}>
           {busy ? <Loader2 className="animate-spin" aria-hidden /> : <Save aria-hidden />}
           {busy ? "Guardando…" : "Guardar en el generador"}
         </Button>

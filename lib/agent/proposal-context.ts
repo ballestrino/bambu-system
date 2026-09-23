@@ -1,3 +1,5 @@
+import { getCalculationAmounts, type BudgetCalculation } from "@/lib/agent/budget-calculation";
+import { getSummaryAmounts } from "@/lib/agent/proposal-summary";
 import {
   PROPOSAL_STATUS_LABELS,
   type AgentProposalDto,
@@ -6,12 +8,22 @@ import {
 
 // Lo que el modelo ve de las propuestas. La salida guardada de una tool
 // propose* dice PENDING para siempre: en la prueba real el modelo dio por
-// pendientes propuestas ya confirmadas, rechazadas o vencidas. Puro.
+// pendientes propuestas ya confirmadas, rechazadas o vencidas. Y una guardada
+// desde el editor de la 43 tiene otro resumen: el de lo editado. Puro.
 export type ProposalPromptItem = Pick<AgentProposalDto, "status" | "summary" | "result" | "error"> & {
   unknownOutcome?: boolean;
 };
 
-type LiveProposal = Pick<AgentProposalDto, "id" | "status" | "result" | "error">;
+type LiveProposal = Pick<AgentProposalDto, "id" | "status" | "result" | "error" | "summary">;
+
+const money = new Intl.NumberFormat("es-UY", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+
+// Los finales de lo que quedó guardado, que pueden no ser los de la tool.
+const describeSaved = (after: BudgetCalculation | null | undefined) => {
+  if (!after) return "";
+  const withProducts = after.withProducts ? ` y $ ${money.format(after.withProducts.final)} con productos` : "";
+  return `, con $ ${money.format(after.withoutProducts.final)} sin productos${withProducts} (finales con IVA)`;
+};
 
 const formatValue = (value: ProposalChange["before"]) => {
   if (value === null) return "—";
@@ -42,18 +54,26 @@ export const formatProposalsForPrompt = (proposals: ProposalPromptItem[]) =>
       const label = unknownOutcome ? "resultado desconocido" : PROPOSAL_STATUS_LABELS[status];
       const line = `- ${summary.title}${describeChanges(summary.changes)}: ${label}`;
       if (unknownOutcome) return `${line} (se cortó mientras se ejecutaba: revisá el presupuesto antes de proponerla de nuevo).`;
-      if (status === "CONFIRMED" && result) return `${line}. Quedó en ${result.url}.`;
+      if (status === "CONFIRMED" && result) return `${line}. Quedó en ${result.url}${describeSaved(summary.after)}.`;
       if ((status === "FAILED" || status === "EXPIRED") && error) return `${line} (${error}).`;
       return `${line}.`;
     })
     .join("\n");
 
+// Lo guardado al confirmar se puede citar: un cálculo guardado desde el
+// editor no tiene una salida propose* que lo diga.
+export const getConfirmedAmounts = (proposals: Pick<AgentProposalDto, "status" | "summary">[]) =>
+  proposals.flatMap(({ status, summary }) =>
+    status === "CONFIRMED" && summary.after ? getCalculationAmounts(summary.after) : []
+  );
+
 type ToolPart = { type: string; state?: string; output?: unknown };
 
 type ProposalOutput = { ok?: boolean; data?: Record<string, unknown> };
 
-// El historial que se manda al modelo, con el estado vivo en la salida de
-// cada tool propose*. No se guarda: la base conserva la salida original.
+// El historial que se manda al modelo, con el estado y el resumen vivos en la
+// salida de cada tool propose*, y los importes citables de ese resumen. No se
+// guarda: la base conserva la salida original.
 export const withLiveProposals = <M extends { parts: unknown[] }>(
   messages: M[],
   proposals: LiveProposal[]
@@ -70,7 +90,14 @@ export const withLiveProposals = <M extends { parts: unknown[] }>(
       ...tool,
       output: {
         ...output,
-        data: { ...output.data, status: live.status, result: live.result, error: live.error },
+        data: {
+          ...output.data,
+          status: live.status,
+          result: live.result,
+          error: live.error,
+          summary: live.summary,
+          grounding: { amounts: getSummaryAmounts(live.summary) },
+        },
       },
     };
   };

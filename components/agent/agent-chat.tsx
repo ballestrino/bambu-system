@@ -5,7 +5,7 @@ import type { Chat } from "@ai-sdk/react";
 import { AgentChatProvider } from "@/components/agent/agent-chat-context";
 import { AgentComposer } from "@/components/agent/agent-composer";
 import { AgentBudgetSheet } from "@/components/agent/budget-editor/agent-budget-sheet";
-import { useBudgetEditor } from "@/components/agent/budget-editor/use-budget-editor";
+import { useBudgetEditor } from "@/components/agent/hooks/use-budget-editor";
 import { AgentEmptyState } from "@/components/agent/agent-empty-state";
 import { AgentErrorBanner } from "@/components/agent/agent-error-banner";
 import { AgentMessageList } from "@/components/agent/agent-message-list";
@@ -103,6 +103,7 @@ export function AgentChat({
         editor={editor}
         conversationId={conversationId}
         proposalFor={(toolCallId) => byCall.get(toolCallId)}
+        waiting={view.busy}
       />
     </AgentChatProvider>
   );

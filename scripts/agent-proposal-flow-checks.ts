@@ -1,5 +1,6 @@
 import assert from "node:assert/strict";
 
+import { getCalculationAmounts } from "../lib/agent/budget-calculation";
 import { collectGroundingFromMessages } from "../lib/agent/grounding";
 import {
   buildCreateBudgetProposal,
@@ -22,6 +23,7 @@ import {
 } from "../lib/agent/proposals";
 import {
   formatProposalsForPrompt,
+  getConfirmedAmounts,
   withLiveProposals,
   type ProposalPromptItem,
 } from "../lib/agent/proposal-context";
@@ -117,24 +119,36 @@ assert.deepEqual(formatProposalsForPrompt(items).split("\n"), [
   "- Duplicar “Limpieza Norte”: pendiente de confirmar.",
 ]);
 
-// --- The history sent to the model carries the live status in each propose*
-// output (the saved output says PENDING forever); the rest is untouched and
-// grounding still comes from the same parts.
-const proposalPart = (proposalId: string) => ({
-  type: "tool-proposeUpdateBudget", state: "output-available",
-  output: { ok: true, data: { card: "proposal", proposalId, status: "PENDING", grounding: { amounts: [18979.9] } } },
+// --- The history sent to the model carries the live status and summary in
+// each propose* output (the saved output says PENDING forever, and a proposal
+// saved from the editor of feature 43 has the summary of what was edited);
+// the rest is untouched and grounding comes from the live summary.
+const proposalPart = (proposalId: string, amounts: number[]) => ({
+  type: "tool-proposeCreateBudget", state: "output-available",
+  output: { ok: true, data: { card: "proposal", proposalId, status: "PENDING", summary: {}, grounding: { amounts } } },
 });
-const history = [{ id: "m1", parts: [{ type: "text", text: "hola" }, proposalPart("prop_1"), proposalPart("prop_unknown")] }];
-const live = withLiveProposals(history, [{ id: "prop_1", status: "CONFIRMED", result: confirmedResult, error: null }]);
+const edited = buildCreateBudgetProposal({ base: { source: "edited", values: { ...defaultBudgetValues, employees: 2 } }, name: "Oficina Norte", description: null, changes: {} });
+assert.ok(edited.ok && edited.summary.after);
+const history = [{ id: "m1", parts: [{ type: "text", text: "hola" }, proposalPart("prop_1", [18979.9]), proposalPart("prop_unknown", [111.11])] }];
+const live = withLiveProposals(history, [{ id: "prop_1", status: "CONFIRMED", result: confirmedResult, error: null, summary: edited.summary }]);
 const [, patched, unknown] = live[0].parts as ReturnType<typeof proposalPart>[];
 assert.deepEqual(
-  [patched.output.data.status, (patched.output.data as { result?: { url: string } }).result?.url],
-  ["CONFIRMED", confirmedResult.url]
+  [patched.output.data.status, (patched.output.data as { result?: { url: string } }).result?.url, patched.output.data.summary],
+  ["CONFIRMED", confirmedResult.url, edited.summary]
 );
 assert.equal(unknown.output.data.status, "PENDING");
 // The stored history is not mutated: only the copy sent to the model changes.
 assert.equal((history[0].parts[1] as ReturnType<typeof proposalPart>).output.data.status, "PENDING");
-assert.deepEqual([...collectGroundingFromMessages(live).amounts], [18979.9]);
+const liveAmounts = collectGroundingFromMessages(live).amounts;
+assert.ok(liveAmounts.has(edited.summary.after.withoutProducts.final) && liveAmounts.has(111.11));
+assert.ok(!liveAmounts.has(18979.9), "the saved output's amounts are replaced by the live ones");
+// The block says what was saved, and those finals can be quoted even when no
+// propose* output shows them (a calculation saved from the editor).
+const savedLine = formatProposalsForPrompt([{ status: "CONFIRMED", summary: edited.summary, result: confirmedResult, error: null }]);
+const finalOf = (amount: number) => amount.toLocaleString("es-UY", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+assert.ok(savedLine.endsWith(`Quedó en ${confirmedResult.url}, con $ ${finalOf(edited.summary.after.withoutProducts.final)} sin productos y $ ${finalOf(edited.summary.after.withProducts?.final ?? 0)} con productos (finales con IVA).`), savedLine);
+const confirmedItem = { status: "CONFIRMED" as const, summary: edited.summary };
+assert.deepEqual(getConfirmedAmounts([confirmedItem, { ...confirmedItem, status: "PENDING" }]), getCalculationAmounts(edited.summary.after));
 const prompt = (proposals: ProposalPromptItem[]) =>
   buildAgentInstructions({ today: "hoy", actorName: null, skill: AGENT_SKILLS.presupuestos, approvedKnowledge: [], proposals });
 assert.ok(prompt(items).includes(`${PROPOSALS_HEADING} (`));

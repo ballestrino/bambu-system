@@ -120,7 +120,7 @@ const isRecord = (value: unknown): value is Record<string, unknown> =>
 
 // Los valores de una propuesta de crear: la tarjeta los edita antes de
 // guardar. Las demás no se editan desde el chat y el payload no sale.
-const readCreateValues = (row: ProposalRow) =>
+export const readCreateValues = (row: Pick<ProposalRow, "kind" | "payload">) =>
   row.kind === "CREATE_BUDGET" && isRecord(row.payload) && isRecord(row.payload.values)
     ? (row.payload.values as BudgetFormValues)
     : null;

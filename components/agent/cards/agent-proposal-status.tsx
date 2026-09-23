@@ -2,21 +2,13 @@ import { Loader2 } from "lucide-react";
 import Link from "next/link";
 
 import { Badge } from "@/components/ui/badge";
-import type { AgentProposalDto, AgentProposalStatus, ProposalResult } from "@/lib/agent/proposals";
+import type { ProposalDisplayStatus } from "@/lib/agent/proposal-outcome";
+import type { AgentProposalDto, ProposalResult } from "@/lib/agent/proposals";
 import { getBudgetUrl, getOfficialBudgetUrl } from "@/lib/agent/proposals";
 import { cn } from "@/lib/utils";
 
-// El estado que se muestra: una EXECUTING vieja no se presenta como en curso.
-export type ProposalDisplayStatus = AgentProposalStatus | "UNKNOWN";
-
-export const getDisplayStatus = (
-  live: Pick<AgentProposalDto, "status" | "unknownOutcome"> | undefined,
-  stored: AgentProposalStatus
-): ProposalDisplayStatus => {
-  if (!live) return stored;
-  return live.unknownOutcome ? "UNKNOWN" : live.status;
-};
-
+// El estado de la tarjeta sale de getDisplayStatus (lib/agent/proposal-outcome):
+// una EXECUTING vieja no se presenta como en curso.
 const BADGES: Record<ProposalDisplayStatus, { label: string; className: string }> = {
   PENDING: { label: "Pendiente", className: "border-amber-500/40 text-amber-700 dark:text-amber-400" },
   EXECUTING: { label: "Ejecutando", className: "border-sky-500/40 text-sky-700 dark:text-sky-400" },

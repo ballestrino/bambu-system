@@ -65,6 +65,14 @@ export const agentBudgetEditorSchema = BudgetSchema.extend({
   iva: z.coerce.number().positive("El IVA tiene que ser mayor que 0."),
 });
 
+// Los mensajes de los demás campos del generador, que BudgetSchema deja en
+// inglés: el resolver del editor los pasa al validar. Los de arriba ganan.
+export const agentBudgetEditorErrors: z.core.$ZodErrorMap = (issue) => {
+  if (issue.code === "too_small") return "No puede ser negativo.";
+  if (issue.code === "invalid_type") return "Tiene que ser un número.";
+  return undefined;
+};
+
 // Guardar desde el chat un presupuesto que armó el agente: la llamada a tool
 // que lo armó y los valores, quizás editados.
 export const agentSaveBudgetSchema = z.object({

@@ -2,7 +2,7 @@
 
 import { createContext, useContext } from "react";
 
-import type { BudgetEditorTab, BudgetEditorTarget } from "@/components/agent/budget-editor/use-budget-editor";
+import type { BudgetEditorTab, BudgetEditorTarget } from "@/components/agent/hooks/use-budget-editor";
 import type { AgentProposalDto } from "@/lib/agent/proposals";
 
 // Lo que las tarjetas necesitan de la conversación sin pasarlo por cada
