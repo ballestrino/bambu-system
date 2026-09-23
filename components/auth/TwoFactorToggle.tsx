@@ -3,15 +3,14 @@
 import { useState, useTransition } from "react"
 import { Switch } from "@/components/ui/switch"
 import { Label } from "@/components/ui/label"
-import { enable2FA, disable2FA } from "@/actions/settings"
+import { enable2FA, disable2FA } from "@/actions/settings/security"
 import DeleteDialog from "@/components/ui/delete-dialog"
 
 interface TwoFactorToggleProps {
     initialEnabled?: boolean
-    userId: string
 }
 
-export function TwoFactorToggle({ initialEnabled = false, userId }: TwoFactorToggleProps) {
+export function TwoFactorToggle({ initialEnabled = false }: TwoFactorToggleProps) {
     const [isEnabled, setIsEnabled] = useState(initialEnabled)
     const [isPending, startTransition] = useTransition()
     const [message, setMessage] = useState<{ type: "success" | "error"; text: string } | null>(null)
@@ -19,7 +18,7 @@ export function TwoFactorToggle({ initialEnabled = false, userId }: TwoFactorTog
     const handleEnable = () => {
         setMessage(null)
         startTransition(async () => {
-            const result = await enable2FA(userId)
+            const result = await enable2FA()
             if (result.error) {
                 setMessage({ type: "error", text: result.error })
             } else if (result.success) {
@@ -31,7 +30,7 @@ export function TwoFactorToggle({ initialEnabled = false, userId }: TwoFactorTog
 
     const handleDisable = async () => {
         setMessage(null)
-        const result = await disable2FA(userId)
+        const result = await disable2FA()
         if (result.error) {
             setMessage({ type: "error", text: result.error })
         } else if (result.success) {

@@ -1,5 +1,3 @@
-"use server"
-
 import { db } from "@/lib/db"
 import { v4 as uuid } from "uuid"
 import crypto from "crypto"

@@ -33,7 +33,9 @@ export default function NewVerificationForm() {
       if (result?.success) {
         setSuccess(result.success)
         setIsPending(false)
-        router.push('/auth/login')
+        // An email change comes from Configuración; without a session the
+        // proxy sends /settings on to the login.
+        router.push('emailChanged' in result ? '/settings' : '/auth/login')
         return
       }
 

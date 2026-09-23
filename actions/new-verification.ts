@@ -3,7 +3,6 @@
 import { db } from "@/lib/db"
 import { getUserByEmail } from "@/data/user"
 import { getVerificationTokenByToken } from "@/data/verification-token"
-import { auth } from "@/auth"
 
 export const newVerification = async (token: string) => {
   const existingToken = await getVerificationTokenByToken(token)
@@ -19,7 +18,6 @@ export const newVerification = async (token: string) => {
   }
 
   if (existingToken.oldemail) {
-    const session = await auth()
     const existingUser = await getUserByEmail(existingToken.oldemail)
     if (!existingUser) {
       return { error: "El email a cambiar no esta registrado" }
@@ -41,9 +39,10 @@ export const newVerification = async (token: string) => {
     } catch {
       return { error: "Hubo un error al actualizar el email" }
     }
-    if (session) session.user.email = existingToken.email
 
-    return { success: "Email actualizado correctamente" }
+    // The JWT callback reloads the user by id, so the session picks up the
+    // new address on its next read.
+    return { success: "Email actualizado correctamente", emailChanged: true }
   }
 
   const existingUser = await getUserByEmail(existingToken.email)

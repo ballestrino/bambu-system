@@ -7,20 +7,18 @@
 export const publicRoutes = [
   "/public",
   "/api/mail/cron", // External cron; the route enforces its own bearer secret.
+  // Email links: an email change and the reset from Configuración are asked
+  // for while logged in, so these must open with or without a session.
+  "/auth/new-password",
+  "/auth/new-verification"
 ]
 
 /**
  * An array of routes that are used for authentication
- * These routes will redirect logged in users to /settings
+ * These routes will redirect logged in users to DEFAULT_LOGIN_REDIRECT
  * @type {string[]}
  */
-export const authRoutes = [
-  "/auth/login",
-  "/auth/register",
-  "/auth/error",
-  "/auth/new-password",
-  "/auth/new-verification"
-]
+export const authRoutes = ["/auth/login", "/auth/register", "/auth/error"]
 
 /**
  * The prefix for API authentication routes
