@@ -120,3 +120,33 @@ contrato en `docs/agent.md` (sección "Reglas de precio").
 - `maxDuration` sigue en 60 s: el flujo del mail tardó 26 s en Medio, pero en
   Bajo (Luna con xhigh) puede acercarse. Sigue la decisión pendiente de
   subirlo con Fluid compute.
+
+## Correcciones de la revisión (2026-09-22)
+
+`progress/review_agent_pricing_rules.md` aprobó la feature con ocho menores.
+Van en la misma pasada que los bloqueantes de la 43, en el `fix(agent)` de 41-44.
+
+- 1: un cambio solo de productos (o de IVA) no redondea: `shouldRoundPrice`
+  compara el precio del servicio sin IVA antes y después, que es lo que dice
+  `docs/agent.md`.
+- 4: la búsqueda, las filas con sus importes citables y el aviso son puros
+  (`lib/agent/matching-budgets.ts`) y tienen prueba
+  (`scripts/agent-matching-checks.ts`); el check de fuente acota el guard y el
+  grounding a su función.
+- 5: el aviso de mismo servicio dice "y más" cuando la lectura trajo el de
+  más, en vez de contar sobre 11.
+- 6: `PRICE_RULE` nombra a `findMatchingBudgets` entre las fuentes.
+- 7: lo editado a mano no se redondea ni con un aporte habilitado en 0 (es el
+  bloqueante 1 de la 43).
+- 8: si el margen de 6 decimales no da la centena (costos de más de
+  $ 1.000.000), `applyNicePrice` no toca el precio.
+- 9: "hasta $ 99 más" pasó a "menos de $ 100 más". El resto de los detalles
+  queda como estaba.
+- 3: la mitigación del plan ya no dice `isStepCount(6)`. Medir el flujo de
+  Emails en Bajo y en Alto, o subir `maxDuration`, sigue pendiente de
+  decisión.
+- 2 (precios con centavos de los guardados de antes y la opción con
+  productos de un guardado que cambia) queda para decidir con el usuario.
+- PASS: `check:agent-pricing` (productos solos, costo alto, editor con un
+  aporte en 0, búsqueda de iguales), regresiones, `tsc`, `.\init.ps1` y
+  `pnpm exec next build`. Mutaciones de los arreglos de la 44: 7 de 7.

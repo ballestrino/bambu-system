@@ -137,3 +137,20 @@ en `docs/agent.md` (sección "Sheet").
   EXECUTING real de más de 6 minutos (cubierta por el check) y la redirección
   por cambio de dirección del presupuesto abierto (cubierta por lectura de
   código; ninguna propuesta del smoke cambió el nombre).
+
+## Correcciones de la revisión (2026-09-22)
+
+`progress/review_agent_budget_sheet.md` aprobó la feature con tres menores.
+
+- 1: la fila del historial dice "+ sin precio" si la conversación tuvo uso
+  sin precio (`unpricedEvents`, con `_count.costUsd` en
+  `getConversationCostTotals`), como el badge.
+- 2: `getDisplayStatus`, `canActOnProposal`, `hasRunningProposal` y
+  `savedSlugRedirect` pasaron a `lib/agent/proposal-outcome.ts` y
+  `check:agent-sheet` los prueba con entradas; el check de fuente afirma la
+  instancia `Chat` del host en `useChat` y que confirmar relee las
+  propuestas.
+- 3: un link `//dominio` es externo (no va por `next/link`).
+- PASS: `check:agent-sheet`, regresiones, `tsc`, `.\init.ps1` y
+  `pnpm exec next build`. Mutaciones de los arreglos de la 41: 5 de 5.
+- NOT RUN: el smoke en el navegador, por la misma falta de sesión.

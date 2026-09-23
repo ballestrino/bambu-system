@@ -122,3 +122,29 @@ sus ajustes), contrato en `docs/agent.md` (sección "Página").
   cubierto por lectura de código), cambiar de conversación en pleno stream
   (la sesión es la del Sheet, verificado en la 41) y el tope de 100
   conversaciones (la base tiene 3).
+
+## Correcciones de la revisión (2026-09-22)
+
+`progress/review_agent_page.md` aprobó la feature con seis menores y uno a
+confirmar.
+
+- 1: sin id en la dirección se arranca una nueva también desde "Conversación
+  no encontrada" o mientras abre otra, y la dirección refleja la que no se
+  pudo abrir. Es el arreglo que el revisor probó en su arnés, en funciones
+  puras (`startsNewWithoutUrlId` y `pageUrlTarget`, `lib/agent/page-url.ts`)
+  con prueba.
+- 2: borrar usa la promesa de `mutateAsync`, que corre aunque se cierre el
+  historial que contiene el diálogo: borrar la abierta arranca una nueva.
+- 3: "Abrir en página" espera a que una conversación con mensajes figure
+  guardada.
+- 4: `check:agent-page` prueba las reglas de la dirección y los topes, y su
+  check de fuente cubre lo que el revisor rompió sin que fallara (filtro por
+  `userId`, búsqueda por presupuesto, `onDeleted` de la columna, diálogo y
+  cabecera con presupuesto, `ensureStarted` y el borrado de la sesión).
+- 5: la lista avisa cuando llega al tope (`conversationListLimit`).
+- 6 ("Abrir en página" desde el Sheet de crear deja el formulario sin
+  guardar) queda para decidir con el usuario, y 7 (un `replaceState` durante
+  una navegación pendiente) sigue a confirmar en el navegador.
+- PASS: `check:agent-page`, regresiones, `tsc`, `.\init.ps1` y
+  `pnpm exec next build`. Mutaciones de los arreglos de la 42: 7 de 7.
+- NOT RUN: el smoke en el navegador, por la misma falta de sesión.

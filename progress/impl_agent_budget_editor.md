@@ -100,3 +100,47 @@ generador, y aplica a los cálculos y a las propuestas de crear. Plan en
 - NOT RUN: una propuesta que falla al ejecutarse y se revisa (cubierta por el
   check y la lectura de código) y dos guardados en paralelo de la misma
   tarjeta (el único por llamada y el claim de confirmar lo cierran).
+
+## Correcciones de la revisión (2026-09-22)
+
+`progress/review_agent_budget_editor.md` pidió cambios con tres bloqueantes.
+Van encima de la 44 (misma rama), en el `fix(agent)` de 41-44.
+
+- Bloqueante 1 (aporte en 0 %): la fuente `edited` ya no pasa por
+  `applyBudgetChanges` (`asEdited` en `lib/agent/agent-pricing.ts`): se guarda
+  como se tipeó, como en el generador, y solo se recalcula el precio final.
+  Un aporte habilitado en 0 o vacío queda en 0 y lo guardado es lo del
+  editor.
+- Bloqueante 2 (borrador sobre lo guardado): guardado o guardándose, el
+  editor abre con `proposal.values` (`resolveEditorValues`); si se guarda con
+  el editor abierto, `form.reset` a lo guardado y descarta el borrador. En una
+  propuesta pendiente con borrador, la tarjeta avisa que Confirmar la guarda
+  sin esos cambios (solo en pendientes: vencida o rechazada no tiene
+  Confirmar).
+- Bloqueante 3 (resumen viejo para el modelo): `withLiveProposals` pone
+  también `summary` y `grounding` vivos; el bloque de propuestas lleva los
+  finales guardados de una confirmada con cálculo, y `getConfirmedAmounts`
+  los suma a la evidencia (cubre el cálculo guardado desde el editor, que no
+  tiene salida `propose*`).
+- Menores: el borrador se anota en cada cambio mientras se puede guardar y
+  deja de serlo si vuelve a los valores de la tarjeta (`isSameBudgetDraft`);
+  Guardar espera mientras el agente responde (`waiting`); una EXECUTING vieja
+  dice "resultado desconocido" en la tarjeta del cálculo y en el editor; los
+  demás campos del generador validan en castellano
+  (`agentBudgetEditorErrors`, pasado al resolver); los checks de fuente
+  normalizan CRLF; `findSavableBudgetCall` llama a `requireAdminSession`; los
+  `values` de una propuesta repetida salen de la fila (`readCreateValues`); el
+  hook pasó a `components/agent/hooks/use-budget-editor.ts`, y
+  `docs/agent.md` lista `check:agent-budget-editor`.
+- Queda como estaba: `findSavableBudgetCall` lee las partes de todos los
+  mensajes del asistente de la conversación (sin límite).
+- PASS: `check:agent-budget-editor` (aportes en 0 y vacíos, qué muestra el
+  editor según el estado, borrador que vuelve, mensajes en castellano),
+  `check:agent-proposals` (resumen e importes vivos, finales guardados en el
+  bloque), las regresiones del agente, oficiales y mail, `tsc`, `.\init.ps1`
+  (harness, `prisma validate` y ESLint) y `pnpm exec next build` (38 rutas).
+- PASS: prueba de mutación de los arreglos de la 43, 15 de 15 detectadas.
+- NOT RUN: el smoke en el navegador. El navegador integrado no tiene sesión
+  (redirige al login) y entrar la contraseña le toca al usuario. Falta: un
+  aporte vacío guardado, "Confirmar" con un borrador y después "Ver detalle",
+  y el turno siguiente a guardar una propuesta editada (con OpenAI).

@@ -18,6 +18,27 @@ Status: in_progress
   sección "Correcciones de la revisión" de cada `impl_*.md`. La re-revisión
   sobre `b6becae` aprobó las tres; sus menores nuevos (título al regenerar y
   aserciones faltantes) quedaron resueltos en el commit siguiente.
+- Revisiones (2026-09-22): cuatro revisores independientes, uno por feature,
+  sobre `16ff4ae`. Aprobaron la 41, la 42 y la 44 con menores; la 43 pidió
+  cambios con tres bloqueantes (`progress/review_*.md`). Las correcciones
+  (los tres bloqueantes y los menores chicos de las cuatro) están en la rama
+  `feature/44-agent-pricing-rules` y en la sección
+  "Correcciones de la revisión" de cada `impl_*.md`. PASS: los once checks
+  del agente, oficiales y mail, 34 de 34 mutaciones, `tsc`, `.\init.ps1` y
+  `pnpm exec next build`. NOT RUN: smoke en el navegador (el navegador
+  integrado no tiene sesión y entrar la contraseña le toca al usuario).
+- Re-revisión de la 43 (2026-09-22, sobre las correcciones todavía sin
+  commitear): APPROVED. Los tres bloqueantes y los menores quedaron
+  resueltos, con 16 de 16 mutaciones detectadas. Las correcciones de 41-44 se
+  commitearon después, a pedido del usuario: `b58fe4b` (`fix(agent)`) y el
+  `docs(progress)` que le sigue, encima de `16ff4ae`.
+- Siguiente paso: el smoke autenticado de las correcciones (sobre todo de la
+  43: un aporte vacío guardado, "Confirmar" con un borrador y "Ver detalle",
+  y el turno siguiente a guardar una propuesta editada), que necesita la
+  sesión del usuario, escribe en la base y gasta OpenAI. Decisiones del
+  usuario que dejaron las revisiones: precios con centavos de los guardados
+  de antes de la 44 (44), medir Emails en Bajo y Alto o subir `maxDuration`
+  (44) y "Abrir en página" desde el Sheet de crear (42).
 - Para cerrar de la 38 a la 44 falta la decisión del usuario de pasarlas a
   `done` con la 35 todavía en `in_progress`. Decisiones abiertas:
   `engines`/Node del deploy y `maxDuration` (con el consumo guardado por
@@ -113,7 +134,7 @@ Status: in_progress
   oficiales y propuestas. Un `result.slug` distinto del actual implica
   redirigir, igual que el formulario de edición.
 
-### Feature 41 - `agent_budget_sheet` (implementada, falta revisión)
+### Feature 41 - `agent_budget_sheet` (aprobada con menores, corregidos)
 
 - Rama `feature/41-agent-budget-sheet`, encima de la 40. Sigue `pending` en
   `feature_list.json` por el mismo motivo que 38-40 (la 35 ocupa el slot).
@@ -151,10 +172,12 @@ Status: in_progress
   lectura de código).
 - Commiteada el 2026-09-21 (`e4b89c8` y `595870c`) a pedido del usuario,
   después de volver a pasar harness, ESLint, `tsc` y `check:agent-sheet`.
-- Siguiente paso: revisión independiente (`progress/review_agent_budget_sheet.md`)
-  y decidir el cierre de 38-43 con la 35 todavía `in_progress`.
+- Revisión (2026-09-22, `progress/review_agent_budget_sheet.md`): APPROVED.
+  Tres menores corregidos en el `fix(agent)` de 41-44: "+ sin precio" en la
+  fila del historial, reglas de la tarjeta de propuesta puras y con prueba,
+  y links `//dominio` externos.
 
-### Feature 42 - `agent_page` (implementada, falta revisión)
+### Feature 42 - `agent_page` (aprobada con menores, corregidos)
 
 - Rama `feature/42-agent-page`, encima de la 41. Commiteada el 2026-09-21
   (`35e5c22` y `01e6226`). Sigue `pending` por lo mismo que 38-41. Detalle en
@@ -178,9 +201,15 @@ Status: in_progress
 - Quedan dos conversaciones de prueba para borrar desde la página. Apareció
   otra con la misma cuenta ("Presupuesto de oficina 3 días semanales") que
   no salió del smoke; no se tocó.
-- Siguiente paso: revisión independiente (`progress/review_agent_page.md`).
+- Revisión (2026-09-22, `progress/review_agent_page.md`): APPROVED. Corregidos
+  en el `fix(agent)` de 41-44: la dirección desde el error o mientras abre
+  otra, el borrado desde un historial que se cierra, "Abrir en página" antes
+  de que la conversación figure guardada, el aviso del tope y los huecos del
+  check.
+  Quedan: "Abrir en página" desde el Sheet de crear (decisión del usuario) y
+  un `replaceState` durante una navegación pendiente (a confirmar).
 
-### Feature 43 - `agent_budget_editor` (implementada, falta revisión)
+### Feature 43 - `agent_budget_editor` (aprobada en la re-revisión)
 
 - Rama `feature/43-agent-budget-editor`, encima de la 42. Sigue `pending`
   por lo mismo que 38-42. Detalle en
@@ -209,10 +238,24 @@ Status: in_progress
 - Commiteada el 2026-09-21 (`a4311e3` y `40c586d`) a pedido del usuario,
   después de volver a pasar harness, ESLint, `tsc` y
   `check:agent-budget-editor`.
-- Siguiente paso: revisión independiente
-  (`progress/review_agent_budget_editor.md`).
+- Revisión (2026-09-22, `progress/review_agent_budget_editor.md`):
+  CHANGES_REQUESTED. Bloqueantes:
+  - un aporte en 0 % se guardaba con el porcentaje por defecto;
+  - un borrador se mostraba sobre una propuesta ya guardada;
+  - el modelo leía como confirmado el resumen de antes de editar.
 
-### Feature 44 - `agent_pricing_rules` (implementada, falta revisión)
+  Los tres están corregidos, con sus aserciones, igual que los menores
+  recomendados.
+- Re-revisión (2026-09-22, al final de
+  `progress/review_agent_budget_editor.md`): APPROVED. Los scripts de la
+  primera revisión ahora dan lo mismo que el editor (aportes en 0 y vacíos)
+  y lo guardado para el modelo. Uno nuevo prueba los borradores con el hook
+  y react-hook-form reales. Mutaciones: 16 de 16. Dos menores nuevos: el
+  texto "antes de volver a guardarlo" con resultado desconocido (desde el
+  editor no se puede) y un `requireAdminSession()` doble por guardado.
+  NOT RUN: el smoke autenticado de las correcciones.
+
+### Feature 44 - `agent_pricing_rules` (aprobada con menores, corregidos)
 
 - Rama `feature/44-agent-pricing-rules`, encima de la 43. Sigue `pending`
   por lo mismo que 38-43. Detalle en `progress/impl_agent_pricing_rules.md`.
@@ -243,11 +286,20 @@ Status: in_progress
   oficina" y "Cotización de limpieza para ferretería") y dos propuestas de
   crear pendientes, que vencen solas en 24 horas. No se guardó ningún
   presupuesto.
-- Commiteada el 2026-09-22 a pedido del usuario, después de volver a pasar
-  harness, ESLint, `tsc`, `check:agent-pricing` y las regresiones del
-  agente, oficiales y mail.
-- Siguiente paso: revisión independiente
-  (`progress/review_agent_pricing_rules.md`).
+- Commiteada el 2026-09-22 (`bfca3b0` y `16ff4ae`) a pedido del usuario,
+  después de volver a pasar harness, ESLint, `tsc`, `check:agent-pricing` y
+  las regresiones del agente, oficiales y mail.
+- Revisión (2026-09-22, `progress/review_agent_pricing_rules.md`): APPROVED,
+  sin bloqueantes. Corregidos en el `fix(agent)` de 41-44:
+  - productos solos no redondean;
+  - costo de más de $ 1.000.000;
+  - "y más" en el aviso;
+  - `PRICE_RULE` con `findMatchingBudgets`;
+  - búsqueda pura y con prueba;
+  - lo editado con un aporte en 0.
+
+  Quedan para el usuario los precios con centavos de los guardados de antes
+  y medir Emails en Bajo y Alto (o subir `maxDuration`).
 
 ## Feature 37 - Sueldos a mes vencido
 
