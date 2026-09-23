@@ -8,6 +8,11 @@ Status: idle
 
 ## Last Closed Features
 
+- 2026-09-23: la 6 (`next` 16.3.5, React 19.3.0, `next-auth` beta.32 y
+  `@auth/prisma-adapter` 2.11.3). Las críticas del audit bajaron de 6 a 0.
+  Detalle en `progress/impl_platform_dependency_patch_review.md`. Mergeada en
+  `main` **sin push**, igual que la 4.
+
 - 2026-09-23: la 28, la 35, la 36, la 37 y de la 38 a la 46 pasaron a `done`.
 - 2026-09-23: la 4 (acciones de settings seguras). Detalle en
   `progress/history.md` y `progress/impl_settings_server_action_auth.md`.
@@ -20,11 +25,14 @@ Status: idle
 ## Auditoría de las `pending` (2026-09-23)
 
 - Se revisaron la 3, 4, 5, 6, 8, 9, 11, 25, 26 y 27 contra sus criterios en
-  `main`. Ninguna estaba hecha. La 4 ya se cerró.
+  `main`. Ninguna estaba hecha. La 4 y la 6 ya se cerraron.
 - Seguridad, a priorizar:
-  - 6: `next` 16.1.1 (sin cambios desde el primer commit) tiene dos RCE
-    críticos corregidos en 16.3.3 o posterior; `next-auth` beta.30 tiene dos
-    críticos corregidos en beta.32. Objetivo: `next` 16.3.6 y React 19.2.8.
+  - `next` 16.3.6: desde el 2026-09-23 a las 16:19 UTC pasa el
+    `minimum-release-age` de pnpm. Es un patch sin cambios para esta app, que
+    no usa `next/og`.
+  - Quedan 22 altas del audit en otras dependencias: nodemailer, postcss (el
+    directo), minimatch, brace-expansion, nanoid, browserslist y otras. No hay
+    feature que las cubra.
   - 3: `actions/budgetCategories/*` no piden sesión, y solo `duplicateBudget`
     mira el dueño del presupuesto. Además, `data/budget.ts`, `budgets.ts` y
     `budgetCategory.ts` siguen siendo `"use server"`: sus lecturas son
