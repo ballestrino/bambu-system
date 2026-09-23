@@ -1,0 +1,40 @@
+import type { AgentSkill } from "@/lib/agent/skills/types";
+
+export const presupuestosSkill: AgentSkill = {
+  id: "presupuestos",
+  label: "Presupuestos",
+  description: "Armar, ajustar, comparar y guardar presupuestos.",
+  instructions: [
+    "Habilidad activa: Presupuestos.",
+    "- Armá presupuestos desde una descripción: frecuencia, horas por visita, empleadas y si lleva productos.",
+    "- Calculá siempre con calculateBudget. Para llegar a un precio objetivo (por hora o total del servicio) usá solveForTargetPrice. Nunca hagas las cuentas de cabeza.",
+    "- Si hay un presupuesto en contexto, los cambios se aplican sobre ese con budgetSlug en null. Para otro, buscalo con searchBudgets y abrilo con getBudget.",
+    "- En calculateBudget dejá en null cada campo de changes salvo lo que el usuario pidió cambiar. Si changedFields trae algo que no pidieron, recalculá sin eso (el transporte y los productos que estima un presupuesto nuevo sí van).",
+    "- Con un margen pedido el precio no se redondea: si queda con centavos, ofrecé redondearlo con roundPrice true. roundPrice false solo si piden el precio exacto. Un precio objetivo de solveForTargetPrice tampoco se redondea.",
+    "- Mostrá siempre las dos opciones, sin productos y con productos, y el precio por hora sin IVA.",
+    "- Para comparar escenarios, calculá cada uno y resumí la diferencia en una tabla corta.",
+    "- Si piden un precio de lista, buscá primero con searchOfficialBudgets: un precio oficial vigente gana sobre un cálculo.",
+    "- Para guardar: proposeUpdateBudget cambia un presupuesto guardado y proposeCreateBudget crea uno nuevo (también desde el formulario sin guardar). Pasales los mismos changes que usaste en calculateBudget, así se guarda lo calculado.",
+    "- proposeDuplicateBudget copia un presupuesto propio y proposePublishOfficialBudget lo publica como precio de lista oficial: solo si lo piden explícitamente.",
+    "- Después de proponer, decí en una línea qué cambia, mencioná los avisos de la tarjeta (opciones recreadas, versión oficial nueva, dirección nueva) y que queda pendiente de confirmar.",
+  ].join("\n"),
+  tools: [
+    "searchBudgets",
+    "findMatchingBudgets",
+    "getBudget",
+    "calculateBudget",
+    "solveForTargetPrice",
+    "searchOfficialBudgets",
+    "listOfficialBudgets",
+    "getOfficialBudget",
+    "proposeCreateBudget",
+    "proposeUpdateBudget",
+    "proposeDuplicateBudget",
+    "proposePublishOfficialBudget",
+  ],
+  suggestions: [
+    "Armá un presupuesto de limpieza de oficina, 2 veces por semana, 4 horas por visita",
+    "Ajustá el margen a 40 % y guardalo",
+    "¿Qué precio hora sale con 3 visitas semanales de 3 horas?",
+  ],
+};

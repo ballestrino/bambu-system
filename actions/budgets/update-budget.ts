@@ -5,9 +5,17 @@ import { db } from "@/lib/db";
 import { BudgetSchema, BudgetFormValues } from "@/schemas/BudgetSchema";
 import { calculateBudgetTotals } from "@/lib/budget-calculations";
 import { revalidatePath } from "next/cache";
+import { BudgetChangedError } from "@/lib/budget-errors";
 import { appendLinkedOfficialBudgetVersion } from "@/lib/official-budgets/versioning";
 
-export const updateBudget = async (id: string, newSlug: string, values: BudgetFormValues) => {
+// expectedUpdatedAt (ISO) guarda solo si el presupuesto no cambió desde esa
+// lectura. Lo usan las propuestas del agente; el formulario no lo manda.
+export const updateBudget = async (
+    id: string,
+    newSlug: string,
+    values: BudgetFormValues,
+    options: { expectedUpdatedAt?: string } = {}
+) => {
     const session = await auth();
 
     if (!session?.user?.id) {
@@ -79,6 +87,16 @@ export const updateBudget = async (id: string, newSlug: string, values: BudgetFo
 
         // Transaction: update budget and recreate options
         const updatedBudget = await db.$transaction(async (tx) => {
+            // 0. Compare-and-set: toma la fila y confirma que nadie la cambió.
+            // Una escritura concurrente hace que el WHERE no coincida.
+            if (options.expectedUpdatedAt) {
+                const unchanged = await tx.budget.updateMany({
+                    where: { id, updatedAt: new Date(options.expectedUpdatedAt) },
+                    data: { updatedAt: new Date() },
+                });
+                if (unchanged.count !== 1) throw new BudgetChangedError();
+            }
+
             // 1. Update core Budget details
             const budget = await tx.budget.update({
                 where: { id },
@@ -172,6 +190,7 @@ export const updateBudget = async (id: string, newSlug: string, values: BudgetFo
 
         return { success: "Actualizado correctamente", slug: updatedBudget.slug, budget: updatedBudget };
     } catch (error) {
+        if (error instanceof BudgetChangedError) return { error: error.message };
         console.error("Error updating budget:", error);
         return { error: "Error al actualizar el presupuesto" };
     }

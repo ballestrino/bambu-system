@@ -75,13 +75,12 @@
       "id": 5,
       "name": "runtime_lazy_sdk_initialization",
       "title": "Lazy initialize runtime SDK clients",
-      "description": "Move OpenAI, Resend, Cloudinary, and runtime URL configuration out of module scope so Next.js build and runtime contexts load safely.",
+      "description": "Move Resend, Cloudinary, and runtime URL configuration out of module scope so Next.js build and runtime contexts load safely. OpenAI access for the agent is already lazy in lib/ai (feature 38) and the legacy AI chat route was removed by feature 41.",
       "acceptance": [
-        "OpenAI, Resend, and Cloudinary clients are created through lazy getters or one-time configuration helpers",
+        "Resend and Cloudinary clients are created through lazy getters or one-time configuration helpers",
         "Environment variables and base URLs are read close to use and fail with clear errors when required values are missing",
-        "The AI chat streaming route imports domain helpers and keeps route-handler logic focused on request parsing, auth, and streaming response",
         "No runtime SDK performs network-client initialization solely because a module was imported",
-        "Verification includes init.ps1 and pnpm build when the environment permits, plus focused smoke for affected AI, email, or upload paths"
+        "Verification includes init.ps1 and pnpm build when the environment permits, plus focused smoke for affected email or upload paths"
       ],
       "status": "pending"
     },
@@ -103,7 +102,7 @@
       "id": 7,
       "name": "ai_chat_modularization",
       "title": "Split AI chat UI, streaming, history, and upload responsibilities",
-      "description": "Reduce the AI chat monolith by moving chat state, history, image upload, rendering, and server message construction into focused modules.",
+      "description": "Superseded by feature 41: the legacy AIChat sheet, its stream route, save-chat, upload-chat-image, and ai-system-message were removed and replaced by the host-agnostic agent under components/agent/**, with chat state, history, rendering, and server logic already split by responsibility.",
       "acceptance": [
         "AIChat.tsx is reduced to a small shell or orchestrator under the repository file-size guidance",
         "Session state, history, and image upload live in focused hooks that can be reasoned about independently",
@@ -112,7 +111,7 @@
         "BudgetContext coupling is isolated behind an adapter instead of being buried throughout reusable UI",
         "Manual smoke covers streaming, abort or error handling, image upload, save history, rename, and delete"
       ],
-      "status": "pending"
+      "status": "done"
     },
     {
       "id": 8,
@@ -644,6 +643,55 @@
         "The AI cost dialog reports this conversation, the current month by model and mode, and unpriced usage",
         "AIChat.tsx, the ai-chat stream route, save-chat, upload-chat-image, and ai-system-message are removed and feature 7 is marked superseded",
         "Loading, empty, error, desktop, and 390x844 states pass authenticated browser smoke with lint and build"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": 42,
+      "name": "agent_page",
+      "title": "Add the agent page to the dashboard with every conversation",
+      "description": "Add /dashboard/agent with a sidebar entry that hosts the same host-agnostic agent components at full width: every conversation of the user in a searchable list with its budget, the saved budget as context for conversations that belong to one, the active conversation in ?conversacion=, and an open-in-page action in the budget sheet, which keeps its behavior. See docs/agent-plan.md.",
+      "acceptance": [
+        "/dashboard/agent renders the agent under the admin-only private layout and the sidebar shows an Agente entry that is active on that route",
+        "The page lists every conversation of the user, from budgets, the create form, and the page, with accent-insensitive search, its budget, cost, rename, and delete, in a side column on desktop and in the history dialog on phones",
+        "Opening a conversation that belongs to a saved budget sends that budget as context on every turn and links to it, while new page conversations carry no budget context",
+        "The active saved conversation is kept in ?conversacion= so reload and links reopen it, an unknown id shows an error with a way to start over, and the sidebar link starts a new conversation",
+        "The budget sheet keeps its per-budget history and its header opens the current conversation in the page, disabled while a response streams",
+        "Mode selector, skill chips, tool cards, proposals, usage line, cost badge, and the AI cost dialog behave on the page as in the sheet",
+        "Focused checks, TypeScript, lint, build, and authenticated browser smoke on desktop and 390x844 pass"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": 43,
+      "name": "agent_budget_editor",
+      "title": "Edit agent budgets in a sheet and save them to the generator",
+      "description": "Calculation cards and create-budget proposals open a sheet with the generator form and the live budget detail. Saving creates the generator budget through a CREATE_BUDGET proposal tied to that tool call (new for a calculation, the pending one revised for a proposal) confirmed in the same action, so it is audited and the agent sees it. Tool outputs carry the full values for the UI and hide them from the model. See docs/agent-plan.md.",
+      "acceptance": [
+        "Calculation cards and create-budget proposal cards offer Ver detalle and Editar, which open a sheet over the chat, also over the budget sheet, with the budget detail and the generator form",
+        "The detail shows the without- and with-products breakdown of the budget page and recalculates live as the form changes",
+        "Guardar en el generador validates the name and values with Spanish messages, reports a taken slug on the name field, and creates the budget with the edited values",
+        "Saving goes through a CREATE_BUDGET proposal tied to that tool call, new for a calculation and the pending one revised for a proposal, confirmed in the same action: idempotent, audited, and listed for the agent in later turns",
+        "After saving, the card and the sheet show the saved budget with links to open and edit it in the generator, and a saved or executing budget is read-only",
+        "calculateBudget, solveForTargetPrice, and proposeCreateBudget return the full values for the UI while the model receives the output without them, and older outputs fall back to their inputs",
+        "Unsaved edits survive closing and reopening the sheet during the session and the card says so",
+        "Focused checks, TypeScript, lint, build, and authenticated browser smoke on desktop and 390x844 pass"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": 44,
+      "name": "agent_pricing_rules",
+      "title": "Round the agent's prices, reuse equal budgets, and answer quote requests with a price",
+      "description": "The agent's calculations and budget proposals raise the monthly service price without IVA to the next multiple of $ 100 through the service margin, estimate transport and products for a new budget with products at the nearest multiple of $ 500 (at least $ 500), and give the hourly price in whole pesos. findMatchingBudgets looks for saved budgets with the same service before a new one is calculated, create proposals warn about them, and the Emails skill answers a quote request with the official, the saved, or a calculated price and proposes saving a calculated one. See docs/agent-plan.md.",
+      "acceptance": [
+        "calculateBudget and the create and update proposals share applyAgentChanges: a new or changed price without IVA goes up to the next multiple of $ 100 by raising the service margin, never down and by less than $ 100, and the tool output and the proposal card say from what to what",
+        "An explicit margin, a target price from solveForTargetPrice, roundPrice false, opening a saved budget, an IVA-only change, and the values edited by hand in the feature 43 editor are not rounded, while roundPrice true rounds an explicit margin",
+        "A new budget estimates transport and products for its own hours unless amounts are given, and every products estimate goes to the nearest multiple of $ 500, at least $ 500",
+        "The hourly price of the agent's calculations is given in whole pesos, and the rounded totals and hourly price are citable while the unrounded price is not",
+        "findMatchingBudgets returns the saved budgets with the same frequency, visits, hours per visit, employees, and products option with their citable stored prices, and a create proposal warns when the same service is already saved",
+        "Skills that calculate budgets search the official price and an equal saved budget before calculating a new one, and the Emails skill answers a quote request with that price and proposes saving a budget it had to calculate",
+        "Focused checks, the agent regression checks, TypeScript, lint, build, and an authenticated smoke with OpenAI pass"
       ],
       "status": "pending"
     }

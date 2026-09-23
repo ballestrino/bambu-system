@@ -1,18 +1,17 @@
 import { Button } from "@/components/ui/button";
 import { Save } from "lucide-react";
 import { AIButton } from "@/components/budgets/create-budget/AiButton";
-import { AIChat } from "@/components/ai/AIChat";
+import { AgentSheetHost } from "@/components/agent/agent-sheet-host";
 import type { UseFormReturn } from "react-hook-form";
 import type { BudgetFormValues } from "@/schemas/BudgetSchema";
 
 interface HeaderProps {
     onSave: () => void;
     isPending: boolean;
-    onGenerateAI: () => void;
     form: UseFormReturn<BudgetFormValues>
 }
 
-export default function Header({ onSave, isPending, onGenerateAI, form }: HeaderProps) {
+export default function Header({ onSave, isPending, form }: HeaderProps) {
     return (
         <div className="flex flex-col md:flex-row gap-4 items-start md:items-center justify-between w-full">
             <div className="flex flex-col">
@@ -30,10 +29,9 @@ export default function Header({ onSave, isPending, onGenerateAI, form }: Header
                     <Save className="mr-2 h-4 w-4" />
                     {isPending ? "Guardando..." : "Guardar Presupuesto"}
                 </Button>
-                <AIChat
-                    trigger={<AIButton onGenerate={onGenerateAI} />}
-                    contextData={form.watch()}
-                />
+                {/* El agente lee el formulario al enviar cada mensaje: sin
+                    re-render por tecla y siempre con los valores del momento. */}
+                <AgentSheetHost trigger={<AIButton />} getFormValues={() => form.getValues()} />
             </div>
         </div>
     )

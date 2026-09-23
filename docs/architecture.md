@@ -23,6 +23,9 @@ occurrences, client payments, operational costs, settings, and AI chat.
 - `app/api/auth/` is reserved for NextAuth route handlers.
 - Add other route handlers only for external integrations, webhooks, uploads,
   or APIs that cannot be represented as Server Actions.
+- `app/api/agent/chat/` streams the Bambú agent as a UI message stream with
+  tool parts, which a Server Action cannot return. It requires an admin
+  session and keeps its logic in `lib/agent/` (see `docs/agent.md`).
 
 ## Data Flow
 

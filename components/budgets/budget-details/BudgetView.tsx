@@ -1,6 +1,6 @@
 "use client"
 
-import { AIChat } from "@/components/ai/AIChat";
+import { AgentSheetHost } from "@/components/agent/agent-sheet-host";
 
 import { BudgetDetails } from "@/components/budgets/budget-details/BudgetDetails";
 import useBudget from "../hooks/useBudget";
@@ -73,7 +73,7 @@ export default function BudgetDetailView({
                     </div>
                 )}
             </div>
-            <AIChat contextData={budget} />
+            <AgentSheetHost budgetId={budget.id} budgetSlug={budget.slug} budgetName={budget.name} />
         </div>
     );
 }

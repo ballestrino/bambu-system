@@ -26,7 +26,8 @@ presupuestos, consejos) y, por ahora, viviendo dentro de Presupuestos.
 1. **Superficie (por ahora)**: el agente reemplaza al chat actual en el mismo
    Sheet de Presupuestos (detalle y crear). Sin ruta nueva ni entrada en el
    sidebar. La página propia queda como mejora posterior; los componentes se
-   hacen independientes del host para que ese paso sea barato.
+   hacen independientes del host para que ese paso sea barato. El 2026-09-21
+   el usuario pidió la página: es la feature 42, y el Sheet se queda.
 2. **Escrituras**: proponer y confirmar. Las tools que persisten nunca escriben
    durante el turno; devuelven una propuesta con Confirmar/Rechazar que ejecuta
    las actions existentes.
@@ -76,6 +77,26 @@ muestran en USD porque OpenAI factura en USD.
 - Uso: `result.totalUsage` suma todos los pasos (tokens de entrada, salida,
   cacheados y de razonamiento; forma exacta a confirmar al instalar).
 
+### Confirmado al instalar (feature 38, 2026-09-18)
+
+- Versiones: `ai@7.0.105`, `@ai-sdk/openai@4.0.69`, `@ai-sdk/react@4.0.108`.
+  pnpm exige 24 horas de publicadas (`minimumReleaseAge`), así que se instaló
+  la última versión que cumplía.
+- `LanguageModelUsage` viene anidado: `inputTokenDetails.{noCacheTokens,
+  cacheReadTokens, cacheWriteTokens}` y `outputTokenDetails.{textTokens,
+  reasoningTokens}`. `outputTokens` ya incluye el razonamiento.
+- gpt-5.6 cobra la escritura de caché a 1,25 veces la entrada. Por eso el uso
+  normalizado, los precios y el override `AI_PRICE_<MODELO>` (cuarto valor
+  opcional) suman `cacheWriteTokens`, y `AgentUsageEvent` (39) también la
+  guarda.
+- gpt-5.6 acepta `none | low | medium | high | xhigh | max`, **no `minimal`**:
+  el título usa `none`.
+- Un turno real por modo (Luna xhigh, Terra high, Sol medium, título none, y
+  `streamText` en Medio) respondió sin advertencias por `@ai-sdk/openai`.
+- `AI_PROVIDER=gateway` es el Vercel AI Gateway. Sin `AI_GATEWAY_API_KEY`
+  autentica con el OIDC del proyecto de Vercel. OpenRouter no entra por ahí:
+  sería un proveedor directo nuevo.
+
 ## Arquitectura
 
 ```text
@@ -114,13 +135,13 @@ Rama `feature/38-ai-model-gateway`.
 
 | Archivo | Contenido |
 | --- | --- |
-| `lib/ai/modes.ts` | Puro. `AgentMode = 'bajo' \| 'medio' \| 'alto'`, `AGENT_MODES` con etiqueta y descripción para la UI, `DEFAULT_MODE_SPECS` (tabla de arriba), `TITLE_MODEL_SPEC` (`gpt-5.6-luna`, reasoning `minimal`) |
+| `lib/ai/modes.ts` | Puro. `AgentMode = 'bajo' \| 'medio' \| 'alto'`, `AGENT_MODES` con etiqueta y descripción para la UI, `DEFAULT_MODE_SPECS` (tabla de arriba), `TITLE_MODEL_SPEC` (`gpt-5.6-luna`, reasoning `none`) |
 | `lib/ai/model-spec.ts` | Puro, sin SDK. `ModelSpec = { mode, provider: 'openai' \| 'gateway', modelId, reasoning, temperature? }` y `resolveModelSpec(mode, env = process.env)`, `resolveDefaultMode(env)` |
 | `lib/ai/providers.ts` | Factories perezosas al estilo `lib/mail-agent/openai-client.ts`: `getOpenAIProvider()` ("Falta configurar OPENAI_API_KEY"), `getGatewayProvider()` (`AI_GATEWAY_API_KEY`), `resolveLanguageModel(spec)` → `openai.responses(id)` o `gateway(id)` |
 | `lib/ai/safety-identifier.ts` | `getAiSafetyIdentifier(namespace: 'agent' \| 'mail', actorId)`; con `'mail'` da el mismo hash que `getMailSafetyIdentifier` (se asserta, el mail no cambia) |
 | `lib/ai/call-settings.ts` | `buildAgentCallSettings(spec, { actorId })` → `{ model, reasoning, temperature, providerOptions: { openai: { store: false, safetyIdentifier, parallelToolCalls: false } } }` |
-| `lib/ai/pricing.ts` | Puro. `MODEL_PRICES: Record<modelId, { inputPerMillion, cachedInputPerMillion, outputPerMillion } \| null>`, override `AI_PRICE_<MODELO>=entrada,cacheada,salida`, `estimateUsageCost(modelId, usage) → { costUsd: number \| null, priced: boolean }`, `formatUsd` |
-| `lib/ai/usage.ts` | Puro. `normalizeUsage(totalUsage)` → `{ inputTokens, outputTokens, cachedInputTokens, reasoningTokens }` (aísla la forma del SDK); `readGatewayCost(providerMetadata)` para cuando el gateway informa costo |
+| `lib/ai/pricing.ts` | Puro. `MODEL_PRICES: Record<modelId, { inputPerMillion, cachedInputPerMillion, cacheWritePerMillion, outputPerMillion }>`, override `AI_PRICE_<MODELO>=entrada,cacheada,salida[,escritura]`, `estimateUsageCost(modelId, usage) → { costUsd: number \| null, priced: boolean }`, `formatUsd` |
+| `lib/ai/usage.ts` | Puro. `normalizeUsage(totalUsage)` → `{ inputTokens, outputTokens, cachedInputTokens, cacheWriteTokens, reasoningTokens }` (aísla la forma del SDK), `sumUsage`; `readGatewayCost(providerMetadata)` para cuando el gateway informa costo |
 | `docs/agent.md` | Contrato de producto y entorno, como `docs/email-agent.md` |
 | `scripts/check-ai-gateway.ts` | `check:ai-gateway` en `package.json` |
 
@@ -129,9 +150,8 @@ Overrides de entorno: `AI_PROVIDER` (`openai` | `gateway`),
 `AI_DEFAULT_MODE`, `AI_GATEWAY_API_KEY`, `AI_PRICE_<MODELO>`. Con proveedor
 `gateway` y modelo sin `/`, se antepone `openai/`.
 
-Cómo se conecta el gateway pendiente, sin tocar código: Vercel AI Gateway u
-OpenRouter vía gateway con `AI_PROVIDER=gateway` y, por ejemplo,
-`AI_MODEL_ALTO=anthropic/claude-...`. Un proveedor directo nuevo (por ejemplo
+Cómo se conecta el gateway pendiente, sin tocar código: Vercel AI Gateway con
+`AI_PROVIDER=gateway` y, por ejemplo, `AI_MODEL_ALTO=anthropic/claude-...`. Un proveedor directo nuevo (por ejemplo
 `@ai-sdk/anthropic`) es un literal más en la unión `provider` y una factory.
 
 Check: defaults por modo (Luna xhigh, Terra high, Sol medium); overrides;
@@ -154,7 +174,7 @@ Rama `feature/39-agent-core`.
   createdAt }` + índice `[conversationId, createdAt]`.
 - `AgentUsageEvent { id, conversationId (Cascade), messageId?, kind enum
   TURN|SKILL|TITLE, mode, modelId, inputTokens, outputTokens,
-  cachedInputTokens, reasoningTokens, costUsd Decimal(12,6)?, priced Boolean,
+  cachedInputTokens, cacheWriteTokens, reasoningTokens, costUsd Decimal(12,6)?, priced Boolean,
   createdAt }` + índices `[conversationId, createdAt]`, `[createdAt]`,
   `[modelId, createdAt]`. El costo se calcula al persistir, así el histórico
   no cambia cuando cambian los precios.
@@ -272,6 +292,34 @@ isStepCount(6)`, `toolChoice: 'auto'`, `maxOutputTokens: 4000`.
 - Agregar una línea a `docs/architecture.md` (Route Boundaries) nombrando
   `/api/agent/chat`.
 
+### Ajustes al implementar (2026-09-18)
+
+- Todas las tools quedan registradas en `streamText` y la habilidad elige las
+  activas con `activeTools` (`resolveSkillToolNames`): el historial puede
+  traer partes de tools de otra habilidad y `convertToModelMessages` las
+  necesita. El tipo de `activeTools` garantiza que el catálogo existe.
+- `queryOperations` es un objeto con `kind` cerrado, no una unión
+  discriminada: OpenAI exige un objeto en la raíz de cada tool.
+- `AgentUsageEvent.conversationId` es SET NULL, no Cascade: borrar una
+  conversación no puede borrar gasto ya hecho. También guarda
+  `cacheWriteTokens`.
+- `maxOutputTokens` es 16.000 por paso (incluye razonamiento; con 4.000 un
+  paso de Luna con xhigh podía quedarse sin respuesta) y `maxDuration` 60 s.
+- `budgetOptionToFormValues` no existía: está en
+  `lib/agent/budget-calculation.ts`, con la misma regla que el formulario de
+  edición. La lectura de conocimiento aprobado quedó en
+  `data/agent/knowledge.ts` (lecturas en `data/`).
+- Confirmado con una ruta de prueba y modelo simulado: dentro de una tool, en
+  pleno streaming, `headers()` y `auth()` funcionan. Las tools reutilizan las
+  lecturas de `data/` con su `requireAdminSession`.
+- Las entradas de las tools son campos obligatorios y nullable, como la tool
+  del correo. Con campos opcionales, la Responses API de OpenAI igual pedía
+  todos y el modelo inventaba valores: en la prueba real mandó
+  `personal_enabled: false` y dio precios entre 14 % y 17 % más bajos. Con `null` = "sin
+  cambio", el mismo pedido pasó de cinco tools y 31 s a una tool y 8 s, con
+  el precio correcto. `changedFields` compara contra la base para que un
+  desvío quede a la vista.
+
 ### Check
 
 `scripts/check-agent-tools.ts` (`check:agent-tools`): round trip
@@ -326,6 +374,87 @@ Rama `feature/40-agent-proposals`.
 - `scripts/check-agent-proposals.ts` (`check:agent-proposals`): builders,
   schemas, expiración, y por texto fuente que `confirm-proposal.ts` contiene
   `requireAdminSession`, `updateMany`, `status: "PENDING"` y las cuatro llamadas.
+
+### Ajustes al implementar la 40 (2026-09-18)
+
+- `toolCallId` es único por conversación (`@@unique([conversationId,
+  toolCallId])`), no global: un proveedor del gateway podría repetir ids
+  entre respuestas, y con un único global el choque devolvería la propuesta
+  de otra conversación.
+- `actorId` es `Cascade`, no `Restrict`: la propuesta ya se borra con la
+  conversación (que cascadea desde el usuario), así que `Restrict` no
+  protegía ninguna auditoría y podía trabar el borrado de un usuario según el
+  orden de los triggers. La auditoría duradera es `AgentAuditEvent`.
+- Los payloads que actúan sobre un presupuesto guardado llevan
+  `baseUpdatedAt`, y el de guardar cambios también `officialBudgetId`. Al
+  confirmar se comparan con una lectura fresca: `updateBudget` reescribe el
+  presupuesto entero, y confirmar una propuesta vieja pisaría cambios hechos
+  después, o publicaría una versión oficial que la tarjeta no anunció.
+- `summary` guarda `changes` (campo, etiqueta, antes y después) en vez de
+  `changedFields`, más `inputs` y `stored` (precios guardados), para que la
+  tarjeta no tenga que recalcular.
+- El aviso de opciones recreadas cuenta los trabajos vinculados a una opción:
+  `Job.sourceBudgetOptionId` es `SET NULL`, así que pierden ese vínculo y
+  siguen con `budgetSnapshot`.
+- El slug se extrajo a `lib/budget-slug.ts` y lo usan `createBudget`,
+  `duplicateBudget` y las propuestas: el chequeo previo y la acción no
+  pueden divergir.
+- `resolveBudgetBase` lee con `getAgentBudget` (`data/agent/budgets.ts`), que
+  trae categorías, vínculo oficial y trabajos por opción: crear uno nuevo
+  desde el presupuesto en contexto conserva sus categorías, y guardar
+  cambios no las borra.
+- Al reintentar o regenerar, las propuestas pendientes de la respuesta
+  descartada vencen (`EXPIRED`, motivo `discarded`): se quedaron sin tarjeta.
+- `listAgentProposals` (`actions/agent/proposals.ts`) se agregó para que la
+  41 lea el estado vivo sin otra acción nueva.
+- Los `console.log` de `createBudget` siguen: son de la feature 3, que exige
+  sacarlos de crear, editar y borrar.
+- Hallazgo de la prueba real: con solo el bloque del prompt, el modelo dio
+  por pendientes propuestas ya confirmadas, rechazadas o vencidas, porque la
+  salida guardada de cada tool dice PENDING y las cuatro propuestas de
+  guardar cambios tenían el mismo título. Ahora el historial que ve el modelo
+  lleva el estado vivo en esa salida (`withLiveProposals`) y cada línea del
+  bloque describe sus cambios. La misma pregunta pasó a responderse bien y
+  sin tools.
+
+### Correcciones de las revisiones de 38, 39 y 40 (2026-09-18)
+
+Las tres revisiones (`progress/review_*.md`) pidieron cambios.
+
+- 38: `AI_PRICE_<MODELO>` valida cada campo (un campo vacío daba precio 0 y
+  se aceptaba hexadecimal). Con tres valores, la escritura de caché se cobra
+  1,25 veces la entrada, como en gpt-5.6. Quedaron anotados el precio
+  promocional de Sol y el vencimiento del OIDC local, y la rama OIDC tiene
+  prueba (`hasGatewayCredentials`).
+- 39 y 40, mismo bloqueante: `calculateBudgetTotals` toma un IVA 0 como 22,
+  pero las acciones guardan el IVA crudo. Los `changes` rechazan IVA ≤ 0, toda
+  base usa el IVA efectivo (`withEffectiveIva`) y el payload de una propuesta
+  exige IVA mayor que 0 al proponer y al confirmar. El formulario manual
+  tiene el mismo problema y queda fuera de estas features.
+- 39: `draftEmail` devuelve solo las fuentes citadas, el top 10 del mes
+  ordena por uso con precio, reenviar un id exige el mismo texto del usuario,
+  las lecturas del Sheet llaman al guard primero, `runTool` pasa todo por
+  `toPlainJson` y el título del modelo no pisa un renombrado (y se genera
+  también al reintentar un primer turno que falló).
+- 40: `updateBudget` acepta `expectedUpdatedAt` y hace compare-and-set en su
+  transacción: cierra la carrera entre la re-validación y la escritura. La
+  tarjeta y los importes citables salen de la fila guardada. Se audita antes
+  de cerrar la propuesta y el cierre tolera una conversación borrada. El
+  vencimiento al regenerar audita solo lo que cambió. El resultado de guardar
+  un vinculado trae `officialBudgetId`, y la tarjeta de duplicar no predice
+  la dirección.
+- Quedan como decisiones o seguimiento: `engines` de Node y el `maxDuration`
+  (con el consumo guardado por paso), el override del modelo del título, los
+  imports de `lib/` a `components/` de tres tools y el IVA 0 del formulario
+  manual.
+- Re-revisión (commit `b6becae`): las tres aprobadas. La 39 marcó que
+  regenerar la primera respuesta podía pisar un renombrado: el título del
+  modelo ahora exige que el actual sea el provisorio del primer mensaje
+  (`needsModelTitle`). También marcaron arreglos sin aserción (la llamada de
+  `selectQuotedSources`, los guards, la condición del título y la tarjeta
+  desde la fila guardada): ahora las tienen, y cada una falla si se revierte
+  su arreglo. Un turno real con Luna confirmó que OpenAI acepta el
+  `exclusiveMinimum` del IVA y que el modelo no manda IVA 0.
 
 ## Feature 41: el agente en el Sheet de Presupuestos
 
@@ -395,9 +524,320 @@ líneas por archivo, patrón TanStack de `components/official-budgets/**`.
   descripción "superseded by feature 41"; feature 5 se acota a Resend y
   Cloudinary y sigue `pending`.
 - Mejora posterior (fuera de este plan, ya preparada por el diseño): página
-  propia `/dashboard/agente` con entrada en el sidebar, reutilizando
-  `AgentChat`; hand-off a `/dashboard/email`; almacén de conocimiento editable;
+  propia con entrada en el sidebar, reutilizando `AgentChat` (es la feature
+  42); hand-off a `/dashboard/email`; almacén de conocimiento editable;
   adjuntar imágenes.
+
+### Ajustes al implementar la 41 (2026-09-21)
+
+- La instancia `Chat` vive en el host (`useAgentSession`) y `useChat` la
+  recibe con `{ chat }`: con `useChat({ id })` dentro del Sheet, cerrarlo
+  desmontaba el chat y perdía la conversación en curso.
+- En vez de refs en `prepareSendMessagesRequest`, el transport es un módulo
+  fijo y modo, habilidad y contexto viajan en el body de cada `sendMessage` y
+  `regenerate`. El lint del compilador de React no acepta refs leídas en
+  render, y así tampoco hacen falta.
+- El host recibe `getFormValues` (se llama al enviar) en vez de
+  `formValues={form.watch()}`: sin re-render por tecla. Los campos inválidos
+  no viajan (`lib/agent/form-context.ts`).
+- En un presupuesto guardado se retoma su última conversación; en crear se
+  arranca una nueva. `budgetSlug` se suma a las props para redirigir si una
+  propuesta confirmada cambia la dirección del presupuesto abierto.
+- Acciones nuevas para el cliente: `actions/agent/usage.ts` (los lectores de
+  `data/agent/usage.ts` son `server-only`) y `actions/agent/settings.ts`
+  (modelo real y modo por defecto, que dependen del entorno del servidor).
+- Cambios en código de 39 y 40: el DTO de propuestas trae `updatedAt` y
+  `unknownOutcome` (EXECUTING de más de 6 minutos, también en el prompt), los
+  grupos de costo traen `priced` (sin precio no es US$ 0,00) y la respuesta
+  detenida se guarda con `stopped` (el paso cortado no informa consumo).
+- Tarjetas de sueldos, tendencia y precios oficiales, además de las del plan:
+  cada `card` que puede devolver una tool tiene componente (lo verifica el
+  check). La de datos del negocio queda solo en chip.
+- Saltos de línea: el Markdown convierte los saltos simples en duros
+  (`lib/agent/markdown-breaks.ts`), como el formato copiado, sin sumar
+  `remark-breaks`.
+
+## Feature 42: la página del agente
+
+Rama `feature/42-agent-page`, encima de la 41. El usuario la pidió el
+2026-09-21: la página propia que había quedado como mejora posterior. "Generar
+con IA" sigue en Presupuestos como acceso rápido y comparte las
+conversaciones con la página.
+
+- Ruta `/dashboard/agent`, en inglés como el resto (`budgets`, `financial`,
+  `email`), bajo el layout privado que ya exige admin. Entrada "Agente" en el
+  sidebar, grupo "Asistente", ícono `Sparkles` (el del botón de IA).
+- `app/(private)/dashboard/agent/page.tsx`: Server Component con `<Suspense>`
+  alrededor del host, que lee la dirección con `useSearchParams`.
+- `agent-page-host.tsx`: dueño de la sesión, a ancho completo y con alto fijo
+  (los mensajes scrollean adentro y el composer queda abajo). En escritorio
+  (`lg`) la lista de conversaciones va en una columna; en el teléfono, en el
+  diálogo de historial de siempre.
+- Historial: `listAgentConversations({ all: true })` trae todas las
+  conversaciones del usuario (las 100 más recientes), cada una con su
+  presupuesto (`budget: { id, name, slug }` en el select). El Sheet sigue
+  listando las de su presupuesto, o las sin presupuesto en crear. La lista sale
+  de `AgentHistoryDialog` a `AgentConversationList` para usarla en los dos
+  lugares.
+- Contexto: una conversación de un presupuesto manda `{ kind: "saved",
+  budgetId }` en cada turno, como el Sheet, y la cabecera linkea al
+  presupuesto. Las nuevas de la página van sin contexto. Las que empezaron en
+  crear siguen sin el formulario, que acá no existe.
+- Dirección: la conversación activa, si ya está guardada, vive en
+  `?conversacion=`. El estado se refleja con `history.replaceState` (sin ida
+  al servidor ni remontar el chat). Un cambio que llega de afuera (el link del
+  sidebar, una dirección pegada) abre esa conversación o arranca una nueva. Un
+  id que no existe muestra el error con "Nueva conversación".
+- Sheet: botón "Abrir en página" en la cabecera, a `?conversacion=<id>` si la
+  conversación ya está guardada. Deshabilitado mientras responde: salir de la
+  pantalla corta el stream.
+- `useAgentSession` recibe un `scope` (`budget`, `no-budget` o `all`) en vez de
+  `budgetId`, guarda la conversación leída al abrir y la expone como
+  `conversation` (título, modo y presupuesto).
+- Sin cambios en la ruta del agente ni en la base: solo el filtro y el select
+  del historial.
+- `check:agent-page` nuevo; `check:agent-sheet` sigue pasando.
+
+Smoke de la 42 (además de las regresiones del Sheet):
+
+1. Sidebar → Agente: conversación nueva, "Sin presupuesto", sugerencias.
+2. Un turno en Bajo: línea de uso, la conversación aparece en la lista y la
+   dirección pasa a `?conversacion=`. Recargar la conserva.
+3. En un presupuesto, un turno en el Sheet → "Abrir en página": la misma
+   conversación con el link al presupuesto, y el turno siguiente manda el
+   contexto `saved`.
+4. Lista: búsqueda sin acentos, presupuesto en la fila, renombrar, diálogo de
+   borrar. Costos de IA y cambio de modo.
+5. `?conversacion=` inválido o ajeno: error con "Nueva conversación". El link
+   del sidebar, estando en una conversación, arranca una nueva.
+6. 390x844: historial en diálogo, targets de 44 px, sin desborde. Claro y
+   oscuro, consola limpia.
+
+### Ajustes al implementar la 42 (2026-09-21)
+
+- La columna del historial no depende de `lg` sino del ancho del panel
+  (container query `@4xl/panel`, 56rem). Con `lg`, a 1024 px con el sidebar
+  abierto el chat quedaba en 383 px, más angosto que el Sheet.
+- La forma del id de conversación pasó a `lib/agent/client-id.ts`, sin
+  dependencias: la usan el schema de la ruta y la dirección de la página, que
+  importa el sidebar (así el sidebar no carga zod ni el schema del agente).
+- `AgentSheetBody` pasó a `AgentSessionBody`: es igual en los dos hosts.
+- La lista y el composer van en `max-w-3xl` (en el Sheet no cambia nada) y los
+  scrolls internos llevan `overscroll-contain`: el wrapper del sidebar mide
+  `min-h-svh` debajo de un nav de 80 px, así que todo el dashboard scrollea
+  80 px de más, y la rueda al final de la lista arrastraba la página.
+- La búsqueda de la página mira también el nombre del presupuesto.
+
+## Feature 43: editar, guardar y ver el detalle de un presupuesto del agente
+
+Rama `feature/43-agent-budget-editor`, encima de la 42. Pedido del usuario el
+2026-09-21: cuando el agente arma un presupuesto, poder editarlo en el
+momento, guardarlo en el generador y ver el detalle en un Sheet. Decidido con
+el usuario: se edita en el Sheet con el formulario del generador, y aplica a
+los cálculos (`calculateBudget`, `solveForTargetPrice`) y a las propuestas de
+crear (`proposeCreateBudget`).
+
+- Tarjetas: "Ver detalle" y "Editar" abren un Sheet a la derecha (también
+  encima del Sheet de Presupuestos) con dos pestañas sobre el mismo
+  formulario: Detalle (los `BudgetDetails` sin y con productos de la página
+  del presupuesto, recalculados en vivo) y Editar (`CreateBudgetForm`, el
+  formulario del generador). El pie tiene los finales y "Guardar en el
+  generador".
+- Valores: las tres tools devuelven `values` (el `BudgetFormValues` completo)
+  para la UI y `toModelOutput` se lo saca al modelo, que ya tiene los
+  insumos. Las salidas viejas, sin `values`, se reconstruyen de sus insumos
+  (alcanza para el cálculo: `nominal_salary` y `products_iva` no entran). El
+  DTO de las propuestas de crear trae sus `values` vivos.
+- Guardar (`actions/agent/save-budget.ts`): valida los valores, que la
+  conversación sea del usuario y que la llamada a tool exista en ella y sea
+  de un presupuesto; si el slug está tomado lo dice en el nombre. Después deja
+  una propuesta CREATE_BUDGET de esa llamada (nueva para un cálculo; la de la
+  propuesta, revisada con los valores editados, si todavía no se ejecutó) y la
+  confirma con `confirmAgentProposal`: una sola escritura aunque se repita,
+  auditada (`proposal.revise` nuevo) y el agente la ve en el bloque de
+  propuestas de los turnos siguientes.
+- Ya guardado (propuesta CONFIRMED) o guardándose (EXECUTING), el Sheet es
+  de solo lectura, con links a abrir y editar el presupuesto en el generador.
+  La tarjeta del cálculo muestra "Guardado en el generador".
+- Los cambios sin guardar quedan en memoria por llamada a tool mientras dure
+  la sesión: cerrar y reabrir el Sheet no los pierde, y la tarjeta avisa.
+- La tarjeta de propuesta muestra el resumen vivo: si se guardó editada, el
+  de lo que se guardó.
+- `check:agent-budget-editor` nuevo.
+
+Smoke de la 43:
+
+1. En la página, "Armá un presupuesto de limpieza de oficina, 2 veces por
+   semana" → tarjeta de cálculo → Ver detalle: sin y con productos iguales a
+   la tarjeta.
+2. Editar: cambiar horas y margen, el detalle y los finales cambian; cerrar y
+   reabrir conserva los cambios. Guardar sin nombre marca el nombre; con uno
+   tomado, también.
+3. Guardar con nombre nuevo: la tarjeta pasa a "Guardado", el presupuesto
+   existe en el generador con esos valores, y el turno siguiente el agente lo
+   conoce.
+4. Una propuesta de crear: Editar, cambiar un valor y guardar la confirma
+   con el cambio (la tarjeta muestra el resumen nuevo).
+5. En el Sheet de un presupuesto, el editor se abre encima y al cerrarlo
+   vuelve al agente. 390x844, claro y oscuro, consola limpia.
+
+### Ajustes al implementar la 43 (2026-09-21)
+
+- `lib/agent/proposals.ts` pasaba las 200 líneas con los `values` del DTO:
+  las precondiciones de confirmar pasaron a `proposal-preconditions.ts`, y
+  `proposals.ts` las reexporta (ningún import cambió).
+- Guardar llama a `confirmAgentProposal` tal cual, sin mover su código: los
+  checks de propuestas no cambian.
+- Los números del formulario llegan como texto: el editor valida con un
+  schema que convierte (`agentBudgetEditorSchema`) y manda lo convertido.
+- Los borradores se anotan con `form.subscribe` (el lint del compilador de
+  React marca `watch`) y solo con el formulario modificado. Los valores
+  armados con los insumos traen el precio calculado: si no, abrir el editor
+  lo recalculaba y contaba como cambio.
+- Hallazgos del smoke: el detalle tenía doble scroll (las tarjetas de la
+  página traen alto máximo propio); cerrar el editor encima del Sheet dejaba
+  el foco en `BODY` (ahora vuelve al botón que lo abrió); un cálculo ya
+  guardado mostraba, después de recargar, los valores del agente y no los
+  guardados (ahora el editor parte de los `values` de su propuesta); el
+  cierre y las pestañas medían 16 y 37 px en el teléfono (ahora 44).
+
+## Feature 44: reglas de precio del agente
+
+Rama `feature/44-agent-pricing-rules`, encima de la 43. Pedido del usuario el
+2026-09-21: no dar precios con números raros, buscar el precio lindo moviendo
+el presupuesto hasta $ 100 (preferentemente hacia arriba), productos en
+múltiplos de $ 500, fijarse si ya hay un presupuesto igual antes de generar
+uno, y al responder un mail que pide presupuesto, buscarlo y, si no existe,
+generarlo para responder con el precio. Decidido con el usuario: el precio
+sube siempre al próximo múltiplo de $ 100 (nunca baja) y los productos van
+al múltiplo de $ 500 más cercano, con un mínimo de $ 500.
+
+No alcanza con el prompt: la regla de precios prohíbe redondear a mano y
+`draftEmail` rechaza importes que no salieron de una tool. El redondeo lo
+hace el cálculo.
+
+- `lib/agent/price-rounding.ts` (puro): `roundUpToPriceStep` (en centavos,
+  para que $ 23.400,00 no suba por coma flotante) y `roundProductsPrice`. Las
+  cifras (`priceStep` 100 y `productsStep` 500) van en el perfil del negocio.
+- `lib/agent/agent-pricing.ts` (puro): `applyAgentChanges(base, changes)`
+  envuelve `applyBudgetChanges` y lo usan `calculateBudget` y las propuestas
+  de crear y guardar, así lo guardado es lo calculado.
+  - Precio lindo: el total mensual del servicio sin IVA sube al próximo
+    múltiplo de $ 100 subiendo el margen, con la cuenta del precio objetivo
+    (`calculateRevenuePercentForServiceTarget`). `rounding` dice de cuánto a
+    cuánto y con qué margen; `changedFields` sigue siendo lo pedido.
+  - Se redondea cuando el precio es nuevo o cambia. No se redondea al abrir
+    uno guardado, con un cambio de IVA solo (no mueve el precio sin IVA), con
+    un margen pedido ni con `roundPrice: false`. `roundPrice: true` redondea
+    también un margen pedido.
+  - Un presupuesto nuevo (`fromDefaults`) estima transporte y productos con
+    sus horas, salvo que vengan los montos: los valores por defecto son de 1
+    visita semanal de 4 horas, y en el smoke de la 43 un presupuesto de 2
+    visitas semanales salió con los productos y el transporte de 1.
+- `applyBudgetChanges`: el estimado de productos va al múltiplo de $ 500 más
+  cercano; `roundPrice` no se copia como campo.
+- `runBudgetCalculation`: el precio por hora va redondeado a pesos, así el
+  modelo lo cita sin redondear a mano. Es citable, como los totales
+  redondeados; el precio sin redondear no.
+- `solveForTargetPrice` estima un presupuesto nuevo pero no redondea: el
+  objetivo es el precio pedido.
+- El editor de la 43 guarda con la fuente `edited`: lo tipeado a mano no pasa
+  por las reglas.
+- `findMatchingBudgets` (lectura, `data/agent/budgets.ts`): presupuestos
+  guardados con la misma frecuencia, visitas, horas por visita y empleadas (y
+  la opción con productos si se pide), los 10 más recientes, con sus precios
+  guardados citables y si son oficiales vigentes. Usa los mismos nombres que
+  `searchOfficialBudgets`. La propuesta de crear avisa si ya hay guardados
+  con el mismo servicio.
+- Prompt: `NEW_BUDGET_RULE` va con las habilidades que calculan (General,
+  Presupuestos y Emails): precio oficial, después uno guardado igual, y recién
+  entonces calcular. Emails suma `findMatchingBudgets` y
+  `proposeCreateBudget`: al responder un pedido de presupuesto sin uno
+  guardado, calcula, redacta con ese precio y propone guardarlo.
+- `MAX_STEPS` pasa de 6 a 8: ese flujo usa 6 pasos (buscar el oficial,
+  buscar uno igual, calcular, redactar, proponer y contestar).
+- `check:agent-pricing` nuevo.
+
+Smoke de la 44:
+
+1. Chip Presupuestos, "Armá un presupuesto de limpieza de oficina, 2 veces
+   por semana, 4 horas por visita" → busca el oficial y uno igual, y calcula:
+   sin IVA en múltiplo de $ 100 con la nota del redondeo, productos en
+   múltiplo de $ 500 y precio por hora en pesos.
+2. "Ajustá el margen a 40 %" no redondea; "redondealo" sí (`roundPrice`).
+3. Chip Emails, pegar un mail que pide presupuesto para un servicio que ya
+   existe → responde con el precio guardado, sin proponer crear.
+4. Otro mail con un servicio que no existe → calcula, redacta con el precio
+   redondeado y propone guardarlo. Rechazar la propuesta.
+
+### Ajustes al implementar la 44 (2026-09-21)
+
+- `budget-calculation.ts` quedaba en 202 líneas: los comentarios se
+  compactaron (199). El redondeo vive en `price-rounding.ts`, que no importa
+  el cálculo, así `applyBudgetChanges` lo usa sin un ciclo con
+  `agent-pricing.ts`.
+- `getStoredPrices` acepta cualquier objeto con opciones (precio, IVA y si
+  lleva productos): lo usan la tarjeta de una propuesta y
+  `findMatchingBudgets`.
+- Hallazgos del smoke: con "2 veces por semana, 4 horas" el agente primero
+  preguntó cuántas empleadas (cambia el precio) y después encontró 6
+  guardados iguales y citó el más reciente. Los guardados de antes de la 44
+  tienen precios con centavos ($ 14.000,15) y se citan tal cual; uno tenía el
+  precio con productos distinto del cálculo (deriva de constantes, anterior a
+  esta feature). Con un margen pedido no redondeó, y lo dijo. Un slug con
+  "Ferretería" perdió la "í" (`lib/budget-slug.ts` borra los acentos en vez
+  de sacarlos): queda como tarea aparte.
+
+### Correcciones de las revisiones de 41, 42, 43 y 44 (2026-09-22)
+
+La 41, la 42 y la 44 se aprobaron con menores; la 43 pidió cambios con tres
+bloqueantes (`progress/review_*.md`).
+
+- 43, bloqueantes:
+  - Lo editado se guardaba con el porcentaje por defecto de un aporte
+    habilitado en 0 (y la 44 además lo redondeaba). La fuente `edited` ya no
+    pasa por `applyBudgetChanges`: se guarda como se tipeó, igual que en el
+    generador.
+  - Un borrador se mostraba sobre una propuesta ya guardada. Guardado o
+    guardándose, el editor muestra `proposal.values`; si se guarda con el
+    editor abierto pasa a lo guardado y descarta el borrador, y en una
+    propuesta pendiente con borrador la tarjeta avisa que Confirmar la guarda
+    sin esos cambios.
+  - El modelo leía como confirmado el resumen de antes de editar, con sus
+    precios citables. `withLiveProposals` pone el resumen y los importes vivos,
+    y el bloque lleva los finales guardados de una propuesta confirmada, que
+    también se pueden citar.
+- 43, menores: el borrador se anota en cada cambio y deja de serlo si vuelve a
+  los valores de la tarjeta; Guardar espera mientras el agente responde; una
+  EXECUTING vieja dice "resultado desconocido" en la tarjeta del cálculo y en
+  el editor; los demás campos del generador validan en castellano; los checks
+  toleran CRLF; `findSavableBudgetCall` llama al guard; los `values` de una
+  propuesta repetida salen de la fila, y el hook del editor pasó a
+  `components/agent/hooks/`.
+- 44: un cambio solo de productos no redondea (se compara el precio del
+  servicio sin IVA); con costos de más de $ 1.000.000 por mes, si el margen de
+  6 decimales no da la centena, no se toca el precio; el aviso de mismo
+  servicio dice "y más" cuando pasan de 10; `PRICE_RULE` nombra a
+  `findMatchingBudgets`; la búsqueda, las filas y el aviso son puros
+  (`lib/agent/matching-budgets.ts`) y tienen prueba, y el guard de la lectura
+  tiene aserción propia.
+- 41: la fila del historial dice "+ sin precio" como el badge; un link
+  `//dominio` es externo; las reglas de la tarjeta de propuesta (estado vivo,
+  cuándo se puede confirmar, cuándo se relee, a dónde se redirige) son puras
+  y tienen prueba, y el check afirma la instancia `Chat` del host y que
+  confirmar relee las propuestas.
+- 42: sin id en la dirección se arranca una nueva también desde "Conversación
+  no encontrada" o mientras abre otra, y la dirección refleja la que no se
+  pudo abrir; borrar desde un historial que se cierra en el medio arranca una
+  nueva igual; "Abrir en página" espera a que la conversación figure
+  guardada; la lista avisa cuando llega al tope, y el check cubre lo que el
+  revisor rompió sin que fallara.
+- Quedan para decidir con el usuario: los precios con centavos de los
+  guardados de antes de la 44 y la opción con productos de un guardado que
+  cambia (44), el `maxDuration` con el flujo largo de Emails sin medir en Bajo
+  ni en Alto (44), y "Abrir en página" desde el Sheet de crear, que deja el
+  formulario sin guardar (42). A confirmar en el navegador: si un
+  `replaceState` durante una navegación pendiente la descarta (42).
 
 ## Verificación
 
@@ -430,18 +870,20 @@ cambia el viewport):
 ## Riesgos y decisiones pendientes
 
 - **Tiempo por turno**: Bajo usa Luna con xhigh y puede ser el modo más lento
-  en un loop con tools. Mitigación: `isStepCount(6)`, salidas compactas,
-  historial a 24 mensajes, título en `after()`, `maxDuration` al máximo del
-  plan (verificar en Vercel; con Fluid compute Hobby permite hasta 300 s) y
-  `AI_REASONING_BAJO` para bajar el esfuerzo si hace falta.
-- **Ids `gpt-5.6-terra` y `gpt-5.6-sol` por `@ai-sdk/openai`**: se pasan
-  como string; confirmar con un turno real por modo al instalar. Fallback:
+  en un loop con tools. Mitigación: `MAX_STEPS` (6 hasta la 43; 8 desde la
+  44, por el flujo de 6 pasos de responder un pedido de presupuesto, medido
+  solo en Medio), salidas compactas, historial a 24 mensajes, título en
+  `after()`, `maxDuration` al máximo del plan (verificar en Vercel; con Fluid
+  compute Hobby permite hasta 300 s) y `AI_REASONING_BAJO` para bajar el
+  esfuerzo si hace falta.
+- **Ids `gpt-5.6-terra` y `gpt-5.6-sol` por `@ai-sdk/openai`**: confirmados
+  con un turno real por modo el 2026-09-18 (el SDK ya los tipa). Fallback:
   `AI_MODEL_<MODO>`.
 - **Precios**: se cargan a mano desde la página de precios de OpenAI; un
   modelo sin precio muestra tokens y "precio no configurado". El costo es una
   estimación salvo que el gateway informe el costo real.
-- **Forma de `totalUsage`**: `normalizeUsage` aísla la forma del SDK; se
-  ajusta al instalar.
+- **Forma de `totalUsage`**: confirmada al instalar (anidada, con escritura
+  de caché); `normalizeUsage` la aísla y `check:ai-gateway` la fija.
 - **`updateBudget`** borra y recrea opciones y publica versión oficial nueva:
   se avisa en la tarjeta y en el texto de confirmación.
 - **`duplicateBudget`** exige ser dueño del presupuesto: la propuesta lo
@@ -515,3 +957,61 @@ cambia el viewport):
   save-chat, upload-chat-image, and ai-system-message are removed and feature 7
   is marked superseded · Loading, empty, error, desktop, and 390x844 states pass
   authenticated browser smoke with lint and build.
+- **42 `agent_page`** — "Add the agent page to the dashboard with every
+  conversation". Acceptance: /dashboard/agent renders the agent under the
+  admin-only private layout and the sidebar shows an Agente entry that is
+  active on that route · The page lists every conversation of the user, from
+  budgets, the create form, and the page, with accent-insensitive search, its
+  budget, cost, rename, and delete, in a side column on desktop and in the
+  history dialog on phones · Opening a conversation that belongs to a saved
+  budget sends that budget as context on every turn and links to it, while new
+  page conversations carry no budget context · The active saved conversation is
+  kept in ?conversacion= so reload and links reopen it, an unknown id shows an
+  error with a way to start over, and the sidebar link starts a new
+  conversation · The budget sheet keeps its per-budget history and its header
+  opens the current conversation in the page, disabled while a response
+  streams · Mode selector, skill chips, tool cards, proposals, usage line, cost
+  badge, and the AI cost dialog behave on the page as in the sheet · Focused
+  checks, TypeScript, lint, build, and authenticated browser smoke on desktop
+  and 390x844 pass.
+- **43 `agent_budget_editor`** — "Edit agent budgets in a sheet and save them
+  to the generator". Acceptance: Calculation cards and create-budget proposal
+  cards offer Ver detalle and Editar, which open a sheet over the chat, also
+  over the budget sheet, with the budget detail and the generator form · The
+  detail shows the without- and with-products breakdown of the budget page and
+  recalculates live as the form changes · Guardar en el generador validates the
+  name and values with Spanish messages, reports a taken slug on the name
+  field, and creates the budget with the edited values · Saving goes through a
+  CREATE_BUDGET proposal tied to that tool call, new for a calculation and the
+  pending one revised for a proposal, confirmed in the same action:
+  idempotent, audited, and listed for the agent in later turns · After saving,
+  the card and the sheet show the saved budget with links to open and edit it
+  in the generator, and a saved or executing budget is read-only ·
+  calculateBudget, solveForTargetPrice, and proposeCreateBudget return the
+  full values for the UI while the model receives the output without them, and
+  older outputs fall back to their inputs · Unsaved edits survive closing and
+  reopening the sheet during the session and the card says so · Focused
+  checks, TypeScript, lint, build, and authenticated browser smoke on desktop
+  and 390x844 pass.
+- **44 `agent_pricing_rules`** — "Round the agent's prices, reuse equal
+  budgets, and answer quote requests with a price". Acceptance:
+  calculateBudget and the create and update proposals share
+  applyAgentChanges: a new or changed price without IVA goes up to the next
+  multiple of $ 100 by raising the service margin, never down and by less
+  than $ 100, and the tool output and the proposal card say from what to what
+  · An explicit margin, a target price from solveForTargetPrice, roundPrice
+  false, opening a saved budget, an IVA-only change, and the values edited by
+  hand in the feature 43 editor are not rounded, while roundPrice true rounds
+  an explicit margin · A new budget estimates transport and products for its
+  own hours unless amounts are given, and every products estimate goes to the
+  nearest multiple of $ 500, at least $ 500 · The hourly price of the agent's
+  calculations is given in whole pesos, and the rounded totals and hourly
+  price are citable while the unrounded price is not · findMatchingBudgets
+  returns the saved budgets with the same frequency, visits, hours per visit,
+  employees, and products option with their citable stored prices, and a
+  create proposal warns when the same service is already saved · Skills that
+  calculate budgets search the official price and an equal saved budget
+  before calculating a new one, and the Emails skill answers a quote request
+  with that price and proposes saving a budget it had to calculate · Focused
+  checks, the agent regression checks, TypeScript, lint, build, and an
+  authenticated smoke with OpenAI pass.
