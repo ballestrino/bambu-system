@@ -9,8 +9,8 @@ Status: idle
 ## Last Closed Features
 
 - 2026-09-23: la 3 (permisos de presupuestos y categorías, compartidos entre
-  admins). Detalle en `progress/impl_budget_authorization_contracts.md`. En
-  la rama `feature/3-budget-authorization`, sin mergear.
+  admins). Detalle en `progress/impl_budget_authorization_contracts.md`.
+  Mergeada en `main` (`59f932d`) **sin push**, igual que la 4 y la 6.
 
 - 2026-09-23: la 6 (`next` 16.3.5, React 19.3.0, `next-auth` beta.32 y
   `@auth/prisma-adapter` 2.11.3). Las críticas del audit bajaron de 6 a 0.
