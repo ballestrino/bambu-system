@@ -439,7 +439,7 @@
         "Financial rules, calculations, permissions, and persistence contracts do not change",
         "Loading, retryable error, empty, direct-link, keyboard, desktop, and 390x844 browser states plus lint and build when available are verified"
       ],
-      "status": "pending"
+      "status": "done"
     },
     {
       "id": 29,
@@ -549,7 +549,7 @@
         "Each employee can declare the hours or days she cannot take services, and those tramos are excluded from the free slots and flag the visits that fall there",
         "Focused schedule, availability and schedule PDF checks, TypeScript, lint, harness and a production build pass"
       ],
-      "status": "in_progress"
+      "status": "done"
     },
     {
       "id": 36,
@@ -565,7 +565,7 @@
         "Financial calculations, KPIs, permissions, and persistence contracts do not change, and shared dialogs, filters, and summaries stay backward compatible for their other callers",
         "check:finance-tables, the existing finance checks, TypeScript, lint, harness, a production build, and authenticated desktop plus 390-pixel browser smoke are recorded"
       ],
-      "status": "pending"
+      "status": "done"
     },
     {
       "id": 37,
@@ -579,7 +579,7 @@
         "Each payroll screen states which month's hours it is settling",
         "check:finance covers the previous-month rule including the year boundary, plus TypeScript, lint, harness, and authenticated browser smoke"
       ],
-      "status": "pending"
+      "status": "done"
     },
     {
       "id": 38,
@@ -595,7 +595,7 @@
         "Switching a mode to the Vercel AI Gateway or another vendor is an environment change only",
         "Focused gateway checks, TypeScript, lint, and build when available are recorded"
       ],
-      "status": "pending"
+      "status": "done"
     },
     {
       "id": 39,
@@ -612,7 +612,7 @@
         "/api/agent/chat requires an admin session, validates mode, skill, and body, persists UIMessages with parts and per-turn usage events with estimated cost in onEnd, and stays thin",
         "Focused tool, skill, and prompt checks, Prisma validate, migration verification, TypeScript, lint, and build are recorded"
       ],
-      "status": "pending"
+      "status": "done"
     },
     {
       "id": 40,
@@ -626,7 +626,7 @@
         "Rejection, expiry after 24 hours, and audit events are recorded",
         "Focused proposal checks, TypeScript, lint, and build are recorded"
       ],
-      "status": "pending"
+      "status": "done"
     },
     {
       "id": 41,
@@ -644,7 +644,7 @@
         "AIChat.tsx, the ai-chat stream route, save-chat, upload-chat-image, and ai-system-message are removed and feature 7 is marked superseded",
         "Loading, empty, error, desktop, and 390x844 states pass authenticated browser smoke with lint and build"
       ],
-      "status": "pending"
+      "status": "done"
     },
     {
       "id": 42,
@@ -660,7 +660,7 @@
         "Mode selector, skill chips, tool cards, proposals, usage line, cost badge, and the AI cost dialog behave on the page as in the sheet",
         "Focused checks, TypeScript, lint, build, and authenticated browser smoke on desktop and 390x844 pass"
       ],
-      "status": "pending"
+      "status": "done"
     },
     {
       "id": 43,
@@ -677,7 +677,7 @@
         "Unsaved edits survive closing and reopening the sheet during the session and the card says so",
         "Focused checks, TypeScript, lint, build, and authenticated browser smoke on desktop and 390x844 pass"
       ],
-      "status": "pending"
+      "status": "done"
     },
     {
       "id": 44,
@@ -693,7 +693,33 @@
         "Skills that calculate budgets search the official price and an equal saved budget before calculating a new one, and the Emails skill answers a quote request with that price and proposes saving a budget it had to calculate",
         "Focused checks, the agent regression checks, TypeScript, lint, build, and an authenticated smoke with OpenAI pass"
       ],
-      "status": "pending"
+      "status": "done"
+    },
+    {
+      "id": 45,
+      "name": "agent_modes_gpt6",
+      "title": "Move the agent modes to GPT-6 and retire Bajo",
+      "description": "Medio becomes gpt-6-luna with xhigh reasoning, which reasons better than gpt-5.6-terra with high and costs less, and Alto becomes gpt-6-sol with medium, cheaper than Terra. Bajo is retired: conversations saved in Bajo continue in Medio, while past messages and usage events keep their recorded mode and model. See docs/agent.md.",
+      "acceptance": [
+        "The mode selector, the route schema, AI_DEFAULT_MODE, and the AI_MODEL_* and AI_REASONING_* overrides only accept Medio and Alto, and Medio is gpt-6-luna xhigh while Alto is gpt-6-sol medium",
+        "A conversation saved in Bajo opens and continues in Medio, and past usage lines and cost reports still say Bajo and the gpt-5.6 model they used",
+        "The price table has gpt-6-luna and gpt-6-sol from the OpenAI pricing page, and model labels tell gpt-6 and gpt-5.6 apart",
+        "The conversation title uses gpt-6-luna with medium reasoning and room in its output tokens for it, every usage event records its reasoning, and the AI cost dialog groups by model and reasoning (Luna 6 Extra alto) with titles in their own row",
+        "check:ai-gateway, the agent regression checks, TypeScript, lint, build, and an authenticated smoke with OpenAI in Medio and Alto pass"
+      ],
+      "status": "done"
+    },
+    {
+      "id": 46,
+      "name": "agent_price_format_and_default_employee",
+      "title": "Quote prices as $ X + IVA and assume one employee",
+      "description": "The agent writes a service price as its amount without IVA followed by + IVA, in the chat and in draftEmail, instead of listing the price without IVA and the price with IVA. When the user or the client's email does not say how many employees a service has, the agent assumes one instead of asking, also when it looks for an official price. See docs/agent.md.",
+      "acceptance": [
+        "The chat instructions and the draftEmail instructions quote prices as $ X + IVA with the amount without IVA, never as Precio sin IVA and Precio con IVA, and the Literal E note stays under the prices",
+        "Without a number of employees the agent calculates and searches with one employee without asking, and searchOfficialBudgets from the agent treats a null employees as one while the mail agent search is unchanged",
+        "Focused checks, the agent regression checks, TypeScript, lint, and build pass, and the user runs the smoke with OpenAI"
+      ],
+      "status": "done"
     }
   ]
 }

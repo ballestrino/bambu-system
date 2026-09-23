@@ -25,6 +25,11 @@ actualiza con cada feature.
 - Feature 44: reglas de precio. El precio sin IVA sube al próximo múltiplo de
   $ 100, los productos van en múltiplos de $ 500, antes de calcular uno nuevo
   se busca uno igual, y Emails responde un pedido de presupuesto con precio.
+- Feature 45: los modos pasan a gpt-6. Medio es `gpt-6-luna` con `xhigh`
+  (razona mejor que `gpt-5.6-terra` con `high` y cuesta menos) y Alto es
+  `gpt-6-sol` con `medium`, también más barato que Terra. Bajo se retiró.
+- Feature 46: los precios se escriben "$ 54.100 + IVA" y, si no dicen cuántas
+  empleadas, el agente asume 1 sin preguntar.
 - El agente de correo (`lib/mail-agent/**`) no usa esta capa y no cambia.
 
 ## Núcleo (feature 39)
@@ -79,7 +84,7 @@ actualiza con cada feature.
 - El conocimiento aprobado del correo (organización, políticas y estilo, sin
   contactos) entra al prompt como solo lectura.
 - `maxDuration` es 60 s (Hobby sin Fluid compute). Con Fluid activo se puede
-  subir a 300 si los turnos de Bajo lo necesitan. El consumo se guarda en
+  subir a 300 si los turnos de Medio (`xhigh`) lo necesitan. El consumo se guarda en
   `onEnd`: si Vercel corta la función por `maxDuration`, el de ese turno se
   pierde (decisión pendiente junto con el valor de `maxDuration`).
 - Una respuesta detenida (Stop o pedido cortado) se guarda con lo que llegó y
@@ -206,7 +211,7 @@ el contexto y el botón que lo abre.
 - Cada tool se ve como un chip con su tipo (Lectura, Cálculo, Propuesta,
   Borrador) y al terminar su tarjeta, según `card`. Un error de la tool se
   muestra sin alarma: el modelo suele corregirse.
-- Cada respuesta cierra con "Terra · Medio · 3,2k tokens · US$ 0,03" (o
+- Cada respuesta cierra con "Luna 6 · Medio · 3,2k tokens · US$ 0,03" (o
   "precio no configurado"). Una detenida lo dice, también al recargar.
 - La tarjeta de correo copia como email (texto y HTML), WhatsApp o Markdown
   con `getChatCopyPayload` (`lib/ai-chat-copy.ts`), más el asunto.
@@ -383,20 +388,73 @@ Presupuestos iguales y pedidos de presupuesto:
   bandeja.
 - `MAX_STEPS` es 8: ese flujo usa 6 pasos (buscar el oficial, buscar uno
   igual, calcular, redactar, proponer y contestar). En el smoke tardó 26 s en
-  Medio; el turno más largo fue de 32 s. Falta medirlo en Bajo y en Alto: con
+  Medio con `gpt-5.6-terra`; el turno más largo fue de 32 s. Falta medirlo con
+  los modos de la feature 45 (Medio ahora razona con `xhigh`): con
   `maxDuration` en 60 s, sigue abierta la decisión de subirlo (ver "Núcleo").
+
+## Formato de precio y empleadas (feature 46)
+
+- `PRICE_FORMAT_RULE` (`lib/agent/system-prompt.ts`) va en el tono del chat y
+  en las reglas de `draftEmail`: el precio de un servicio es el importe sin
+  IVA seguido de "+ IVA" ("$ 54.100 + IVA", también el precio por hora). Nunca
+  "Precio sin IVA" y "Precio con IVA", ni el importe con IVA salvo que lo
+  pidan. En un correo: "Opción 1 (sin productos): $ X + IVA" y "Opción 2 (con
+  productos): $ Y + IVA", o "Precio: $ X + IVA" con una sola. La nota de
+  Literal E sigue debajo de los precios.
+- Los importes permitidos le llegan a `draftEmail` sin ",00" ("$ 54.100"), así
+  el modelo no los copia con centavos. El validador acepta "+ IVA" después
+  del importe.
+- Las tarjetas de la UI no cambian: siguen mostrando sin y con IVA.
+- Empleadas: si el pedido o el correo del cliente no dice cuántas, es 1 y no
+  se pregunta (`NEW_BUDGET_RULE`, las habilidades Presupuestos y Emails y el
+  perfil del negocio). `searchOfficialBudgets` del agente busca con 1 cuando
+  llega `null`; antes quedaba `incomplete` y el agente preguntaba. La búsqueda
+  compartida (`lib/official-budgets/search.ts`) no cambia: el agente de correo
+  sigue tratando `null` como dato faltante. `findMatchingBudgets` y
+  `calculateBudget` ya usaban 1.
 
 ## Modos
 
 | Modo | Modelo | Razonamiento | Uso |
 | --- | --- | --- | --- |
-| Bajo | `gpt-5.6-luna` | `xhigh` | El más económico; razona a fondo, puede tardar más |
-| Medio (default) | `gpt-5.6-terra` | `high` | Equilibrio entre calidad, velocidad y costo |
-| Alto | `gpt-5.6-sol` | `medium` | La mejor calidad para análisis y presupuestos complejos |
-| Título (interno) | `gpt-5.6-luna` | `none` | Nombre corto de la conversación |
+| Medio (default) | `gpt-6-luna` | `xhigh` | Económico y razona a fondo; el de todos los días |
+| Alto | `gpt-6-sol` | `medium` | La mejor calidad para análisis y presupuestos complejos |
+| Título (interno) | `gpt-6-luna` | `medium` | Nombre corto de la conversación, con `after()` |
 
-- La familia gpt-5.6 acepta `none`, `low`, `medium`, `high`, `xhigh` y `max`.
-  No acepta `minimal`, por eso el título usa `none`. `max` no existe en la
+- Desde la feature 45 (2026-09-23). Antes eran Bajo (`gpt-5.6-luna`,
+  `xhigh`), Medio (`gpt-5.6-terra`, `high`) y Alto (`gpt-5.6-sol`,
+  `medium`). Luna 6 con `xhigh` razona mejor que Terra con `high` a una
+  fracción del precio, así que Bajo dejó de tener lugar.
+- Bajo está retirado (`RETIRED_AGENT_MODES`, `lib/ai/modes.ts`): no se elige,
+  la ruta lo rechaza y `AI_DEFAULT_MODE=bajo` es un error. Sigue en el enum
+  `AgentMode` de la base porque lo nombra el historial. Una conversación
+  guardada en Bajo se abre en Medio (`fromDbAgentMode`) y lo guarda en su
+  próximo turno; los mensajes y consumos viejos conservan Bajo y su modelo
+  (`fromDbRecordedMode`), así la línea de uso y "Costos de IA" dicen lo que
+  se usó.
+- Las etiquetas llevan la generación: `gpt-6-luna` es "Luna 6" y
+  `gpt-5.6-luna` es "Luna 5.6" (`formatModelLabel`); con el razonamiento,
+  "Luna 6 Extra alto" (`formatModelWithReasoning`, `REASONING_LABELS`).
+- Los turnos y los borradores de `draftEmail` van con el modo (Medio es Luna
+  6 con `xhigh`). El título es una tarea chica y va con `medium`, con 8.000
+  tokens de salida (`TITLE_MAX_OUTPUT_TOKENS`): el razonamiento cuenta dentro
+  de ese tope, y con los 60 de antes no quedaba lugar para el título. Corre
+  con `after()`, así que no demora la respuesta. Hasta el 2026-09-23 el
+  título era `gpt-5.6-luna` sin razonamiento.
+- Cada `AgentUsageEvent` guarda el razonamiento pedido (`reasoning`, desde
+  la migración `20260923160000_agent_usage_reasoning`). "Costos de IA" lo
+  muestra junto al modelo: por conversación, "Turno · Luna 6 Extra alto · 3
+  turnos"; en el mes, una fila por modelo, razonamiento y modo ("Luna 6 Extra
+  alto · Medio", turnos y borradores juntos) y los títulos aparte ("Luna 6
+  Medio · Títulos", `buildMonthlyCostRows` en `lib/agent/usage-rows.ts`). Los
+  consumos anteriores tienen `reasoning` en NULL y se muestran solo con el
+  modelo ("Terra 5.6 · Medio").
+- El único registro de `gpt-4.1-mini` es del smoke de la 41, que probó un
+  modelo sin precio con `AI_MODEL_BAJO`.
+- gpt-6 y gpt-5.6 aceptan `none`, `low`, `medium`, `high`, `xhigh` y `max`
+  según OpenAI (gpt-5.6 no acepta `minimal`). Pero `@ai-sdk/openai` 4.0.69
+  solo manda `low`, `medium`, `high`, `xhigh` y `max` a gpt-6: descarta `none`
+  con un aviso y el modelo usa su default (`medium`). `max` no existe en la
   opción agnóstica `reasoning` del AI SDK.
 - El modo se elige por conversación y aplica a los turnos siguientes.
 
@@ -431,16 +489,16 @@ Reglas:
 | `OPENAI_API_KEY` | — | Requerida con `AI_PROVIDER=openai` |
 | `AI_PROVIDER` | `openai` | `openai` (directo, Responses API) o `gateway` (Vercel AI Gateway) |
 | `AI_GATEWAY_API_KEY` | — | Clave del gateway. Sin ella se usa el OIDC del proyecto de Vercel: existe en los deploys y en local después de `vercel env pull`. El token local vence a las 12 horas; vencido, la llamada falla hasta volver a correr `vercel env pull` |
-| `AI_DEFAULT_MODE` | `medio` | `bajo`, `medio` o `alto` |
-| `AI_MODEL_<MODO>` | tabla de modos | Id del modelo de `BAJO`, `MEDIO` o `ALTO` |
+| `AI_DEFAULT_MODE` | `medio` | `medio` o `alto` |
+| `AI_MODEL_<MODO>` | tabla de modos | Id del modelo de `MEDIO` o `ALTO`. `AI_MODEL_BAJO` y `AI_REASONING_BAJO` ya no se leen |
 | `AI_REASONING_<MODO>` | tabla de modos | `provider-default`, `none`, `minimal`, `low`, `medium`, `high` o `xhigh` |
-| `AI_PRICE_<MODELO>` | tabla de precios | `entrada,cacheada,salida[,escritura]` en USD por millón, con punto decimal. Sin el cuarto valor, la escritura de caché se cobra 1,25 veces la entrada, como en gpt-5.6. Un campo vacío, una coma de más, hexadecimal o exponente lanzan un error |
+| `AI_PRICE_<MODELO>` | tabla de precios | `entrada,cacheada,salida[,escritura]` en USD por millón, con punto decimal. Sin el cuarto valor, la escritura de caché se cobra 1,25 veces la entrada, como en gpt-6 y gpt-5.6. Un campo vacío, una coma de más, hexadecimal o exponente lanzan un error |
 
 - Una variable vacía cuenta como no configurada. Un valor inválido lanza un
   error que nombra la variable; no se ignora en silencio.
 - Con `AI_PROVIDER=openai`, un modelo con `/` es un error: pide el gateway.
 - `<MODELO>` es el id en mayúsculas con todo lo que no sea letra o número
-  cambiado por `_`: `gpt-5.6-terra` → `AI_PRICE_GPT_5_6_TERRA`.
+  cambiado por `_`: `gpt-6-luna` → `AI_PRICE_GPT_6_LUNA`.
 
 ### Cambiar de modelo o proveedor sin tocar código
 
@@ -451,7 +509,7 @@ AI_PRICE_ANTHROPIC_CLAUDE_SONNET_5=3,0.3,15,3.75
 ```
 
 - Con el gateway, un id sin `/` se manda como `openai/<id>`: los modos que no
-  se tocan siguen en gpt-5.6.
+  se tocan siguen en gpt-6.
 - `reasoning` es agnóstico: el SDK lo traduce al equivalente de cada
   proveedor. Las opciones `providerOptions.openai` se ignoran con otros.
 - Un proveedor directo nuevo (por ejemplo `@ai-sdk/anthropic`) es un literal
@@ -460,19 +518,20 @@ AI_PRICE_ANTHROPIC_CLAUDE_SONNET_5=3,0.3,15,3.75
 ## Costos
 
 Precios del tier Standard, contexto corto, tomados de
-<https://developers.openai.com/api/docs/pricing> el 2026-09-18, en USD por
-millón de tokens:
+<https://developers.openai.com/api/docs/pricing> (gpt-6 el 2026-09-23,
+gpt-5.6 el 2026-09-18), en USD por millón de tokens:
 
 | Modelo | Entrada | Entrada cacheada | Escritura de caché | Salida |
 | --- | --- | --- | --- | --- |
+| `gpt-6-luna` | 0.10 | 0.01 | 0.125 | 0.50 |
+| `gpt-6-sol` | 2.00 | 0.20 | 2.50 | 10.00 |
 | `gpt-5.6-luna` | 0.20 | 0.02 | 0.25 | 1.20 |
 | `gpt-5.6-terra` | 2.00 | 0.20 | 2.50 | 12.00 |
 | `gpt-5.6-sol` | 4.00 | 0.40 | 5.00 | 20.00 |
 
-- El precio de Sol es promocional "at least through November 21, 2026",
-  según la página de precios. Cuando cambie, actualizar `MODEL_PRICES` o
-  fijarlo con `AI_PRICE_GPT_5_6_SOL`: hasta entonces el costo de Alto se
-  registra con el precio promocional y queda fijo.
+- gpt-5.6 queda en la tabla para volver a un modo con `AI_MODEL_*`. El precio de `gpt-5.6-sol` es promocional "at least through
+  November 21, 2026", según la página de precios; si se vuelve a usar y
+  cambia, actualizar `MODEL_PRICES` o fijarlo con `AI_PRICE_GPT_5_6_SOL`.
 - Costo = (entrada − cacheada − escritura) × entrada + cacheada × cacheada +
   escritura × escritura + salida × salida. Los tokens de razonamiento ya están
   dentro de la salida y no se cobran dos veces.
@@ -500,9 +559,13 @@ millón de tokens:
 
 ## Verificación
 
-- `pnpm check:ai-gateway`: modos, overrides, prefijo del gateway, errores de
-  entorno, identificador de seguridad igual al del correo, settings con
-  `store: false`, costos con y sin precio, overrides de precio mal escritos
+- `pnpm check:ai-gateway`: modos (Medio y Alto en gpt-6, Bajo rechazado en la
+  ruta y el entorno, una conversación en Bajo abre en Medio, el historial
+  conserva Bajo, el enum de la base con todos los modos y las etiquetas de
+  cada generación, en `scripts/ai-mode-checks.ts`), overrides, prefijo del
+  gateway, errores de entorno, identificador de seguridad igual al del
+  correo, settings con `store: false`, costos con y sin precio (Luna 6 y
+  Sol 6 más baratos que Terra), overrides de precio mal escritos
   (campos vacíos, coma de más, hexadecimal, exponente), la escritura de caché
   por defecto (1,25 veces la entrada), credenciales del gateway con clave u
   OIDC, uso normalizado, costo del gateway y, por texto fuente, que los
@@ -528,8 +591,10 @@ millón de tokens:
   claim de `confirm-proposal.ts`, el compare-and-set de `updateBudget`, la
   auditoría antes del cierre, el vencimiento condicional por propuesta y que
   la migración es aditiva. IVA 0 se rechaza al proponer y al confirmar.
-- `pnpm check:agent-pricing`: los redondeos (centavos, nunca hacia abajo,
-  productos al más cercano con mínimo), un presupuesto nuevo (estimados,
+- `pnpm check:agent-pricing`: el formato "$ X + IVA" en el chat y en
+  `draftEmail` y la empleada por defecto (en
+  `scripts/agent-price-format-checks.ts`), los redondeos (centavos, nunca
+  hacia abajo, productos al más cercano con mínimo), un presupuesto nuevo (estimados,
   precio en centenas, `rounding`, margen, precio por hora en pesos), montos
   dados, margen pedido, `roundPrice` en sus tres valores, guardado, IVA solo,
   productos solos y formulario sin redondeo, costos de más de $ 1.000.000,
@@ -540,7 +605,10 @@ millón de tokens:
   precios, el prompt por habilidad y, por texto fuente, quién usa
   `applyAgentChanges`, el guard y el grounding de la búsqueda, `MAX_STEPS`,
   las tarjetas y el tamaño de los archivos.
-- `pnpm check:agent-sheet`: el cuerpo del pedido pasa el schema de la ruta
+- `pnpm check:agent-sheet`: los costos por modelo y razonamiento (etiquetas,
+  filas del mes con los títulos aparte, que cada llamada guarda su
+  razonamiento y la migración aditiva, en `scripts/agent-usage-rows-checks.ts`),
+  el cuerpo del pedido pasa el schema de la ruta
   (envío, reintento y formulario), el formulario sin campos inválidos, la
   lectura de errores, la línea de uso, los saltos de línea del Markdown, el
   resultado desconocido (DTO y prompt), las dos formas de confirmar, las
