@@ -43,8 +43,9 @@ assert.equal(rows[2].reasoning, "high");
 assert.deepEqual([rows[3].titles, rows[3].reasoning, rows[3].priced], [true, null, false]);
 
 // --- Source text: every call records its reasoning, the store saves it, the
-// reports group by it, and the migration only adds a nullable column.
-const source = (path: string) => readFileSync(join(process.cwd(), path), "utf8");
+// reports group by it, and the migration only adds a nullable column. Un
+// checkout con core.autocrlf deja CRLF: se normaliza.
+const source = (path: string) => readFileSync(join(process.cwd(), path), "utf8").replace(/\r\n/g, "\n");
 ["lib/agent/run.ts", "lib/agent/tools/email.ts", "lib/agent/conversation-title.ts"].forEach((path) =>
   assert.match(source(path), /reasoning: spec\.reasoning,/, path)
 );
