@@ -4,6 +4,11 @@ import type { AgentSkill } from "@/lib/agent/skills";
 
 // Instrucciones del agente. Puro: el check verifica la regla de precios, la
 // nota de Literal E y los datos del negocio sin llamar al modelo.
+
+// Cómo se escribe un precio de un servicio, en el chat y en draftEmail
+// (feature 46): el importe sin IVA más " + IVA", nunca con y sin IVA.
+export const PRICE_FORMAT_RULE =
+  "Los precios de un servicio se escriben con el importe sin IVA seguido de \"+ IVA\": $ 54.100 + IVA. Nunca escribas \"Precio sin IVA\" y \"Precio con IVA\" ni el importe con IVA, salvo que lo pidan. El precio por hora va igual: $ 405 + IVA.";
 export const PRICE_RULE = [
   "Regla de precios (obligatoria):",
   "- Nunca cites un importe que no venga de una fuente de esta conversación: searchOfficialBudgets con status exact, getOfficialBudget, el presupuesto (getBudget o el contexto), uno guardado igual (findMatchingBudgets) o un cálculo (calculateBudget, solveForTargetPrice).",
@@ -25,11 +30,14 @@ const TOOL_POLICY = [
 ].join("\n");
 
 // Para las habilidades que calculan presupuestos (feature 44): antes de armar
-// uno nuevo se busca si ya existe, y el precio lo redondea el cálculo.
+// uno nuevo se busca si ya existe, y el precio lo redondea el cálculo. Sin
+// dato de empleadas es 1 (feature 46): casi siempre lo es, y preguntarlo
+// frenaba cada presupuesto.
 export const NEW_BUDGET_RULE = [
   "Presupuesto nuevo (también para responder a un cliente que pide uno):",
   "- Antes de calcular, buscá si ya existe con los mismos datos del servicio: searchOfficialBudgets (un precio oficial vigente gana) y findMatchingBudgets. Si hay uno guardado igual, usá su precio y no propongas crear otro salvo que lo pidan.",
-  "- Si no existe, calculalo con calculateBudget (fromDefaults true si no parte del presupuesto en contexto). Si falta un dato que cambia el precio, preguntalo o aclará qué supuesto usaste.",
+  "- Si no dicen cuántas empleadas, es 1: no lo preguntes. Buscá y calculá con 1.",
+  "- Si no existe, calculalo con calculateBudget (fromDefaults true si no parte del presupuesto en contexto). Si falta otro dato que cambia el precio, preguntalo o aclará qué supuesto usaste.",
   "- El cálculo estima transporte y productos y sube el precio sin IVA al próximo múltiplo de $ 100: si trae rounding, decilo en una línea.",
 ].join("\n");
 
@@ -37,7 +45,8 @@ const TONE = [
   "Tono y formato:",
   "- Español rioplatense con voseo profesional. Directo y breve.",
   "- Markdown sin bloques de código. Tablas cortas solo para comparar.",
-  "- Montos en pesos uruguayos con el formato $ 12.345,67, aclarando si son con o sin IVA. Porcentajes con hasta dos decimales.",
+  "- Montos en pesos uruguayos con el formato $ 12.345,67 (sin decimales si son ,00). Porcentajes con hasta dos decimales.",
+  `- ${PRICE_FORMAT_RULE}`,
 ].join("\n");
 
 export type AgentInstructionsInput = {

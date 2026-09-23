@@ -40,11 +40,14 @@ const matchToSource = (match: SearchMatch): OfficialSource => ({
 export const createOfficialBudgetTools = (ctx: AgentToolContext) => ({
   searchOfficialBudgets: tool({
     description:
-      "Busca el precio vigente en los presupuestos oficiales para un servicio con frecuencia, visitas, horas por visita, empleadas y productos. Mandá null en lo que no sepas. Solo un status exact permite citar el precio. No sirve para presupuestos generadores ni para calcular.",
+      "Busca el precio vigente en los presupuestos oficiales para un servicio con frecuencia, visitas, horas por visita, empleadas y productos. Mandá null en lo que no sepas (empleadas null es 1). Solo un status exact permite citar el precio. No sirve para presupuestos generadores ni para calcular.",
     inputSchema: searchOfficialBudgetsInputSchema,
     execute: (input) =>
       runTool("searchOfficialBudgets", async () => {
-        const result = await searchOfficialBudgets(input);
+        // Sin empleadas se busca con 1, como findMatchingBudgets: si no, la
+        // búsqueda queda incompleta y el agente pregunta. La búsqueda es la
+        // del agente de correo, que sigue tratando null como dato faltante.
+        const result = await searchOfficialBudgets({ ...input, employees: input.employees ?? 1 });
         const sources = result.status === "exact" ? result.matches.map(matchToSource) : [];
         const grounding = { amounts: [], sources };
         addToolGrounding(ctx.grounding, grounding);

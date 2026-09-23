@@ -3,12 +3,13 @@ import type { InferUITools, UIDataTypes, UIMessage } from "ai";
 import type { AgentSkillId } from "@/lib/agent/skills/types";
 import type { AgentTools } from "@/lib/agent/tools";
 import type { TurnUsageSummary } from "@/lib/agent/usage-collector";
-import type { AgentMode } from "@/lib/ai/modes";
+import type { RecordedAgentMode } from "@/lib/ai/modes";
 
 // El UIMessage del agente y su conversión a fila de AgentMessage. Solo tipos
 // del SDK: lo usan la ruta y, más adelante, el cliente.
 export type AgentMessageMetadata = {
-  mode?: AgentMode;
+  // Puede ser un modo retirado: los mensajes viejos conservan el suyo.
+  mode?: RecordedAgentMode;
   skill?: AgentSkillId;
   createdAt?: string;
   usage?: TurnUsageSummary;

@@ -14,7 +14,7 @@ import { agentChatRequestSchema } from "@/schemas/agent";
 // con partes de tools. Se mantiene fina: la lógica vive en lib/agent.
 export const runtime = "nodejs";
 // El máximo de Vercel Hobby sin Fluid compute. Con Fluid activo se puede
-// subir a 300 si los turnos largos (Bajo con xhigh) lo necesitan.
+// subir a 300 si los turnos largos (Medio razona con xhigh) lo necesitan.
 export const maxDuration = 60;
 
 const generateMessageId = createIdGenerator({ prefix: "msg", size: 16 });

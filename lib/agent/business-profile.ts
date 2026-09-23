@@ -33,6 +33,7 @@ export const BUSINESS_PROFILE = {
   employerBpsPercent: URUGUAY_EMPLOYER_BPS_PERCENT,
   personalBpsPercent: URUGUAY_PERSONAL_BPS_BASE_PERCENT,
   budgetDefaults: {
+    employees: defaultBudgetValues.employees,
     nominalHour: defaultBudgetValues.nominal_hour,
     revenuePercent: defaultBudgetValues.revenue_percent,
     incidencePercent: defaultBudgetValues.incidence_contribution,
@@ -60,7 +61,7 @@ export const formatBusinessProfile = () => {
     `- Productos: se estiman $ ${profile.productsPricePerFourHours} cada 4 horas de servicio, redondeado al múltiplo de $ ${profile.productsStep} más cercano (mínimo $ ${profile.productsStep}); margen opcional de ${percent(profile.productMarginPercent)}.`,
     `- Precio: el total mensual del servicio sin IVA sube al próximo múltiplo de $ ${profile.priceStep} (menos de $ ${profile.priceStep} más) ajustando el margen, y el precio por hora se da redondeado a pesos. Lo hacen los cálculos: citá sus importes.`,
     `- Aportes BPS: patronales ${percent(profile.employerBpsPercent)}, personales ${percent(profile.personalBpsPercent)}.`,
-    `- Presupuesto nuevo por defecto: hora nominal $ ${defaults.nominalHour}, margen ${percent(defaults.revenuePercent)}, incidencia ${percent(defaults.incidencePercent)}, aportes patronales ${percent(defaults.companyPercent)} y personales ${percent(defaults.personalPercent)}.`,
+    `- Presupuesto nuevo por defecto: ${defaults.employees} ${defaults.employees === 1 ? "empleada" : "empleadas"} (si no dicen cuántas), hora nominal $ ${defaults.nominalHour}, margen ${percent(defaults.revenuePercent)}, incidencia ${percent(defaults.incidencePercent)}, aportes patronales ${percent(defaults.companyPercent)} y personales ${percent(defaults.personalPercent)}.`,
     `- ${profile.payrollInArrears}`,
     `- Zona horaria: ${profile.timeZone}. Firma de los correos: ${profile.signature}.`,
   ].join("\n");

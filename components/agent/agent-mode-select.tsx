@@ -9,6 +9,7 @@ import { formatModelLabel } from "@/lib/agent/usage-format";
 import {
   AGENT_MODE_IDS,
   AGENT_MODES,
+  DEFAULT_AGENT_MODE,
   DEFAULT_MODE_SPECS,
   isAgentMode,
   type AgentMode,
@@ -17,13 +18,15 @@ import {
 type ModeOption = AgentSettings["modes"][number];
 
 // Sin la configuración del servidor todavía, los modelos por defecto.
-const FALLBACK_OPTIONS: ModeOption[] = AGENT_MODE_IDS.map((id) => ({
+const toFallbackOption = (id: AgentMode): ModeOption => ({
   id,
   ...AGENT_MODES[id],
   ...DEFAULT_MODE_SPECS[id],
-}));
+});
 
-// Bajo, Medio o Alto para los turnos siguientes. El tooltip y cada opción
+const FALLBACK_OPTIONS = AGENT_MODE_IDS.map(toFallbackOption);
+
+// Medio o Alto para los turnos siguientes. El tooltip y cada opción
 // dicen qué modelo y qué razonamiento usa (con los overrides del entorno).
 export function AgentModeSelect({
   mode,
@@ -35,7 +38,8 @@ export function AgentModeSelect({
   onChange: (mode: AgentMode) => void;
 }) {
   const options = modes ?? FALLBACK_OPTIONS;
-  const active = options.find((option) => option.id === mode) ?? FALLBACK_OPTIONS[1];
+  const active =
+    options.find((option) => option.id === mode) ?? toFallbackOption(DEFAULT_AGENT_MODE);
   return (
     <Select value={mode} onValueChange={(value) => isAgentMode(value) && onChange(value)}>
       <Tooltip>

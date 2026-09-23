@@ -329,3 +329,115 @@
   `next build`.
 - NOT RUN: authenticated browser smoke, which needs a signed-in session.
 - No database, deploy, or production state changed.
+
+## 2026-09-23 - Feature 35 cronograma semanal en Visitas
+
+- Vista Cronograma en `/dashboard/calendar`, junto a Calendario, Lista y
+  Tarjetas: semana de lunes a domingo en America/Montevideo, filtro de
+  empleadas, días ocultables, arrastre de día, hora y empleada, alta y edición
+  con el diálogo de la visita y nombre de cronograma para trabajos y visitas.
+- Avisos de cruces, buscador de huecos libres y disponibilidad por empleada.
+  PDF con el logo de Bambú por empleada y del equipo, sin los días ocultos.
+- Commits `efd6aa5` y `b598c09`.
+- PASS: `check:schedule`, `check:schedule-availability`,
+  `check:schedule-move`, `check:schedule-pdf`, TypeScript, lint y
+  `next build`.
+- PASS: smoke manual del usuario, que lo usa a diario sin problemas. El agente
+  no llegó a probarlo con sesión iniciada.
+
+## 2026-09-23 - Feature 28 Finanzas organizada por tarea
+
+- Secciones con `tablist` en desktop y `<select>` nativo en mobile, en
+  `?seccion=`. Abrir Finanzas ya no escribe en la base: el sembrado de
+  categorías pasó a una acción explícita de admin.
+- Carga diferida por sección, Resumen con hero de tres tarjetas y tendencia de
+  3 meses de solo lectura (`getFinanceTrend`).
+- PASS: `check:finance-trend`, `check:finance`, TypeScript, lint,
+  `next build`, harness y smoke autenticado en desktop, claro y oscuro.
+- PASS: el usuario la revisó en el celular. Se ve y funciona bien, que era lo
+  que faltaba del criterio 7.
+- NOT RUN: comparar `updatedAt` antes y después de abrir Finanzas para probar
+  que no hay escrituras. Quedó verificado por lectura de código.
+
+## 2026-09-23 - Feature 36 tablas buscables en Finanzas
+
+- Cobros, Costes y Pagos pasaron de tarjetas a tablas compactas ordenables,
+  con 25 filas por página y un pie con conteo y total. Hay un buscador por
+  sección que ignora acentos y mayúsculas y encuentra montos crudos y
+  formateados (`lib/search-text.ts`).
+- Selector de vista en `?vista=` y diálogos montados por fila solo mientras
+  están abiertos.
+- PASS: `check:finance-tables` (nuevo) y las regresiones de Finanzas,
+  TypeScript, lint, `next build`, harness, smoke autenticado en Chrome, claro
+  y oscuro, y 390x844 emulado.
+- Estaba verificada desde el 2026-09-11. Solo esperaba a que la 35 liberara el
+  único `in_progress`.
+
+## 2026-09-23 - Feature 37 sueldos a mes vencido
+
+- Commit `3028375`. En Finanzas → Pagos, `/dashboard/payroll` y la ficha de la
+  empleada, el saldo del mes M compara sus pagos con las visitas realizadas de
+  M−1 (`getPayrollWorkMonth`, `getPayrollPeriod`). Los pagos se siguen
+  contando en el mes en que se hacen.
+- PASS: `check:finance`, `check:finance-tables`, `check:finance-trend`,
+  TypeScript, lint y un recálculo de solo lectura contra la base.
+- PASS: smoke manual del usuario.
+- Datos: julio tiene 141 visitas `DONE` sin hora real, así que agosto muestra
+  saldo −99.524. Los pagos de agosto tienen período 1–31 de agosto aunque
+  pagan julio. Son huecos de carga anteriores al cambio.
+
+## 2026-09-23 - Features 38-44 agente de Bambú
+
+- 38: gateway de modelos con modos Bajo, Medio y Alto, proveedores perezosos
+  de OpenAI y del Vercel AI Gateway, y costo estimado en USD.
+- 39: persistencia `Agent*`, núcleo, 14 tools de lectura, cuatro habilidades,
+  `draftEmail` y la ruta `POST /api/agent/chat`.
+- 40: `AgentProposal` con tools `propose*`, confirmación atómica e
+  idempotente, rechazo, vencimiento a 24 horas y auditoría.
+- 41: el agente reemplaza al chat viejo en el Sheet de presupuestos, con modo,
+  habilidades, propuestas, historial y costos.
+- 42: `/dashboard/agent` con todas las conversaciones y "Abrir en página"
+  desde el Sheet.
+- 43: "Ver detalle" y "Editar" en las tarjetas, y "Guardar en el generador"
+  confirmando una propuesta auditada.
+- 44: precio sin IVA al próximo múltiplo de $ 100, productos al múltiplo de
+  $ 500 más cercano, `findMatchingBudgets` y respuesta con precio a los mails
+  que piden presupuesto.
+- Migraciones `20260918120000_agent_workspace` y
+  `20260918180000_agent_proposals` aplicadas (21 de 21). Merge `83d7e3b` en
+  `main` y push a `origin/main` el 2026-09-22.
+- PASS: checks enfocados y de mutación por feature, regresiones del agente,
+  oficiales y mail, TypeScript, harness, `next build` y smoke autenticado con
+  OpenAI en cada feature. Revisiones aprobadas en `progress/review_*.md`.
+  Detalle en `progress/impl_*.md`.
+- Cerradas a pedido del usuario el 2026-09-23. Lo que quedó fuera del código
+  está en `progress/current.md`.
+
+## 2026-09-23 - Feature 45 modos del agente en gpt-6
+
+- Medio pasa a `gpt-6-luna` con `xhigh` (razona mejor que `gpt-5.6-terra` con
+  `high` y cuesta menos) y Alto a `gpt-6-sol` con `medium`. Bajo se retira:
+  las conversaciones guardadas en Bajo siguen en Medio, y los mensajes y
+  consumos viejos conservan Bajo y su modelo. El enum de la base no cambia.
+- Título en `gpt-6-luna` con `medium` y 8.000 tokens de salida (antes
+  `gpt-5.6-luna` sin razonamiento y 60 tokens).
+- Precios de gpt-6 en la tabla y etiquetas "Luna 6" / "Luna 5.6".
+- `AgentUsageEvent.reasoning` (migración
+  `20260923160000_agent_usage_reasoning`, aditiva, aplicada en Neon): "Costos
+  de IA" separa por modelo y razonamiento ("Luna 6 Extra alto · Medio") y
+  pone los títulos en su propia fila.
+- PASS: checks del agente con `scripts/ai-mode-checks.ts` y
+  `scripts/agent-usage-rows-checks.ts` (y mutaciones que los rompen),
+  TypeScript, lint, `pnpm build` y el smoke del usuario.
+
+## 2026-09-23 - Feature 46 precios "+ IVA" y una empleada por defecto
+
+- El agente escribe los precios como "$ 54.100 + IVA" en el chat y en
+  `draftEmail` (`PRICE_FORMAT_RULE`), sin "Precio sin IVA" y "Precio con
+  IVA". La nota de Literal E sigue debajo de los precios.
+- Sin dato de empleadas asume 1 y no pregunta: prompt, habilidades, perfil del
+  negocio y `searchOfficialBudgets` del agente con `employees ?? 1`. La
+  búsqueda compartida con el agente de correo no cambia.
+- PASS: checks del agente con `scripts/agent-price-format-checks.ts`,
+  `check:official-budgets`, los tres del correo, TypeScript, lint, build y el
+  smoke del usuario.

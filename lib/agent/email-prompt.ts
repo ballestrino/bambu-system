@@ -1,5 +1,6 @@
 import { BUSINESS_PROFILE, LITERAL_E_NOTE } from "@/lib/agent/business-profile";
 import type { OfficialSource } from "@/lib/agent/grounding";
+import { PRICE_FORMAT_RULE } from "@/lib/agent/system-prompt";
 
 // Instrucciones de draftEmail. El esquema del correo viene del chat de
 // presupuestos anterior (su prompt se borró en la feature 41), con la regla de
@@ -25,10 +26,11 @@ const EMAIL_SCHEME = [
 
 const PRICE_RULES = [
   "Reglas de precios:",
-  "- Con dos opciones: 'Opción 1 (sin productos)' y 'Opción 2 (con productos)', cada una con 'Precio sin IVA: $ X' y 'Precio con IVA: $ Y'.",
-  "- Con una sola opción: 'Precio sin IVA: $ X' y 'Precio con IVA: $ Y'.",
+  `- ${PRICE_FORMAT_RULE}`,
+  "- Con dos opciones: 'Opción 1 (sin productos): $ X + IVA' y 'Opción 2 (con productos): $ Y + IVA'.",
+  "- Con una sola opción: 'Precio: $ X + IVA'.",
   "- Si el cliente ya tiene productos o pidió sin productos, mostrá solo esa opción.",
-  "- Formato de montos: $ 12.345,67.",
+  "- Formato de montos: $ 12.345 (con centavos solo si el importe los tiene: $ 12.345,67).",
   `- Inmediatamente debajo de los precios va siempre, textual: "${LITERAL_E_NOTE}"`,
   "- Usá solo importes de la lista de importes permitidos. Si un importe no está, no lo escribas.",
 ].join("\n");
@@ -47,8 +49,13 @@ export const buildEmailDraftInstructions = (channel: "email" | "whatsapp") =>
     PRICE_RULES,
   ].join("\n\n");
 
+// Sin ",00": el modelo copia el importe tal cual lo ve, y un precio redondeado
+// se escribe $ 54.100 + IVA.
 const formatAmount = (amount: number) =>
-  `$ ${amount.toLocaleString("es-UY", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+  `$ ${amount.toLocaleString("es-UY", {
+    minimumFractionDigits: Number.isInteger(amount) ? 0 : 2,
+    maximumFractionDigits: 2,
+  })}`;
 
 export const buildEmailDraftPrompt = ({
   brief,

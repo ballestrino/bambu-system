@@ -2,8 +2,9 @@ import "server-only";
 
 import type { Prisma } from "@prisma/client";
 
-import { fromDbAgentMode } from "@/lib/agent/conversation-mode";
+import { fromDbRecordedMode } from "@/lib/agent/conversation-mode";
 import { getZonedMonthRange } from "@/lib/agent/month";
+import { buildMonthlyCostRows } from "@/lib/agent/usage-rows";
 import { db } from "@/lib/db";
 import { requireAdminSession } from "@/lib/require-admin-session";
 
@@ -54,8 +55,8 @@ const totalOf = (rows: CostRow[]) =>
     { inputTokens: 0, outputTokens: 0, costUsd: 0, events: 0 }
   );
 
-// Costo de una conversación del usuario, por tipo (turno, habilidad, título)
-// y modelo. unpricedEvents cuenta el uso sin precio configurado.
+// Costo de una conversación del usuario, por tipo (turno, habilidad, título),
+// modelo y razonamiento. unpricedEvents cuenta el uso sin precio configurado.
 export const getConversationCost = async (conversationId: string) => {
   const session = await requireAdminSession();
   const owned = await db.agentConversation.count({
@@ -66,7 +67,7 @@ export const getConversationCost = async (conversationId: string) => {
   const where = { conversationId };
   const [groups, unpricedEvents] = await Promise.all([
     db.agentUsageEvent.groupBy({
-      by: ["kind", "modelId"],
+      by: ["kind", "modelId", "reasoning"],
       where,
       _sum: sumFields,
       _count: { _all: true },
@@ -76,6 +77,7 @@ export const getConversationCost = async (conversationId: string) => {
   const rows = groups.map((group) => ({
     kind: group.kind,
     modelId: group.modelId,
+    reasoning: group.reasoning,
     ...toCostRow(group),
   }));
   return { conversationId, rows, total: totalOf(rows), unpricedEvents };
@@ -101,7 +103,8 @@ export const getConversationCostTotals = async (conversationIds: string[]) => {
   ) as Record<string, CostRow & { unpricedEvents: number }>;
 };
 
-// Gasto del mes (en Montevideo) de todo el equipo, por modelo y modo. Incluye
+// Gasto del mes (en Montevideo) de todo el equipo, por modelo, razonamiento y
+// modo, con los títulos aparte (buildMonthlyCostRows). Incluye
 // el uso de conversaciones borradas. El top 10 ordena por costo con precio y
 // muestra el título solo de las conversaciones propias.
 export const getMonthlyAgentCost = async (monthKey: string) => {
@@ -111,7 +114,7 @@ export const getMonthlyAgentCost = async (monthKey: string) => {
 
   const [byModel, byConversation, unpricedEvents] = await Promise.all([
     db.agentUsageEvent.groupBy({
-      by: ["modelId", "mode"],
+      by: ["modelId", "mode", "reasoning", "kind"],
       where,
       _sum: sumFields,
       _count: { _all: true },
@@ -137,11 +140,15 @@ export const getMonthlyAgentCost = async (monthKey: string) => {
     select: { id: true, title: true, userId: true },
   });
   const byId = new Map(conversations.map((conversation) => [conversation.id, conversation]));
-  const rows = byModel.map((group) => ({
-    modelId: group.modelId,
-    mode: fromDbAgentMode(group.mode),
-    ...toCostRow(group),
-  }));
+  const rows = buildMonthlyCostRows(
+    byModel.map((group) => ({
+      kind: group.kind,
+      modelId: group.modelId,
+      mode: fromDbRecordedMode(group.mode),
+      reasoning: group.reasoning,
+      ...toCostRow(group),
+    }))
+  );
 
   return {
     month: monthKey,
