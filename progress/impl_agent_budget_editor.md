@@ -140,7 +140,7 @@ Van encima de la 44 (misma rama), en el `fix(agent)` de 41-44.
   bloque), las regresiones del agente, oficiales y mail, `tsc`, `.\init.ps1`
   (harness, `prisma validate` y ESLint) y `pnpm exec next build` (38 rutas).
 - PASS: prueba de mutación de los arreglos de la 43, 15 de 15 detectadas.
-- NOT RUN: el smoke en el navegador. El navegador integrado no tiene sesión
-  (redirige al login) y entrar la contraseña le toca al usuario. Falta: un
-  aporte vacío guardado, "Confirmar" con un borrador y después "Ver detalle",
-  y el turno siguiente a guardar una propuesta editada (con OpenAI).
+- PASS (después de la re-revisión): smoke autenticado de un aporte vacío
+  guardado, "Confirmar" con un borrador y después "Ver detalle", y el turno
+  siguiente a guardar una propuesta editada (OpenAI en Bajo). Detalle en
+  `progress/current.md`.

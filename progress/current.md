@@ -32,13 +32,12 @@ Status: in_progress
   resueltos, con 16 de 16 mutaciones detectadas. Las correcciones de 41-44 se
   commitearon después, a pedido del usuario: `b58fe4b` (`fix(agent)`) y el
   `docs(progress)` que le sigue, encima de `16ff4ae`.
-- Siguiente paso: el smoke autenticado de las correcciones (sobre todo de la
-  43: un aporte vacío guardado, "Confirmar" con un borrador y "Ver detalle",
-  y el turno siguiente a guardar una propuesta editada), que necesita la
-  sesión del usuario, escribe en la base y gasta OpenAI. Decisiones del
-  usuario que dejaron las revisiones: precios con centavos de los guardados
-  de antes de la 44 (44), medir Emails en Bajo y Alto o subir `maxDuration`
-  (44) y "Abrir en página" desde el Sheet de crear (42).
+- PASS (2026-09-22): smoke autenticado de las correcciones de la 43
+  (navegador integrado, `next dev` en el 3001, OpenAI en Bajo por
+  US$ 0,005), con detalle en la sección de la 43.
+- Decisiones del usuario que dejaron las revisiones: precios con centavos de
+  los guardados de antes de la 44 (44), medir Emails en Bajo y Alto o subir
+  `maxDuration` (44) y "Abrir en página" desde el Sheet de crear (42).
 - Para cerrar de la 38 a la 44 falta la decisión del usuario de pasarlas a
   `done` con la 35 todavía en `in_progress`. Decisiones abiertas:
   `engines`/Node del deploy y `maxDuration` (con el consumo guardado por
@@ -253,7 +252,24 @@ Status: in_progress
   y react-hook-form reales. Mutaciones: 16 de 16. Dos menores nuevos: el
   texto "antes de volver a guardarlo" con resultado desconocido (desde el
   editor no se puede) y un `requireAdminSession()` doble por guardado.
-  NOT RUN: el smoke autenticado de las correcciones.
+- PASS: smoke autenticado de las correcciones, en la conversación de prueba
+  "Presupuesto de limpieza de oficina":
+  - Aporte vacío: Aguinaldo vacío con el switch prendido. El pie, el detalle
+    y la página del guardado dan $ 57.148,79 y $ 63.858,79, con Aguinaldo en
+    $ 0,00.
+  - Propuesta editada: una vencida pasó a 3 empleadas y se guardó
+    ($ 97.810,00 y $ 104.520,00). La tarjeta la muestra confirmada con esos
+    finales, y en el turno siguiente (Bajo) el agente citó esos importes, no
+    los $ 66.002,00 de antes de editar.
+  - Confirmar con borrador: con una propuesta nueva y un borrador a 2
+    empleadas, la tarjeta avisa que Confirmar no lleva los cambios.
+    Confirmar guarda 1 empleada ($ 6.832,00 y $ 7.442,00), y "Ver detalle"
+    abre eso, con Editar deshabilitado, igual que la página del guardado.
+  - Consola: solo el aviso de Radix de un `DialogContent` sin
+    `DialogTitle`. Los diálogos del agente tienen título; `MobileNav` no.
+- Datos: quedaron tres presupuestos de prueba para borrar desde el
+  generador: "Prueba 43 aporte vacío", "Prueba 43 propuesta editada" y
+  "Prueba 43 confirmar con borrador".
 
 ### Feature 44 - `agent_pricing_rules` (aprobada con menores, corregidos)
 

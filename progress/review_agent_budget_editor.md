@@ -576,6 +576,15 @@ encontré es menor.
 - Los scripts puros cubren esa lógica. El smoke escribe en la base y gasta
   OpenAI, así que necesita el visto bueno del usuario. Hay que hacerlo antes
   de pasar la 43 a `done`.
+- **Actualización (2026-09-22): PASS.** El usuario inició sesión y levantó
+  `next dev` en el 3001, y corrí los tres smokes en el navegador integrado,
+  con OpenAI en Bajo por US$ 0,005. El detalle está en la sección 43 de
+  `progress/current.md`.
+  - Aporte vacío: lo guardado es lo del editor, $ 57.148,79 y $ 63.858,79.
+  - "Confirmar" con un borrador: la tarjeta avisa, y "Ver detalle" abre lo
+    guardado, $ 6.832,00, y no el borrador de $ 13.262,06.
+  - Turno siguiente a guardar una propuesta editada: el agente cita
+    $ 97.810,00 y $ 104.520,00, no los $ 66.002,00 de antes.
 
 ### Checkpoints (re-revisión)
 
