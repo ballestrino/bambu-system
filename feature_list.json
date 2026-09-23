@@ -69,7 +69,7 @@
         "The settings page keeps a server-side shell where viable and scopes client components to forms, dialogs, or interactive controls",
         "Manual smoke covers account updates, email or password changes, profile image updates, and 2FA enable or disable flows"
       ],
-      "status": "pending"
+      "status": "done"
     },
     {
       "id": 5,

@@ -9,22 +9,22 @@ Status: idle
 ## Last Closed Features
 
 - 2026-09-23: la 28, la 35, la 36, la 37 y de la 38 a la 46 pasaron a `done`.
-  Detalle en `progress/history.md`.
+- 2026-09-23: la 4 (acciones de settings seguras), en la rama
+  `feature/4-settings-auth`. Detalle en `progress/history.md` y
+  `progress/impl_settings_server_action_auth.md`.
 
 ## Auditoría de las `pending` (2026-09-23)
 
 - Se revisaron la 3, 4, 5, 6, 8, 9, 11, 25, 26 y 27 contra sus criterios en
-  `main`. Ninguna está hecha, así que siguen `pending`.
+  `main`. Ninguna estaba hecha. La 4 ya se cerró.
 - Seguridad, a priorizar:
-  - 4: `actions/settings.ts` no llama a `auth()` y confía en el `id` del
-    cliente. `updateEmail` genera el token con el `oldemail` que manda el
-    cliente y `newVerification` cambia el email de ese usuario: toma de cuenta.
-    También deja renombrar a otro y apagarle el 2FA.
   - 6: `next` 16.1.1 (sin cambios desde el primer commit) tiene dos RCE
     críticos corregidos en 16.3.3 o posterior; `next-auth` beta.30 tiene dos
     críticos corregidos en beta.32. Objetivo: `next` 16.3.6 y React 19.2.8.
   - 3: `actions/budgetCategories/*` no piden sesión, y solo `duplicateBudget`
-    mira el dueño del presupuesto.
+    mira el dueño del presupuesto. Además, `data/budget.ts`, `budgets.ts` y
+    `budgetCategory.ts` siguen siendo `"use server"`: sus lecturas son
+    acciones públicas y las de categorías no piden sesión.
 - Casi hechas:
   - 9: falta que `getJobOccurrences` y `visit-feed` no generen visitas al leer,
     `enabled: open` en jobs y empleadas del diálogo y la medición.
