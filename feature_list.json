@@ -55,7 +55,7 @@
         "Budget create/update/delete flows have no debug console.log statements",
         "Manual smoke covers budget list, detail, create, edit, duplicate, delete, and budget categories"
       ],
-      "status": "pending"
+      "status": "done"
     },
     {
       "id": 4,
