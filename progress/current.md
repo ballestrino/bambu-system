@@ -9,9 +9,13 @@ Status: idle
 ## Last Closed Features
 
 - 2026-09-23: la 28, la 35, la 36, la 37 y de la 38 a la 46 pasaron a `done`.
-- 2026-09-23: la 4 (acciones de settings seguras), en la rama
-  `feature/4-settings-auth`. Detalle en `progress/history.md` y
-  `progress/impl_settings_server_action_auth.md`.
+- 2026-09-23: la 4 (acciones de settings seguras). Detalle en
+  `progress/history.md` y `progress/impl_settings_server_action_auth.md`.
+  Mergeada en `main` (`7426d1f`) **sin push**: el usuario no quiere gastar el
+  storage de funciones de Vercel. Hasta que se suba, producción sigue con la
+  toma de cuentas abierta.
+- Ramas locales: se borraron las 24 ya mergeadas en `main`, así que solo queda
+  `main`. Las remotas (`origin/*`) siguen, porque borrarlas requiere push.
 
 ## Auditoría de las `pending` (2026-09-23)
 
