@@ -501,3 +501,14 @@
   `data/` ni `lib/`, y el smoke con sesión en el Chrome del usuario: crear,
   editar, duplicar y borrar un presupuesto y una categoría de prueba, que se
   borraron. Detalle en `progress/impl_budget_authorization_contracts.md`.
+
+## 2026-09-23 - `next` 16.3.6 (seguimiento de la feature 6)
+
+- `next` y `eslint-config-next` 16.3.5 → 16.3.6, cuando pasó el
+  `minimum-release-age` de pnpm. Corrige la RCE de `ImageResponse` en
+  `next/og` (GHSA-vcvr-r3jv-pc5j), que esta app no usa. El lockfile solo
+  cambia la familia de Next y deduplica `semver`.
+- `pnpm audit --prod` sigue en 0 críticas, sin avisos de `next`.
+- PASS: `tsc`, lint, los 26 `check:*`, `next build` desde cero y un smoke
+  con sesión en el Chrome del usuario, con `.next` borrada: Resumen,
+  Presupuestos, Finanzas y el agente, sin errores en el servidor.

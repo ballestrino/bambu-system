@@ -11,6 +11,8 @@ Status: idle
 - 2026-09-23: la 3 (permisos de presupuestos y categorías, compartidos entre
   admins). Detalle en `progress/impl_budget_authorization_contracts.md`.
   Mergeada en `main` (`59f932d`) **sin push**, igual que la 4 y la 6.
+- 2026-09-23: `next` y `eslint-config-next` 16.3.6, en la rama
+  `chore/next-16.3.6`. Detalle en `progress/history.md`.
 
 - 2026-09-23: la 6 (`next` 16.3.5, React 19.3.0, `next-auth` beta.32 y
   `@auth/prisma-adapter` 2.11.3). Las críticas del audit bajaron de 6 a 0.
@@ -31,9 +33,6 @@ Status: idle
 - Se revisaron la 3, 4, 5, 6, 8, 9, 11, 25, 26 y 27 contra sus criterios en
   `main`. Ninguna estaba hecha. La 4, la 6 y la 3 ya se cerraron.
 - Seguridad, a priorizar:
-  - `next` 16.3.6: desde el 2026-09-23 a las 16:19 UTC pasa el
-    `minimum-release-age` de pnpm. Es un patch sin cambios para esta app, que
-    no usa `next/og`.
   - Quedan 22 altas del audit en otras dependencias: nodemailer, postcss (el
     directo), minimatch, brace-expansion, nanoid, browserslist y otras. No hay
     feature que las cubra.
