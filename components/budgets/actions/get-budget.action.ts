@@ -1,9 +1,9 @@
-import { getBudgetBySlug } from "@/data/budget"
+import { readBudgetBySlug } from "./budget-reads"
 import ValidationError from "@/instances/validation-error"
 
 export const getBudgetAction = async (slug: string) => {
   try {
-    const result = await getBudgetBySlug(slug)
+    const result = await readBudgetBySlug(slug)
 
     if (result.error) {
       throw new ValidationError(result.error)

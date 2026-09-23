@@ -115,8 +115,9 @@ Proponer y confirmar: ninguna tool escribe presupuestos durante el turno.
   citables son los de su tarjeta (`getSummaryAmounts`). El IVA es mayor que 0
   al proponer y otra vez al confirmar.
 - Precondiciones al proponer: nombre con slug válido y libre (la misma regla
-  que `createBudget`, en `lib/budget-slug.ts`), cambios reales, dueño para
-  duplicar, no vinculado y con opciones para publicar. El slug solo cambia si
+  que `createBudget`, en `lib/budget-slug.ts`), cambios reales, no vinculado
+  y con opciones para publicar. Cualquier admin duplica cualquier presupuesto
+  (feature 3). El slug solo cambia si
   cambia el nombre.
 - Avisos de guardar cambios: siempre que se recrean las opciones con ids
   nuevos, y cuántos trabajos vinculados a una opción pierden ese vínculo
@@ -582,7 +583,7 @@ gpt-5.6 el 2026-09-18), en USD por millón de tokens:
   del mes ordena por uso con precio.
 - `pnpm check:agent-proposals`: los cuatro constructores (valores iguales a
   `calculateBudget`, categorías conservadas, antes y después, avisos, slug
-  solo con el nombre, sin cambios, sin nombre, valores inválidos, dueño,
+  solo con el nombre, sin cambios, sin nombre, valores inválidos,
   ya oficial), payloads que sobreviven el JSON de la base, precondiciones al
   confirmar, vencimiento a las 24 horas, estados de confirmar y rechazar,
   el bloque del prompt con los cambios de cada propuesta, el estado vivo en

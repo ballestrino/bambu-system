@@ -886,8 +886,9 @@ cambia el viewport):
   de caché); `normalizeUsage` la aísla y `check:ai-gateway` la fija.
 - **`updateBudget`** borra y recrea opciones y publica versión oficial nueva:
   se avisa en la tarjeta y en el texto de confirmación.
-- **`duplicateBudget`** exige ser dueño del presupuesto: la propuesta lo
-  precheckea; relajarlo a admin es tema de la feature 3.
+- **`duplicateBudget`** exigía ser dueño del presupuesto. La feature 3 lo
+  relajó a cualquier admin (presupuestos compartidos), también en la
+  propuesta y al confirmar.
 - **Imágenes**: el chat viejo permitía adjuntar imágenes; el agente v1 no. El
   SDK soporta partes `file`, así que se puede agregar después. Si hace falta
   en v1, avisar antes de la feature 41.

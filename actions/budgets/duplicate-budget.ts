@@ -1,8 +1,9 @@
 "use server";
 
-import { auth } from "@/auth";
+import { getBudgetAdminSession } from "@/lib/budget-admin";
 import { slugifyBudgetName } from "@/lib/budget-slug";
 import { db } from "@/lib/db";
+import { BudgetIdSchema } from "@/schemas/BudgetSchema";
 
 const findUniqueSlug = async (base: string) => {
     let candidate = base;
@@ -16,16 +17,23 @@ const findUniqueSlug = async (base: string) => {
     return candidate;
 };
 
+// Any admin duplicates any budget (they are shared); the copy is theirs.
 export const duplicateBudget = async (budgetId: string) => {
-    const session = await auth();
+    const admin = await getBudgetAdminSession();
 
-    if (!session?.user?.id) {
-        return { error: "No autorizado" };
+    if ("error" in admin) {
+        return { error: admin.error };
+    }
+
+    const validatedId = BudgetIdSchema.safeParse(budgetId);
+
+    if (!validatedId.success) {
+        return { error: "Presupuesto inválido" };
     }
 
     try {
         const original = await db.budget.findUnique({
-            where: { id: budgetId },
+            where: { id: validatedId.data },
             include: {
                 budgetOptions: true,
                 budgetCategory: { select: { id: true } },
@@ -34,10 +42,6 @@ export const duplicateBudget = async (budgetId: string) => {
 
         if (!original) {
             return { error: "Presupuesto no encontrado" };
-        }
-
-        if (original.userId !== session.user.id) {
-            return { error: "No autorizado" };
         }
 
         const newName = `${original.name} (copia)`;
@@ -49,7 +53,7 @@ export const duplicateBudget = async (budgetId: string) => {
                 name: newName,
                 description: original.description,
                 slug,
-                userId: session.user.id,
+                userId: admin.session.user.id,
                 budgetCategory: original.budgetCategory.length > 0
                     ? { connect: original.budgetCategory.map(({ id }) => ({ id })) }
                     : undefined,
@@ -81,6 +85,6 @@ export const duplicateBudget = async (budgetId: string) => {
         return { success: "exito", budget };
     } catch (error) {
         console.error("Error duplicating budget:", error);
-        return { error: "error" };
+        return { error: "Error al duplicar el presupuesto" };
     }
 };

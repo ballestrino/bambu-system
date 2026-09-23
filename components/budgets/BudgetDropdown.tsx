@@ -44,8 +44,6 @@ export function BudgetDropdown({ budget }: BudgetDropdownProps) {
                     <DropdownMenuItem
                         onClick={(e: MouseEvent) => {
                             e.stopPropagation()
-                            // Edit action logic here
-                            console.log("Edit clicked")
                         }}
                     >
                         <Link className="flex gap-2" href={`/dashboard/budgets/edit/${budget.slug}`}>

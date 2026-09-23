@@ -1,4 +1,5 @@
-import createBudgetCategory, { CreateBudgetCategoryValues } from "@/actions/budgetCategories/create-budget-category"
+import createBudgetCategory from "@/actions/budgetCategories/create-budget-category"
+import type { CreateBudgetCategoryValues } from "@/schemas/budget-category"
 import ValidationError from "@/instances/validation-error"
 
 export const getBudgetCategoryAction = async (data: CreateBudgetCategoryValues) => {

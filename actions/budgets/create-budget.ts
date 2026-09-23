@@ -1,17 +1,16 @@
 "use server";
 
-import { auth } from "@/auth";
+import { getBudgetAdminSession } from "@/lib/budget-admin";
 import { db } from "@/lib/db";
 import { BudgetSchema, BudgetFormValues } from "@/schemas/BudgetSchema";
 import { calculateBudgetTotals } from "@/lib/budget-calculations";
-import { getBudgetBySlug } from "@/data/budget";
 import { slugifyBudgetName } from "@/lib/budget-slug";
 
 export const createBudget = async (values: BudgetFormValues) => {
-    const session = await auth();
+    const admin = await getBudgetAdminSession();
 
-    if (!session?.user?.id) {
-        return { error: "No autorizado" };
+    if ("error" in admin) {
+        return { error: admin.error };
     }
 
     const validatedFields = BudgetSchema.safeParse(values);
@@ -19,8 +18,6 @@ export const createBudget = async (values: BudgetFormValues) => {
     if (!validatedFields.success) {
         return { error: "Campos inválidos" };
     }
-
-    console.log(validatedFields)
 
     const {
         name,
@@ -56,20 +53,18 @@ export const createBudget = async (values: BudgetFormValues) => {
         const slug = slugifyBudgetName(name);
 
         // Check uniqueness
-        const existingBudget = await getBudgetBySlug(slug)
+        const existingBudget = await db.budget.findUnique({ where: { slug }, select: { id: true } });
 
-        if (existingBudget.budget) {
+        if (existingBudget) {
             return { error: "Este título ya está en uso. Por favor elige otro nombre para tu presupuesto." };
         }
-
-        console.log(categoryIds)
 
         const budget = await db.budget.create({
             data: {
                 name,
                 description,
                 slug,
-                userId: session.user.id,
+                userId: admin.session.user.id,
                 budgetCategory: categoryIds && categoryIds.length > 0 ? {
                     connect: categoryIds.map((id) => ({ id }))
                 } : undefined,
@@ -125,7 +120,7 @@ export const createBudget = async (values: BudgetFormValues) => {
         return { success: "exito", budget: budget };
     } catch (error) {
         console.error("Error creating budget:", error);
-        return { error: "error" };
+        return { error: "Error al crear el presupuesto" };
     }
 };
 

@@ -1,14 +1,12 @@
-"use server";
+import "server-only";
 
-import { auth } from "@/auth";
+import { getBudgetAdminSession } from "@/lib/budget-admin";
 import { db } from "@/lib/db";
 
 export const getBudgetBySlug = async (slug: string) => {
     try {
-        const session = await auth();
-        if (!session?.user?.id || session?.user.role !== "ADMIN") {
-            return { error : "Necesitas iniciar sesión y ser administrador"}
-        }
+        const admin = await getBudgetAdminSession();
+        if ("error" in admin) return { error: admin.error };
 
         const budget = await db.budget.findUnique({
             where: {
@@ -33,19 +31,15 @@ export const getBudgetBySlug = async (slug: string) => {
 
 export const getBudgetById = async (id: string) => {
     try {
-        const session = await auth();
-        if (!session?.user?.id) return null;
+        const admin = await getBudgetAdminSession();
+        if ("error" in admin) return null;
 
-        const budget = await db.budget.findUnique({
+        return await db.budget.findUnique({
             where: { id },
              include: {
                 budgetOptions: true
             }
         });
-
-        // if (budget && budget.userId !== session.user.id) return null;
-
-        return budget;
     } catch {
         return null;
     }

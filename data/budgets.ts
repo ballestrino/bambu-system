@@ -1,7 +1,7 @@
-"use server"
+import "server-only"
 
 import { db } from "@/lib/db"
-import { auth } from "@/auth"
+import { getBudgetAdminSession } from "@/lib/budget-admin"
 import { BudgetFilters } from "@/components/budgets/interfaces/budget-filters"
 
 import { Prisma, VisitType } from "@prisma/client"
@@ -21,10 +21,10 @@ export const getBudgets = async (
     error: string;
 }> => {
     try {
-        const session = await auth();
+        const admin = await getBudgetAdminSession();
 
-        if (!session?.user?.id) {
-            return { error: "No estas autenticado" };
+        if ("error" in admin) {
+            return { error: admin.error };
         }
 
         const terms = query?.split(" ").filter(Boolean) || [];

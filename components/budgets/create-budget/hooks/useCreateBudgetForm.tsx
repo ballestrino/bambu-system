@@ -16,7 +16,6 @@ export default function useCreateBudgetForm() {
     const { createBudgetAsync, isCreating } = useCreateBudgetMutation();
 
     const onSubmit = async (data: BudgetFormValues) => {
-        console.log("Submitting budget data:", data);
         try {
             await createBudgetAsync(data);
             router.push("/dashboard/budgets");

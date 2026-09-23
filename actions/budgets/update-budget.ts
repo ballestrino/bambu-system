@@ -1,8 +1,8 @@
 "use server";
 
-import { auth } from "@/auth";
+import { getBudgetAdminSession } from "@/lib/budget-admin";
 import { db } from "@/lib/db";
-import { BudgetSchema, BudgetFormValues } from "@/schemas/BudgetSchema";
+import { BudgetIdSchema, BudgetSchema, BudgetSlugSchema, BudgetFormValues } from "@/schemas/BudgetSchema";
 import { calculateBudgetTotals } from "@/lib/budget-calculations";
 import { revalidatePath } from "next/cache";
 import { BudgetChangedError } from "@/lib/budget-errors";
@@ -16,17 +16,22 @@ export const updateBudget = async (
     values: BudgetFormValues,
     options: { expectedUpdatedAt?: string } = {}
 ) => {
-    const session = await auth();
+    const admin = await getBudgetAdminSession();
 
-    if (!session?.user?.id) {
-        return { error: "No autorizado" };
+    if ("error" in admin) {
+        return { error: admin.error };
     }
-    const actorId = session.user.id;
+    const actorId = admin.session.user.id;
 
     const validatedFields = BudgetSchema.safeParse(values);
+    const validatedId = BudgetIdSchema.safeParse(id);
+    const validatedSlug = BudgetSlugSchema.safeParse(newSlug);
 
-    if (!validatedFields.success) {
+    if (!validatedFields.success || !validatedId.success) {
         return { error: "Campos inválidos" };
+    }
+    if (!validatedSlug.success) {
+        return { error: validatedSlug.error.issues[0]?.message ?? "URL inválida" };
     }
 
     const {
@@ -61,18 +66,11 @@ export const updateBudget = async (
     try {
         const existingBudget = await db.budget.findUnique({
             where: { id },
-            include: {
-                officialBudget: { select: { id: true } },
-            },
+            select: { slug: true },
         });
 
         if (!existingBudget) {
             return { error: "Presupuesto no encontrado" };
-        }
-        if (existingBudget.officialBudget && session.user.role !== "ADMIN") {
-            return {
-                error: "Solo un administrador puede editar un presupuesto oficial vinculado",
-            };
         }
 
         // Check if slug changed and is unique

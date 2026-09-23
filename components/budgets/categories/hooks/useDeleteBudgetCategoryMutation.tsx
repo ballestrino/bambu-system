@@ -10,11 +10,12 @@ export const useDeleteBudgetCategoryMutation = () => {
 
     const mutation = useMutation({
         mutationFn: (id: string) => deleteBudgetCategory(id),
-        onSuccess: (deletedCategory) => {
-            if (!deletedCategory || "error" in deletedCategory) {
-                toast.error("Error al eliminar la categoría")
+        onSuccess: (result) => {
+            if ("error" in result) {
+                toast.error(result.error)
                 return
             }
+            const deletedCategory = result.category
 
             if (deletedCategory.parentCategoryId) {
                 // 1. Remove from sub-categories list

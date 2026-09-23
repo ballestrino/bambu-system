@@ -15,11 +15,9 @@ export const useEditBudgetForm = (budget: ExistingBudget) => {
     const router = useRouter();
     const { updateBudgetAsync, isUpdating } = useUpdateBudgetMutation();
 
-    const handleGenerateAI = () => {
-        // Mock AI generation or reuse logic if available
-        console.log("AI Generation Triggered in Edit Mode");
-        // For now just log, can implement filling/modifying logic later
-    };
+    // "Generar con IA" in edit mode is not wired to the agent Sheet yet (the
+    // create header is): the button does nothing.
+    const handleGenerateAI = () => {};
 
     // Determine initial values from the existing budget
     const optionWithProducts = budget.budgetOptions.find(o => o.has_products);
