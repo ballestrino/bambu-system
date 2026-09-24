@@ -512,3 +512,14 @@
 - PASS: `tsc`, lint, los 26 `check:*`, `next build` desde cero y un smoke
   con sesión en el Chrome del usuario, con `.next` borrada: Resumen,
   Presupuestos, Finanzas y el agente, sin errores en el servidor.
+
+## 2026-09-23 - `maxDuration` del agente a 300 s
+
+- En las últimas 12 horas, Observability de Vercel mostró 20 llamadas a
+  `/api/agent/chat` con 33 % de timeouts a los 60 s. Cada turno usa unos
+  2,8 s de Active CPU (P75); el resto es esperar a OpenAI.
+- Fluid compute está activo en el proyecto (Hobby: máximo de 300 s), así que
+  `maxDuration` pasó de 60 a 300 s, solo en la ruta del agente. El cron de
+  correo sigue en 60 s. Se actualizó `docs/agent.md`.
+- Quedó confirmado en Vercel: Node 24.x, y `OPENAI_API_KEY` funciona en
+  producción (94 llamadas a OpenAI en 12 horas). Se cerró ese pendiente.
