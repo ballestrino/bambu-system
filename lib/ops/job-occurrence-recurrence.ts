@@ -1,5 +1,4 @@
-import "server-only";
-
+// Pure recurrence math: no database, so scripts can check it.
 import type { JobScheduleRule } from "@prisma/client";
 
 import { getGenerationHorizonEnd } from "@/lib/ops/generation-horizon";
@@ -34,32 +33,18 @@ const minDate = (...dates: Date[]) =>
 const getRuleTimezone = (rule: JobScheduleRule) =>
   rule.timezone || DEFAULT_OPS_TIMEZONE;
 
-export const getGenerationStart = (
-  rangeStart?: Date,
-  timeZone = DEFAULT_OPS_TIMEZONE
-) => {
-  const today = getLocalDate(new Date(), timeZone);
-  const requested = rangeStart ? getLocalDate(rangeStart, timeZone) : today;
-  const start = compareLocalDates(requested, today) > 0 ? requested : today;
-
-  return zonedTimeToUtc(start, timeZone);
-};
-
-export const getGenerationWindow = (
+// The part of a manual generation range a rule covers: from its start date to
+// its end date, never past the 3-month horizon. Past days are allowed.
+export const getRuleGenerationWindow = (
   rule: JobScheduleRule,
-  rangeStart?: Date,
-  rangeEnd?: Date
+  range: GenerationRange
 ): GenerationRange | null => {
   const timeZone = getRuleTimezone(rule);
   const horizonEnd = getGenerationHorizonEnd(timeZone);
-  const requestedStart = getGenerationStart(rangeStart, timeZone);
-  const requestedEnd = rangeEnd
-    ? endOfZonedDay(rangeEnd, timeZone)
-    : horizonEnd;
-  const start = maxDate(startOfZonedDay(rule.startDate, timeZone), requestedStart);
+  const start = maxDate(startOfZonedDay(rule.startDate, timeZone), range.start);
   const end = minDate(
     rule.endDate ? endOfZonedDay(rule.endDate, timeZone) : horizonEnd,
-    requestedEnd,
+    range.end,
     horizonEnd
   );
 

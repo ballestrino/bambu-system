@@ -27,7 +27,10 @@ export const useJobScheduleRuleMutations = (jobId: string) => {
         return;
       }
 
-      toast.success("Regla creada");
+      // Rules no longer generate visits on their own (feature 9).
+      toast.success("Regla creada", {
+        description: "Creá sus visitas con Generar en la regla.",
+      });
       await invalidateQueries();
     },
     onError: (error) => {
@@ -48,7 +51,9 @@ export const useJobScheduleRuleMutations = (jobId: string) => {
         return;
       }
 
-      toast.success("Regla actualizada");
+      toast.success("Regla actualizada", {
+        description: "Las visitas ya generadas no cambian. Usá Generar para crear las que falten.",
+      });
       await invalidateQueries();
     },
     onError: (error) => {

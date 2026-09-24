@@ -9,6 +9,9 @@ export const opsQueryKeys = {
   occurrenceRoot: ["ops", "occurrences"] as const,
   occurrences: (scope?: string) =>
     ["ops", "occurrences", scope ?? "all"] as const,
+  occurrenceGenerationRoot: ["ops", "occurrence-generation"] as const,
+  occurrenceGeneration: (scope: unknown) =>
+    ["ops", "occurrence-generation", scope] as const,
   calendarRoot: ["ops", "calendar"] as const,
   calendar: (monthKey: string) => ["ops", "calendar", monthKey] as const,
   visitFeedRoot: ["ops", "visit-feed"] as const,

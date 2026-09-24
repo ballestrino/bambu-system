@@ -7,8 +7,8 @@ import {
 
 export const MAX_GENERATION_MONTHS = 3;
 
-// Vive fuera de job-occurrence-recurrence.ts, que es server-only, para que la
-// UI y los scripts puedan saber hasta donde llegan las visitas materializadas.
+// El límite hacia adelante de la generación manual de visitas. Lo usan el
+// servidor, la UI (cronograma y diálogo de generar) y los scripts.
 export const getGenerationHorizonEnd = (timeZone = DEFAULT_OPS_TIMEZONE) => {
   const today = getLocalDate(new Date(), timeZone);
   const horizon = addLocalMonths(today, MAX_GENERATION_MONTHS);

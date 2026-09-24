@@ -155,7 +155,7 @@ export const VisitsPage = () => {
         <ScheduleBoard />
       ) : isCalendar ? (
         <div className="grid gap-5 xl:grid-cols-[minmax(0,420px)_1fr]">
-          <CalendarMonthPanel month={month} occurrences={filteredOccurrences} selectedDate={visibleSelectedDate} onMonthChange={setMonth} onSelectDate={setSelectedDate} />
+          <CalendarMonthPanel month={month} monthIsEmpty={!calendarQuery.isLoading && !calendarQuery.error && !calendarQuery.occurrences.length} occurrences={filteredOccurrences} selectedDate={visibleSelectedDate} onMonthChange={setMonth} onSelectDate={setSelectedDate} />
           <CalendarAgendaPanel allOccurrences={filteredOccurrences} hasActiveFilters={hasActiveCalendarFilters(filters)} isLoading={calendarQuery.isLoading} occurrences={selectedDayOccurrences} onClearFilters={clearFilters} selectedDate={visibleSelectedDate} />
         </div>
       ) : (

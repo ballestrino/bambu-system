@@ -97,6 +97,7 @@ export const ScheduleBoard = () => {
         onOpenGaps={() => setPanel("gaps")}
         onWeekChange={state.setWeekStart}
         onWeekdaysChange={state.setVisibleWeekdays}
+        occurrenceCount={state.isLoading || state.error ? undefined : state.occurrences.length}
         overlapCount={cells.overlapCount}
         schedule={state.schedule}
         selectedEmployeeIds={state.selectedEmployeeIds}

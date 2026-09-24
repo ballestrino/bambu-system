@@ -65,7 +65,6 @@ export const updateJobOccurrence = async (occurrenceId: string, values: unknown)
   try {
     const session = await requireAdminSession();
     const existingOccurrence = await assertOccurrenceExists(occurrenceId);
-
     const parsedValues = UpdateJobOccurrenceSchema.safeParse(values);
     if (!parsedValues.success) {
       return { error: "Datos invalidos para actualizar la ocurrencia" };
