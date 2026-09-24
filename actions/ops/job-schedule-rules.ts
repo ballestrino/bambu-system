@@ -6,7 +6,6 @@ import {
   assertJobExists,
   assertScheduleRuleExists,
 } from "@/lib/ops/assertions";
-import { generateJobOccurrencesForRule } from "@/lib/ops/job-occurrence-generator";
 import { getPatchedValue } from "@/lib/ops/patch";
 import { requireAdminSession } from "@/lib/require-admin-session";
 import {
@@ -30,10 +29,6 @@ export const createJobScheduleRule = async (values: unknown) => {
         ...parsedValues.data,
         createdById: session.user.id,
       },
-    });
-    await generateJobOccurrencesForRule({
-      ruleId: scheduleRule.id,
-      userId: session.user.id,
     });
 
     return { success: "Regla creada", scheduleRule };
@@ -138,10 +133,6 @@ export const updateJobScheduleRule = async (
         timezone: validatedValues.data.timezone,
         updatedById: session.user.id,
       },
-    });
-    await generateJobOccurrencesForRule({
-      ruleId: scheduleRule.id,
-      userId: session.user.id,
     });
 
     return { success: "Regla actualizada", scheduleRule };

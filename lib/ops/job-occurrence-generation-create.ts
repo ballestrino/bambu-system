@@ -1,24 +1,14 @@
 import "server-only";
 
-import type { JobScheduleRule, Prisma } from "@prisma/client";
+import type { JobScheduleRule } from "@prisma/client";
 
 import { db } from "@/lib/db";
+import { createOccurrenceEmployeeRows } from "@/lib/ops/job-occurrence-employees";
+import { MINUTE } from "@/lib/ops/job-occurrence-recurrence";
 import {
-  createOccurrenceEmployeeRows,
-  getUniqueEmployeeIds,
-} from "@/lib/ops/job-occurrence-employees";
-import {
-  buildCandidateStarts,
-  MINUTE,
-  type GenerationRange,
-} from "@/lib/ops/job-occurrence-recurrence";
-
-type AssignmentWindow = Pick<
-  Prisma.JobEmployeeAssignmentGetPayload<{
-    select: { employeeId: true; assignedFrom: true; assignedTo: true };
-  }>,
-  "employeeId" | "assignedFrom" | "assignedTo"
->;
+  resolveEmployeeIds,
+  type AssignmentWindow,
+} from "@/lib/ops/occurrence-replacement";
 
 export type RuleForGeneration = JobScheduleRule & {
   job: {
@@ -26,23 +16,14 @@ export type RuleForGeneration = JobScheduleRule & {
   };
 };
 
-const resolveEmployeeIds = (
-  assignments: AssignmentWindow[],
-  scheduledStartAt: Date
+// The candidate starts of a rule that have no visit yet. A visit archived or
+// moved by hand still counts, so generating again never brings it back.
+export const findMissingStarts = async (
+  rule: RuleForGeneration,
+  starts: Date[]
 ) => {
-  const activeAssignments = assignments.filter(
-    (assignment) =>
-      assignment.assignedFrom.getTime() <= scheduledStartAt.getTime() &&
-      (!assignment.assignedTo ||
-        assignment.assignedTo.getTime() >= scheduledStartAt.getTime())
-  );
+  if (!starts.length) return [];
 
-  return getUniqueEmployeeIds(
-    activeAssignments.map((assignment) => assignment.employeeId)
-  );
-};
-
-const getMissingStarts = async (rule: RuleForGeneration, starts: Date[]) => {
   const existing = await db.jobOccurrence.findMany({
     where: {
       jobId: rule.jobId,
@@ -81,17 +62,11 @@ const buildOccurrenceCandidates = (
     };
   });
 
-export const createMissingOccurrences = async (
+export const persistOccurrences = async (
   rule: RuleForGeneration,
-  range: GenerationRange,
+  missingStarts: Date[],
   userId: string
 ) => {
-  const starts = buildCandidateStarts(rule, range);
-  if (!starts.length) {
-    return 0;
-  }
-
-  const missingStarts = await getMissingStarts(rule, starts);
   const candidates = buildOccurrenceCandidates(rule, missingStarts, userId);
   if (!candidates.length) {
     return 0;

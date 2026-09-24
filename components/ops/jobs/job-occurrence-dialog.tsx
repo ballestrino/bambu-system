@@ -53,8 +53,9 @@ export const JobOccurrenceDialog = ({
   const [formState, setFormState] = useState(
     getInitialOccurrenceState(occurrence, completeOnSave, defaults)
   );
-  const { employees: activeEmployees } = useEmployees({ isActive: true });
-  const { jobs } = useJobs({ includeArchived: false });
+  // Loaded on open: Visits mounts one dialog per agenda item and the header.
+  const { employees: activeEmployees } = useEmployees({ isActive: true }, open);
+  const { jobs } = useJobs({ includeArchived: false }, open);
   const resolvedJobId = jobId ?? occurrence?.jobId ?? formState.jobId;
   const employees = getJobOccurrenceEmployeeOptions(
     activeEmployees,
@@ -62,7 +63,7 @@ export const JobOccurrenceDialog = ({
   );
   const { scheduleRules: fetchedScheduleRules } = useJobScheduleRules(
     resolvedJobId ? { jobId: resolvedJobId, isActive: true } : undefined,
-    { enabled: Boolean(resolvedJobId) }
+    { enabled: open && Boolean(resolvedJobId) }
   );
   const currentScheduleRule =
     occurrence?.scheduleRule && occurrence.scheduleRule.jobId === resolvedJobId

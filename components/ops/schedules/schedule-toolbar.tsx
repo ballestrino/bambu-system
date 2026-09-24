@@ -1,8 +1,10 @@
 "use client";
 
-import { CalendarOff, CalendarSearch, TriangleAlert } from "lucide-react";
+import { CalendarOff, CalendarPlus, CalendarSearch, TriangleAlert } from "lucide-react";
 
+import { weekPreset } from "@/lib/ops/occurrence-generation-presets";
 import type { WeeklySchedule } from "@/lib/ops/schedule-types";
+import { GenerateOccurrencesDialog } from "@/components/ops/occurrences/generate-occurrences-dialog";
 import { ScheduleTeamExportButton } from "@/components/ops/schedules/schedule-export-buttons";
 import { ScheduleWeekdayFilter } from "@/components/ops/schedules/schedule-weekday-filter";
 import { ScheduleWeekNav } from "@/components/ops/schedules/schedule-week-nav";
@@ -18,6 +20,7 @@ export const ScheduleToolbar = ({
   onOpenGaps,
   onWeekChange,
   onWeekdaysChange,
+  occurrenceCount,
   overlapCount,
   schedule,
   selectedEmployeeIds,
@@ -31,6 +34,8 @@ export const ScheduleToolbar = ({
   onOpenGaps: () => void;
   onWeekChange: (weekStart: string) => void;
   onWeekdaysChange: (weekdays: number[]) => void;
+  // Visits loaded for the week, or undefined while loading.
+  occurrenceCount?: number;
   overlapCount: number;
   schedule?: WeeklySchedule;
   selectedEmployeeIds: string[];
@@ -46,6 +51,11 @@ export const ScheduleToolbar = ({
         weekStart={weekStart}
       />
       <div className="flex flex-wrap items-center gap-2">
+        <GenerateOccurrencesDialog
+          presets={[weekPreset(weekStart, "Esta semana")]}
+          scopeLabel="todos los trabajos"
+          triggerLabel="Generar semana"
+        />
         <Button onClick={onOpenGaps} size="sm" type="button" variant="outline">
           <CalendarSearch className="h-4 w-4" />
           Buscar huecos
@@ -81,6 +91,12 @@ export const ScheduleToolbar = ({
         </div>
       </OpsFilterField>
     </div>
+    {occurrenceCount === 0 ? (
+      <p className="flex items-center gap-1 text-xs text-muted-foreground">
+        <CalendarPlus aria-hidden className="h-3.5 w-3.5 shrink-0" />
+        Esta semana no tiene visitas generadas. Usá &quot;Generar semana&quot; para crearlas.
+      </p>
+    ) : null}
     {overlapCount ? (
       <p className="flex items-center gap-1 text-xs text-amber-700 dark:text-amber-300">
         <TriangleAlert aria-hidden className="h-3.5 w-3.5 shrink-0" />

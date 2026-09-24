@@ -523,3 +523,25 @@
   correo sigue en 60 s. Se actualizó `docs/agent.md`.
 - Quedó confirmado en Vercel: Node 24.x, y `OPENAI_API_KEY` funciona en
   producción (94 llamadas a OpenAI en 12 horas). Se cerró ese pendiente.
+
+## 2026-09-24 - Feature 9 generación manual de visitas
+
+- Las lecturas de visitas (`getJobOccurrences` y `getVisitWeek`) ya no
+  generan. Tampoco generan crear o editar una regla. Las visitas se generan a
+  mano para un rango "desde/hasta" con "Generar visitas":
+  - en el Cronograma, la semana;
+  - en el Calendario, la semana del día, el mes o del día a fin de mes;
+  - en las reglas del trabajo, 7 días, hasta fin de mes o 4 semanas.
+- Antes de escribir se ve una vista previa. Se pueden generar días pasados,
+  con aviso, y nunca más allá del horizonte de 3 meses.
+- A pedido del usuario, el mismo diálogo reemplaza las visitas futuras sin
+  tocar que ya no coinciden con su regla: día u horario, duración, equipo o
+  regla inactiva. Nada viene marcado. Las marcadas se borran, porque no tienen
+  datos propios, y se recrean. En producción había 184 del 24/9 al 22/11.
+- El diálogo de visita carga empleadas, trabajos y reglas al abrirse. Visitas
+  bajó de 13 acciones y 3,77 s a 2 acciones y 1,38 s (mediana de 3 cargas).
+- PASS: `check:occurrence-generation` (nuevo, 21 de 21 mutaciones), los 27
+  `check:*`, `tsc`, lint, build y el smoke. Se generaron, con permiso, 2
+  visitas reales del 21/9, y el usuario probó crear, editar, separar, archivar
+  y reemplazar. Detalle en
+  `progress/impl_ops_occurrence_scheduling_refactor.md`.

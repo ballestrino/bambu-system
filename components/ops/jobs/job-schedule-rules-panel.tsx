@@ -6,12 +6,34 @@ import { dashboardSecondaryActionClass } from "@/components/dashboard/dashboard-
 import { OpsDetailRow, OpsSection, opsFrequencyLabels } from "@/components/ops/shared";
 import DeleteDialog from "@/components/ui/delete-dialog";
 import { JobScheduleRuleDialog } from "@/components/ops/jobs/job-schedule-rule-dialog";
+import { GenerateOccurrencesDialog } from "@/components/ops/occurrences/generate-occurrences-dialog";
 import { formatDate } from "@/components/ops/utils";
 import type { OpsScheduleRule } from "@/components/ops/types";
+import {
+  getTodayKey,
+  laterDateKey,
+  nextDaysPreset,
+  untilMonthEndPreset,
+} from "@/lib/ops/occurrence-generation-presets";
+import { toLocalDateKey } from "@/lib/ops/schedule-week";
+import { DEFAULT_OPS_TIMEZONE, getLocalDate } from "@/lib/ops/timezone";
 
 const weekdayLabels = ["Lun", "Mar", "Mie", "Jue", "Vie", "Sab", "Dom"];
 const toClockLabel = (minutes: number) =>
   `${String(Math.floor(minutes / 60)).padStart(2, "0")}:${String(minutes % 60).padStart(2, "0")}`;
+
+// Suggested ranges from a day: a rule that starts on the 25th starts there.
+const presetsFrom = (startKey: string) => [
+  nextDaysPreset(startKey, 7, "7 días"),
+  untilMonthEndPreset(startKey),
+  nextDaysPreset(startKey, 28, "4 semanas"),
+];
+
+const ruleStartKey = (rule: OpsScheduleRule) =>
+  laterDateKey(
+    getTodayKey(),
+    toLocalDateKey(getLocalDate(new Date(rule.startDate), DEFAULT_OPS_TIMEZONE))
+  );
 
 const describeRule = (rule: OpsScheduleRule) => {
   if (rule.frequency === "WEEKLY") {
@@ -35,8 +57,19 @@ export const JobScheduleRulesPanel = ({
   onArchive: (scheduleRuleId: string) => Promise<void>;
 }) => (
   <OpsSection
-    actions={<JobScheduleRuleDialog jobId={jobId} />}
-    description="Recurrencias base para poblar la agenda del trabajo."
+    actions={
+      <>
+        {rules.some((rule) => rule.isActive) ? (
+          <GenerateOccurrencesDialog
+            jobId={jobId}
+            presets={presetsFrom(getTodayKey())}
+            scopeLabel="las reglas de este trabajo"
+          />
+        ) : null}
+        <JobScheduleRuleDialog jobId={jobId} />
+      </>
+    }
+    description="Recurrencias base de la agenda del trabajo. Las visitas se crean con Generar visitas."
     title="Reglas de calendario"
   >
     <div className="space-y-3">
@@ -46,6 +79,15 @@ export const JobScheduleRulesPanel = ({
             key={rule.id}
             actions={
               <>
+                {rule.isActive ? (
+                  <GenerateOccurrencesDialog
+                    jobId={jobId}
+                    presets={presetsFrom(ruleStartKey(rule))}
+                    scheduleRuleId={rule.id}
+                    scopeLabel="esta regla"
+                    trigger={<button className={dashboardSecondaryActionClass} type="button">Generar</button>}
+                  />
+                ) : null}
                 <JobScheduleRuleDialog jobId={jobId} rule={rule} />
                 <DeleteDialog
                   title="Archivar regla"

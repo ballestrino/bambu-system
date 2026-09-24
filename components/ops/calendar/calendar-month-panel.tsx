@@ -1,36 +1,65 @@
-import { CalendarDays, CheckCircle2, Clock3 } from "lucide-react";
+import { CalendarDays, CalendarPlus, CheckCircle2, Clock3 } from "lucide-react";
 
 import type { OpsOccurrence } from "@/components/ops/types";
 import { getCalendarStats } from "@/components/ops/calendar/calendar-utils";
+import { GenerateOccurrencesDialog } from "@/components/ops/occurrences/generate-occurrences-dialog";
 import { OpsMetricCard, opsSurface } from "@/components/ops/shared";
 import { Calendar } from "@/components/ui/calendar";
+import {
+  monthPreset,
+  untilMonthEndPreset,
+  weekPreset,
+} from "@/lib/ops/occurrence-generation-presets";
+import { toLocalDateKey } from "@/lib/ops/schedule-week";
+import { DEFAULT_OPS_TIMEZONE, getLocalDate } from "@/lib/ops/timezone";
 import { cn } from "@/lib/utils";
 
 export const CalendarMonthPanel = ({
   month,
+  monthIsEmpty,
   occurrences,
   selectedDate,
   onMonthChange,
   onSelectDate,
 }: {
   month: Date;
+  // The month has no visits at all, filters aside (and it finished loading).
+  monthIsEmpty: boolean;
   occurrences: OpsOccurrence[];
   selectedDate?: Date;
   onMonthChange: (date: Date) => void;
   onSelectDate: (date?: Date) => void;
 }) => {
   const stats = getCalendarStats(occurrences);
+  // The selected day, or the first of the visible month.
+  const dayKey = toLocalDateKey(getLocalDate(selectedDate ?? month, DEFAULT_OPS_TIMEZONE));
 
   return (
     <section className={cn(opsSurface.panel, "space-y-4 p-4 md:p-5")}>
-      <div>
-        <h2 className="text-lg font-semibold text-[#18251D] dark:text-[#F0F3E8]">
-          Mes operativo
-        </h2>
-        <p className="text-sm text-muted-foreground">
-          Selecciona un día para revisar y actuar.
-        </p>
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <div>
+          <h2 className="text-lg font-semibold text-[#18251D] dark:text-[#F0F3E8]">
+            Mes operativo
+          </h2>
+          <p className="text-sm text-muted-foreground">
+            Selecciona un día para revisar y actuar.
+          </p>
+        </div>
+        <GenerateOccurrencesDialog
+          presets={[
+            weekPreset(dayKey, "Semana del día"),
+            monthPreset(dayKey, "Todo el mes"),
+            untilMonthEndPreset(dayKey, "Del día a fin de mes"),
+          ]}
+          scopeLabel="todos los trabajos"
+        />
       </div>
+      {monthIsEmpty ? (
+        <p className="flex items-center gap-1 text-xs text-muted-foreground">
+          <CalendarPlus aria-hidden className="h-3.5 w-3.5 shrink-0" />
+          Este mes no tiene visitas generadas. Usá &quot;Generar visitas&quot; para crearlas.
+        </p>
+      ) : null}
       <Calendar
         mode="single"
         month={month}

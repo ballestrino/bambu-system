@@ -36,7 +36,7 @@ const recordedTotal = (rows: AmountRow[]) =>
   roundMoney(rows.reduce((sum, row) => (row.status === "RECORDED" ? sum + row.amount : sum), 0));
 
 // Cada tipo usa el lector de data/ que ya usa la pantalla. Las visitas usan el
-// lector sin efectos: getJobOccurrences genera ocurrencias.
+// lector propio del agente (data/agent/occurrences.ts), pensado para sus filtros.
 const readOperations = async (input: QueryOperationsInput) => {
   const month = input.month ?? getCurrentMonthKey();
   const assignedMonth = toAssignedMonth(month);

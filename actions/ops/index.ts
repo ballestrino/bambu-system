@@ -8,3 +8,4 @@ export * from "@/actions/ops/job-occurrences";
 export * from "@/actions/ops/job-schedule-rules";
 export * from "@/actions/ops/jobs";
 export * from "@/actions/ops/time-entries";
+export * from "@/actions/ops/occurrence-generation";
