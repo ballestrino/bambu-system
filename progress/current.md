@@ -39,14 +39,9 @@ Status: idle
 
 ## Pendientes fuera del código
 
-- Vercel, para el agente: confirmar `OPENAI_API_KEY` (o el gateway) y Node
-  22.x o 24.x. `maxDuration` sigue en 60: el turno más largo medido fue de
-  38,9 s en Medio con Terra; desde la 45 Medio razona con `xhigh`, y con
-  Fluid compute conviene subirlo a 300.
 - Decisiones del usuario que dejaron las revisiones del agente:
   - qué hacer con los precios con centavos de los presupuestos guardados antes
     de la 44;
-  - medir Emails en Medio (Luna 6 `xhigh`) y Alto, o subir `maxDuration`;
   - si "Abrir en página" se ofrece también desde el Sheet de crear;
   - un `replaceState` durante una navegación pendiente en la 42, a confirmar.
 - Datos de prueba del agente para borrar:
