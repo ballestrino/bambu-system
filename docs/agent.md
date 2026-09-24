@@ -83,10 +83,12 @@ actualiza con cada feature.
   IVA efectivo (`withEffectiveIva`): insumos, totales y propuestas coinciden.
 - El conocimiento aprobado del correo (organización, políticas y estilo, sin
   contactos) entra al prompt como solo lectura.
-- `maxDuration` es 60 s (Hobby sin Fluid compute). Con Fluid activo se puede
-  subir a 300 si los turnos de Medio (`xhigh`) lo necesitan. El consumo se guarda en
-  `onEnd`: si Vercel corta la función por `maxDuration`, el de ese turno se
-  pierde (decisión pendiente junto con el valor de `maxDuration`).
+- `maxDuration` es 300 s desde el 2026-09-23, el máximo de Hobby con Fluid
+  compute (activo en el proyecto). Con 60 s, en 12 horas de producción se
+  cortó 1 de cada 3 turnos (20 llamadas, 33 % de timeouts). Cada turno usa
+  unos 2,8 s de Active CPU (P75): el resto es esperar a OpenAI, que Fluid no
+  cobra como CPU. El consumo se guarda en `onEnd`: si Vercel corta la función
+  a los 300 s, el de ese turno se pierde.
 - Una respuesta detenida (Stop o pedido cortado) se guarda con lo que llegó y
   la marca `stopped`. Si se corta a mitad de un paso, ese paso no informa
   consumo (OpenAI lo manda al terminar la respuesta) y no se registra: se
@@ -389,9 +391,9 @@ Presupuestos iguales y pedidos de presupuesto:
   bandeja.
 - `MAX_STEPS` es 8: ese flujo usa 6 pasos (buscar el oficial, buscar uno
   igual, calcular, redactar, proponer y contestar). En el smoke tardó 26 s en
-  Medio con `gpt-5.6-terra`; el turno más largo fue de 32 s. Falta medirlo con
-  los modos de la feature 45 (Medio ahora razona con `xhigh`): con
-  `maxDuration` en 60 s, sigue abierta la decisión de subirlo (ver "Núcleo").
+  Medio con `gpt-5.6-terra`; el turno más largo fue de 32 s. Con los modos de
+  la feature 45 (Medio razona con `xhigh`) los turnos se alargaron, y
+  `maxDuration` subió a 300 s (ver "Núcleo").
 
 ## Formato de precio y empleadas (feature 46)
 

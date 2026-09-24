@@ -13,9 +13,10 @@ import { agentChatRequestSchema } from "@/schemas/agent";
 // Ruta y no Server Action: una acción no puede devolver un stream de mensajes
 // con partes de tools. Se mantiene fina: la lógica vive en lib/agent.
 export const runtime = "nodejs";
-// El máximo de Vercel Hobby sin Fluid compute. Con Fluid activo se puede
-// subir a 300 si los turnos largos (Medio razona con xhigh) lo necesitan.
-export const maxDuration = 60;
+// El máximo de Vercel Hobby con Fluid compute (activo en el proyecto). Con 60
+// se cortaba un tercio de los turnos de Medio (xhigh); mientras espera a
+// OpenAI la función no consume Active CPU, y Stop corta el turno.
+export const maxDuration = 300;
 
 const generateMessageId = createIdGenerator({ prefix: "msg", size: 16 });
 
