@@ -9,7 +9,7 @@ import {
   UpdateProfileImageSchema,
 } from "../schemas/settings";
 
-// Feature 4: las acciones de settings toman la identidad de la sesión, nunca
+// Las acciones de settings toman la identidad de la sesión, nunca
 // del cliente. Un checkout con core.autocrlf deja CRLF: se normaliza.
 const read = (path: string) => readFileSync(join(process.cwd(), path), "utf8").replace(/\r\n/g, "\n");
 const exists = (path: string) => existsSync(join(process.cwd(), path));

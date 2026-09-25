@@ -61,7 +61,7 @@ export const budgetOptionToFormValues = (budget: BudgetRow): BudgetFormValues =>
   });
 };
 
-// El precio por hora es una referencia: va redondeado a pesos (feature 44).
+// El precio por hora es una referencia: va redondeado a pesos (reglas de precio del agente).
 const priceOption = (net: number, iva: number, final: number, hourlyNet: number) => ({
   net: roundMoney(net),
   iva: roundMoney(iva),

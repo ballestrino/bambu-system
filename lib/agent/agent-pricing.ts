@@ -9,7 +9,7 @@ import {
 import type { AgentBudgetChanges } from "@/schemas/agent-tools";
 import type { BudgetFormValues } from "@/schemas/BudgetSchema";
 
-// Las reglas de precio del agente (feature 44) sobre applyBudgetChanges. Las
+// Las reglas de precio del agente sobre applyBudgetChanges. Las
 // aplica el cálculo y no el modelo: draftEmail solo acepta importes que
 // salieron de una tool. calculateBudget y las propuestas de crear y guardar
 // pasan por acá, así lo que se guarda es lo que se calculó. Puro.

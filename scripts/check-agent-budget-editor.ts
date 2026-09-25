@@ -78,7 +78,7 @@ assert.equal(agentSaveBudgetSchema.safeParse({ ...save, values: { ...edited, vis
 
 // --- Saving builds the same CREATE_BUDGET proposal the agent would: the
 // values as edited, the totals of the card, no invented changes or notes.
-// "edited" skips the agent's price rules (feature 44): no estimates, no
+// "edited" skips the agent's price rules: no estimates, no
 // rounding of what was typed by hand.
 const built = buildCreateBudgetProposal({ base: { source: "edited", values: edited }, name: edited.name, description: null, changes: {} });
 assert.ok(built.ok);

@@ -80,7 +80,7 @@ const create = buildCreateBudgetProposal({ base: { source: "form", values: formV
 assert.ok(create.ok);
 assert.equal(create.summary.slug, "oficina-centro");
 assert.deepEqual([create.payload.values.visits, create.payload.values.categoryIds], [2, ["cat_9"]]);
-// The same price rules as calculateBudget (feature 44): the change rounds the price.
+// The same price rules as calculateBudget: the change rounds the price.
 assert.deepEqual(create.summary.after, runBudgetCalculation(applyAgentChanges({ source: "form", values: formValues }, { visits: 2 }).values));
 assert.match(create.summary.warnings[0], /formulario abierto no se guarda/);
 const defaults = { source: "defaults" as const, values: defaultBudgetValues };
@@ -92,7 +92,7 @@ assert.equal(symbols.ok ? null : symbols.code, "invalid_name");
 const fractional = buildCreateBudgetProposal({ base: { source: "form", values: { ...formValues, visits: 1.5 } }, name: null, description: null, changes: {} });
 assert.equal(fractional.ok ? null : fractional.code, "invalid_values");
 
-// --- Duplicate works for any admin (budgets are shared since feature 3);
+// --- Duplicate works for any admin (budgets are shared by every admin);
 // publish needs an unlinked budget with options.
 const duplicate = buildDuplicateBudgetProposal({ budget });
 assert.ok(duplicate.ok);

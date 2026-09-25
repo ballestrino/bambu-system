@@ -87,7 +87,7 @@ export const updateProfileImage = async (values: UpdateProfileImageValues) => {
       return { error: getSettingsValidationError(validatedFields.error) }
     }
 
-    // Uploads stay off until feature 5 decides whether Cloudinary stays.
+    // Uploads stay off: Cloudinary is being retired (runtime_sdk_cleanup).
     return { success: "Actualización de imagen desactivada" }
   } catch {
     return { error: "Algo salió mal" }

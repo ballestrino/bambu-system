@@ -7,8 +7,8 @@ import { visibleOccurrenceWhere } from "@/data/ops/shared";
 import { db } from "@/lib/db";
 import { requireAdminSession } from "@/lib/require-admin-session";
 
-// Visitas en modo solo lectura: el agente lee solo lo que ya existe. Desde la
-// feature 9 las visitas se generan a mano (Generar visitas), así que ninguna
+// Visitas en modo solo lectura: el agente lee solo lo que ya existe. Las
+// visitas se generan a mano (Generar visitas), así que ninguna
 // lectura escribe filas.
 export const getAgentOccurrences = async ({
   start,

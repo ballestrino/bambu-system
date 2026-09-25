@@ -21,7 +21,7 @@ import { findMatchingBudgetsInputSchema } from "../schemas/agent-tools";
 import { defaultBudgetValues } from "../schemas/BudgetSchema";
 import { budget, fixtureBase, noChanges } from "./agent-proposal-fixture";
 
-// Reglas de precio del agente (feature 44), sin base ni modelo.
+// Reglas de precio del agente, sin base ni modelo.
 
 // --- The monthly price goes up to the next $ 100 (never down, never on
 // float noise); products go to the nearest $ 500, never below $ 500.
@@ -122,7 +122,7 @@ const expected = applyAgentChanges({ source: "budget", values: budgetOptionToFor
 assert.deepEqual(runBudgetCalculation(update.payload.values), runBudgetCalculation(expected.values));
 assert.deepEqual(update.summary.changes.map((change) => change.field), ["hours_per_visit", "revenue_percent"]);
 assert.ok(update.summary.warnings.includes(describeRounding(expected.rounding) ?? ""));
-// What the editor of feature 43 saves is kept as typed: no estimates, no rounding.
+// What the agent budget editor saves is kept as typed: no estimates, no rounding.
 const typed = { ...fixtureBase, name: "Editado", products_price: 1234 };
 const edited = buildCreateBudgetProposal({ base: { source: "edited", values: typed }, name: "Editado", description: null, changes: {} });
 assert.ok(edited.ok);

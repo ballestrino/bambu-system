@@ -102,7 +102,7 @@ export function AgentBudgetTotalsCard({ data, toolCallId }: { data: BudgetTotals
   const labels: Record<string, string> = FIELD_LABELS;
   const changed = saved ? [] : data.changedFields.map((field) => labels[field] ?? field);
   const target = "target" in data ? data : null;
-  // Las salidas anteriores a la feature 44 no traen rounding.
+  // Las salidas anteriores a las reglas de precio no traen rounding.
   const rounding = "rounding" in data ? data.rounding : null;
 
   return (

@@ -58,7 +58,7 @@ assert.equal(checkProposalPreconditions(update, { ...state, updatedAt: later }),
 assert.equal(checkProposalPreconditions(update, { ...state, officialBudget: { id: "off_9" } }), PROPOSAL_STALE_MESSAGE);
 assert.equal(checkProposalPreconditions(update, null), "El presupuesto ya no existe.");
 const duplicate = parse(buildDuplicateBudgetProposal({ budget }));
-// Another admin duplicates it too: budgets are shared since feature 3.
+// Another admin duplicates it too: budgets are shared by every admin.
 assert.equal(checkProposalPreconditions(duplicate, { ...state, userId: "user_2" }), null);
 assert.equal(checkProposalPreconditions(duplicate, { ...state, updatedAt: later }), PROPOSAL_STALE_MESSAGE);
 const publish = parse(buildPublishOfficialBudgetProposal({ budget }));
@@ -122,7 +122,7 @@ assert.deepEqual(formatProposalsForPrompt(items).split("\n"), [
 
 // --- The history sent to the model carries the live status and summary in
 // each propose* output (the saved output says PENDING forever, and a proposal
-// saved from the editor of feature 43 has the summary of what was edited);
+// saved from the agent budget editor has the summary of what was edited);
 // the rest is untouched and grounding comes from the live summary.
 const proposalPart = (proposalId: string, amounts: number[]) => ({
   type: "tool-proposeCreateBudget", state: "output-available",
@@ -162,7 +162,7 @@ assert.doesNotMatch(AGENT_SKILLS.presupuestos.instructions, /Todavía no podés 
 
 // --- The four tools are proposals: Presupuestos and General have them,
 // Consejos doesn't, and Emails only creates (the budget it calculated to
-// answer a quote request, feature 44).
+// answer a quote request).
 const PROPOSE_TOOLS = ["proposeCreateBudget", "proposeUpdateBudget", "proposeDuplicateBudget", "proposePublishOfficialBudget"] as const;
 assert.deepEqual(
   AGENT_TOOL_NAMES.filter((name) => AGENT_TOOL_CATALOG[name].kind === "proposal").sort(),

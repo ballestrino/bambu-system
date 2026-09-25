@@ -11,7 +11,7 @@ import {
 import { PRICE_RULE } from "../lib/agent/system-prompt";
 import { defaultBudgetValues } from "../schemas/BudgetSchema";
 
-// Presupuestos iguales (feature 44): la búsqueda que sale de la entrada, las
+// Presupuestos iguales (reglas de precio del agente): la búsqueda que sale de la entrada, las
 // filas con sus precios citables y el aviso de crear. Lo usa
 // check:agent-pricing.
 

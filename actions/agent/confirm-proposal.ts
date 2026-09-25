@@ -45,7 +45,7 @@ const budgetResult = (
   officialVersion: official?.currentVersion ?? null,
 });
 
-// Sin mensaje (o con el "error" genérico de antes de la feature 3) se usa el
+// Sin mensaje (o con el "error" genérico que devolvían antes las acciones de presupuestos) se usa el
 // de cada tipo. El compare-and-set de updateBudget se informa como propuesta
 // vieja.
 const failure = (error: string | undefined, fallback: string): Outcome => ({

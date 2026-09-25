@@ -5,8 +5,8 @@ import type { AgentSkill } from "@/lib/agent/skills";
 // Instrucciones del agente. Puro: el check verifica la regla de precios, la
 // nota de Literal E y los datos del negocio sin llamar al modelo.
 
-// Cómo se escribe un precio de un servicio, en el chat y en draftEmail
-// (feature 46): el importe sin IVA más " + IVA", nunca con y sin IVA.
+// Cómo se escribe un precio de un servicio, en el chat y en draftEmail:
+// el importe sin IVA más " + IVA", nunca con y sin IVA.
 export const PRICE_FORMAT_RULE =
   "Los precios de un servicio se escriben con el importe sin IVA seguido de \"+ IVA\": $ 54.100 + IVA. Nunca escribas \"Precio sin IVA\" y \"Precio con IVA\" ni el importe con IVA, salvo que lo pidan. El precio por hora va igual: $ 405 + IVA.";
 export const PRICE_RULE = [
@@ -29,9 +29,9 @@ const TOOL_POLICY = [
   "- Las tools devuelven tarjetas que el usuario ve: no repitas todas sus cifras, resumí lo importante.",
 ].join("\n");
 
-// Para las habilidades que calculan presupuestos (feature 44): antes de armar
+// Para las habilidades que calculan presupuestos: antes de armar
 // uno nuevo se busca si ya existe, y el precio lo redondea el cálculo. Sin
-// dato de empleadas es 1 (feature 46): casi siempre lo es, y preguntarlo
+// dato de empleadas es 1: casi siempre lo es, y preguntarlo
 // frenaba cada presupuesto.
 export const NEW_BUDGET_RULE = [
   "Presupuesto nuevo (también para responder a un cliente que pide uno):",
