@@ -1,6 +1,11 @@
 # Implementation Report - ops_visits_guided_workflow
 
-Status: in progress
+Status: closed as a partial slice (2026-09-24)
+
+> The iPhone corrections described below as uncommitted were committed in
+> `94ca5b2`. The remaining scope continues as feature 17
+> `ops_visits_guided_intents` after the 2026-09-24 renumbering (see
+> `progress/history.md`).
 
 ## Implemented Slice
 

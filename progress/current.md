@@ -6,55 +6,28 @@ Status: idle
 
 - None.
 
-## Last Closed Features
+## Queue
 
-- 2026-09-24: la 9 (generación manual de visitas por rango, reemplazo de las
-  que ya no coinciden y carga a demanda del diálogo). Detalle en
-  `progress/impl_ops_occurrence_scheduling_refactor.md`. Mergeada en `main`
-  sin push.
-- 2026-09-23: la 4 (acciones de settings seguras), la 6 (`next` 16.3.5,
-  React 19.3.0, `next-auth` beta.32 y `@auth/prisma-adapter` 2.11.3), la 3
-  (permisos de presupuestos y categorías, compartidos entre admins) y `next`
-  16.3.6. Detalle en `progress/history.md` y en los `impl_*.md` de cada una.
-- 2026-09-23: la 28, la 35, la 36, la 37 y de la 38 a la 46 pasaron a `done`.
-- Push a `origin/main` el 2026-09-23, a pedido del usuario, con la 4, la 6, la
-  3 y `next` 16.3.6. El deploy de Vercel quedó Ready en producción
-  (`7221528`, y después `2c6fc56` con `maxDuration` 300).
-- Ramas locales: solo queda `main`. Las remotas viejas (`origin/*`) siguen.
+- `feature_list.json` se renumeró el 2026-09-24: las ids 1–10 son contexto
+  terminado y la cola va de la 11 a la 20, en orden de prioridad. La tabla de
+  equivalencias con los ids viejos está en `progress/history.md`.
+- Próxima: 11 `security_dependency_patch`.
+- Las 12 y 13 escriben en la base de producción (`.env`): primero una
+  consulta de solo lectura, después el permiso explícito del usuario.
 
-## Auditoría de las `pending` (2026-09-23)
+## Last Closed Work
 
-- Se revisaron la 3, 4, 5, 6, 8, 9, 11, 25, 26 y 27 contra sus criterios en
-  `main`. Ninguna estaba hecha. La 4, la 6, la 3 y la 9 ya se cerraron.
-- Seguridad, a priorizar:
-  - Quedan 22 altas del audit en otras dependencias: nodemailer, postcss (el
-    directo), minimatch, brace-expansion, nanoid, browserslist y otras. No hay
-    feature que las cubra.
-- Casi hechas:
-  - 26: falta "Cards" → "Tarjetas", la intención de completar dentro del
-    diálogo y el smoke en desktop y 390x844.
-- Sin empezar o casi: 5 (Resend y Cloudinary en el scope del módulo;
-  `lib/cloudinary.ts` no se usa), 8, 11 (los `console.log` de presupuestos
-  ya los sacó la 3; quedan los de `data/user.ts`),
-  25 (`<html lang="en">`, calendario en inglés con semana desde el domingo) y
-  27.
+- 2026-09-24: limpieza y renumeración del feature_list, en `main` sin push.
+- 2026-09-24: generación manual de visitas (vieja 9, nueva 3), en `main` sin
+  push.
+- Último push a `origin/main`: 2026-09-23 (`2c6fc56`, deploy de Vercel Ready).
 
-## Pendientes fuera del código
+## Decisiones pendientes del usuario
 
-- Decisiones del usuario que dejaron las revisiones del agente:
-  - qué hacer con los precios con centavos de los presupuestos guardados antes
-    de la 44;
-  - si "Abrir en página" se ofrece también desde el Sheet de crear;
-  - un `replaceState` durante una navegación pendiente en la 42, a confirmar.
-- Datos de prueba del agente para borrar:
-  - en el generador, "Prueba agente 43 cálculo", "Prueba agente 43
-    propuesta", "Prueba 43 aporte vacío", "Prueba 43 propuesta editada" y
-    "Prueba 43 confirmar con borrador";
-  - en `/dashboard/agent`, las conversaciones de prueba de la 42 y de la 44.
-- Datos de sueldos: julio tiene 141 visitas `DONE` sin hora real y los pagos
-  de agosto tienen período 1–31 de agosto aunque pagan julio.
-
-## Paused Feature
-
-- Feature 26 - `ops_visits_guided_workflow` sigue `pending` sin cambios de
-  código.
+- Qué hacer con los precios con centavos de los presupuestos guardados antes
+  de las reglas de precio del agente.
+- Si "Abrir en página" se ofrece también desde el Sheet de crear del agente.
+- Un `replaceState` durante una navegación pendiente en la página del agente,
+  a confirmar.
+- Qué período usa la rentabilidad de Trabajos cuando el control de mes deje de
+  ser global (se decide en la 18).

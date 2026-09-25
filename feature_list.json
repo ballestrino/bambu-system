@@ -16,37 +16,10 @@
   "features": [
     {
       "id": 1,
-      "name": "harness_bootstrap",
-      "title": "Bootstrap multi-agent harness",
-      "description": "Add the repository harness inspired by betta-tech/ejemplo-harness-subagentes and adapt it to Bambu System.",
-      "acceptance": [
-        "AGENTS.md acts as the progressive-disclosure map for agents",
-        "feature_list.json tracks one feature at a time with valid statuses",
-        "progress/current.md and progress/history.md persist session state",
-        "docs/architecture.md, docs/conventions.md, and docs/verification.md define project-specific standards",
-        "CHECKPOINTS.md gives reviewers objective final-state criteria",
-        ".codex/agents contains leader, implementer, and reviewer roles",
-        "init.ps1/init.sh run harness validation plus repository checks"
-      ],
-      "status": "done"
-    },
-    {
-      "id": 2,
-      "name": "codex_subagents",
-      "title": "Replace Claude harness entrypoint with Codex subagents",
-      "description": "Remove CLAUDE.md and make Codex subagent profiles the required orchestration roles.",
-      "acceptance": [
-        "CLAUDE.md is removed because Codex reads AGENTS.md directly",
-        ".codex/agents contains leader, implementer, and reviewer profiles",
-        "Harness validation requires .codex/agents instead of Claude-specific files",
-        "No repository harness files reference Claude-specific entrypoints"
-      ],
-      "status": "done"
-    },
-    {
-      "id": 3,
       "name": "budget_authorization_contracts",
       "title": "Harden budget ownership and category authorization",
+      "area": "budgets",
+      "legacyId": 3,
       "description": "Refactor budgets and budget categories so reads and mutations enforce authenticated ownership or admin contracts before later UI work.",
       "acceptance": [
         "getBudgets, getBudgetBySlug, getBudgetById, duplicate, update, and delete only expose or mutate budgets owned by the authenticated user",
@@ -58,36 +31,11 @@
       "status": "done"
     },
     {
-      "id": 4,
-      "name": "settings_server_action_auth",
-      "title": "Secure settings server actions",
-      "description": "Make settings mutations derive identity from the authenticated session instead of trusting client-sent user ids.",
-      "acceptance": [
-        "updateName, updateEmail, updatePassword, enable2FA, disable2FA, and updateProfileImage call auth() and do not trust a client-provided user id",
-        "Account, email, password, 2FA, and profile image inputs validate through schemas/settings.ts",
-        "Settings actions are split by account and security responsibility with read helpers kept separate from mutations",
-        "The settings page keeps a server-side shell where viable and scopes client components to forms, dialogs, or interactive controls",
-        "Manual smoke covers account updates, email or password changes, profile image updates, and 2FA enable or disable flows"
-      ],
-      "status": "done"
-    },
-    {
-      "id": 5,
-      "name": "runtime_lazy_sdk_initialization",
-      "title": "Lazy initialize runtime SDK clients",
-      "description": "Move Resend, Cloudinary, and runtime URL configuration out of module scope so Next.js build and runtime contexts load safely. OpenAI access for the agent is already lazy in lib/ai (feature 38) and the legacy AI chat route was removed by feature 41.",
-      "acceptance": [
-        "Resend and Cloudinary clients are created through lazy getters or one-time configuration helpers",
-        "Environment variables and base URLs are read close to use and fail with clear errors when required values are missing",
-        "No runtime SDK performs network-client initialization solely because a module was imported",
-        "Verification includes init.ps1 and pnpm build when the environment permits, plus focused smoke for affected email or upload paths"
-      ],
-      "status": "pending"
-    },
-    {
-      "id": 6,
+      "id": 2,
       "name": "platform_dependency_patch_review",
       "title": "Review and patch Next and React dependencies",
+      "area": "security",
+      "legacyId": 6,
       "description": "Run a controlled platform upgrade for Next.js, React, and React DOM to patched compatible versions.",
       "acceptance": [
         "Next.js, React, and React DOM target versions are checked against the current patched release line before editing package files",
@@ -99,40 +47,11 @@
       "status": "done"
     },
     {
-      "id": 7,
-      "name": "ai_chat_modularization",
-      "title": "Split AI chat UI, streaming, history, and upload responsibilities",
-      "description": "Superseded by feature 41: the legacy AIChat sheet, its stream route, save-chat, upload-chat-image, and ai-system-message were removed and replaced by the host-agnostic agent under components/agent/**, with chat state, history, rendering, and server logic already split by responsibility.",
-      "acceptance": [
-        "AIChat.tsx is reduced to a small shell or orchestrator under the repository file-size guidance",
-        "Session state, history, and image upload live in focused hooks that can be reasoned about independently",
-        "Message list, input, history panel, and chat actions are separate components with clear props",
-        "OpenAI client access and chat message construction live in server/domain helpers while the stream route stays thin",
-        "BudgetContext coupling is isolated behind an adapter instead of being buried throughout reusable UI",
-        "Manual smoke covers streaming, abort or error handling, image upload, save history, rename, and delete"
-      ],
-      "status": "done"
-    },
-    {
-      "id": 8,
-      "name": "budget_form_and_cache_refactor",
-      "title": "Refactor budget forms, filters, preview, and query cache",
-      "description": "Split the budget create/edit flow into focused sections and centralize filter parsing, query keys, invalidation, and domain helpers.",
-      "acceptance": [
-        "Budget query keys and invalidation helpers are centralized for budgets and budget categories",
-        "Budget list filter parsing and URL/query-state handling live in focused filter helpers or hooks",
-        "Create and edit flows share a BudgetFormShell where behavior overlaps",
-        "Details, labor or time, contributions, costs or products, price, and preview are separated into focused form sections",
-        "Slug, option, and ownership helper logic lives under lib/budgets or an equivalent scoped domain location",
-        "Authored budget form files stay under 200 lines unless an exception is explicitly justified",
-        "Manual smoke covers create, edit, duplicate, delete, category selection, preview, and filtering"
-      ],
-      "status": "pending"
-    },
-    {
-      "id": 9,
+      "id": 3,
       "name": "ops_occurrence_scheduling_refactor",
       "title": "Separate ops occurrence reads, generation, and scheduling UI",
+      "area": "operations",
+      "legacyId": 9,
       "description": "Make job occurrence reads and generation commands explicit, split the occurrence dialog and scheduling helpers by responsibility, and improve measured Visits loading under the current infrastructure.",
       "acceptance": [
         "getJobOccurrences is strictly read-only and occurrence generation or persistence is moved behind an explicitly named idempotent command",
@@ -146,305 +65,11 @@
       "status": "done"
     },
     {
-      "id": 10,
-      "name": "ops_finance_domain_refactor",
-      "title": "Unify operational finance management and monthly rules",
-      "description": "Create a unified Finance workspace for client payments, operational costs, and employee payments while centralizing shared summaries and assigned-month rules.",
-      "acceptance": [
-        "The operations nav replaces Cobros, Costes, and Pagos with one Finanzas entry at /dashboard/financial while the three legacy routes remain functional",
-        "Finance shows one monthly recorded-only summary plus independently filtered sections for client payments, operational costs, and employee payments",
-        "Finance supports create, edit, void, payroll suggestions, employee attribution, cost categories, and BPS settings without leaving the page",
-        "Employee payments have a required assigned month, existing rows are backfilled from paymentDate, and financial screens use it without double-counting cross-month work periods",
-        "Monthly summary, payment status, and assigned-month logic live under lib/ops/finance and are reused by dashboard, costs, payroll, and Finance",
-        "Loading, empty, error, retry, responsive UI, focused calculations, lint, build when available, and authenticated browser smoke are recorded"
-      ],
-      "status": "done"
-    },
-    {
-      "id": 11,
-      "name": "client_boundaries_and_cleanup",
-      "title": "Reduce client-heavy pages and clean cross-cutting debug debt",
-      "description": "Push client components lower where practical and remove remaining debug logging, generic errors, and inconsistent cache/action wrapper patterns.",
-      "acceptance": [
-        "Full-page use client boundaries in budgets and settings are reduced where server components can own the shell safely",
-        "Non-productive console.log statements are removed from budget, form-hook, dropdown, and user-data paths",
-        "Action wrappers touched by the refactor throw or return typed errors consistently with local patterns",
-        "Any intentionally client-heavy page documents the reason in the feature progress report",
-        "Verification includes init.ps1 and manual smoke for each affected route"
-      ],
-      "status": "pending"
-    },
-    {
-      "id": 12,
-      "name": "budget_hourly_target_product_margin",
-      "title": "Add hourly price targeting and optional product margin",
-      "description": "Let budget authors target a total or hourly service selling price, derive the required service margin, disable product margin by default, and compare hourly prices with and without products.",
-      "acceptance": [
-        "Create and edit forms expose a numeric service hourly-price target that derives the service revenue percentage",
-        "Create and edit forms expose a total service price target that derives the hourly target from total hours",
-        "Targets below the service cost per hour clamp to zero service margin",
-        "Product margin is disabled by default and products remain billed at cost when disabled",
-        "Product margin can be enabled at the existing 15 percent default and persists through create and edit",
-        "The live preview shows hourly prices both without and with products, excluding IVA",
-        "Focused calculation checks, lint, build when available, and browser smoke are recorded"
-      ],
-      "status": "done"
-    },
-    {
-      "id": 13,
-      "name": "budget_recent_searches",
-      "title": "Remember recent budget searches",
-      "description": "Persist and expose the five most recent budget search terms in the browser.",
-      "acceptance": [
-        "Non-empty budget searches are saved in localStorage",
-        "At most five unique searches are kept in most-recent-first order",
-        "Recent searches appear from the budget search input and can be selected to search again",
-        "Lint and a browser smoke check pass"
-      ],
-      "status": "done"
-    },
-    {
-      "id": 14,
-      "name": "calendar_operational_filters",
-      "title": "Filter the operational calendar",
-      "description": "Let users narrow the monthly calendar and daily agenda by job, employee, visit status, and visits that need attention.",
-      "acceptance": [
-        "The calendar can be filtered by job and employee using options from the loaded month",
-        "Users can additionally filter by visit status or show only visits that need attention",
-        "Job, employee, status, and attention filters compose over the same visible result set",
-        "Calendar markers, monthly metrics, and the selected-day agenda reflect the filtered visits",
-        "Active filters are summarized and can be cleared together",
-        "The empty state explains when filters hide all visits and offers a reset action",
-        "Lint and a browser smoke check pass"
-      ],
-      "status": "done"
-    },
-    {
-      "id": 15,
-      "name": "job_budget_option_net_price",
-      "title": "Show budget option prices without IVA when creating jobs",
-      "description": "Display the net price for each linked budget option in the job form instead of the stored IVA-inclusive price.",
-      "acceptance": [
-        "The budget option selector displays each option price without IVA",
-        "The selected option summary uses the same net amount and labels it as excluding IVA",
-        "The change reuses shared job budget pricing rules",
-        "Focused calculation checks, lint, and a browser smoke check pass"
-      ],
-      "status": "done"
-    },
-    {
-      "id": 16,
-      "name": "job_excel_export",
-      "title": "Export filtered jobs to Excel",
-      "description": "Add a jobs-page export that downloads the jobs matching the current filters with linked price, hourly price, and relevant operational details.",
-      "acceptance": [
-        "The jobs page exposes a clear Excel export button with pending and error feedback",
-        "The export contains exactly the jobs matching the current search, status, visibility, and archived filters",
-        "When archived jobs are excluded, records with archived status or an archived date are both omitted",
-        "Linked job price reuses the shared snapshot-aware IVA pricing rule and hourly price is derived from the option workload",
-        "The workbook keeps only relevant operational fields, the budget name, product inclusion and included-product price, without status, reference, budget identifiers, pricing internals, archive metadata, audit identities, or technical ids",
-        "The workbook is readable in Excel with a styled frozen header, filters, and practical column widths",
-        "Focused export checks, lint, build when available, and a browser smoke check are recorded"
-      ],
-      "status": "done"
-    },
-    {
-      "id": 17,
-      "name": "visits_multi_view_infinite_history",
-      "title": "Add multi-view visits history with weekly infinite scroll",
-      "description": "Turn the operational calendar into a Visits surface with calendar, compact list, and card views backed by weekly TanStack Query pagination.",
-      "acceptance": [
-        "The dashboard navigation and calendar route present the operational surface as Visits while retaining the monthly calendar and agenda",
-        "Users can switch between Calendar, List, and Cards, with Calendar as the first default and the last selected mode persisted locally",
-        "List and Cards share a newest-first weekly infinite query that loads older matching visits without duplicate requests",
-        "Job, employee including unassigned, status, and attention filters compose consistently across all views and reset when the operational month changes",
-        "Filter options are available independently of the weeks already loaded and visit-related mutations invalidate the infinite feed safely",
-        "Initial loading, another-week loading, retryable error, empty result, and end-of-history states are explicit",
-        "Focused boundary checks, TypeScript, lint, build when available, and authenticated browser smoke are recorded"
-      ],
-      "status": "done"
-    },
-    {
-      "id": 18,
-      "name": "job_profitability_alerts",
-      "title": "Alert on service losses and material profit shortfalls",
-      "description": "Compare budget snapshots with attributable operational costs and surface severity-aware profitability alerts across the operational workspace.",
-      "acceptance": [
-        "Profitability uses budget revenue and profit without IVA, completed-visit labor and transportation, and recorded job-linked operational costs without treating collection timing as profitability",
-        "Positive projected profit more than 20 percent below target, losses up to 10 percent of expected revenue, larger critical losses, and incomplete data have distinct reusable states",
-        "The operational dashboard shows the highest-priority monthly alerts and a compact healthy state",
-        "Finance shows the complete searchable and severity-filterable monthly profitability view",
-        "Jobs show profitability badges and an attention filter while job detail shows monthly and historical breakdowns",
-        "Profitability queries are batch-oriented, authenticated, cached, and invalidated after relevant operational mutations",
-        "Focused calculations, TypeScript, lint, build when available, and authenticated responsive browser smoke are recorded"
-      ],
-      "status": "done"
-    },
-    {
-      "id": 19,
-      "name": "shared_mail_ai_agent",
-      "title": "Add a shared inbox with an AI reply agent",
-      "description": "Add an admin-only shared Hostinger mailbox workspace that drafts replies with OpenAI, learns through approved memory, and can safely automate confirmed similar messages.",
-      "acceptance": [
-        "The admin-only /dashboard/email workspace provides thread search and filters, Inbox, Sent, and Archive views, read or unread and archive controls, compose, reply, reply-all, forward, and attachment handling without becoming a full webmail",
-        "A resumable three-month IMAP import and bounded incremental sync exclude Spam, Trash, and Drafts, deduplicate messages, use leases, expose a manual refresh, and support a bearer-protected cron-job.org trigger every 15 minutes on Vercel Hobby",
-        "SMTP delivery records auditable outbound state and appends sent mail to Hostinger Sent; attachments are capped at 4 MB total, larger files fall back to Hostinger metadata and handoff, and attachment messages never enter AI or automatic-send workflows",
-        "OpenAI Responses uses gpt-5.6-luna with structured xhigh-effort triage and drafting, keeps complex replies manual, sends store false and a stable safety identifier, and fails clearly when configuration is missing",
-        "Approved historical replies and administrator-approved memory provide retrieval context; extracted memories remain pending until approved and feedback records accepted, edited, rejected, and manually sent outcomes",
-        "Administrators can confirm, pause, and remove similar-message automation rules; exact or semantic matching, Luna intent and safety gates, protected literals, known-sender and recipient restrictions, business-hour queuing, cancellation on follow-up, and a master switch prevent unsafe sends",
-        "The initial automatic-send master switch is off, all sync, draft, review, rule, queue, send, failure, and cancellation events are auditable, and loading, empty, retryable error, responsive, authorization, focused checks, lint, build, migration, and authenticated browser evidence are recorded"
-      ],
-      "status": "done"
-    },
-    {
-      "id": 20,
-      "name": "official_budget_versioning",
-      "title": "Version official budgets from generator snapshots",
-      "description": "Create a shared official-budget domain that publishes immutable, auditable versions from the existing budget generator without reusing mutable BudgetOption rows as commercial sources.",
-      "acceptance": [
-        "OfficialBudget, OfficialBudgetVersion, and version-option persistence is separate from Budget and BudgetOption, uses Decimal for new monetary values, and is delivered through an additive migration",
-        "Publishing a generator budget creates version 1 atomically and every later edit of a linked generator budget creates a new immutable version without depending on recreated BudgetOption ids",
-        "Each version snapshots every option, including service metadata, frequency, visits, hours, employees, product inclusion, net price, IVA, final price, hourly price, monthly workload, and the internal calculation breakdown needed for audit",
-        "Weekly monthly workload uses visits times hours per visit times employees times 4.32; calculated monthly values are labeled as estimates while stored fixed official monthly prices remain authoritative",
-        "Archiving an official budget detaches it from the generator while preserving its complete version history, and an actively linked generator budget cannot be deleted through either the action layer or the database contract",
-        "Official-budget reads and mutations have explicit server-side authorization, validation, audit metadata, and transaction-safe error handling",
-        "Focused snapshot, calculation, versioning, archive, and deletion-guard checks plus Prisma validation, migration verification, TypeScript, lint, and build evidence are recorded"
-      ],
-      "status": "done"
-    },
-    {
-      "id": 21,
-      "name": "official_budget_workspace_separation",
-      "title": "Separate official budgets from the budget generator",
-      "description": "Present the current budget builder as Generador de presupuestos and add a distinct official-budget workspace for publishing, reviewing, and archiving commercial price sources.",
-      "acceptance": [
-        "The current /dashboard/budgets surface is labeled Generador de presupuestos without changing its existing calculation and editing purpose",
-        "A separate /dashboard/official-budgets surface lists active and archived official budgets with search, source generator, current version, publication date, and clear loading, empty, error, and retry states",
-        "Administrators can publish an eligible generator budget, inspect every immutable version and its full option breakdown, and archive or detach an official budget through guarded server actions",
-        "Generator list and detail views show a clear official indicator and link while a linked generator budget explains why deletion is unavailable",
-        "Official budgets and the generator appear as separate entries in desktop and mobile navigation with unambiguous names and routes",
-        "Query keys and invalidation keep generator badges, official lists, versions, publication, edits, and archive state coherent",
-        "Focused authorization and state checks, TypeScript, lint, build when available, and authenticated responsive browser smoke are recorded"
-      ],
-      "status": "done"
-    },
-    {
-      "id": 22,
-      "name": "mail_official_budget_search_and_sources",
-      "title": "Ground mail prices in official budgets with bibliography",
-      "description": "Give the mail drafting agent a strict application-side searchOfficialBudgets tool and preserve the exact official version used as an internal source for each draft revision.",
-      "acceptance": [
-        "searchOfficialBudgets accepts structured service, frequency, visits, hours, employees, and product criteria and searches only active official-budget versions",
-        "The tool distinguishes exact, partial, ambiguous, incomplete, and no-result searches; when products are unspecified it returns both applicable options and when evidence is insufficient Luna asks for missing data instead of inventing a price",
-        "Structured results include net, IVA, final and hourly prices, monthly workload, conditions, official-budget identity, immutable version, and calculation metadata",
-        "Each draft revision records its official-budget version through a durable source relation and renders an internal bibliography that never becomes part of the customer email",
-        "The source detail exposes the generator origin, frequency, 4.32 calculation when applicable, products, prices, version, and use date even if the official budget is later archived",
-        "Manual edits that make a quoted amount disagree with its source show a clear warning; price replies may be automated only through a confirmed matching rule with official source grounding, while ungrounded prices and other sensitive topics remain ineligible",
-        "Focused exact, partial, ambiguous, missing-data, no-invention, historical-source, mismatch, and automation-exclusion checks plus Prisma, TypeScript, lint, build, and authenticated browser evidence are recorded"
-      ],
-      "status": "done"
-    },
-    {
-      "id": 23,
-      "name": "mail_conversational_draft_editor",
-      "title": "Add conversational draft editing and explicit feedback",
-      "description": "Replace the rigid one-shot mail suggestion flow with versioned Luna revisions, direct manual editing, and feedback controls that distinguish usefulness, copying, external use, and sending.",
-      "acceptance": [
-        "Administrators can edit subject and body directly, ask Luna for a specific revision, review version history, and restore an earlier version without Luna overwriting manual text silently",
-        "Draft conversation state and revisions are stored in the application database while OpenAI requests keep store false and receive only the history needed for the current revision",
-        "Sirve records positive usefulness without sending or creating an automation rule, No sirve records a reason and optional comment, and Copiar has no implicit approval or sent meaning",
-        "Guardar, Envié por mi cuenta, and Responder desde Bambú remain distinct audited outcomes tied to the exact draft version used",
-        "Official-budget bibliography stays attached per revision and remains visible while conversational or manual edits continue",
-        "Perfecta: automatizar similares remains a separate explicit confirmation and official-price grounding, attachment, safety, sender, recipient, and protected-literal guardrails still apply",
-        "Focused revision, restore, manual-edit, feedback, copy, external-use, send, source-preservation, and automation-separation checks plus Prisma, TypeScript, lint, build, and authenticated responsive browser evidence are recorded"
-      ],
-      "status": "done"
-    },
-    {
-      "id": 24,
-      "name": "ops_visual_foundation_daily_dashboard",
-      "title": "Create the operations visual foundation and daily dashboard",
-      "description": "Reduce decorative green borders and shadows, establish accessible operations tokens, and reorganize the dashboard around the administrator's daily work.",
-      "acceptance": [
-        "Shared --ops-* tokens define canvas, surfaces, neutral borders, text, bamboo interaction colors, attention, focus, radii, and elevation for light and dark themes",
-        "Static panels and toolbars use neutral borders or spacing without permanent decorative shadows, and nested content avoids double-card borders",
-        "Primary buttons use one solid bamboo treatment without gradients, secondary and ghost actions are visually distinct, and each section exposes at most one primary action",
-        "The dashboard shows today's actionable visits and coordination work before monthly summaries and profitability, including useful content in the first 390x844 viewport",
-        "Related metrics are grouped by meaning instead of rendered as equal-priority cards",
-        "Dashboard sections expose retryable errors without presenting failed queries as real zero values",
-        "Contrast, visible focus, 44-pixel touch targets, light and dark themes, lint, build when available, and authenticated desktop/mobile browser smoke are recorded"
-      ],
-      "status": "done"
-    },
-    {
-      "id": 25,
-      "name": "ops_contextual_period_locale",
-      "title": "Make operations period controls contextual and localize dates",
-      "description": "Show the monthly period control only where it affects data, remove duplicate calendar navigation, and make operational dates consistently Spanish for Uruguay.",
-      "acceptance": [
-        "OpsPeriodControl is rendered only on routes or sections whose data depends on the selected month and Employees does not show an irrelevant period selector",
-        "Visits has one coherent monthly navigation instead of a global month input plus separate calendar navigation",
-        "The selected period is synchronized with the URL where it improves navigation, sharing, or return behavior",
-        "The document language, calendar locale, month labels, weekdays, and week start use es-UY conventions",
-        "Visits selects today by default in the current month and uses the first visible day only for another month",
-        "Desktop and 390x844 browser smoke confirms no duplicated controls, overflow, or English date labels"
-      ],
-      "status": "pending"
-    },
-    {
-      "id": 26,
-      "name": "ops_visits_guided_workflow",
-      "title": "Guide visit planning and completion workflows",
-      "description": "Simplify Visits filters and separate scheduling intent from completion intent without changing the approved occurrence data model or behavior.",
-      "acceptance": [
-        "Calendar remains the initial Visits view and Cards is presented to users as Tarjetas",
-        "Mobile keeps quick filter chips visible and moves advanced filters into a sheet without hiding active-filter state or clear-all",
-        "JobOccurrenceDialog exposes explicit schedule and complete intents while persisting through the existing occurrence contracts",
-        "Creating or editing a visit below the md breakpoint opens a shadcn bottom Sheet matching the Visits filter sheet, while desktop uses a centered dialog",
-        "The visit sheet has a rounded top, bounded viewport height, safe-area padding, an internally scrollable form body, and a stable action footer with Cancelar, Guardar visita, and the existing confirmed delete flow when editing",
-        "Dialog and sheet presentations share one occurrence form, state initialization, validation, submit, and remove behavior so responsive rendering cannot change persistence outcomes",
-        "Separate date and time inputs, automatic end-date copy, four status cards, and the current archived-assigned-employee behavior are preserved",
-        "The exact-date filter remains available only in List and Tarjetas views",
-        "Loading, error, retry, empty, long-dialog, keyboard, desktop, and 390x844 browser states are verified"
-      ],
-      "status": "pending"
-    },
-    {
-      "id": 27,
-      "name": "ops_coordination_lists",
-      "title": "Turn jobs and employees into coordination-first lists",
-      "description": "Make Jobs and Employees faster to scan by prioritizing the next operational action, shared query state, responsive density, and explicit failures.",
-      "acceptance": [
-        "Jobs and Employees share an OpsQueryState contract for search, filters, active chips, URL behavior, and clear state",
-        "Search feedback begins after approximately 350 milliseconds rather than the current long delay",
-        "Desktop uses compact scannable rows and mobile uses compact cards without horizontal overflow",
-        "Jobs prioritize next occurrence, team coverage, attention, and profitability while Employees prioritize status, next assignment, and contact details",
-        "Each record exposes one primary action and moves secondary actions into an accessible overflow menu",
-        "The jobs list DTO provides nextOccurrence and activeAssignmentCount without per-row queries",
-        "Loading, retryable error, true empty, filtered empty, lint, build when available, and authenticated responsive browser smoke are recorded"
-      ],
-      "status": "pending"
-    },
-    {
-      "id": 28,
-      "name": "ops_finance_task_navigation",
-      "title": "Organize Finance around the active task",
-      "description": "Replace the long all-sections Finance page with direct section navigation and contextual actions while preserving established calculations and list behavior.",
-      "acceptance": [
-        "Finance shows one active Summary, Profitability, Receivables, Costs, or Payroll section at a time with desktop tabs and a mobile-native selector",
-        "Existing hashes or equivalent direct links open the requested Finance section and browser back or forward navigation remains coherent",
-        "Each section exposes one contextual primary action and cost configuration remains a secondary action",
-        "Status badges and the local Profitability collapse behavior are preserved; internal list scrolling in Cobros, Costes, and Pagos is superseded by feature 36",
-        "Operational cost categories and settings are read without upserts or other writes, using explicit initialization or a non-mutating fallback",
-        "Financial rules, calculations, permissions, and persistence contracts do not change",
-        "Loading, retryable error, empty, direct-link, keyboard, desktop, and 390x844 browser states plus lint and build when available are verified"
-      ],
-      "status": "done"
-    },
-    {
-      "id": 29,
+      "id": 4,
       "name": "ops_visits_mobile_controls_compaction",
       "title": "Compact Visits controls and cards on mobile",
+      "area": "operations",
+      "legacyId": 29,
       "description": "Keep the monthly selector usable above Visits, move the remaining mobile filters into a bottom sheet, and compact visit summaries without changing operational behavior.",
       "acceptance": [
         "The monthly selector remains visible above Visits and fits one 390-pixel-wide row without horizontal overflow",
@@ -458,39 +83,11 @@
       "status": "done"
     },
     {
-      "id": 30,
-      "name": "ops_searchable_entity_selects",
-      "title": "Add search to long operational selectors",
-      "description": "Provide one shared shadcn searchable selector for long entity lists across Operations without changing short enumerated selects or data contracts.",
-      "acceptance": [
-        "A shared single-value SearchableSelect uses the existing shadcn Popover and Command primitives with keyboard navigation, empty feedback, and a bounded scroll area",
-        "Search is case- and accent-insensitive and matches the visible entity label without changing stored values",
-        "Long job, employee, and cost-category selectors across Visits, Finance, assignments, and employee visit history use the shared control",
-        "Special choices such as Todos, Sin asignar, and Sin trabajo remain selectable while short status and frequency selectors remain unchanged",
-        "The searchable control works inside the mobile Visits filter bottom sheet and in desktop forms without horizontal overflow",
-        "Harness, lint, Prisma validation, and authenticated desktop plus 390x844 browser smoke are recorded"
-      ],
-      "status": "done"
-    },
-    {
-      "id": 31,
-      "name": "ops_finance_pdf_export",
-      "title": "Export monthly Finance data to PDF",
-      "description": "Export the selected Finance month as a polished PDF with recorded income, expenses, result, and movement detail.",
-      "acceptance": [
-        "Finance exposes a clear PDF export action for the currently selected month",
-        "The PDF summarizes recorded income, recorded expenses, net result, and margin using the same calculations as the Finance page",
-        "The PDF details client payments, operational costs, and employee payments with useful business labels, dates, references, amounts, and statuses",
-        "Voided movements remain visible as history but are clearly marked and excluded from totals",
-        "The document uses a polished multi-page layout with period, generation date, page numbers, stable filename, and readable empty states",
-        "Focused PDF content checks, TypeScript, lint, render inspection, and a Finance UI smoke are recorded"
-      ],
-      "status": "done"
-    },
-    {
-      "id": 32,
+      "id": 5,
       "name": "job_form_dialog_trigger_fix",
       "title": "Restore job form dialog triggers",
+      "area": "operations",
+      "legacyId": 32,
       "description": "Fix the shared job form trigger so create and edit buttons open their dialog again.",
       "acceptance": [
         "Nuevo trabajo opens the job form dialog from the Jobs page",
@@ -501,23 +98,11 @@
       "status": "done"
     },
     {
-      "id": 33,
-      "name": "ops_payroll_vacation_salary_counter",
-      "title": "Add vacation salary counter to the employee view",
-      "description": "Show a generated vacation salary (salario vacacional) counter next to the aguinaldo counter on the employee payroll surfaces.",
-      "acceptance": [
-        "The employee view shows a Salario vacacional generado counter next to Aguinaldo generado",
-        "The counter accrues 1/12 of the labor amount net of the base personal BPS contributions",
-        "The payroll per-employee card shows the same counter so the summary total has a breakdown",
-        "Focused finance calculation checks cover the new accrual and totals",
-        "TypeScript, lint, harness, and a production build pass"
-      ],
-      "status": "done"
-    },
-    {
-      "id": 34,
+      "id": 6,
       "name": "ops_employee_accruals_view",
       "title": "Accumulated aguinaldo and vacation salary view",
+      "area": "operations",
+      "legacyId": 34,
       "description": "Add an employees view listing accumulated aguinaldo and vacation salary per employee for a period, with the team total.",
       "acceptance": [
         "The Empleados page exposes a button that opens the accruals view",
@@ -529,9 +114,11 @@
       "status": "done"
     },
     {
-      "id": 35,
+      "id": 7,
       "name": "ops_weekly_schedules",
       "title": "Weekly schedule board inside Visits with Bambu PDF",
+      "area": "operations",
+      "legacyId": 35,
       "description": "Add a Monday-to-Sunday schedule view to /dashboard/calendar for planning a whole week per employee: multi-employee filter, hideable weekdays, pointer drag to move a visit to another day, inline create and edit through the visit dialog, a separate schedule-facing name for jobs and visits, downloadable PDFs with the Bambu logo per employee and for the team, subtle warnings when two visits of the same employee cross, drag to another employee row or free slot to change day, hour and team, a free-slot finder for new services, and per-employee availability rules so the finder does not offer false gaps.",
       "acceptance": [
         "Visitas exposes a Cronograma view alongside Calendario, Lista and Tarjetas instead of a separate route",
@@ -552,9 +139,11 @@
       "status": "done"
     },
     {
-      "id": 36,
+      "id": 8,
       "name": "ops_finance_searchable_tables",
       "title": "Searchable tables for Finance receivables, costs, and payroll",
+      "area": "operations",
+      "legacyId": 36,
       "description": "Replace the card lists and nested scroll boxes of Cobros, Costes, and Pagos in /dashboard/financial with compact sortable, paginated tables and one accent-insensitive search per section, while job detail, employee detail, and the legacy routes keep their current lists.",
       "acceptance": [
         "Cobros, Costes, and Pagos render compact tables with sortable headers exposing aria-sort, 25-row pagination, and a count and recorded-total footer, without nested scroll containers",
@@ -568,9 +157,11 @@
       "status": "done"
     },
     {
-      "id": 37,
+      "id": 9,
       "name": "ops_payroll_paid_in_arrears",
       "title": "Payroll balance settles the previous month's hours",
+      "area": "operations",
+      "legacyId": 37,
       "description": "Salaries are paid in arrears: employee payments stay counted in the month they are made, while the payroll suggested amount, accruals, and balance compare them against the hours worked the month before in Finance, /dashboard/payroll, and the employee payroll panel.",
       "acceptance": [
         "Employee payments keep counting in their assigned month for Resumen, trend, costs, and the PDF export",
@@ -582,90 +173,11 @@
       "status": "done"
     },
     {
-      "id": 38,
-      "name": "ai_model_gateway",
-      "title": "Add a provider-agnostic model gateway with quality modes and cost estimation",
-      "description": "Introduce lib/ai on the Vercel AI SDK v7 with Bajo, Medio, and Alto modes (gpt-5.6-luna xhigh, gpt-5.6-terra high, gpt-5.6-sol medium), lazy providers, environment overrides, and a pricing table so a later gateway or vendor change is configuration only. See docs/agent-plan.md.",
-      "acceptance": [
-        "ai, @ai-sdk/openai, and @ai-sdk/react are added with Node 22+ and zod 4 compatibility verified",
-        "resolveModelSpec maps Bajo to gpt-5.6-luna xhigh, Medio to gpt-5.6-terra high, and Alto to gpt-5.6-sol medium, with AI_PROVIDER, AI_MODEL_<MODE>, AI_REASONING_<MODE>, and AI_DEFAULT_MODE overrides",
-        "OpenAI and gateway providers initialize lazily and fail with clear errors when keys are missing",
-        "Shared call settings send store false and a namespaced pseudonymous safety identifier equivalent to the mail one",
-        "A pricing table estimates USD cost from normalized token usage and reports unpriced models explicitly",
-        "Switching a mode to the Vercel AI Gateway or another vendor is an environment change only",
-        "Focused gateway checks, TypeScript, lint, and build when available are recorded"
-      ],
-      "status": "done"
-    },
-    {
-      "id": 39,
-      "name": "agent_core_skills_and_stream",
-      "title": "Add the agent core, skills, tools, usage tracking, and streaming route",
-      "description": "Build lib/agent with the business profile, approved-knowledge injection, Spanish system prompt, Presupuestos, Emails, and Consejos skills, read and calculation tools over existing data and lib functions, the validated draftEmail tool, new Agent* Prisma models with per-turn usage and cost, and the admin-only /api/agent/chat streaming route. See docs/agent-plan.md.",
-      "acceptance": [
-        "AgentConversation, AgentMessage, AgentUsageEvent, and AgentAuditEvent arrive through an additive migration and Chat/Message stay untouched",
-        "The business profile consolidates company facts, IVA 22, Literal E, BPS rates, 4.32, and transport constants in one lib module and approved mail memories feed the prompt as read-only knowledge",
-        "Presupuestos, Emails, and Consejos skills define instructions, tool allowlists, and suggestions, and General exposes every tool",
-        "The system prompt is Spanish, includes the mandatory Literal E note, and forbids quoting prices without official or computed evidence",
-        "Read and calculation tools map to existing data and lib functions, return a stable ok or error shape with Decimal-free JSON, and never write operational rows",
-        "draftEmail writes with the active mode, refuses ungrounded or mismatched amounts and missing Literal E notes, and records official sources",
-        "/api/agent/chat requires an admin session, validates mode, skill, and body, persists UIMessages with parts and per-turn usage events with estimated cost in onEnd, and stays thin",
-        "Focused tool, skill, and prompt checks, Prisma validate, migration verification, TypeScript, lint, and build are recorded"
-      ],
-      "status": "done"
-    },
-    {
-      "id": 40,
-      "name": "agent_proposals",
-      "title": "Propose-and-confirm writes for budgets and official budgets",
-      "description": "Add AgentProposal persistence, the four propose* tools that never write during the model turn, and the idempotent confirmAgentProposal and reject actions that execute the existing createBudget, updateBudget, duplicateBudget, and publishOfficialBudget flows after an explicit administrator confirmation. See docs/agent-plan.md.",
-      "acceptance": [
-        "proposeCreateBudget, proposeUpdateBudget, proposeDuplicateBudget, and proposePublishOfficialBudget persist PENDING proposals and never write budgets during the model turn",
-        "Update proposals show before and after totals and warn about option recreation and automatic official versions",
-        "confirmAgentProposal re-validates, claims atomically, executes the existing actions, records result or failure, and is idempotent",
-        "Rejection, expiry after 24 hours, and audit events are recorded",
-        "Focused proposal checks, TypeScript, lint, and build are recorded"
-      ],
-      "status": "done"
-    },
-    {
-      "id": 41,
-      "name": "agent_budget_sheet",
-      "title": "Replace the budget chat sheet with the agent, modes, skills, and cost reporting",
-      "description": "Replace components/ai/AIChat.tsx in the budget detail and create pages with host-agnostic components/agent/** inside the same sheet: useChat transport, mode selector, skill chips, message parts with cards, proposal confirmation, conversation history, per-turn usage line, conversation cost badge, and the AI cost dialog; remove the legacy chat route and actions. See docs/agent-plan.md.",
-      "acceptance": [
-        "The budget detail and create pages open the agent in the existing sheet with saved or unsaved form context",
-        "The sheet exposes the Bajo, Medio, and Alto mode selector, skill chips, conversation history with rename and delete, and a conversation cost badge",
-        "Messages render text, tool chips, budget totals, proposal, email, and finance cards from message parts, and each assistant turn shows model, mode, tokens, and estimated cost",
-        "The email card copies as email or WhatsApp through the existing copy formatter",
-        "The composer sends on Enter, inserts newlines on Shift+Enter, and can stop a stream",
-        "Proposal cards confirm or reject through the server actions and invalidate budget and official-budget queries",
-        "The AI cost dialog reports this conversation, the current month by model and mode, and unpriced usage",
-        "AIChat.tsx, the ai-chat stream route, save-chat, upload-chat-image, and ai-system-message are removed and feature 7 is marked superseded",
-        "Loading, empty, error, desktop, and 390x844 states pass authenticated browser smoke with lint and build"
-      ],
-      "status": "done"
-    },
-    {
-      "id": 42,
-      "name": "agent_page",
-      "title": "Add the agent page to the dashboard with every conversation",
-      "description": "Add /dashboard/agent with a sidebar entry that hosts the same host-agnostic agent components at full width: every conversation of the user in a searchable list with its budget, the saved budget as context for conversations that belong to one, the active conversation in ?conversacion=, and an open-in-page action in the budget sheet, which keeps its behavior. See docs/agent-plan.md.",
-      "acceptance": [
-        "/dashboard/agent renders the agent under the admin-only private layout and the sidebar shows an Agente entry that is active on that route",
-        "The page lists every conversation of the user, from budgets, the create form, and the page, with accent-insensitive search, its budget, cost, rename, and delete, in a side column on desktop and in the history dialog on phones",
-        "Opening a conversation that belongs to a saved budget sends that budget as context on every turn and links to it, while new page conversations carry no budget context",
-        "The active saved conversation is kept in ?conversacion= so reload and links reopen it, an unknown id shows an error with a way to start over, and the sidebar link starts a new conversation",
-        "The budget sheet keeps its per-budget history and its header opens the current conversation in the page, disabled while a response streams",
-        "Mode selector, skill chips, tool cards, proposals, usage line, cost badge, and the AI cost dialog behave on the page as in the sheet",
-        "Focused checks, TypeScript, lint, build, and authenticated browser smoke on desktop and 390x844 pass"
-      ],
-      "status": "done"
-    },
-    {
-      "id": 43,
+      "id": 10,
       "name": "agent_budget_editor",
       "title": "Edit agent budgets in a sheet and save them to the generator",
+      "area": "budgets",
+      "legacyId": 43,
       "description": "Calculation cards and create-budget proposals open a sheet with the generator form and the live budget detail. Saving creates the generator budget through a CREATE_BUDGET proposal tied to that tool call (new for a calculation, the pending one revised for a proposal) confirmed in the same action, so it is audited and the agent sees it. Tool outputs carry the full values for the UI and hide them from the model. See docs/agent-plan.md.",
       "acceptance": [
         "Calculation cards and create-budget proposal cards offer Ver detalle and Editar, which open a sheet over the chat, also over the budget sheet, with the budget detail and the generator form",
@@ -680,46 +192,162 @@
       "status": "done"
     },
     {
-      "id": 44,
-      "name": "agent_pricing_rules",
-      "title": "Round the agent's prices, reuse equal budgets, and answer quote requests with a price",
-      "description": "The agent's calculations and budget proposals raise the monthly service price without IVA to the next multiple of $ 100 through the service margin, estimate transport and products for a new budget with products at the nearest multiple of $ 500 (at least $ 500), and give the hourly price in whole pesos. findMatchingBudgets looks for saved budgets with the same service before a new one is calculated, create proposals warn about them, and the Emails skill answers a quote request with the official, the saved, or a calculated price and proposes saving a calculated one. See docs/agent-plan.md.",
+      "id": 11,
+      "name": "security_dependency_patch",
+      "title": "Patch high-severity dependency vulnerabilities",
+      "area": "security",
+      "description": "pnpm audit reports 32 high advisories (22 in production dependencies). Patch direct dependencies and force fixed transitive versions without breaking the mail agent, Excel export, Prisma, or the build.",
       "acceptance": [
-        "calculateBudget and the create and update proposals share applyAgentChanges: a new or changed price without IVA goes up to the next multiple of $ 100 by raising the service margin, never down and by less than $ 100, and the tool output and the proposal card say from what to what",
-        "An explicit margin, a target price from solveForTargetPrice, roundPrice false, opening a saved budget, an IVA-only change, and the values edited by hand in the feature 43 editor are not rounded, while roundPrice true rounds an explicit margin",
-        "A new budget estimates transport and products for its own hours unless amounts are given, and every products estimate goes to the nearest multiple of $ 500, at least $ 500",
-        "The hourly price of the agent's calculations is given in whole pesos, and the rounded totals and hourly price are citable while the unrounded price is not",
-        "findMatchingBudgets returns the saved budgets with the same frequency, visits, hours per visit, employees, and products option with their citable stored prices, and a create proposal warns when the same service is already saved",
-        "Skills that calculate budgets search the official price and an equal saved budget before calculating a new one, and the Emails skill answers a quote request with that price and proposes saving a budget it had to calculate",
-        "Focused checks, the agent regression checks, TypeScript, lint, build, and an authenticated smoke with OpenAI pass"
+        "pnpm audit --prod reports no high or critical advisories; any remaining exception is documented with its reason in the progress report",
+        "Direct dependencies move to fixed versions: nodemailer >=9.1.1, postcss >=8.5.23, and uuid 13.0.1; the optional next-auth nodemailer peer warning is documented as harmless because the Auth.js email provider is not used",
+        "Transitive advisories (minimatch, brace-expansion through exceljs>archiver, nanoid, browserslist, picomatch, flatted, js-yaml, and effect/defu/deepmerge-ts through prisma) are fixed by upgrading their parents or with scoped pnpm overrides",
+        "The pnpm minimum-release-age policy is respected and the lockfile diff only contains the intended upgrades",
+        "Verification includes TypeScript, lint, every check:* script (especially check:mail-agent and check:job-export), pnpm build, and an authenticated smoke of the mail inbox and job Excel export"
       ],
-      "status": "done"
+      "status": "pending"
     },
     {
-      "id": 45,
-      "name": "agent_modes_gpt6",
-      "title": "Move the agent modes to GPT-6 and retire Bajo",
-      "description": "Medio becomes gpt-6-luna with xhigh reasoning, which reasons better than gpt-5.6-terra with high and costs less, and Alto becomes gpt-6-sol with medium, cheaper than Terra. Bajo is retired: conversations saved in Bajo continue in Medio, while past messages and usage events keep their recorded mode and model. See docs/agent.md.",
+      "id": 12,
+      "name": "payroll_data_gaps",
+      "title": "Fix July and August payroll data gaps",
+      "area": "data",
+      "description": "Production payroll data predates the paid-in-arrears rules: July has 141 DONE visits without actual times, so August shows a -99.524 balance, and August payments are recorded with an 1-31 August period although they pay July. This is a data task on the production database.",
       "acceptance": [
-        "The mode selector, the route schema, AI_DEFAULT_MODE, and the AI_MODEL_* and AI_REASONING_* overrides only accept Medio and Alto, and Medio is gpt-6-luna xhigh while Alto is gpt-6-sol medium",
-        "A conversation saved in Bajo opens and continues in Medio, and past usage lines and cost reports still say Bajo and the gpt-5.6 model they used",
-        "The price table has gpt-6-luna and gpt-6-sol from the OpenAI pricing page, and model labels tell gpt-6 and gpt-5.6 apart",
-        "The conversation title uses gpt-6-luna with medium reasoning and room in its output tokens for it, every usage event records its reasoning, and the AI cost dialog groups by model and reasoning (Luna 6 Extra alto) with titles in their own row",
-        "check:ai-gateway, the agent regression checks, TypeScript, lint, build, and an authenticated smoke with OpenAI in Medio and Alto pass"
+        "A read-only report lists the July DONE visits without actual times and the August payments with their current periods before any write",
+        "The user decides the correction rule for visits and payment periods before any script is written",
+        "The correction runs as a script with a dry-run preview and only writes after explicit user permission",
+        "After the write, the August balance is recalculated read-only and matches the value the user expects",
+        "No other visits, payments, employees, or months change; the progress report records counts before and after"
       ],
-      "status": "done"
+      "status": "pending"
     },
     {
-      "id": 46,
-      "name": "agent_price_format_and_default_employee",
-      "title": "Quote prices as $ X + IVA and assume one employee",
-      "description": "The agent writes a service price as its amount without IVA followed by + IVA, in the chat and in draftEmail, instead of listing the price without IVA and the price with IVA. When the user or the client's email does not say how many employees a service has, the agent assumes one instead of asking, also when it looks for an official price. See docs/agent.md.",
+      "id": 13,
+      "name": "agent_test_data_cleanup",
+      "title": "Delete agent test data from production",
+      "area": "data",
+      "description": "Remove the test budgets and agent conversations created while verifying the agent budget editor, agent page, and pricing rules. This is a data task on the production database.",
       "acceptance": [
-        "The chat instructions and the draftEmail instructions quote prices as $ X + IVA with the amount without IVA, never as Precio sin IVA and Precio con IVA, and the Literal E note stays under the prices",
-        "Without a number of employees the agent calculates and searches with one employee without asking, and searchOfficialBudgets from the agent treats a null employees as one while the mail agent search is unchanged",
-        "Focused checks, the agent regression checks, TypeScript, lint, and build pass, and the user runs the smoke with OpenAI"
+        "A read-only query lists the test budgets (\"Prueba agente 43 cálculo\", \"Prueba agente 43 propuesta\", \"Prueba 43 aporte vacío\", \"Prueba 43 propuesta editada\", \"Prueba 43 confirmar con borrador\") and the agent page and pricing test conversations with ids and dates",
+        "The user reviews the list and explicitly approves the deletion",
+        "Only the approved records and their dependent rows are deleted",
+        "A second read-only query confirms they are gone and that no other budget or conversation changed"
       ],
-      "status": "done"
+      "status": "pending"
+    },
+    {
+      "id": 14,
+      "name": "budget_query_cache",
+      "title": "Centralize budget cache keys and fix stale list updates",
+      "area": "budgets",
+      "description": "Budget and category query keys are hard-coded across 15 files, and create, update, and duplicate read queryKey[1].query, which is always undefined, so cache updates hit every cached list and search invalidation never matches.",
+      "acceptance": [
+        "A budget and budget-category query key factory with invalidation helpers exists, following components/ops/query-keys.ts",
+        "Budget hooks, category hooks, official-budget mutations, agent proposal mutations, and the agent budget save hook use the factory instead of literal keys",
+        "Create, update, and duplicate update or invalidate only the lists they affect; the queryKey[1].query bug is gone",
+        "Duplicate and delete invalidate budget lists, delete removes the cached budget detail, and category mutations invalidate category details and budget lists",
+        "Budget mutations invalidate the operations job budget sources cache",
+        "Source checks that assert literal budget keys (agent-budget-editor-source-checks, agent-sheet-source-checks, check-official-budget-workspace) are updated",
+        "Manual smoke covers create, edit, duplicate, delete, and category edits with filtered and unfiltered lists"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": 15,
+      "name": "runtime_sdk_cleanup",
+      "title": "Lazy initialize Resend, retire Cloudinary, and clean debug debt",
+      "area": "maintenance",
+      "description": "lib/mail.ts creates the Resend client and reads NEXT_PUBLIC_BASE_URL at module scope, Cloudinary is configured in an unused module while profile uploads are disabled, and a few user-data and budget wrapper paths keep debug logging or wrong messages.",
+      "acceptance": [
+        "Resend is created through a lazy getter and the base URL is read when an email is sent; both fail with clear errors when missing",
+        "Cloudinary is removed: lib/cloudinary.ts, the cloudinary dependency, CLOUDINARY_* in .env.template, and the res.cloudinary.com image pattern",
+        "updateProfileImage returns an explicit error instead of a success message while uploads are disabled, and check-settings-auth is updated",
+        "data/user.ts no longer uses console.log or swallows errors silently",
+        "Budget category wrappers use correct export names and messages, and get-budgets uses a Spanish fallback message",
+        "Verification includes init.ps1, pnpm build, and a smoke of register, password reset, and two-factor emails"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": 16,
+      "name": "ops_es_uy_locale",
+      "title": "Localize operations dates and calendar to es-UY",
+      "area": "operations",
+      "description": "Operations text formatters already use es-UY, but the document is lang=en and the calendar shows English month and weekday names with weeks starting on Sunday.",
+      "acceptance": [
+        "The root layout declares lang=es-UY",
+        "The shared Calendar uses the Spanish date-fns locale, Monday week start, and Spanish month labels instead of the default locale",
+        "Visits selects today by default in the current month and the first visible day only for another month; the Generate visits day-based preset follows that selected day",
+        "Desktop and 390x844 browser smoke confirms no English month, weekday, or date labels in operations"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": 17,
+      "name": "ops_visits_guided_intents",
+      "title": "Split visit scheduling and completion intents",
+      "area": "operations",
+      "description": "The visit sheet and dialog, shared form, and mobile filter sheet are already in place. What remains is presenting Cards as Tarjetas, replacing the completeOnSave flag with explicit intents, and surfacing calendar load errors.",
+      "acceptance": [
+        "Calendar remains the initial Visits view and the Cards view is labeled Tarjetas while the stored view value stays cards",
+        "JobOccurrenceDialog exposes explicit schedule and complete intents instead of completeOnSave, persisting through the existing occurrence contracts",
+        "Every caller passes an intent: agenda, visit list, job occurrences panel, pending panel, and schedule board (schedule)",
+        "The on-open loading asserted by check-occurrence-generation is preserved and check-occurrence-dialog is updated for the intent API",
+        "The calendar agenda shows a retryable error instead of an empty day when its query fails",
+        "Loading, error, retry, empty, keyboard, desktop, and 390x844 authenticated browser states are verified"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": 18,
+      "name": "ops_contextual_period",
+      "title": "Show the month control only where it changes data",
+      "area": "operations",
+      "description": "The operations layout renders one global month selector on every route, including pages with their own ranges, and Visits duplicates month navigation with the calendar arrows.",
+      "acceptance": [
+        "An OpsPeriodControl replaces the always-rendered global selector and appears only on Visits month views, Finance, Jobs profitability, and the employee payroll section",
+        "The employee list, accruals, weekly schedule, email, and job occurrences routes do not show a month control",
+        "Visits keeps the top month control and removes the calendar's own month arrows",
+        "The selected month is synchronized with the URL, with localStorage only as a fallback",
+        "The period used by Jobs profitability is decided with the user and recorded in the progress report",
+        "Desktop and 390x844 browser smoke confirms no duplicated controls or overflow"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": 19,
+      "name": "budget_form_sections",
+      "title": "Split the budget form into a shared shell and sections",
+      "area": "budgets",
+      "description": "CreateBudgetForm is 493 lines while edit already uses sections, create and edit duplicate layout and price-sync logic, option building is copied between actions, and the budget list and create pages are full client pages.",
+      "acceptance": [
+        "Create and edit share a BudgetFormShell and the existing section components; CreateBudgetForm no longer holds the sections inline",
+        "The agent budget sheet can still mount the create form with only a form context, and its source checks are updated",
+        "Price sync, auto-calculate handlers, and the section card are shared instead of duplicated",
+        "Slug, unique slug, option row building, and option-to-form mapping live under lib/budgets",
+        "One helper parses and serializes budget list filters for the page and filter components, and pagination lives in the URL",
+        "The budget list and create pages are no longer full-page client components; remaining client-heavy views are documented in the progress report",
+        "Unused BudgetDetail and BudgetPreviewWrapper are deleted and every authored budget form file stays at 200 lines or less",
+        "Manual smoke covers create, edit, duplicate, delete, category selection, preview, filtering, and the agent sheet Editar tab"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": 20,
+      "name": "ops_coordination_lists",
+      "title": "Turn jobs and employees into coordination-first lists",
+      "area": "operations",
+      "description": "Make Jobs and Employees faster to scan by prioritizing the next operational action, shared query state, responsive density, and explicit failures.",
+      "acceptance": [
+        "Jobs and Employees share an OpsQueryState contract built on the Finance table state helpers for search, filters, active chips, URL behavior, and clear state",
+        "Search feedback begins after approximately 350 milliseconds instead of 500",
+        "Desktop uses compact scannable rows and mobile uses compact cards without horizontal overflow",
+        "Jobs prioritize next occurrence, team coverage, attention, and profitability while Employees prioritize status, next assignment, and contact details",
+        "Each record exposes one primary action and moves secondary actions into the existing OpsActionMenu; job editing opens a controlled JobFormDialog",
+        "The jobs list DTO provides nextOccurrence and activeAssignmentCount without per-row queries",
+        "Loading, retryable error, true empty, filtered empty, lint, build when available, and authenticated responsive browser smoke are recorded"
+      ],
+      "status": "pending"
     }
   ]
 }

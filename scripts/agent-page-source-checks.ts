@@ -105,5 +105,3 @@ assert.match(session, /if \(deletedId === id\) startNew\(\);/);
   "lib/agent/conversation-scope.ts",
   "lib/agent/page-url.ts",
 ].forEach((path) => assert.ok(lines(path) <= 200, `${path} supera las 200 líneas`));
-const features = JSON.parse(read("feature_list.json")).features as { id: number; name: string }[];
-assert.equal(features.find((feature) => feature.id === 42)?.name, "agent_page");

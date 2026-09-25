@@ -144,9 +144,3 @@ const cardSwitch = read("components/agent/agent-tool-card.tsx");
   .filter((name) => name !== "business")
   .forEach((name) => assert.ok(cardSwitch.includes(`case "${name}":`), `sin tarjeta para "${name}"`));
 assert.ok(toolCards.size >= 10);
-
-// --- Feature 7 (split the old chat) is superseded by this feature.
-const features = JSON.parse(read("feature_list.json")).features as { id: number; status: string; description: string }[];
-const legacyChat = features.find((feature) => feature.id === 7);
-assert.equal(legacyChat?.status, "done");
-assert.match(legacyChat?.description ?? "", /^Superseded by feature 41/);
