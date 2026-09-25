@@ -3,7 +3,7 @@ import type { OfficialSource } from "@/lib/agent/grounding";
 import { PRICE_FORMAT_RULE } from "@/lib/agent/system-prompt";
 
 // Instrucciones de draftEmail. El esquema del correo viene del chat de
-// presupuestos anterior (su prompt se borró en la feature 41), con la regla de
+// presupuestos anterior (su prompt se borró cuando lo reemplazó el agente), con la regla de
 // precios del agente: solo importes con fuente.
 const EMAIL_SCHEME = [
   "Estimado/a [Nombre del cliente],",

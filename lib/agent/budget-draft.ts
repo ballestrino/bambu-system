@@ -55,7 +55,7 @@ const contribution = (percent: number, fallback: number) => ({
   percent: percent > 0 ? percent : fallback,
 });
 
-// Las salidas guardadas antes de la feature 43 no traen values: se arman con
+// Las salidas guardadas antes del editor de presupuestos no traen values: se arman con
 // los insumos, que alcanzan para el cálculo (nominal_salary y products_iva no
 // entran en él). Un aporte en 0 es un aporte deshabilitado. El precio sale
 // del cálculo, como en el formulario: si no, abrirlo contaría como un cambio.

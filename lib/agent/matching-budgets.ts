@@ -2,7 +2,7 @@ import { getStoredOptionAmounts } from "@/lib/agent/budget-calculation";
 import { getStoredPrices } from "@/lib/agent/proposal-summary";
 import type { BudgetFormValues } from "@/schemas/BudgetSchema";
 
-// Presupuestos guardados con el mismo servicio (feature 44): lo que busca
+// Presupuestos guardados con el mismo servicio: lo que busca
 // findMatchingBudgets y el aviso de la propuesta de crear. Puro: la lectura
 // está en data/agent/budgets.ts.
 export const MATCHING_BUDGETS_LIMIT = 10;

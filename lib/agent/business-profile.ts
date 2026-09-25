@@ -25,7 +25,7 @@ export const BUSINESS_PROFILE = {
   transportPerVisit: 52,
   productsPricePerFourHours: 175,
   productMarginPercent: PRODUCT_MARGIN_PCT,
-  // Reglas de precio del agente (feature 44): el total mensual del servicio
+  // Reglas de precio del agente: el total mensual del servicio
   // sin IVA sube al próximo múltiplo de priceStep y los productos van al
   // múltiplo de productsStep más cercano.
   priceStep: 100,

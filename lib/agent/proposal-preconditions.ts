@@ -26,7 +26,7 @@ export const checkProposalPreconditions = (
       ? null
       : PROPOSAL_STALE_MESSAGE;
   }
-  // Budgets are shared by every admin (feature 3): any admin duplicates any.
+  // Budgets are shared by every admin: any admin duplicates any.
   if (proposal.kind === "DUPLICATE_BUDGET") return null;
   return state.officialBudget ? "El presupuesto ya está publicado como oficial." : null;
 };

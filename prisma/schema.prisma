@@ -1192,7 +1192,7 @@ model AgentUsageEvent {
   kind              AgentUsageKind
   mode              AgentMode
   modelId           String
-  // Razonamiento pedido (feature 45): "xhigh", "medium"... Null en los
+  // Razonamiento pedido (modos en gpt-6): "xhigh", "medium"... Null en los
   // consumos anteriores al 2026-09-23.
   reasoning         String?
   inputTokens       Int                @default(0)

@@ -6,7 +6,7 @@ import { slugifyBudgetName } from "../lib/budget-slug";
 import { BudgetIdSchema, BudgetSlugSchema } from "../schemas/BudgetSchema";
 import { CreateBudgetCategorySchema, UpdateBudgetCategorySchema } from "../schemas/budget-category";
 
-// Feature 3: presupuestos y categorías son un espacio compartido entre admins.
+// Presupuestos y categorías son un espacio compartido entre admins.
 // Cada lectura y cada acción pide la sesión de admin antes de tocar la base.
 // Un checkout con core.autocrlf deja CRLF: se normaliza.
 const read = (path: string) => readFileSync(join(process.cwd(), path), "utf8").replace(/\r\n/g, "\n");

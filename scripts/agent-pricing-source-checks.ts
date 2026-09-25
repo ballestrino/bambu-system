@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 
-// Invariantes de las reglas de precio del agente (feature 44) que se ven en el
+// Invariantes de las reglas de precio del agente que se ven en el
 // código fuente. Lo usa check:agent-pricing. Un checkout con core.autocrlf
 // deja CRLF: se normaliza para que las regex con \n valgan igual.
 const read = (path: string) => readFileSync(join(process.cwd(), path), "utf8").replace(/\r\n/g, "\n");
@@ -26,7 +26,7 @@ assert.doesNotMatch(calculations, /applyBudgetChanges/);
 const builders = read("lib/agent/proposal-builders.ts");
 assert.equal(builders.match(/applyAgentChanges\(/g)?.length, 2);
 assert.doesNotMatch(builders, /applyBudgetChanges/);
-// The editor of feature 43 saves what was typed.
+// The agent budget editor saves what was typed.
 assert.match(read("actions/agent/save-budget.ts"), /base: \{ source: "edited", values \}/);
 // The products estimate is rounded where it is made.
 assert.match(
@@ -85,5 +85,3 @@ assert.match(read("components/agent/cards/agent-list-card.tsx"), /matchingBudget
   "scripts/check-agent-pricing.ts",
   "scripts/agent-matching-checks.ts",
 ].forEach((path) => assert.ok(read(path).trimEnd().split("\n").length <= 200, `${path} supera las 200 líneas`));
-const features = JSON.parse(read("feature_list.json")).features as { id: number; name: string }[];
-assert.equal(features.find((feature) => feature.id === 44)?.name, "agent_pricing_rules");

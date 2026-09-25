@@ -545,3 +545,49 @@
   visitas reales del 21/9, y el usuario probó crear, editar, separar, archivar
   y reemplazar. Detalle en
   `progress/impl_ops_occurrence_scheduling_refactor.md`.
+
+## 2026-09-24 - Limpieza y renumeración del feature_list
+
+- `feature_list.json` pasó de 46 features (40 `done`, 6 `pending`) a 20:
+  10 terminadas como contexto (1–10, con `legacyId`) y la cola nueva (11–20),
+  ordenada por prioridad. Cada feature tiene `area`. Las otras 30 terminadas
+  quedan en este historial y en git.
+- Toda mención "feature N" anterior a esta entrada (acá, en `progress/impl_*`,
+  `progress/review_*`, `docs/agent-plan.md` y los commits) usa la numeración
+  vieja. En código, scripts y docs vigentes se reemplazaron por nombres.
+- Terminadas que quedan como contexto:
+
+  | Nuevo | Viejo | `name` |
+  |---|---|---|
+  | 1 | 3 | `budget_authorization_contracts` |
+  | 2 | 6 | `platform_dependency_patch_review` |
+  | 3 | 9 | `ops_occurrence_scheduling_refactor` |
+  | 4 | 29 | `ops_visits_mobile_controls_compaction` |
+  | 5 | 32 | `job_form_dialog_trigger_fix` |
+  | 6 | 34 | `ops_employee_accruals_view` |
+  | 7 | 35 | `ops_weekly_schedules` |
+  | 8 | 36 | `ops_finance_searchable_tables` |
+  | 9 | 37 | `ops_payroll_paid_in_arrears` |
+  | 10 | 43 | `agent_budget_editor` |
+
+- Pendientes viejas a nuevas, con criterios revisados contra `main`:
+
+  | Vieja | Nueva |
+  |---|---|
+  | 5 `runtime_lazy_sdk_initialization` | 15 `runtime_sdk_cleanup` |
+  | 8 `budget_form_and_cache_refactor` | 14 `budget_query_cache` y 19 `budget_form_sections` |
+  | 11 `client_boundaries_and_cleanup` | 15 y 19 (settings ya estaba hecho) |
+  | 25 `ops_contextual_period_locale` | 16 `ops_es_uy_locale` y 18 `ops_contextual_period` |
+  | 26 `ops_visits_guided_workflow` | 17 `ops_visits_guided_intents` |
+  | 27 `ops_coordination_lists` | 20 `ops_coordination_lists` |
+
+- Nuevas: 11 `security_dependency_patch`, 12 `payroll_data_gaps` y
+  13 `agent_test_data_cleanup`.
+- Descartado:
+  - Cloudinary (se retira en la 15);
+  - el helper de ownership y la sección de mano de obra de la vieja 8;
+  - las páginas cliente de presupuestos oficiales de la vieja 11;
+  - los criterios de la vieja 26 que ya se cumplieron: el Sheet de filtros y
+    el Sheet de visita.
+- Los checks del agente dejaron de afirmar ids viejos de `feature_list.json`.
+- Los planes cumplidos de `plans/` (local) pasaron a `plans/archive/`.

@@ -54,7 +54,7 @@ const readBack = budgetOptionToFormValues({
 assert.deepEqual([readBack.name, readBack.personal_enabled], ["Limpieza Norte", false]);
 
 // --- The agent calculation is the form calculation, rounded to cents (the
-// hourly price, a reference, to pesos since feature 44).
+// hourly price, a reference, to pesos by the agent price rules).
 const totals = calculateBudgetTotals(defaultBudgetValues);
 const calculation = runBudgetCalculation(defaultBudgetValues);
 assert.equal(calculation.withoutProducts.final, round(totals.finalPriceService));
@@ -110,7 +110,7 @@ assert.equal(BUSINESS_PROFILE.productMarginPercent, PRODUCT_MARGIN_PCT);
 assert.equal(BUSINESS_PROFILE.employerBpsPercent, URUGUAY_EMPLOYER_BPS_PERCENT);
 assert.equal(BUSINESS_PROFILE.personalBpsPercent, 18.1);
 // The exact phrase of the retired budget chat prompt (data/ai-system-message.ts,
-// removed in feature 41): clients already receive it word for word.
+// removed when the agent replaced it): clients already receive it word for word.
 assert.equal(LITERAL_E_NOTE, "Nota: Mientras la empresa continúe bajo régimen Literal E, se aplicará el monto sin IVA.");
 
 // --- The prompt carries the price rule, Literal E, the phone, the skill and

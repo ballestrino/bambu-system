@@ -118,5 +118,3 @@ assert.match(mutation, /queryKey: \["budgets"\]/);
   "components/agent/budget-editor/agent-budget-sheet.tsx", "components/agent/budget-editor/agent-budget-footer.tsx",
 ]
   .forEach((path) => assert.ok(read(path).trimEnd().split("\n").length <= 200, `${path} supera las 200 líneas`));
-const features = JSON.parse(read("feature_list.json")).features as { id: number; name: string }[];
-assert.equal(features.find((feature) => feature.id === 43)?.name, "agent_budget_editor");

@@ -2,7 +2,7 @@ import type { JobScheduleRule } from "@prisma/client";
 
 import { MINUTE } from "@/lib/ops/job-occurrence-recurrence";
 
-// Pure rules for replacing generated visits (feature 9): generation and
+// Pure rules for replacing generated visits: generation and
 // replacement decide a visit's team the same way.
 export type AssignmentWindow = {
   assignedFrom: Date;

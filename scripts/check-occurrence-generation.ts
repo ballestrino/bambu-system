@@ -23,7 +23,7 @@ import { toLocalDateKey } from "../lib/ops/schedule-week";
 import { addLocalDays, getLocalDate } from "../lib/ops/timezone";
 import { OccurrenceGenerationSchema } from "../schemas/ops/occurrence-generation";
 
-// Feature 9: las visitas se generan a mano para un rango elegido y ninguna
+// Las visitas se generan a mano para un rango elegido y ninguna
 // lectura escribe. Montevideo es UTC-3 todo el año. CRLF normalizado.
 const read = (path: string) => readFileSync(join(process.cwd(), path), "utf8").replace(/\r\n/g, "\n");
 const TZ = "America/Montevideo";

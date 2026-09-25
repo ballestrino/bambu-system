@@ -32,8 +32,8 @@ Object.entries(toolSources).forEach(([file, source]) => {
   assert.match(source, /^import "server-only";/m, file);
 });
 
-// --- Visits are read through the agent's own read-only reader. Since feature 9
-// no reader generates occurrences, but the agent keeps its own filters.
+// --- Visits are read through the agent's own read-only reader. Since manual
+// generation no reader generates occurrences, but the agent keeps its own filters.
 ["operations.ts", "finance.ts", "payroll.ts"].forEach((file) =>
   assert.doesNotMatch(
     toolSources[file],

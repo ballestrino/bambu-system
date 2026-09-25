@@ -43,7 +43,7 @@ const getRangeError = ({ endDate, startDate }: DateRange) => {
   return null;
 };
 
-// Generates by hand the visits the active rules have in a range (feature 9).
+// Generates by hand the visits the active rules have in a range.
 // The first preset is the default; the dates can always be edited.
 export const GenerateOccurrencesDialog = ({
   jobId,

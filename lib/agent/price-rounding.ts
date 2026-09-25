@@ -1,6 +1,6 @@
 import { BUSINESS_PROFILE } from "@/lib/agent/business-profile";
 
-// Los redondeos de las reglas de precio (feature 44). Puro y sin el cálculo:
+// Los redondeos de las reglas de precio del agente. Puro y sin el cálculo:
 // lo usan el estimado de productos de applyBudgetChanges y el precio lindo de
 // agent-pricing.ts. Se cuenta en centavos para que $ 23.400,00 no suba por un
 // error de coma flotante.

@@ -10,7 +10,7 @@ import { buildAgentInstructions, NEW_BUDGET_RULE, PRICE_FORMAT_RULE } from "../l
 import { classifyOfficialBudgetSearch } from "../lib/official-budgets/search-classification";
 import { searchOfficialBudgetsInputSchema } from "../schemas/agent-tools";
 
-// Imported by check-agent-pricing.ts. Feature 46: prices as "$ X + IVA" and
+// Imported by check-agent-pricing.ts. Price format: prices as "$ X + IVA" and
 // one employee when nobody says how many.
 
 // --- Price format: the amount without IVA plus "+ IVA", in the chat and in

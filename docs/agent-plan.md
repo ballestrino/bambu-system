@@ -1,5 +1,9 @@
 # Plan: Agente de Bambú con modos, habilidades y costos
 
+> Plan histórico, ya implementado. Los números de feature son los anteriores a
+> la renumeración del 2026-09-24 (tabla en `progress/history.md`). El contrato
+> vigente está en `docs/agent.md`.
+
 ## Contexto
 
 Bambú System tiene dos usos de IA que no se hablan entre sí:

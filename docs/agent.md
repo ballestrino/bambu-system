@@ -1,38 +1,36 @@
 # Agente de Bambú
 
-Contrato de producto y entorno del agente (features 38-44). El plan completo
-está en `docs/agent-plan.md`; este documento describe lo que ya existe y se
-actualiza con cada feature.
+Contrato de producto y entorno del agente. El plan original está en
+`docs/agent-plan.md`, con la numeración de features anterior al 2026-09-24;
+este documento describe lo que ya existe y se actualiza con cada feature.
 
 ## Estado
 
-- Feature 38: capa de modelos `lib/ai/**` con modos, proveedores perezosos y
-  costos.
-- Feature 39: núcleo en `lib/agent/**`, habilidades, tools de lectura y
-  cálculo, `draftEmail`, persistencia `Agent*` y la ruta `/api/agent/chat`.
-- Feature 40: propuestas. El agente prepara crear, guardar, duplicar o
-  publicar como oficial un presupuesto y solo se escribe cuando el usuario
-  confirma.
-- Feature 41: el agente en el Sheet de Presupuestos (detalle y crear), con
-  modos, habilidades, tarjetas, propuestas, historial y costos. Reemplazó al
-  chat viejo (`AIChat`, `/api/ai-chat/stream`, `save-chat`), que se borró.
-- Feature 42: la página `/dashboard/agent` ("Agente" en el sidebar), el mismo
-  agente a ancho completo con todas las conversaciones. Comparte las
-  conversaciones con el Sheet, que abre la suya en la página.
-- Feature 43: los presupuestos que arma el agente (cálculos y propuestas de
-  crear) se ven en detalle, se editan con el formulario del generador en un
-  Sheet y se guardan en el generador desde el chat.
-- Feature 44: reglas de precio. El precio sin IVA sube al próximo múltiplo de
-  $ 100, los productos van en múltiplos de $ 500, antes de calcular uno nuevo
-  se busca uno igual, y Emails responde un pedido de presupuesto con precio.
-- Feature 45: los modos pasan a gpt-6. Medio es `gpt-6-luna` con `xhigh`
-  (razona mejor que `gpt-5.6-terra` con `high` y cuesta menos) y Alto es
-  `gpt-6-sol` con `medium`, también más barato que Terra. Bajo se retiró.
-- Feature 46: los precios se escriben "$ 54.100 + IVA" y, si no dicen cuántas
-  empleadas, el agente asume 1 sin preguntar.
+- Modelos: capa `lib/ai/**` con modos, proveedores perezosos y costos.
+- Núcleo: `lib/agent/**`, habilidades, tools de lectura y cálculo,
+  `draftEmail`, persistencia `Agent*` y la ruta `/api/agent/chat`.
+- Propuestas: el agente prepara crear, guardar, duplicar o publicar como
+  oficial un presupuesto y solo se escribe cuando el usuario confirma.
+- Sheet: el agente en el Sheet de Presupuestos (detalle y crear), con modos,
+  habilidades, tarjetas, propuestas, historial y costos. Reemplazó al chat
+  viejo (`AIChat`, `/api/ai-chat/stream`, `save-chat`), que se borró.
+- Página: `/dashboard/agent` ("Agente" en el sidebar), el mismo agente a
+  ancho completo con todas las conversaciones. Comparte las conversaciones
+  con el Sheet, que abre la suya en la página.
+- Editor de presupuestos: los presupuestos que arma el agente (cálculos y
+  propuestas de crear) se ven en detalle, se editan con el formulario del
+  generador en un Sheet y se guardan en el generador desde el chat.
+- Reglas de precio: el precio sin IVA sube al próximo múltiplo de $ 100, los
+  productos van en múltiplos de $ 500, antes de calcular uno nuevo se busca
+  uno igual, y Emails responde un pedido de presupuesto con precio.
+- Modos en gpt-6: Medio es `gpt-6-luna` con `xhigh` (razona mejor que
+  `gpt-5.6-terra` con `high` y cuesta menos) y Alto es `gpt-6-sol` con
+  `medium`, también más barato que Terra. Bajo se retiró.
+- Formato de precio y empleadas: los precios se escriben "$ 54.100 + IVA" y,
+  si no dicen cuántas empleadas, el agente asume 1 sin preguntar.
 - El agente de correo (`lib/mail-agent/**`) no usa esta capa y no cambia.
 
-## Núcleo (feature 39)
+## Núcleo
 
 - `POST /api/agent/chat` (solo admin, 403 JSON): `{ id, message, mode, skill,
   context?, trigger?, messageId? }` validado con `schemas/agent.ts`. El
@@ -59,7 +57,7 @@ actualiza con cada feature.
   tools de otra habilidad.
 - Tools en `lib/agent/tools/**`, sin escrituras: `getBusinessProfile`,
   `searchOfficialBudgets`, `listOfficialBudgets`, `getOfficialBudget`,
-  `searchBudgets`, `findMatchingBudgets` (feature 44), `getBudget`,
+  `searchBudgets`, `findMatchingBudgets` (reglas de precio), `getBudget`,
   `calculateBudget`, `solveForTargetPrice`,
   `getFinancialSnapshot`, `getFinancialTrend`, `getJobProfitability`,
   `getPayrollSummary`, `queryOperations` y `draftEmail`. Devuelven
@@ -96,7 +94,7 @@ actualiza con cada feature.
 - El top 10 del informe del mes ordena por uso con precio; el uso sin precio
   lo cuenta `unpricedEvents`.
 
-## Propuestas (feature 40)
+## Propuestas
 
 Proponer y confirmar: ninguna tool escribe presupuestos durante el turno.
 
@@ -119,7 +117,7 @@ Proponer y confirmar: ninguna tool escribe presupuestos durante el turno.
 - Precondiciones al proponer: nombre con slug válido y libre (la misma regla
   que `createBudget`, en `lib/budget-slug.ts`), cambios reales, no vinculado
   y con opciones para publicar. Cualquier admin duplica cualquier presupuesto
-  (feature 3). El slug solo cambia si
+  (son compartidos entre admins). El slug solo cambia si
   cambia el nombre.
 - Avisos de guardar cambios: siempre que se recrean las opciones con ids
   nuevos, y cuántos trabajos vinculados a una opción pierden ese vínculo
@@ -162,7 +160,7 @@ Proponer y confirmar: ninguna tool escribe presupuestos durante el turno.
   (`getConfirmedAmounts`): un cálculo guardado desde el editor no tiene una
   salida `propose*` que los diga.
 - Presupuestos y General tienen las cuatro tools; Consejos ninguna. Emails
-  tiene `proposeCreateBudget` desde la feature 44, para guardar el
+  tiene `proposeCreateBudget` desde las reglas de precio, para guardar el
   presupuesto que calculó al responder un pedido.
 - Si el servidor se corta en plena ejecución, la propuesta queda `EXECUTING`:
   no se puede saber si la escritura llegó, así que no se reintenta sola.
@@ -180,7 +178,7 @@ Proponer y confirmar: ninguna tool escribe presupuestos durante el turno.
   `Budget.updatedAt`), y publicar o duplicar sobre valores guardados en el
   medio por otra confirmación.
 
-## Sheet (feature 41)
+## Sheet
 
 `AgentSheetHost` (`components/agent/**`) no sabe en qué pantalla está: recibe
 el contexto y el botón que lo abre.
@@ -236,7 +234,7 @@ el contexto y el botón que lo abre.
   cual; el resto, con un mensaje genérico. Reintentar reenvía el último
   mensaje (el servidor no lo duplica) con su habilidad y el modo actual.
 
-## Página (feature 42)
+## Página
 
 `/dashboard/agent` (`app/(private)/dashboard/agent/page.tsx`), bajo el layout
 privado que exige admin, con "Agente" en el sidebar (grupo "Asistente"). Usa
@@ -277,7 +275,7 @@ los mismos componentes que el Sheet: `AgentPageHost` es otro host para
 - Una propuesta confirmada desde la página invalida además el historial: el
   nombre del presupuesto de la lista y de la cabecera puede cambiar.
 
-## Editor de presupuestos (feature 43)
+## Editor de presupuestos
 
 Las tarjetas de `calculateBudget`, `solveForTargetPrice` y
 `proposeCreateBudget` tienen "Ver detalle" y "Editar". Los dos abren
@@ -334,7 +332,7 @@ formulario:
   que Confirmar la guarda sin ellos. Se pierden al recargar, al cambiar de
   conversación o al cerrar el Sheet de Presupuestos (que desmonta el chat).
 
-## Reglas de precio (feature 44)
+## Reglas de precio
 
 Las aplica el cálculo, no el modelo: la regla de precios prohíbe redondear a
 mano y `draftEmail` solo acepta importes que salieron de una tool.
@@ -392,10 +390,10 @@ Presupuestos iguales y pedidos de presupuesto:
 - `MAX_STEPS` es 8: ese flujo usa 6 pasos (buscar el oficial, buscar uno
   igual, calcular, redactar, proponer y contestar). En el smoke tardó 26 s en
   Medio con `gpt-5.6-terra`; el turno más largo fue de 32 s. Con los modos de
-  la feature 45 (Medio razona con `xhigh`) los turnos se alargaron, y
+  gpt-6 (Medio razona con `xhigh`) los turnos se alargaron, y
   `maxDuration` subió a 300 s (ver "Núcleo").
 
-## Formato de precio y empleadas (feature 46)
+## Formato de precio y empleadas
 
 - `PRICE_FORMAT_RULE` (`lib/agent/system-prompt.ts`) va en el tono del chat y
   en las reglas de `draftEmail`: el precio de un servicio es el importe sin
@@ -424,7 +422,7 @@ Presupuestos iguales y pedidos de presupuesto:
 | Alto | `gpt-6-sol` | `medium` | La mejor calidad para análisis y presupuestos complejos |
 | Título (interno) | `gpt-6-luna` | `medium` | Nombre corto de la conversación, con `after()` |
 
-- Desde la feature 45 (2026-09-23). Antes eran Bajo (`gpt-5.6-luna`,
+- Desde el paso a gpt-6 (2026-09-23). Antes eran Bajo (`gpt-5.6-luna`,
   `xhigh`), Medio (`gpt-5.6-terra`, `high`) y Alto (`gpt-5.6-sol`,
   `medium`). Luna 6 con `xhigh` razona mejor que Terra con `high` a una
   fracción del precio, así que Bajo dejó de tener lugar.
@@ -547,7 +545,7 @@ gpt-5.6 el 2026-09-18), en USD por millón de tokens:
   llamada (string en USD). `readGatewayCost` lo lee; en un turno con varios
   pasos se lee y se suma por paso. Con claves propias (BYOK) el gateway puede
   informar 0 aunque el proveedor cobre.
-- El costo se calcula al persistir el uso (feature 39) y queda fijo aunque
+- El costo se calcula al persistir el uso y queda fijo aunque
   después cambien los precios.
 - `formatUsd` muestra "US$ 0,03", hasta cuatro decimales debajo del centavo y
   "< US$ 0,0001" para montos menores.

@@ -26,7 +26,7 @@ map, not a complete rule book: read the referenced file when the task needs it.
 | `docs/architecture.md` | System boundaries and data flow | Before implementation |
 | `docs/conventions.md` | Code style and file ownership rules | Before editing |
 | `docs/verification.md` | Required proof before closing work | Before marking done |
-| `docs/agent-plan.md` | Approved plan for the Bambú agent (features 38-44) | Before implementing features 38-44 |
+| `docs/agent-plan.md` | Historical plan of the Bambú agent (feature ids before 2026-09-24) | Only for background on agent decisions |
 | `docs/agent.md` | Agent contract: modes, models, environment, costs | Before touching `lib/ai/` or the agent |
 | `CHECKPOINTS.md` | Reviewer checklist | During review |
 | `.codex/agents/` | Codex leader, implementer, reviewer roles | When orchestrating |

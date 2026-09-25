@@ -15,7 +15,7 @@ import {
 // publicarlo como oficial. Usan sus precios guardados, no un cálculo nuevo.
 // Puro, como proposal-builders.ts.
 
-// Cualquier admin duplica cualquier presupuesto (feature 3): son compartidos.
+// Cualquier admin duplica cualquier presupuesto: son compartidos.
 export const buildDuplicateBudgetProposal = (input: {
   budget: ProposalBudget;
 }): BuiltProposal<"DUPLICATE_BUDGET"> => {

@@ -1,6 +1,6 @@
 # Shared Mail AI Agent
 
-This is the durable product and architecture contract for Feature 19.
+This is the durable product and architecture contract for the shared mail inbox and its AI reply agent.
 
 ## Product Boundary
 
