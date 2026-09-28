@@ -16,6 +16,6 @@ export const getBudgetCategoryAction = async (id: string | null) => {
     if (error instanceof ValidationError) {
       throw error
     }
-    throw new Error("Error al crear el presupuesto")
+    throw new Error("Error al obtener la categoría")
   }
 }

@@ -51,6 +51,13 @@ const account = read("actions/settings/account.ts");
 assert.match(account, /generateVerificationToken\(email, user\.email\)/);
 assert.doesNotMatch(account, /oldemail/i);
 
+// Profile uploads are off since Cloudinary was retired: the action says so
+// with an error instead of reporting a success.
+const profileImage = account.slice(account.indexOf("export const updateProfileImage"));
+assert.match(profileImage, /return \{ error: "La subida de imágenes de perfil está desactivada" \}/);
+assert.doesNotMatch(profileImage, /success:/);
+assert.ok(!exists("lib/cloudinary.ts"), "lib/cloudinary.ts volvió");
+
 // --- The session helper reads the id from auth(), not from an argument.
 const sessionUser = read("lib/session-user.ts");
 assert.match(sessionUser, /^import "server-only"/);

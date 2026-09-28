@@ -2,7 +2,7 @@ import createBudgetCategory from "@/actions/budgetCategories/create-budget-categ
 import type { CreateBudgetCategoryValues } from "@/schemas/budget-category"
 import ValidationError from "@/instances/validation-error"
 
-export const getBudgetCategoryAction = async (data: CreateBudgetCategoryValues) => {
+export const createBudgetCategoryAction = async (data: CreateBudgetCategoryValues) => {
   try {
     const result = await createBudgetCategory(data)
 
@@ -15,6 +15,6 @@ export const getBudgetCategoryAction = async (data: CreateBudgetCategoryValues) 
     if (error instanceof ValidationError) {
       throw error
     }
-    throw new Error("Error al crear el presupuesto")
+    throw new Error("Error al crear la categoría")
   }
 }

@@ -1,29 +1,17 @@
 import { db } from "@/lib/db"
 
-export const getUserByEmail = async (email: string) => {
-  try {
-    const user = await db.user.findUnique({
-      where: {
-        email: email
-      }
-    })
+// A missing user is null; a database failure throws, so callers do not read
+// it as "not registered".
+export const getUserByEmail = async (email: string) =>
+  db.user.findUnique({
+    where: {
+      email: email
+    }
+  })
 
-    return user
-  } catch {
-    console.log("Error getting user by email")
-  }
-}
-
-export const getUserById = async (id: string) => {
-  try {
-    const user = await db.user.findUnique({
-      where: {
-        id: id
-      }
-    })
-
-    return user
-  } catch {
-    console.log("Error getting user by id")
-  }
-}
+export const getUserById = async (id: string) =>
+  db.user.findUnique({
+    where: {
+      id: id
+    }
+  })
