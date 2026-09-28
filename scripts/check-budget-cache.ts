@@ -21,8 +21,15 @@ const searchKey = budgetKeys.list({ limit: 10, page: 1, query: "oficina" });
 const categoryKey = budgetKeys.list({ limit: 10, page: 1, query: "", catIds: ["cat_1"] });
 const secondPageKey = budgetKeys.list({ limit: 2, page: 2, query: "" });
 
+// Same defaults as providers/ReactQueryProvider.tsx; any refetch answers
+// "refetched", so a test can tell a refetch from a mark.
+const REFETCHED = "refetched";
 const seed = () => {
-  const client = new QueryClient();
+  const client = new QueryClient({
+    defaultOptions: {
+      queries: { queryFn: async () => REFETCHED, refetchOnMount: false, staleTime: 60_000 },
+    },
+  });
   client.setQueryData<List>(topKey, {
     budgets: [{ id: "a", budgetCategory: ["Oficinas"] }, { id: "b" }],
     totalCount: 3,
@@ -52,14 +59,14 @@ assert.equal(isUnfilteredFirstPage(undefined), false);
 
 const main = async () => {
   // Create: on top of the plain first page, never written into a filtered list
-  // (the old queryKey[1].query bug); every other list refetches.
+  // (the old queryKey[1].query bug); every list is marked to refetch.
   {
     const client = seed();
     await putBudgetOnTop(client, { id: "new" }, { isNew: true });
     assert.deepEqual(ids(client, topKey), ["new", "a"]);
     assert.equal(list(client, topKey).totalCount, 4);
     assert.equal(list(client, topKey).totalPages, 2);
-    assert.equal(stale(client, topKey), false);
+    assert.equal(stale(client, topKey), true);
     assert.deepEqual(ids(client, searchKey), ["a"]);
     assert.deepEqual(ids(client, categoryKey), []);
     assert.equal(stale(client, searchKey), true);
@@ -100,8 +107,9 @@ const main = async () => {
     assert.deepEqual(client.getQueryData(budgetKeys.detail("hogar")), { id: "b" });
   }
 
-  // Writes from the agent or official budgets reach lists, details and the job
-  // budget picker; category writes reach category details and budgets.
+  // Writes from the agent or official budgets mark every list and refetch the
+  // details and the job budget picker even off screen, since refetchOnMount is
+  // off; category writes do the same with category details and budgets.
   {
     const client = seed();
     client.setQueryData(budgetKeys.detail("oficina"), { id: "a" });
@@ -110,16 +118,18 @@ const main = async () => {
     client.setQueryData(budgetCategoryKeys.detail("cat_1"), { id: "cat_1" });
     await invalidateBudgetScopes(client);
     assert.equal(stale(client, topKey), true);
-    assert.equal(stale(client, budgetKeys.detail("oficina")), true);
-    assert.equal(stale(client, opsQueryKeys.budgetSources({ query: "ofi" })), true);
-    assert.equal(stale(client, budgetCategoryKeys.detail("cat_1")), false);
+    assert.equal(client.getQueryData(budgetKeys.detail("oficina")), REFETCHED);
+    assert.equal(client.getQueryData(opsQueryKeys.budgetSources({ query: "ofi" })), REFETCHED);
+    assert.deepEqual(client.getQueryData(budgetCategoryKeys.detail("cat_1")), { id: "cat_1" });
 
     const categories = seed();
     categories.setQueryData(budgetCategoryKeys.roots(), []);
     categories.setQueryData(budgetCategoryKeys.detail("cat_1"), { id: "cat_1" });
+    categories.setQueryData(budgetKeys.detail("oficina"), { id: "a" });
     await invalidateCategoryScopes(categories);
-    assert.equal(stale(categories, budgetCategoryKeys.detail("cat_1")), true);
-    assert.equal(stale(categories, budgetCategoryKeys.roots()), false);
+    assert.equal(categories.getQueryData(budgetCategoryKeys.detail("cat_1")), REFETCHED);
+    assert.equal(categories.getQueryData(budgetKeys.detail("oficina")), REFETCHED);
+    assert.deepEqual(categories.getQueryData(budgetCategoryKeys.roots()), []);
     assert.equal(stale(categories, categoryKey), true);
   }
 

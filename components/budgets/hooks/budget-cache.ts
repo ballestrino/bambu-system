@@ -35,12 +35,24 @@ export const isUnfilteredFirstPage = (filters: BudgetFilters | undefined) =>
 
 const isOnTopList = (queryKey: QueryKey) => isUnfilteredFirstPage(getListFilters(queryKey));
 
+// Budget lists opt into refetchOnMount (useBudgets), so marking them is
+// enough: the one on screen refetches now and the rest when they mount.
 export const invalidateBudgetLists = (queryClient: QueryClient) =>
   queryClient.invalidateQueries({ queryKey: budgetKeys.lists() });
 
+// The app turns refetchOnMount off (providers/ReactQueryProvider.tsx), so a
+// detail or picker that is not on screen would keep its old data when it
+// mounts again. There are few of them: they are fetched again right away.
+const refreshQueries = (queryClient: QueryClient, queryKey: QueryKey) =>
+  queryClient.invalidateQueries({ queryKey, refetchType: "all" });
+
+export const refreshBudgetDetail = (queryClient: QueryClient, slug: string) =>
+  refreshQueries(queryClient, budgetKeys.detail(slug));
+
 // A created, duplicated or saved budget goes first in the unfiltered first
-// page, keeping the relations the list already had for it. Any other list may
-// gain, lose or reorder it, so the server answers for those.
+// page right away, keeping the relations the list already had for it. Every
+// list is then marked: the others may gain, lose or reorder it, and the write
+// action returns the budget without all the relations a card shows.
 export const putBudgetOnTop = async <Budget extends CachedBudget>(
   queryClient: QueryClient,
   budget: Budget,
@@ -71,10 +83,7 @@ export const putBudgetOnTop = async <Budget extends CachedBudget>(
         totalPages: Math.ceil(totalCount / limit),
       });
     });
-  await queryClient.invalidateQueries({
-    queryKey: budgetKeys.lists(),
-    predicate: (query) => !isOnTopList(query.queryKey),
-  });
+  await invalidateBudgetLists(queryClient);
 };
 
 export const removeBudgetFromLists = (queryClient: QueryClient, budgetId: string) =>
@@ -93,20 +102,22 @@ export const removeBudgetDetail = (queryClient: QueryClient, budgetId: string) =
 
 // Jobs pick their source budget from a separate operations query.
 export const invalidateBudgetSources = (queryClient: QueryClient) =>
-  queryClient.invalidateQueries({ queryKey: opsQueryKeys.budgetSourcesRoot });
+  refreshQueries(queryClient, opsQueryKeys.budgetSourcesRoot);
 
 // For writes made outside the generator (agent, official budgets): every
 // budget list and detail, plus the job budget picker.
 export const invalidateBudgetScopes = (queryClient: QueryClient) =>
   Promise.all([
-    queryClient.invalidateQueries({ queryKey: budgetKeys.all }),
+    invalidateBudgetLists(queryClient),
+    refreshQueries(queryClient, budgetKeys.details()),
     invalidateBudgetSources(queryClient),
   ]);
 
-// Budget cards show category names and colors, and a category detail counts
-// its children, so any category write refreshes both.
+// Budget cards and details show category names and colors, and a category
+// detail counts its children, so any category write refreshes them.
 export const invalidateCategoryScopes = (queryClient: QueryClient) =>
   Promise.all([
-    queryClient.invalidateQueries({ queryKey: budgetCategoryKeys.details() }),
-    queryClient.invalidateQueries({ queryKey: budgetKeys.all }),
+    refreshQueries(queryClient, budgetCategoryKeys.details()),
+    invalidateBudgetLists(queryClient),
+    refreshQueries(queryClient, budgetKeys.details()),
   ]);

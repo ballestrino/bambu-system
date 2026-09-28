@@ -3,7 +3,11 @@ import { updateBudgetAction } from "@/components/budgets/actions/update-budget.a
 import { toast } from "sonner"
 import { BudgetFormValues } from "@/schemas/BudgetSchema"
 import { officialBudgetKeys } from "@/components/official-budgets/query-keys"
-import { invalidateBudgetSources, putBudgetOnTop } from "@/components/budgets/hooks/budget-cache"
+import {
+    invalidateBudgetSources,
+    putBudgetOnTop,
+    refreshBudgetDetail,
+} from "@/components/budgets/hooks/budget-cache"
 import { budgetKeys } from "@/components/budgets/query-keys"
 
 interface UpdateBudgetParams {
@@ -31,7 +35,7 @@ export const useUpdateBudgetMutation = () => {
             if (variables.slug !== updatedBudget.slug) {
                 queryClient.removeQueries({ queryKey: budgetKeys.detail(variables.slug) })
             }
-            void queryClient.invalidateQueries({ queryKey: budgetKeys.detail(updatedBudget.slug) })
+            void refreshBudgetDetail(queryClient, updatedBudget.slug)
 
             void queryClient.invalidateQueries({ queryKey: officialBudgetKeys.all })
             void invalidateBudgetSources(queryClient)
