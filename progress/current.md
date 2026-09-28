@@ -21,11 +21,9 @@ Status: idle
 - 2026-09-28: huecos de sueldos (12), en `main` sin push. Los datos ya se
   escribieron en producción. Hasta el push, el deploy muestra el cálculo
   viejo: junio −26.946 y agosto −99.020, en lugar de "Sin registro".
-- 2026-09-28: parche de dependencias con avisos altos (11), en `main` sin
-  push. En producción queda sin probar el sync IMAP real, que ejercita el
-  cron después del deploy.
-- `origin/main` estaba en `4a63e22` (la limpieza del feature_list) antes de
-  mergear la 11.
+- 2026-09-28: parche de dependencias con avisos altos (11), pusheado
+  (`origin/main` en `2a464de`). Hay que confirmar que el cron de correo
+  sincronice bien con mailparser 3.9.20.
 - Fuera de alcance, ya estaba en `main`: error de hidratación del botón
   "Nuevo correo" en `/dashboard/email`.
 
