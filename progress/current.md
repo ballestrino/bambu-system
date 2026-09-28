@@ -11,11 +11,12 @@ Status: idle
 - `feature_list.json` se renumeró el 2026-09-24: las ids 1–10 son contexto
   terminado y la cola va de la 11 a la 20, en orden de prioridad. La tabla de
   equivalencias con los ids viejos está en `progress/history.md`.
-- Próxima: 14 `budget_query_cache`.
+- Próxima: 15 `runtime_sdk_cleanup`.
 - Para la 15: resend ya está en 6.30.0 desde la 11.
 
 ## Last Closed Work
 
+- 2026-09-28: caché de presupuestos (14), en `main` sin push.
 - 2026-09-28: limpieza de pruebas del agente (13), solo datos: 7
   conversaciones borradas. En `main` sin push (solo documentación).
 - 2026-09-28: huecos de sueldos (12), pusheada.

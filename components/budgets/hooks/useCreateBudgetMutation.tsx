@@ -2,11 +2,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query"
 import { createBudgetAction } from "../actions/create-budget.action"
 import { toast } from "sonner"
 import { BudgetFormValues } from "@/schemas/BudgetSchema"
-import { Budget } from "@prisma/client"
-
-type BudgetQueryFilters = {
-    query?: string
-}
+import { invalidateBudgetSources, putBudgetOnTop } from "@/components/budgets/hooks/budget-cache"
 
 export const useCreateBudgetMutation = () => {
     const queryClient = useQueryClient()
@@ -17,32 +13,8 @@ export const useCreateBudgetMutation = () => {
         onSuccess: (newBudget) => {
             if (!newBudget) return
 
-            // 1. Update the "main" query (query is empty string or undefined)
-            queryClient.setQueriesData<{ budgets: Budget[] }>(
-                {
-                    queryKey: ["budgets"],
-                    predicate: (query) => {
-                        const filters = query.queryKey[1] as BudgetQueryFilters | undefined
-                        return !filters?.query || filters.query === ""
-                    }
-                },
-                (old) => {
-                    if (!old || !old.budgets) return old
-                    return {
-                        ...old,
-                        budgets: [newBudget, ...old.budgets]
-                    }
-                }
-            )
-
-            // 2. Invalidate other searches (where query is NOT empty)
-            queryClient.invalidateQueries({
-                queryKey: ["budgets"],
-                predicate: (query) => {
-                    const filters = query.queryKey[1] as BudgetQueryFilters | undefined
-                    return !!filters?.query && filters.query !== ""
-                }
-            })
+            void putBudgetOnTop(queryClient, newBudget, { isNew: true })
+            void invalidateBudgetSources(queryClient)
 
             toast.success("Presupuesto creado exitosamente")
         },

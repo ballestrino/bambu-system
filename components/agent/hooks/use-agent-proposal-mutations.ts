@@ -8,6 +8,7 @@ import {
   rejectProposalAction,
 } from "@/components/agent/actions/agent-writes.action";
 import { agentKeys } from "@/components/agent/query-keys";
+import { invalidateBudgetScopes } from "@/components/budgets/hooks/budget-cache";
 import { officialBudgetKeys } from "@/components/official-budgets/query-keys";
 import type { ProposalResult } from "@/lib/agent/proposals";
 
@@ -34,8 +35,7 @@ export const useAgentProposalMutations = ({
       // presupuesto abierto), después las listas y el detalle.
       onConfirmed?.(outcome.result);
       await Promise.all([
-        queryClient.invalidateQueries({ queryKey: ["budgets"] }),
-        queryClient.invalidateQueries({ queryKey: ["budget"] }),
+        invalidateBudgetScopes(queryClient),
         queryClient.invalidateQueries({ queryKey: officialBudgetKeys.all }),
       ]);
     },

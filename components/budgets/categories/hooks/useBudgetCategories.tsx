@@ -2,10 +2,11 @@
 
 import { useQuery } from "@tanstack/react-query"
 import { readBudgetCategories } from "../actions/budget-category-reads"
+import { budgetCategoryKeys } from "@/components/budgets/query-keys"
 
 export default function useBudgetCategories() {
     const query = useQuery({
-        queryKey: ["budget-categories"],
+        queryKey: budgetCategoryKeys.roots(),
         queryFn: () => readBudgetCategories(),
         staleTime: 1000 * 60 * 5, // 5 minutes
     })

@@ -2,12 +2,13 @@ import { useMutation, useQueryClient } from "@tanstack/react-query"
 import { updateBudgetAction } from "@/components/budgets/actions/update-budget.action"
 import { toast } from "sonner"
 import { BudgetFormValues } from "@/schemas/BudgetSchema"
-import { Budget } from "@prisma/client"
 import { officialBudgetKeys } from "@/components/official-budgets/query-keys"
-
-type BudgetQueryFilters = {
-    query?: string
-}
+import {
+    invalidateBudgetSources,
+    putBudgetOnTop,
+    refreshBudgetDetail,
+} from "@/components/budgets/hooks/budget-cache"
+import { budgetKeys } from "@/components/budgets/query-keys"
 
 interface UpdateBudgetParams {
     id: string
@@ -24,54 +25,20 @@ export const useUpdateBudgetMutation = () => {
         onSuccess: (updatedBudget, variables) => {
             if (!updatedBudget) return
 
-            // 1. Update the "main" query (query is empty string or undefined)
-            queryClient.setQueriesData<{ budgets: Budget[] }>(
-                {
-                    queryKey: ["budgets"],
-                    predicate: (query) => {
-                        const filters = query.queryKey[1] as BudgetQueryFilters | undefined
-                        return !filters?.query || filters.query === ""
-                    }
-                },
-                (old) => {
-                    if (!old || !old.budgets) return old
-                    return {
-                        ...old,
-                        budgets: old.budgets.map((b) =>
-                            b.id === updatedBudget.id ? updatedBudget : b
-                        )
-                    }
-                }
-            )
+            // Saving bumps updatedAt, so the budget moves to the top of the
+            // unfiltered list; filtered lists may gain or lose it and refetch.
+            void putBudgetOnTop(queryClient, updatedBudget, { isNew: false })
 
-            // 2. Update specific budget query
-            // If slug changed, we need to handle both old and new keys
+            // The saved budget comes back without its options and categories,
+            // so the detail is read again instead of overwritten. A new slug
+            // means a new detail key; the old one goes.
             if (variables.slug !== updatedBudget.slug) {
-                // Remove old query data or invalidate it
-                queryClient.removeQueries({ queryKey: ["budget", variables.slug] })
-
-                // Set new query data
-                queryClient.setQueriesData(
-                    { queryKey: ["budget", updatedBudget.slug] },
-                    updatedBudget
-                )
-            } else {
-                // Update existing query
-                queryClient.setQueriesData(
-                    { queryKey: ["budget", variables.slug] },
-                    updatedBudget
-                )
+                queryClient.removeQueries({ queryKey: budgetKeys.detail(variables.slug) })
             }
+            void refreshBudgetDetail(queryClient, updatedBudget.slug)
 
-            // 3. Invalidate other searches (where query is NOT empty)
-            queryClient.invalidateQueries({
-                queryKey: ["budgets"],
-                predicate: (query) => {
-                    const filters = query.queryKey[1] as BudgetQueryFilters | undefined
-                    return !!filters?.query && filters.query !== ""
-                }
-            })
-            queryClient.invalidateQueries({ queryKey: officialBudgetKeys.all })
+            void queryClient.invalidateQueries({ queryKey: officialBudgetKeys.all })
+            void invalidateBudgetSources(queryClient)
 
             toast.success("Presupuesto actualizado correctamente")
         },

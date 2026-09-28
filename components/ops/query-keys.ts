@@ -17,6 +17,7 @@ export const opsQueryKeys = {
   visitFeedRoot: ["ops", "visit-feed"] as const,
   visitFeed: (scope: unknown) => ["ops", "visit-feed", scope] as const,
   visitFilterOptions: ["ops", "visit-filter-options"] as const,
+  budgetSourcesRoot: ["ops", "budget-sources"] as const,
   budgetSources: (scope?: { query?: string; selectedBudgetId?: string }) =>
     ["ops", "budget-sources", scope ?? {}] as const,
   employees: ["ops", "employees"] as const,

@@ -2,10 +2,11 @@
 
 import { useQuery } from "@tanstack/react-query"
 import { getBudgetSubCategoriesAction } from "../actions/get-budget-sub-categories.action"
+import { budgetCategoryKeys } from "@/components/budgets/query-keys"
 
 export default function useSubCategories(parentId: string) {
     const query = useQuery({
-        queryKey: ["sub-categories", parentId],
+        queryKey: budgetCategoryKeys.children(parentId),
         queryFn: () => getBudgetSubCategoriesAction(parentId),
     })
 

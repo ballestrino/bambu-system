@@ -5,6 +5,7 @@ import { toast } from "sonner";
 
 import { BudgetFieldError, saveBudgetAction } from "@/components/agent/actions/agent-writes.action";
 import { agentKeys } from "@/components/agent/query-keys";
+import { invalidateBudgetScopes } from "@/components/budgets/hooks/budget-cache";
 
 // Guardar en el generador desde el editor. Un error del nombre lo marca el
 // formulario; el resto va en un toast. Bien o mal, se relee el estado vivo de
@@ -15,10 +16,7 @@ export const useAgentBudgetSave = (conversationId: string) => {
     mutationFn: saveBudgetAction,
     onSuccess: async (outcome) => {
       toast.success(outcome.result ? `Guardado en el generador: ${outcome.result.label}` : outcome.message);
-      await Promise.all([
-        queryClient.invalidateQueries({ queryKey: ["budgets"] }),
-        queryClient.invalidateQueries({ queryKey: ["budget"] }),
-      ]);
+      await invalidateBudgetScopes(queryClient);
     },
     onError: (error) => {
       if (!(error instanceof BudgetFieldError)) toast.error(error.message);
