@@ -250,7 +250,7 @@
         "Source checks that assert literal budget keys (agent-budget-editor-source-checks, agent-sheet-source-checks, check-official-budget-workspace) are updated",
         "Manual smoke covers create, edit, duplicate, delete, and category edits with filtered and unfiltered lists"
       ],
-      "status": "pending"
+      "status": "in_progress"
     },
     {
       "id": 15,
