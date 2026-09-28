@@ -639,3 +639,17 @@
   del usuario. Detalle en `progress/impl_payroll_data_gaps.md`.
 - Queda fuera: el "Resumen del período" de la empleada por rango de julio
   muestra los pagos de julio sin horas.
+
+## 2026-09-28 - Feature 13 limpieza de pruebas del agente
+
+- Los 5 presupuestos de prueba de la feature ya los había borrado el usuario.
+- De 28 conversaciones del agente se borraron 7, aprobadas por el usuario: 5
+  pruebas documentadas en los informes del agente y 2 dudosas que él mismo
+  pidió sumar.
+- En cascada se fueron 40 mensajes y 6 propuestas. Los 29 consumos
+  quedaron sin conversación, así que el costo del mes no cambia.
+  Presupuestos (206), auditoría y las 2 conversaciones de Romina, sin
+  cambios.
+- La segunda consulta de solo lectura confirmó que las 21 restantes son
+  exactamente las que no se tocaban. Detalle en
+  `progress/impl_agent_test_data_cleanup.md`.

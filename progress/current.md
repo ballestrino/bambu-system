@@ -11,16 +11,14 @@ Status: idle
 - `feature_list.json` se renumeró el 2026-09-24: las ids 1–10 son contexto
   terminado y la cola va de la 11 a la 20, en orden de prioridad. La tabla de
   equivalencias con los ids viejos está en `progress/history.md`.
-- Próxima: 13 `agent_test_data_cleanup`. Escribe en la base de producción
-  (`.env`): primero una consulta de solo lectura, después el permiso
-  explícito del usuario.
+- Próxima: 14 `budget_query_cache`.
 - Para la 15: resend ya está en 6.30.0 desde la 11.
 
 ## Last Closed Work
 
-- 2026-09-28: huecos de sueldos (12), en `main` sin push. Los datos ya se
-  escribieron en producción. Hasta el push, el deploy muestra el cálculo
-  viejo: junio −26.946 y agosto −99.020, en lugar de "Sin registro".
+- 2026-09-28: limpieza de pruebas del agente (13), solo datos: 7
+  conversaciones borradas. En `main` sin push (solo documentación).
+- 2026-09-28: huecos de sueldos (12), pusheada.
 - 2026-09-28: parche de dependencias con avisos altos (11), pusheado
   (`origin/main` en `2a464de`). Hay que confirmar que el cron de correo
   sincronice bien con mailparser 3.9.20.
