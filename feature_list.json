@@ -199,12 +199,12 @@
       "description": "pnpm audit reports 32 high advisories (22 in production dependencies). Patch direct dependencies and force fixed transitive versions without breaking the mail agent, Excel export, Prisma, or the build.",
       "acceptance": [
         "pnpm audit --prod reports no high or critical advisories; any remaining exception is documented with its reason in the progress report",
-        "Direct dependencies move to fixed versions: nodemailer >=9.1.1, postcss >=8.5.23, and uuid 13.0.1; the optional next-auth nodemailer peer warning is documented as harmless because the Auth.js email provider is not used",
+        "Direct dependencies move to fixed versions: nodemailer >=9.1.1, postcss >=8.5.23, and resend on its latest stable release; uuid is removed in favor of crypto.randomUUID() (user decision 2026-09-28); the optional next-auth nodemailer peer warning is documented as harmless because the Auth.js email provider is not used",
         "Transitive advisories (minimatch, brace-expansion through exceljs>archiver, nanoid, browserslist, picomatch, flatted, js-yaml, and effect/defu/deepmerge-ts through prisma) are fixed by upgrading their parents or with scoped pnpm overrides",
         "The pnpm minimum-release-age policy is respected and the lockfile diff only contains the intended upgrades",
         "Verification includes TypeScript, lint, every check:* script (especially check:mail-agent and check:job-export), pnpm build, and an authenticated smoke of the mail inbox and job Excel export"
       ],
-      "status": "pending"
+      "status": "done"
     },
     {
       "id": 12,

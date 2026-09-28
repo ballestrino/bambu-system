@@ -3,3 +3,8 @@ packages:
 ignoredBuiltDependencies:
   - sharp
   - unrs-resolver
+overrides:
+  # Prisma 6 fija deepmerge-ts 7.1.5 (GHSA-ggr8-5vv4-36mx). @prisma/config
+  # solo llama a deepmerge(), que la 8 no cambia. Sacar al pasar a una Prisma
+  # que traiga la 8.
+  "@prisma/config>deepmerge-ts": 8.0.2

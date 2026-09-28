@@ -1,5 +1,4 @@
 import { db } from "@/lib/db"
-import { v4 as uuid } from "uuid"
 import crypto from "crypto"
 
 import { getPasswordResetTokenByEmail } from "@/data/password-reset-token"
@@ -33,7 +32,7 @@ export const generateTwoFactorToken = async (email: string) => {
 }
 
 export const generatePasswordResetToken = async (email: string) => {
-  const token = uuid()
+  const token = crypto.randomUUID()
   const expires = new Date(new Date().getTime() + 900 * 1000) //15 minutes
 
   const existingToken = await getPasswordResetTokenByEmail(email)
@@ -61,7 +60,7 @@ export const generateVerificationToken = async (
   email: string,
   oldemail?: string
 ) => {
-  const token = uuid()
+  const token = crypto.randomUUID()
   const expires = new Date(new Date().getTime() + 900 * 1000) //15 minutes
 
   const existingToken = await getVerificationTokenByEmail(email)
