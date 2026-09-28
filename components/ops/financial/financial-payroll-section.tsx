@@ -17,6 +17,7 @@ import { PayrollFilters } from "@/components/ops/payroll/payroll-filters";
 import { getPayrollPeriodDescription } from "@/components/ops/payroll/payroll-period";
 import { PayrollSummary } from "@/components/ops/payroll/payroll-summary";
 import {
+  applyPayrollTracking,
   buildPayrollRows,
   getPaymentSummary,
   getPayrollSummary,
@@ -69,8 +70,11 @@ export const FinancialPayrollSection = ({
         ? true
         : occurrence.employees.some((item) => item.employeeId === employeeId)
     );
-    return buildPayrollRows(employees, occurrences, scopedPayments);
-  }, [employeeId, scopedPayments, workOccurrences, workspace.employees]);
+    return applyPayrollTracking(
+      buildPayrollRows(employees, occurrences, scopedPayments),
+      period.isTracked
+    );
+  }, [employeeId, period.isTracked, scopedPayments, workOccurrences, workspace.employees]);
   const summary = {
     ...getPayrollSummary(rows, scopedPayments),
     ...getPaymentSummary(visiblePayments),

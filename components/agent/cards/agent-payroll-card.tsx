@@ -7,6 +7,7 @@ import type { PayrollCardData } from "@/components/agent/types";
 import { cn } from "@/lib/utils";
 
 const SHOWN_EMPLOYEES = 10;
+const UNTRACKED = "Sin registro";
 
 // Sueldos a mes vencido: los pagos del mes elegido contra las horas del
 // anterior, igual que Finanzas → Pagos.
@@ -14,6 +15,9 @@ export function AgentPayrollCard({ data }: { data: PayrollCardData }) {
   const { summary } = data;
   const shown = data.employees.slice(0, SHOWN_EMPLOYEES);
   const hidden = data.total - shown.length;
+  // Conversaciones guardadas antes del corte no traen tracked.
+  const tracked = data.tracked !== false;
+  const trackedMoney = (value: number | null) => (tracked ? formatMoney(value) : UNTRACKED);
   return (
     <AgentCard
       icon={Users}
@@ -26,9 +30,9 @@ export function AgentPayrollCard({ data }: { data: PayrollCardData }) {
       }
     >
       <div className="space-y-0.5 text-xs">
-        <CardRow label="Sugerido" value={formatMoney(summary.suggestedTotal)} />
+        <CardRow label="Sugerido" value={trackedMoney(summary.suggestedTotal)} />
         <CardRow label={`Pagado (${summary.recordedCount})`} value={formatMoney(summary.recordedTotal)} />
-        <CardRow label="Saldo" value={formatMoney(summary.balanceTotal)} strong />
+        <CardRow label="Saldo" value={trackedMoney(summary.balanceTotal)} strong />
         <CardRow label="Aguinaldo generado" value={formatMoney(summary.aguinaldoGeneratedTotal)} />
         <CardRow label="Salario vacacional generado" value={formatMoney(summary.vacationSalaryGeneratedTotal)} />
         <CardRow label="BPS generado" value={formatMoney(summary.bpsGeneratedTotal)} />
@@ -49,9 +53,11 @@ export function AgentPayrollCard({ data }: { data: PayrollCardData }) {
                 <tr key={row.employeeId}>
                   <td className="max-w-32 truncate py-0.5">{row.employeeName}</td>
                   <td className="py-0.5 text-right">{formatHours(row.hours)}</td>
-                  <td className="py-0.5 text-right">{row.suggestedAmount === null ? "Sin tarifa" : formatMoney(row.suggestedAmount)}</td>
+                  <td className="py-0.5 text-right">
+                    {!tracked ? UNTRACKED : row.suggestedAmount === null ? "Sin tarifa" : formatMoney(row.suggestedAmount)}
+                  </td>
                   <td className={cn("py-0.5 text-right", (row.balance ?? 0) < 0 && "text-destructive")}>
-                    {formatMoney(row.balance)}
+                    {trackedMoney(row.balance)}
                   </td>
                 </tr>
               ))}
@@ -60,6 +66,9 @@ export function AgentPayrollCard({ data }: { data: PayrollCardData }) {
         </div>
       )}
       {hidden > 0 && <CardNote>Y {hidden} empleadas más.</CardNote>}
+      {!tracked && (
+        <CardNote>Los sueldos se registran desde las horas de {data.trackingStartLabel}.</CardNote>
+      )}
     </AgentCard>
   );
 }

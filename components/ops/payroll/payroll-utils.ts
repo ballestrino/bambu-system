@@ -148,6 +148,15 @@ export const buildPayrollRows = (
     .sort((a, b) => a.employeeName.localeCompare(b.employeeName));
 };
 
+// Months before payroll tracking keep their hours and payments, but there is
+// nothing to settle them against, so they carry no suggested amount or balance.
+export const applyPayrollTracking = <
+  Row extends { balance: number | null; suggestedAmount: number | null },
+>(
+  rows: Row[],
+  isTracked: boolean
+) => (isTracked ? rows : rows.map((row) => ({ ...row, balance: null, suggestedAmount: null })));
+
 export const getPayrollSummary = (
   rows: ReturnType<typeof buildPayrollRows>,
   payments: OpsEmployeePayment[]
