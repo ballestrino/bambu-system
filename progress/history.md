@@ -591,3 +591,25 @@
     el Sheet de visita.
 - Los checks del agente dejaron de afirmar ids viejos de `feature_list.json`.
 - Los planes cumplidos de `plans/` (local) pasaron a `plans/archive/`.
+
+## 2026-09-28 - Feature 11 parche de dependencias con avisos altos
+
+- `pnpm audit --prod`: de 22 altas, 17 moderadas y 2 bajas a 1 moderada. El
+  audit completo: de 32 altas a 0. Sin críticas.
+- Directas: nodemailer 9.1.1 y mailparser fijo en 3.9.20 (la última que
+  trae la misma nodemailer), postcss 8.5.28, Prisma 6.19.3,
+  @types/nodemailer 8.0.2 y resend 6.30.0, que ya no depende de svix.
+- Decisiones del usuario: nodemailer 9 y no la 10 (reescritura a TypeScript
+  todavía con parches seguidos); sacar `uuid`, así que los tokens usan
+  `crypto.randomUUID()`; subir resend en esta feature y no en la 15.
+- Override con alcance en `pnpm-workspace.yaml`:
+  `@prisma/config>deepmerge-ts` 8.0.2. El resto se re-resolvió dentro de
+  sus rangos con `pnpm update --depth Infinity`.
+- Excepciones: `uuid` 8 de exceljs (solo usa `v4()`), y `ajv` y
+  `@humanfs/node` de eslint, solo en dev.
+- PASS: `tsc`, lint, los 27 `check:*`, `pnpm build`, una ida y vuelta
+  nodemailer → mailparser en Node y el smoke con sesión de la bandeja y del
+  Excel de Trabajos. No se corrió el sync IMAP real porque escribe en
+  producción. Detalle en `progress/impl_security_dependency_patch.md`.
+- Queda fuera: el error de hidratación del botón "Nuevo correo" en
+  `/dashboard/email`, que se reprodujo igual en `main`.

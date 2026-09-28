@@ -204,7 +204,7 @@
         "The pnpm minimum-release-age policy is respected and the lockfile diff only contains the intended upgrades",
         "Verification includes TypeScript, lint, every check:* script (especially check:mail-agent and check:job-export), pnpm build, and an authenticated smoke of the mail inbox and job Excel export"
       ],
-      "status": "in_progress"
+      "status": "done"
     },
     {
       "id": 12,
