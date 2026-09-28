@@ -219,7 +219,7 @@
         "After the write, the August balance is recalculated read-only and matches the value the user expects",
         "No other visits, payments, employees, or months change; the progress report records counts before and after"
       ],
-      "status": "in_progress"
+      "status": "done"
     },
     {
       "id": 13,
