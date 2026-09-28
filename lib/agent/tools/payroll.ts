@@ -3,6 +3,7 @@ import "server-only";
 import { tool } from "ai";
 
 import {
+  applyPayrollTracking,
   buildPayrollRows,
   getPayrollSummary,
 } from "@/components/ops/payroll/payroll-utils";
@@ -17,6 +18,10 @@ import {
   toAssignedMonth,
 } from "@/lib/agent/month";
 import { roundMoney, runTool, toolError, toolOk } from "@/lib/agent/tool-result";
+import {
+  isPayrollWorkMonthTracked,
+  PAYROLL_TRACKING_START_LABEL,
+} from "@/lib/ops/finance/payroll-period";
 import { monthInputSchema } from "@/schemas/agent-tools";
 
 const nullableMoney = (value: number | null) => (value === null ? null : roundMoney(value));
@@ -26,7 +31,7 @@ const nullableMoney = (value: number | null) => (value === null ? null : roundMo
 export const createPayrollTools = () => ({
   getPayrollSummary: tool({
     description:
-      "Sueldos a mes vencido: para el mes de pago elegido, las horas y visitas realizadas del mes anterior, el sugerido, lo pagado y el saldo por empleada, más aguinaldo, salario vacacional y BPS generados.",
+      `Sueldos a mes vencido: para el mes de pago elegido, las horas y visitas realizadas del mes anterior, el sugerido, lo pagado y el saldo por empleada, más aguinaldo, salario vacacional y BPS generados. Los sueldos se registran desde las horas de ${PAYROLL_TRACKING_START_LABEL}: antes, tracked es false y el sugerido y el saldo vienen en null (sin registro).`,
     inputSchema: monthInputSchema,
     execute: (input) =>
       runTool("getPayrollSummary", async () => {
@@ -42,10 +47,10 @@ export const createPayrollTools = () => ({
           return toolError("read_failed", "No se pudieron leer empleadas o pagos.");
         }
 
-        const rows = buildPayrollRows(
-          employees.employees,
-          occurrences,
-          payments.employeePayments
+        const tracked = isPayrollWorkMonthTracked(workMonth);
+        const rows = applyPayrollTracking(
+          buildPayrollRows(employees.employees, occurrences, payments.employeePayments),
+          tracked
         );
         const summary = getPayrollSummary(rows, payments.employeePayments);
         return toolOk({
@@ -54,10 +59,12 @@ export const createPayrollTools = () => ({
           paymentMonthLabel: formatMonthLabel(paymentMonth),
           workMonth,
           workMonthLabel: formatMonthLabel(workMonth),
+          tracked,
+          trackingStartLabel: PAYROLL_TRACKING_START_LABEL,
           summary: {
-            suggestedTotal: roundMoney(summary.suggestedTotal),
+            suggestedTotal: tracked ? roundMoney(summary.suggestedTotal) : null,
             recordedTotal: roundMoney(summary.recordedTotal),
-            balanceTotal: roundMoney(summary.balanceTotal),
+            balanceTotal: tracked ? roundMoney(summary.balanceTotal) : null,
             aguinaldoGeneratedTotal: roundMoney(summary.aguinaldoGeneratedTotal),
             vacationSalaryGeneratedTotal: roundMoney(summary.vacationSalaryGeneratedTotal),
             bpsGeneratedTotal: roundMoney(summary.bpsGeneratedTotal),

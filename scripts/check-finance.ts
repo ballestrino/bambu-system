@@ -6,14 +6,19 @@ import {
   getAssignedMonthRange,
   getEmployeePaymentDateFilter,
   getFinancialSummary,
+  isPayrollWorkMonthTracked,
   URUGUAY_EMPLOYER_BPS_PERCENT,
   URUGUAY_PERSONAL_BPS_BASE_PERCENT,
   URUGUAY_TOTAL_BPS_BASE_PERCENT,
   URUGUAY_VACATION_SALARY_NET_FACTOR,
 } from "../lib/ops/finance";
 import { getMonthKey, toDateInputValue } from "../components/ops/utils";
-import { getPayrollPeriod } from "../components/ops/payroll/payroll-period";
 import {
+  getPayrollPeriod,
+  getPayrollPeriodDescription,
+} from "../components/ops/payroll/payroll-period";
+import {
+  applyPayrollTracking,
   buildPayrollRows,
   getPayrollSummary,
 } from "../components/ops/payroll/payroll-utils";
@@ -104,6 +109,21 @@ assert.equal(septemberPayroll.startDate, "2026-08-01");
 assert.equal(septemberPayroll.endDate, "2026-08-31");
 assert.equal(septemberPayroll.workMonthName, "agosto");
 assert.equal(septemberPayroll.paymentMonthName, "setiembre");
+assert.equal(septemberPayroll.isTracked, true);
+
+// Payroll is tracked from the hours of August 2026: August pays July, so it
+// has no balance.
+assert.equal(isPayrollWorkMonthTracked("2026-07"), false);
+assert.equal(isPayrollWorkMonthTracked("2026-08"), true);
+assert.equal(isPayrollWorkMonthTracked("2027-01"), true);
+const augustPayroll = getPayrollPeriod(new Date(2026, 7, 1));
+assert.equal(augustPayroll.isTracked, false);
+assert.match(getPayrollPeriodDescription(augustPayroll), /^Sin registro/);
+assert.deepEqual(applyPayrollTracking(payrollRows, true), payrollRows);
+const untrackedRow = applyPayrollTracking(payrollRows, false)[0];
+assert.equal(untrackedRow.suggestedAmount, null);
+assert.equal(untrackedRow.balance, null);
+assert.equal(untrackedRow.hours, payrollRows[0].hours);
 
 const empty = getFinancialSummary({
   bpsEstimatePercent: 20,

@@ -13,7 +13,11 @@ import {
   getPayrollPeriodDescription,
 } from "@/components/ops/payroll/payroll-period";
 import { PayrollSummary } from "@/components/ops/payroll/payroll-summary";
-import { buildPayrollRows, getPayrollSummary } from "@/components/ops/payroll/payroll-utils";
+import {
+  applyPayrollTracking,
+  buildPayrollRows,
+  getPayrollSummary,
+} from "@/components/ops/payroll/payroll-utils";
 import { OpsSection, useOpsSelectedMonth } from "@/components/ops/shared";
 import type { OpsEmployeeDetail } from "@/components/ops/types";
 import {
@@ -57,8 +61,12 @@ export const EmployeePayrollPanel = ({
   );
   const { voidPaymentAsync } = useEmployeePaymentMutations(employee.id);
   const rows = useMemo(
-    () => buildPayrollRows([employee], occurrences, payments),
-    [employee, occurrences, payments]
+    () =>
+      applyPayrollTracking(
+        buildPayrollRows([employee], occurrences, payments),
+        period.isTracked
+      ),
+    [employee, occurrences, payments, period.isTracked]
   );
   const summary = getPayrollSummary(rows, payments);
   const row = rows[0];

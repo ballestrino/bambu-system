@@ -18,7 +18,11 @@ import {
 } from "@/components/ops/payroll/payroll-period";
 import { PayrollRowsPanel } from "@/components/ops/payroll/payroll-rows-panel";
 import { PayrollSummary } from "@/components/ops/payroll/payroll-summary";
-import { buildPayrollRows, getPayrollSummary } from "@/components/ops/payroll/payroll-utils";
+import {
+  applyPayrollTracking,
+  buildPayrollRows,
+  getPayrollSummary,
+} from "@/components/ops/payroll/payroll-utils";
 import { useOpsSelectedMonth } from "@/components/ops/shared";
 import { formatMonth } from "@/components/ops/utils";
 import { Button } from "@/components/ui/button";
@@ -79,8 +83,12 @@ export const PayrollPage = () => {
   const { voidPaymentAsync } = useEmployeePaymentMutations();
 
   const rows = useMemo(
-    () => buildPayrollRows(visibleEmployees, occurrences, payments),
-    [occurrences, payments, visibleEmployees]
+    () =>
+      applyPayrollTracking(
+        buildPayrollRows(visibleEmployees, occurrences, payments),
+        period.isTracked
+      ),
+    [occurrences, payments, period.isTracked, visibleEmployees]
   );
   const summary = getPayrollSummary(rows, payments);
   const isRefreshing =

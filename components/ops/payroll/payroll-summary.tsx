@@ -11,6 +11,10 @@ import {
 import { OpsMetricsGrid, type OpsMetric } from "@/components/ops/shared";
 import type { PayrollPeriod } from "@/components/ops/payroll/payroll-period";
 import { formatPayrollMoney } from "@/components/ops/payroll/payroll-utils";
+import { PAYROLL_TRACKING_START_LABEL } from "@/lib/ops/finance";
+
+const UNTRACKED_VALUE = "Sin registro";
+const UNTRACKED_HELPER = `se registra desde ${PAYROLL_TRACKING_START_LABEL}`;
 
 export const PayrollSummary = ({
   aguinaldoGeneratedTotal,
@@ -37,11 +41,11 @@ export const PayrollSummary = ({
 }) => {
   const metrics: OpsMetric[] = [
     {
-      helper: `horas de ${period.workMonthName}`,
+      helper: period.isTracked ? `horas de ${period.workMonthName}` : UNTRACKED_HELPER,
       icon: BadgeDollarSign,
       label: "Sugerido",
-      tone: "money",
-      value: formatPayrollMoney(suggestedTotal),
+      tone: period.isTracked ? "money" : "archived",
+      value: period.isTracked ? formatPayrollMoney(suggestedTotal) : UNTRACKED_VALUE,
     },
     {
       helper: `pagado en ${period.paymentMonthName}`,
@@ -51,11 +55,11 @@ export const PayrollSummary = ({
       value: formatPayrollMoney(recordedTotal),
     },
     {
-      helper: `pendiente de ${period.workMonthName}`,
+      helper: period.isTracked ? `pendiente de ${period.workMonthName}` : UNTRACKED_HELPER,
       icon: CircleDollarSign,
       label: "Saldo",
-      tone: "warning",
-      value: formatPayrollMoney(balanceTotal),
+      tone: period.isTracked ? "warning" : "archived",
+      value: period.isTracked ? formatPayrollMoney(balanceTotal) : UNTRACKED_VALUE,
     },
     {
       helper: "1/12 del salario por horas",

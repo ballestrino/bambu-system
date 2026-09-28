@@ -3,7 +3,11 @@ import {
   getMonthRange,
   toDateInputValue,
 } from "@/components/ops/utils";
-import { getPayrollWorkMonth } from "@/lib/ops/finance";
+import {
+  getPayrollWorkMonth,
+  isPayrollWorkMonthTracked,
+  PAYROLL_TRACKING_START_LABEL,
+} from "@/lib/ops/finance";
 
 const monthNameFormat = new Intl.DateTimeFormat("es-UY", { month: "long" });
 
@@ -19,16 +23,20 @@ export type PayrollPeriod = ReturnType<typeof getPayrollPeriod>;
 export const getPayrollPeriod = (paymentMonth: Date) => {
   const workMonth = getPayrollWorkMonth(paymentMonth);
   const range = getMonthRange(workMonth);
+  const workMonthKey = getMonthKey(workMonth);
 
   return {
     endDate: toDateInputValue(range.end),
+    isTracked: isPayrollWorkMonthTracked(workMonthKey),
     paymentMonthName: formatMonthName(paymentMonth),
     range,
     startDate: toDateInputValue(range.start),
-    workMonthKey: getMonthKey(workMonth),
+    workMonthKey,
     workMonthName: formatMonthName(workMonth),
   };
 };
 
 export const getPayrollPeriodDescription = (period: PayrollPeriod) =>
-  `Sueldos a mes vencido: en ${period.paymentMonthName} se pagan las horas de ${period.workMonthName}.`;
+  period.isTracked
+    ? `Sueldos a mes vencido: en ${period.paymentMonthName} se pagan las horas de ${period.workMonthName}.`
+    : `Sin registro: los sueldos se registran desde las horas de ${PAYROLL_TRACKING_START_LABEL}, así que los pagos de ${period.paymentMonthName} no se comparan con horas.`;

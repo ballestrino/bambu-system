@@ -613,3 +613,29 @@
   producción. Detalle en `progress/impl_security_dependency_patch.md`.
 - Queda fuera: el error de hidratación del botón "Nuevo correo" en
   `/dashboard/email`, que se reprodujo igual en `main`.
+
+## 2026-09-28 - Feature 12 huecos de sueldos de julio y agosto
+
+- Diagnóstico de solo lectura: antes de agosto, las visitas no tenían empleada
+  (mayo 0 de 126, julio 1 de 142) y en junio y julio casi ninguna tenía hora
+  real. Por eso los meses de pago junio (−26.946) y agosto (−99.524) daban
+  negativo. Los pagos del 6 al 10/8 y los $ 772 del 24/8 pagaron julio, pero
+  estaban cargados con período de agosto.
+- Decisión del usuario: los sueldos se registran desde las horas de agosto
+  de 2026. Lo anterior queda como historial y no se anulan pagos, porque son
+  costos reales de Finanzas.
+- Código (`2208b2c`): `PAYROLL_TRACKING_START_MONTH_KEY = "2026-08"`. Pagos,
+  Finanzas → Pagos, el panel de la empleada y el agente muestran "Sin
+  registro" en sugerido y saldo para los meses de pago anteriores a
+  septiembre.
+- Datos en producción, con `scripts/fix-payroll-data-gaps.ts` (vista previa
+  y `--apply` aprobado por el usuario):
+  - 259 visitas DONE sin hora anteriores al 1/8 archivadas;
+  - 7 pagos ($ 99.792) con período cambiado a julio;
+  - el adelanto de $ 504 del 28/8 pasado a septiembre.
+  Después: septiembre 120.858 − 504 = 120.354, y agosto y septiembre sin
+  cambios en visitas.
+- PASS: `tsc`, lint, los 27 `check:*`, `next build` y el smoke en el Chrome
+  del usuario. Detalle en `progress/impl_payroll_data_gaps.md`.
+- Queda fuera: el "Resumen del período" de la empleada por rango de julio
+  muestra los pagos de julio sin horas.
