@@ -653,3 +653,23 @@
 - La segunda consulta de solo lectura confirmó que las 21 restantes son
   exactamente las que no se tocaban. Detalle en
   `progress/impl_agent_test_data_cleanup.md`.
+
+## 2026-09-28 - Feature 14 caché de presupuestos
+
+- `components/budgets/query-keys.ts` (`budgetKeys`, `budgetCategoryKeys`) y
+  `components/budgets/hooks/budget-cache.ts` (helpers). Los usan los hooks de
+  presupuestos y categorías, los presupuestos oficiales, las propuestas del
+  agente y el guardado desde el agente. Ya no quedan claves escritas a mano.
+- Se corrigió el bug de `queryKey[1].query`: crear, editar y duplicar
+  escribían el presupuesto en todas las listas, incluidas las filtradas, y
+  nunca invalidaban las búsquedas. Ahora va primero solo en la primera página
+  sin filtros, y todas las listas se marcan.
+- La app apaga `refetchOnMount`. Los detalles de presupuestos y categorías y
+  el selector de presupuestos de Trabajos se invalidan con
+  `refetchType: "all"`: el smoke mostró el detalle viejo después de editar.
+  Guardar ya no pisa el detalle con un presupuesto sin opciones, y borrar
+  saca el detalle del caché.
+- PASS: `tsc`, lint, los 28 `check:*` (con `check:budget-cache`, nuevo, y
+  sus mutaciones) y `next build`. Smoke con datos de prueba en el Chrome del
+  usuario, que después se borraron (0 "Prueba 14" en la base). Detalle en
+  `progress/impl_budget_query_cache.md`.

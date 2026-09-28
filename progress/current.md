@@ -1,40 +1,22 @@
 # Current Harness Session
 
-Status: in_progress
+Status: idle
 
 ## Active Feature
 
-- 14 `budget_query_cache`, en la rama `feature/14-budget-query-cache`. Código
-  en `0f0ddb4`.
-  - `components/budgets/query-keys.ts` (`budgetKeys`, `budgetCategoryKeys`) y
-    `components/budgets/hooks/budget-cache.ts` (helpers, como
-    `useOpsInvalidation`).
-  - Crear, duplicar y guardar: `putBudgetOnTop`, primero solo en la primera
-    página sin filtros, y el resto de las listas invalidadas. El bug de
-    `queryKey[1].query` ya no existe.
-  - Guardar invalida el detalle en vez de pisarlo con un presupuesto sin
-    opciones ni categorías (bug que había de antes). Borrar saca el detalle
-    por id. Las escrituras de presupuestos invalidan
-    `opsQueryKeys.budgetSourcesRoot` (nuevo); las de categorías, sus
-    detalles y los presupuestos.
-  - PASS: `tsc`, lint, los 28 `check:*` (con `check:budget-cache`, nuevo, y
-    su prueba de mutación) y `next build`.
-- Smoke con permiso del usuario: pasa, y los datos de prueba se borraron (0
-  "Prueba 14" en la base). Encontró que `refetchOnMount: false` dejaba el
-  detalle viejo al editar; se arregló en `2c31049`. La verificación está en
-  verde y falta el OK para cerrarla y mergearla. Detalle en
-  `progress/impl_budget_query_cache.md`.
+- None.
 
 ## Queue
 
 - `feature_list.json` se renumeró el 2026-09-24: las ids 1–10 son contexto
   terminado y la cola va de la 11 a la 20, en orden de prioridad. La tabla de
   equivalencias con los ids viejos está en `progress/history.md`.
-- Activa: 14 `budget_query_cache`.
+- Próxima: 15 `runtime_sdk_cleanup`.
 - Para la 15: resend ya está en 6.30.0 desde la 11.
 
 ## Last Closed Work
 
+- 2026-09-28: caché de presupuestos (14), en `main` sin push.
 - 2026-09-28: limpieza de pruebas del agente (13), solo datos: 7
   conversaciones borradas. En `main` sin push (solo documentación).
 - 2026-09-28: huecos de sueldos (12), pusheada.
