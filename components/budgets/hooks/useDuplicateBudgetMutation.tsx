@@ -1,11 +1,7 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query"
 import { duplicateBudgetAction } from "../actions/duplicate-budget.action"
 import { toast } from "sonner"
-import { Budget } from "@prisma/client"
-
-type BudgetQueryFilters = {
-    query?: string
-}
+import { invalidateBudgetSources, putBudgetOnTop } from "@/components/budgets/hooks/budget-cache"
 
 export const useDuplicateBudgetMutation = () => {
     const queryClient = useQueryClient()
@@ -16,22 +12,10 @@ export const useDuplicateBudgetMutation = () => {
         onSuccess: (newBudget) => {
             if (!newBudget) return
 
-            queryClient.setQueriesData<{ budgets: Budget[] }>(
-                {
-                    queryKey: ["budgets"],
-                    predicate: (query) => {
-                        const filters = query.queryKey[1] as BudgetQueryFilters | undefined
-                        return !filters?.query || filters.query === ""
-                    }
-                },
-                (old) => {
-                    if (!old || !old.budgets) return old
-                    return {
-                        ...old,
-                        budgets: [newBudget, ...old.budgets]
-                    }
-                }
-            )
+            // The copy is the newest budget: first in the unfiltered list, and
+            // every other list refetches.
+            void putBudgetOnTop(queryClient, newBudget, { isNew: true })
+            void invalidateBudgetSources(queryClient)
 
             toast.success("Presupuesto duplicado")
         },

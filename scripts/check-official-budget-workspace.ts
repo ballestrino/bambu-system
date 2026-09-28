@@ -44,8 +44,7 @@ assert.match(serverActions, /requireAdminSession/);
 assert.match(serverActions, /publishOfficialBudgetInTransaction/);
 assert.match(serverActions, /archiveOfficialBudgetInTransaction/);
 assert.match(mutations, /officialBudgetKeys\.all/);
-assert.match(mutations, /\["budgets"\]/);
-assert.match(mutations, /\["budget"\]/);
+assert.match(mutations, /invalidateBudgetScopes\(queryClient\)/);
 
 console.log("Official budget workspace checks passed");
 }

@@ -4,6 +4,8 @@ import { useMutation, useQueryClient } from "@tanstack/react-query"
 import deleteBudgetCategory from "@/actions/budgetCategories/delete-budget-category"
 import { toast } from "sonner"
 import { BudgetCategoryWithCount } from "../../interfaces/category"
+import { budgetCategoryKeys } from "@/components/budgets/query-keys"
+import { invalidateCategoryScopes } from "@/components/budgets/hooks/budget-cache"
 
 export const useDeleteBudgetCategoryMutation = () => {
     const queryClient = useQueryClient()
@@ -19,14 +21,14 @@ export const useDeleteBudgetCategoryMutation = () => {
 
             if (deletedCategory.parentCategoryId) {
                 // 1. Remove from sub-categories list
-                queryClient.setQueryData<BudgetCategoryWithCount[]>(["sub-categories", deletedCategory.parentCategoryId], (old) => {
-                    if (!old) return []
+                queryClient.setQueryData<BudgetCategoryWithCount[]>(budgetCategoryKeys.children(deletedCategory.parentCategoryId), (old) => {
+                    if (!Array.isArray(old)) return old
                     return old.filter((category) => category.id !== deletedCategory.id)
                 })
 
                 // 2. Decrement parent count in budget-categories list
-                queryClient.setQueryData<BudgetCategoryWithCount[]>(["budget-categories"], (old) => {
-                    if (!old) return []
+                queryClient.setQueryData<BudgetCategoryWithCount[]>(budgetCategoryKeys.roots(), (old) => {
+                    if (!Array.isArray(old)) return old
                     return old.map(cat => {
                         if (cat.id === deletedCategory.parentCategoryId) {
                             return {
@@ -41,11 +43,14 @@ export const useDeleteBudgetCategoryMutation = () => {
                     })
                 })
             } else {
-                queryClient.setQueryData<BudgetCategoryWithCount[]>(["budget-categories"], (old) => {
-                    if (!old) return []
+                queryClient.setQueryData<BudgetCategoryWithCount[]>(budgetCategoryKeys.roots(), (old) => {
+                    if (!Array.isArray(old)) return old
                     return old.filter((category) => category.id !== deletedCategory.id)
                 })
             }
+            // The deleted detail goes; budgets that had it drop the badge.
+            queryClient.removeQueries({ queryKey: budgetCategoryKeys.detail(deletedCategory.id) })
+            void invalidateCategoryScopes(queryClient)
 
             toast.success("Categoría eliminada exitosamente")
         },

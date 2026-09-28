@@ -1,10 +1,11 @@
 import { useQuery } from "@tanstack/react-query"
 import { getBudgetAction } from "../actions/get-budget.action"
+import { budgetKeys } from "@/components/budgets/query-keys"
 
 export default function useBudget(slug: string) {
 
     const budgetQuery = useQuery({
-        queryKey: ["budget", slug],
+        queryKey: budgetKeys.detail(slug),
         queryFn: () => getBudgetAction(slug),
         staleTime: 1000 * 60 * 5 // 5 minutes
     })

@@ -7,6 +7,7 @@ import {
   archiveOfficialBudget,
   publishOfficialBudget,
 } from "@/actions/official-budgets/official-budget-actions";
+import { invalidateBudgetScopes } from "@/components/budgets/hooks/budget-cache";
 import { officialBudgetKeys } from "@/components/official-budgets/query-keys";
 
 export const useOfficialBudgetMutations = () => {
@@ -14,8 +15,7 @@ export const useOfficialBudgetMutations = () => {
   const invalidate = async () => {
     await Promise.all([
       queryClient.invalidateQueries({ queryKey: officialBudgetKeys.all }),
-      queryClient.invalidateQueries({ queryKey: ["budgets"] }),
-      queryClient.invalidateQueries({ queryKey: ["budget"] }),
+      invalidateBudgetScopes(queryClient),
     ]);
   };
 

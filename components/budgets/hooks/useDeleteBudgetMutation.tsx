@@ -2,6 +2,13 @@ import { useMutation, useQueryClient } from "@tanstack/react-query"
 import { deleteBudgetAction } from "../actions/delete-budget.action"
 import { toast } from "sonner"
 import { useState } from "react"
+import { budgetKeys } from "@/components/budgets/query-keys"
+import {
+    invalidateBudgetLists,
+    invalidateBudgetSources,
+    removeBudgetDetail,
+    removeBudgetFromLists,
+} from "@/components/budgets/hooks/budget-cache"
 
 export const useDeleteBudgetMutation = () => {
     const [error, setError] = useState<string | null>(null)
@@ -13,28 +20,13 @@ export const useDeleteBudgetMutation = () => {
 
         onMutate: async (budgetId: string) => {
             // Cancelar consultas salientes
-            await queryClient.cancelQueries({
-                queryKey: ["budgets"],
-                exact: false
-            })
+            await queryClient.cancelQueries({ queryKey: budgetKeys.lists() })
 
             // Snapshot
-            const previousData = queryClient.getQueriesData({
-                queryKey: ["budgets"]
-            })
+            const previousData = queryClient.getQueriesData({ queryKey: budgetKeys.lists() })
 
             // Optimistic Update
-            queryClient.setQueriesData<{ budgets: { id: string }[] }>(
-                { queryKey: ["budgets"] },
-                (old) => {
-                    if (!old || !old.budgets) return old
-
-                    return {
-                        ...old,
-                        budgets: old.budgets.filter((budget) => budget.id !== budgetId),
-                    }
-                }
-            )
+            removeBudgetFromLists(queryClient, budgetId)
 
             return { previousData }
         },
@@ -53,7 +45,11 @@ export const useDeleteBudgetMutation = () => {
             setError(errorMessage)
         },
 
-        onSuccess: (result) => {
+        onSuccess: (result, budgetId) => {
+            // Totals and pages shift in every list, and the detail is gone.
+            removeBudgetDetail(queryClient, budgetId)
+            void invalidateBudgetLists(queryClient)
+            void invalidateBudgetSources(queryClient)
             if (result) {
                 toast.success(result)
                 setError(null)

@@ -3,10 +3,11 @@
 import { useQuery } from "@tanstack/react-query"
 import { getBudgetsAction } from "@/components/budgets/actions/get-budgets.action"
 import { BudgetFilters } from "@/components/budgets/interfaces/budget-filters"
+import { budgetKeys } from "@/components/budgets/query-keys"
 
 export default function useBudgets(filters: BudgetFilters) {
     const budgetsQuery = useQuery({
-        queryKey: ["budgets", { filters }],
+        queryKey: budgetKeys.list(filters),
         queryFn: () => getBudgetsAction(filters),
         staleTime: 1000 * 60, // 1 minuto
         refetchInterval: 1000 * 60, // 1 minuto

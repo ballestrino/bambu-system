@@ -109,7 +109,7 @@ assert.match(chat, /part\.type\.startsWith\("tool-propose"\) \|\| isSavableBudge
 assert.match(chat, /<AgentBudgetSheet/);
 const mutation = read("components/agent/hooks/use-agent-budget-save.ts");
 assert.match(mutation, /onSettled: \(\) => queryClient\.invalidateQueries\(\{ queryKey: agentKeys\.proposals\(conversationId\) \}\)/);
-assert.match(mutation, /queryKey: \["budgets"\]/);
+assert.match(mutation, /await invalidateBudgetScopes\(queryClient\);/);
 
 // --- Size and harness state.
 [

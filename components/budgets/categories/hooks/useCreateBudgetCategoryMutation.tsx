@@ -4,6 +4,8 @@ import { useMutation, useQueryClient } from "@tanstack/react-query"
 import createBudgetCategory from "@/actions/budgetCategories/create-budget-category"
 import { toast } from "sonner"
 import { BudgetCategoryWithCount } from "../../interfaces/category"
+import { budgetCategoryKeys } from "@/components/budgets/query-keys"
+import { invalidateCategoryScopes } from "@/components/budgets/hooks/budget-cache"
 
 interface CreateBudgetCategoryValues {
     name: string
@@ -28,14 +30,14 @@ export const useCreateBudgetCategoryMutation = () => {
             // If it's a subcategory
             if (newCategory.parentCategoryId) {
                 // 1. Add to sub-categories list
-                queryClient.setQueryData<BudgetCategoryWithCount[]>(["sub-categories", newCategory.parentCategoryId], (old) => {
-                    if (!old) return [newCategory]
+                queryClient.setQueryData<BudgetCategoryWithCount[]>(budgetCategoryKeys.children(newCategory.parentCategoryId), (old) => {
+                    if (!Array.isArray(old)) return [newCategory]
                     return [...old, newCategory]
                 })
 
                 // 2. Update parent count in budget-categories list
-                queryClient.setQueryData<BudgetCategoryWithCount[]>(["budget-categories"], (old) => {
-                    if (!old) return []
+                queryClient.setQueryData<BudgetCategoryWithCount[]>(budgetCategoryKeys.roots(), (old) => {
+                    if (!Array.isArray(old)) return old
                     return old.map(cat => {
                         if (cat.id === newCategory.parentCategoryId) {
                             return {
@@ -51,13 +53,12 @@ export const useCreateBudgetCategoryMutation = () => {
                 })
             } else {
                 // If it's a root category, add to the main list
-                queryClient.setQueryData<BudgetCategoryWithCount[]>(["budget-categories"], (old) => {
-                    if (!old) return [newCategory]
+                queryClient.setQueryData<BudgetCategoryWithCount[]>(budgetCategoryKeys.roots(), (old) => {
+                    if (!Array.isArray(old)) return [newCategory]
                     return [...old, newCategory]
                 })
             }
-
-
+            void invalidateCategoryScopes(queryClient)
 
             toast.success("Categoría creada exitosamente")
         },

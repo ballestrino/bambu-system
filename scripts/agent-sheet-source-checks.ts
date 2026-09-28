@@ -103,7 +103,7 @@ assert.match(read("components/agent/hooks/use-agent-queries.ts"), /hasRunningPro
 assert.match(sheetHost, /const slug = savedSlugRedirect\(result, \{ budgetId: budgetId \?\? null, budgetSlug: budgetSlug \?\? null \}\);/);
 assert.match(read("components/agent/actions/agent-writes.action.ts"), /readConfirmResponse\(await confirmAgentProposal\(proposalId\)\)/);
 const mutations = read("components/agent/hooks/use-agent-proposal-mutations.ts");
-['queryKey: ["budgets"]', 'queryKey: ["budget"]', "queryKey: officialBudgetKeys.all", "agentKeys.proposals(conversationId)"].forEach(
+["invalidateBudgetScopes(queryClient)", "queryKey: officialBudgetKeys.all", "agentKeys.proposals(conversationId)"].forEach(
   (text) => assert.ok(mutations.includes(text), `use-agent-proposal-mutations.ts: ${text}`)
 );
 // Confirming always reads the proposals again, success or not.
