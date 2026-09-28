@@ -233,7 +233,7 @@
         "Only the approved records and their dependent rows are deleted",
         "A second read-only query confirms they are gone and that no other budget or conversation changed"
       ],
-      "status": "pending"
+      "status": "in_progress"
     },
     {
       "id": 14,
