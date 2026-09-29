@@ -296,7 +296,7 @@
         "The calendar agenda shows a retryable error instead of an empty day when its query fails",
         "Loading, error, retry, empty, keyboard, desktop, and 390x844 authenticated browser states are verified"
       ],
-      "status": "pending"
+      "status": "done"
     },
     {
       "id": 18,

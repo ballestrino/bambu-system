@@ -11,15 +11,21 @@ Status: idle
 - `feature_list.json` se renumeró el 2026-09-24: las ids 1–10 son contexto
   terminado y la cola va de la 11 a la 20, en orden de prioridad. La tabla de
   equivalencias con los ids viejos está en `progress/history.md`.
-- Próxima: 17 `ops_visits_guided_intents`.
+- Próxima: 18 `ops_contextual_period`.
 
 ## Last Closed Work
 
+- 2026-09-28: intents explícitos del diálogo de visitas, "Tarjetas" y error
+  con Reintentar en la agenda (17), en la rama
+  `feat/17-ops-visits-guided-intents`, sin mergear. Queda fuera: contadores
+  del mes en 0 cuando el mes no carga, Refrescar colgado si las opciones de
+  filtro se pausan y el toast en inglés de un server action fallido.
 - 2026-09-28: calendario y fechas de operaciones en es-UY (16), en `main` sin
   push. El calendario queda en "septiembre" por decisión del usuario. Queda
   fuera: el selector de mes muestra "Setiembre De 2026" (`capitalize`), el
   desborde a 390 px del selector de vistas de Visitas y de Finanzas, y el
-  `Close` en inglés de los Sheet y Dialog.
+  `Close` en inglés de los Sheet y Dialog. (El desborde de Visitas se
+  arregló en la 17.)
 - 2026-09-28: Resend perezoso, sin Cloudinary y "¿Olvidaste tu contraseña?"
   arreglado (15), en `main` sin push. Queda fuera: `lib/mail.ts` ignora el
   `{ error }` de `resend.emails.send`.
