@@ -418,25 +418,21 @@ Presupuestos iguales y pedidos de presupuesto:
 
 | Modo | Modelo | Razonamiento | Uso |
 | --- | --- | --- | --- |
-| Medio (default) | `gpt-6-luna` | `xhigh` | Económico y razona a fondo; el de todos los días |
-| Alto | `gpt-6-sol` | `medium` | La mejor calidad para análisis y presupuestos complejos |
+| Bajo (default) | `gpt-6-luna` | `xhigh` | Económico y razona a fondo; el de todos los días |
+| Medio | `gpt-6.1-sol` | `low` | Sol 6.1 para tareas más exigentes |
+| Alto | `gpt-6.1-sol` | `medium` | Más razonamiento para análisis y presupuestos complejos |
 | Título (interno) | `gpt-6-luna` | `medium` | Nombre corto de la conversación, con `after()` |
 
-- Desde el paso a gpt-6 (2026-09-23). Antes eran Bajo (`gpt-5.6-luna`,
-  `xhigh`), Medio (`gpt-5.6-terra`, `high`) y Alto (`gpt-5.6-sol`,
-  `medium`). Luna 6 con `xhigh` razona mejor que Terra con `high` a una
-  fracción del precio, así que Bajo dejó de tener lugar.
-- Bajo está retirado (`RETIRED_AGENT_MODES`, `lib/ai/modes.ts`): no se elige,
-  la ruta lo rechaza y `AI_DEFAULT_MODE=bajo` es un error. Sigue en el enum
-  `AgentMode` de la base porque lo nombra el historial. Una conversación
-  guardada en Bajo se abre en Medio (`fromDbAgentMode`) y lo guarda en su
-  próximo turno; los mensajes y consumos viejos conservan Bajo y su modelo
-  (`fromDbRecordedMode`), así la línea de uso y "Costos de IA" dicen lo que
-  se usó.
-- Las etiquetas llevan la generación: `gpt-6-luna` es "Luna 6" y
+- Desde el 2026-09-29, Bajo vuelve a estar activo y es el default. Los tres
+  modos se aceptan en la ruta y en `AI_DEFAULT_MODE`. Una conversación
+  guardada conserva su modo (`fromDbAgentMode`); no se reescriben selecciones
+  anteriores. Los mensajes y consumos conservan su modo, modelo y costo
+  original (`fromDbRecordedMode`). No hace falta migrar el enum de la base.
+- Las etiquetas llevan la generación: `gpt-6.1-sol` es "Sol 6.1",
+  `gpt-6-luna` es "Luna 6" y
   `gpt-5.6-luna` es "Luna 5.6" (`formatModelLabel`); con el razonamiento,
   "Luna 6 Extra alto" (`formatModelWithReasoning`, `REASONING_LABELS`).
-- Los turnos y los borradores de `draftEmail` van con el modo (Medio es Luna
+- Los turnos y los borradores de `draftEmail` van con el modo (Bajo es Luna
   6 con `xhigh`). El título es una tarea chica y va con `medium`, con 8.000
   tokens de salida (`TITLE_MAX_OUTPUT_TOKENS`): el razonamiento cuenta dentro
   de ese tope, y con los 60 de antes no quedaba lugar para el título. Corre
@@ -452,6 +448,8 @@ Presupuestos iguales y pedidos de presupuesto:
   modelo ("Terra 5.6 · Medio").
 - El único registro de `gpt-4.1-mini` es del smoke de la 41, que probó un
   modelo sin precio con `AI_MODEL_BAJO`.
+- GPT-6.1 Sol acepta `low`, `medium`, `high`, `xhigh` y `max`; no acepta
+  `none` ni `minimal`. Usa Responses para tools, como la capa actual.
 - gpt-6 y gpt-5.6 aceptan `none`, `low`, `medium`, `high`, `xhigh` y `max`
   según OpenAI (gpt-5.6 no acepta `minimal`). Pero `@ai-sdk/openai` 4.0.69
   solo manda `low`, `medium`, `high`, `xhigh` y `max` a gpt-6: descarta `none`
@@ -490,8 +488,8 @@ Reglas:
 | `OPENAI_API_KEY` | — | Requerida con `AI_PROVIDER=openai` |
 | `AI_PROVIDER` | `openai` | `openai` (directo, Responses API) o `gateway` (Vercel AI Gateway) |
 | `AI_GATEWAY_API_KEY` | — | Clave del gateway. Sin ella se usa el OIDC del proyecto de Vercel: existe en los deploys y en local después de `vercel env pull`. El token local vence a las 12 horas; vencido, la llamada falla hasta volver a correr `vercel env pull` |
-| `AI_DEFAULT_MODE` | `medio` | `medio` o `alto` |
-| `AI_MODEL_<MODO>` | tabla de modos | Id del modelo de `MEDIO` o `ALTO`. `AI_MODEL_BAJO` y `AI_REASONING_BAJO` ya no se leen |
+| `AI_DEFAULT_MODE` | `bajo` | `bajo`, `medio` o `alto` |
+| `AI_MODEL_<MODO>` | tabla de modos | Id del modelo de `BAJO`, `MEDIO` o `ALTO` |
 | `AI_REASONING_<MODO>` | tabla de modos | `provider-default`, `none`, `minimal`, `low`, `medium`, `high` o `xhigh` |
 | `AI_PRICE_<MODELO>` | tabla de precios | `entrada,cacheada,salida[,escritura]` en USD por millón, con punto decimal. Sin el cuarto valor, la escritura de caché se cobra 1,25 veces la entrada, como en gpt-6 y gpt-5.6. Un campo vacío, una coma de más, hexadecimal o exponente lanzan un error |
 
@@ -520,11 +518,14 @@ AI_PRICE_ANTHROPIC_CLAUDE_SONNET_5=3,0.3,15,3.75
 
 Precios del tier Standard, contexto corto, tomados de
 <https://developers.openai.com/api/docs/pricing> (gpt-6 el 2026-09-23,
-gpt-5.6 el 2026-09-18), en USD por millón de tokens:
+gpt-5.6 el 2026-09-18) y
+<https://developers.openai.com/api/docs/models/gpt-6.1-sol> (2026-09-29),
+en USD por millón de tokens:
 
 | Modelo | Entrada | Entrada cacheada | Escritura de caché | Salida |
 | --- | --- | --- | --- | --- |
 | `gpt-6-luna` | 0.10 | 0.01 | 0.125 | 0.50 |
+| `gpt-6.1-sol` | 2.00 | 0.10 | 2.50 | 10.00 |
 | `gpt-6-sol` | 2.00 | 0.20 | 2.50 | 10.00 |
 | `gpt-5.6-luna` | 0.20 | 0.02 | 0.25 | 1.20 |
 | `gpt-5.6-terra` | 2.00 | 0.20 | 2.50 | 12.00 |
@@ -560,9 +561,10 @@ gpt-5.6 el 2026-09-18), en USD por millón de tokens:
 
 ## Verificación
 
-- `pnpm check:ai-gateway`: modos (Medio y Alto en gpt-6, Bajo rechazado en la
-  ruta y el entorno, una conversación en Bajo abre en Medio, el historial
-  conserva Bajo, el enum de la base con todos los modos y las etiquetas de
+- `pnpm check:ai-gateway`: modos (Bajo/default Luna 6 xhigh, Medio Sol 6.1
+  low y Alto Sol 6.1 medium, los tres aceptados en ruta y entorno, una
+  conversación conserva su selección, el historial conserva el modo,
+  el enum de la base con todos los modos y las etiquetas de
   cada generación, en `scripts/ai-mode-checks.ts`), overrides, prefijo del
   gateway, errores de entorno, identificador de seguridad igual al del
   correo, settings con `store: false`, costos con y sin precio (Luna 6 y

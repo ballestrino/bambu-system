@@ -1,6 +1,6 @@
 // Modos de calidad del agente. Módulo puro: lo usan la UI, la ruta y los
 // checks, así que no importa el SDK.
-export const AGENT_MODE_IDS = ["medio", "alto"] as const;
+export const AGENT_MODE_IDS = ["bajo", "medio", "alto"] as const;
 
 export type AgentMode = (typeof AGENT_MODE_IDS)[number];
 
@@ -37,9 +37,13 @@ export type ModeDefaults = {
 };
 
 export const AGENT_MODES: Record<AgentMode, { label: string; description: string }> = {
+  bajo: {
+    label: "Bajo",
+    description: "Económico y razona a fondo. Alcanza para el día a día.",
+  },
   medio: {
     label: "Medio",
-    description: "Económico y razona a fondo. Alcanza para el día a día.",
+    description: "Sol 6.1 con razonamiento bajo para tareas más exigentes.",
   },
   alto: {
     label: "Alto",
@@ -47,27 +51,20 @@ export const AGENT_MODES: Record<AgentMode, { label: string; description: string
   },
 };
 
-// Luna 6 con xhigh razona mejor que gpt-5.6-terra con high y cuesta menos;
-// Sol 6 también es más barato que Terra.
+// Bajo prioriza costo; Medio y Alto usan Sol 6.1 con distinto razonamiento.
 export const DEFAULT_MODE_SPECS: Record<AgentMode, ModeDefaults> = {
-  medio: { modelId: "gpt-6-luna", reasoning: "xhigh" },
-  alto: { modelId: "gpt-6-sol", reasoning: "medium" },
+  bajo: { modelId: "gpt-6-luna", reasoning: "xhigh" },
+  medio: { modelId: "gpt-6.1-sol", reasoning: "low" },
+  alto: { modelId: "gpt-6.1-sol", reasoning: "medium" },
 };
 
-export const DEFAULT_AGENT_MODE: AgentMode = "medio";
+export const DEFAULT_AGENT_MODE: AgentMode = "bajo";
 
-// Modos que ya no se eligen pero siguen en el enum de la base: los nombran
-// conversaciones, mensajes y consumos viejos. Bajo (gpt-5.6-luna con xhigh)
-// se retiró el 2026-09-23, cuando Medio pasó a Luna 6.
-export const RETIRED_AGENT_MODES = {
-  bajo: { label: "Bajo", replacedBy: "medio" },
-} as const satisfies Record<string, { label: string; replacedBy: AgentMode }>;
-
-// El modo con que se registró un mensaje o un consumo.
-export type RecordedAgentMode = AgentMode | keyof typeof RETIRED_AGENT_MODES;
+// Todos los modos históricos vuelven a estar activos.
+export type RecordedAgentMode = AgentMode;
 
 // El título de la conversación es una tarea chica: Luna 6 con razonamiento
-// medio alcanza. Los turnos y los correos van con el modo (Medio es xhigh).
+// medio alcanza. Los turnos y los correos van con el modo elegido.
 // Corre con after(), así que no demora la respuesta.
 export const TITLE_MODEL_SPEC: ModeDefaults = {
   modelId: "gpt-6-luna",
@@ -78,4 +75,4 @@ export const isAgentMode = (value: unknown): value is AgentMode =>
   typeof value === "string" && (AGENT_MODE_IDS as readonly string[]).includes(value);
 
 export const formatAgentModeLabel = (mode: RecordedAgentMode) =>
-  isAgentMode(mode) ? AGENT_MODES[mode].label : RETIRED_AGENT_MODES[mode]?.label;
+  AGENT_MODES[mode].label;

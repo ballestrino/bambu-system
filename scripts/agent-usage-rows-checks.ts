@@ -13,6 +13,8 @@ import { AGENT_REASONING_LEVELS, REASONING_LABELS } from "../lib/ai/modes";
 // reasoning column shows only the model.
 assert.deepEqual(Object.keys(REASONING_LABELS).sort(), [...AGENT_REASONING_LEVELS].sort());
 assert.equal(formatModelWithReasoning("gpt-6-luna", "xhigh"), "Luna 6 Extra alto");
+assert.equal(formatModelWithReasoning("gpt-6.1-sol", "low"), "Sol 6.1 Bajo");
+assert.equal(formatModelWithReasoning("openai/gpt-6.1-sol", "medium"), "Sol 6.1 Medio");
 assert.equal(formatModelWithReasoning("openai/gpt-6-luna", "medium"), "Luna 6 Medio");
 assert.equal(formatModelWithReasoning("gpt-5.6-luna", "none"), "Luna 5.6 sin razonamiento");
 assert.equal(formatModelWithReasoning("gpt-5.6-terra", null), "Terra 5.6");

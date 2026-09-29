@@ -15,6 +15,10 @@ Status: idle
 
 ## Last Closed Work
 
+- 2026-09-29: modos del agente (21): Bajo/default Luna 6 xhigh;
+  Medio Sol 6.1 low; Alto Sol 6.1 medium. Checks, TypeScript, init y smoke
+  autenticado del selector verdes. Commit y push a main autorizados el
+  2026-09-29 junto con los commits locales pendientes.
 - 2026-09-28: intents explícitos del diálogo de visitas, "Tarjetas" y error
   con Reintentar en la agenda (17), en `main` sin push. Queda fuera: contadores
   del mes en 0 cuando el mes no carga, Refrescar colgado si las opciones de

@@ -26,7 +26,7 @@ const toFallbackOption = (id: AgentMode): ModeOption => ({
 
 const FALLBACK_OPTIONS = AGENT_MODE_IDS.map(toFallbackOption);
 
-// Medio o Alto para los turnos siguientes. El tooltip y cada opción
+// Bajo, Medio o Alto para los turnos siguientes. El tooltip y cada opción
 // dicen qué modelo y qué razonamiento usa (con los overrides del entorno).
 export function AgentModeSelect({
   mode,

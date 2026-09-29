@@ -738,3 +738,17 @@
   - Los contadores del mes en 0 cuando el mes no carga.
   - Refrescar colgado si las opciones de filtro se pausan.
   - El toast en inglés de un server action fallido.
+
+## 2026-09-29 - Feature 21 modos del agente
+
+- Bajo vuelve a estar activo y es el default: GPT-6 Luna xhigh.
+- Medio usa GPT-6.1 Sol low; Alto usa GPT-6.1 Sol medium.
+- Selector, ruta y overrides aceptan los tres modos. Conversaciones guardadas
+  conservan su selección y el historial conserva modelo, razonamiento y costo.
+- Sol 6.1 tiene etiqueta y precio Standard verificado en documentación oficial.
+- PASS: check:ai-gateway, check:agent-sheet, TypeScript, init.ps1 (harness,
+  Prisma y lint) y smoke autenticado del selector en Brave. Nueva conversación
+  vuelve a Bajo; tooltips muestran los modelos y razonamientos pedidos.
+- Sin llamadas reales a los modelos ni escrituras de datos. El usuario
+  autorizó commit y push a main el 2026-09-29; origin/main estaba 20 commits
+  detrás, sin divergencia. Detalle en progress/impl_agent_model_modes_refresh.md.

@@ -19,6 +19,13 @@ export type ModelPrice = {
 // gpt-5.6-sol es promocional "at least through November 21, 2026": si
 // cambia, actualizar la tabla o fijarlo con AI_PRICE_GPT_5_6_SOL.
 export const MODEL_PRICES: Readonly<Record<string, ModelPrice>> = {
+  // https://developers.openai.com/api/docs/models/gpt-6.1-sol (2026-09-29).
+  "gpt-6.1-sol": {
+    inputPerMillion: 2,
+    cachedInputPerMillion: 0.1,
+    cacheWritePerMillion: 2.5,
+    outputPerMillion: 10,
+  },
   "gpt-6-luna": {
     inputPerMillion: 0.1,
     cachedInputPerMillion: 0.01,

@@ -16,7 +16,7 @@ import { formatUsd } from "@/lib/ai/pricing";
 export const formatModelLabel = (modelId: string | null | undefined) => {
   if (!modelId) return "Modelo desconocido";
   const bare = modelId.split("/").pop() || modelId;
-  const [, version, family] = bare.match(/^gpt-(6|5\.6)-([a-z]+)$/) ?? [];
+  const [, version, family] = bare.match(/^gpt-(6\.1|6|5\.6)-([a-z]+)$/) ?? [];
   return family ? `${family[0].toUpperCase()}${family.slice(1)} ${version}` : bare;
 };
 
