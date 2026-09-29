@@ -280,7 +280,7 @@
         "Visits selects today by default in the current month and the first visible day only for another month; the Generate visits day-based preset follows that selected day",
         "Desktop and 390x844 browser smoke confirms no English month, weekday, or date labels in operations"
       ],
-      "status": "pending"
+      "status": "in_progress"
     },
     {
       "id": 17,
