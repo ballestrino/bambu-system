@@ -673,3 +673,22 @@
   sus mutaciones) y `next build`. Smoke con datos de prueba en el Chrome del
   usuario, que después se borraron (0 "Prueba 14" en la base). Detalle en
   `progress/impl_budget_query_cache.md`.
+
+## 2026-09-28 - Feature 15 Resend perezoso, sin Cloudinary y sin deuda de debug
+
+- `lib/mail.ts` crea el cliente de Resend con el primer correo y lee
+  `NEXT_PUBLIC_BASE_URL` al mandar, con errores claros si falta alguna.
+  Antes, importar el módulo sin clave rompía login, registro y settings.
+- Cloudinary retirado: el módulo, la dependencia, `CLOUDINARY_*` y el
+  `remotePattern` (ningún usuario tenía imagen).
+- `updateProfileImage` devuelve un error; `data/user.ts` sin `console.log`
+  ni errores tragados; los wrappers de categorías y `get-budgets` tienen
+  nombres y mensajes correctos.
+- El smoke encontró que "¿Olvidaste tu contraseña?" no abría: `/auth/reset`
+  nunca estuvo en `routes.ts`. Pasó a `authRoutes`.
+- PASS: `init.ps1`, `tsc`, lint, los 29 `check:*` (con `check:mail-config`,
+  nuevo) y `pnpm build`. El usuario probó con correos reales el registro, la
+  recuperación y el código de dos pasos. Se conservó su cuenta de prueba.
+  Detalle en `progress/impl_runtime_sdk_cleanup.md`.
+- Queda fuera: `lib/mail.ts` ignora el `{ error }` que devuelve
+  `resend.emails.send`.

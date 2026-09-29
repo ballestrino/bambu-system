@@ -266,7 +266,7 @@
         "Budget category wrappers use correct export names and messages, and get-budgets uses a Spanish fallback message",
         "Verification includes init.ps1, pnpm build, and a smoke of register, password reset, and two-factor emails"
       ],
-      "status": "pending"
+      "status": "done"
     },
     {
       "id": 16,
