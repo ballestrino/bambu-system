@@ -11,10 +11,15 @@ Status: idle
 - `feature_list.json` se renumeró el 2026-09-24: las ids 1–10 son contexto
   terminado y la cola va de la 11 a la 20, en orden de prioridad. La tabla de
   equivalencias con los ids viejos está en `progress/history.md`.
-- Próxima: 16 `ops_es_uy_locale`.
+- Próxima: 17 `ops_visits_guided_intents`.
 
 ## Last Closed Work
 
+- 2026-09-28: calendario y fechas de operaciones en es-UY (16), en `main` sin
+  push. El calendario queda en "septiembre" por decisión del usuario. Queda
+  fuera: el selector de mes muestra "Setiembre De 2026" (`capitalize`), el
+  desborde a 390 px del selector de vistas de Visitas y de Finanzas, y el
+  `Close` en inglés de los Sheet y Dialog.
 - 2026-09-28: Resend perezoso, sin Cloudinary y "¿Olvidaste tu contraseña?"
   arreglado (15), en `main` sin push. Queda fuera: `lib/mail.ts` ignora el
   `{ error }` de `resend.emails.send`.

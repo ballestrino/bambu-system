@@ -23,6 +23,7 @@
     "check:job-export": "tsx scripts/check-job-excel-export.ts",
     "check:occurrence-dialog": "tsx scripts/check-occurrence-dialog.ts",
     "check:occurrence-generation": "tsx scripts/check-occurrence-generation.ts",
+    "check:ops-locale": "tsx scripts/check-ops-locale.ts",
     "check:profitability": "tsx scripts/check-profitability.ts",
     "check:mail-agent": "tsx scripts/check-mail-agent.ts",
     "check:mail-config": "tsx scripts/check-mail-config.ts",

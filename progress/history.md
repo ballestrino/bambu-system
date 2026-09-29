@@ -692,3 +692,23 @@
   Detalle en `progress/impl_runtime_sdk_cleanup.md`.
 - Queda fuera: `lib/mail.ts` ignora el `{ error }` que devuelve
   `resend.emails.send`.
+
+## 2026-09-28 - Feature 16 calendario y fechas de operaciones en es-UY
+
+- `lang="es-UY"` en el layout raíz. El `Calendar` compartido usa el locale
+  `es` de `react-day-picker/locale` (date-fns `es` más los textos de
+  accesibilidad en español), lunes como primer día y el desplegable de meses
+  en el locale del calendario. El usuario decidió dejar "septiembre", aunque
+  el resto de Operaciones (`Intl` es-UY) diga "setiembre".
+- Visitas selecciona hoy en el mes actual y el primer día de cualquier otro
+  mes (`getDefaultVisitDay` y `useTodayKey`, que lee `null` en el servidor y
+  en la hidratación: el día UTC del servidor difiere del de Montevideo desde
+  las 21:00). Los presets de "Generar visitas" ya salían del día
+  seleccionado.
+- PASS: `init.ps1`, `tsc`, lint, los 30 `check:*` (con `check:ops-locale`,
+  nuevo) y `next build`. Smoke de solo lectura en el Chrome del usuario, en
+  escritorio y a 390x844: sin etiquetas de mes, día ni fecha en inglés en
+  Operaciones. Detalle en `progress/impl_ops_es_uy_locale.md`.
+- Queda fuera: "Setiembre De 2026" en el selector de mes (`capitalize`), el
+  desborde a 390 px del selector de vistas de Visitas y de Finanzas, y el
+  `Close` en inglés de los Sheet y Dialog.

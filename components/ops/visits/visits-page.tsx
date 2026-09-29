@@ -12,9 +12,14 @@ import {
 } from "@/components/ops/calendar/calendar-filter-utils";
 import { CalendarFiltersBar } from "@/components/ops/calendar/calendar-filters";
 import { CalendarMonthPanel } from "@/components/ops/calendar/calendar-month-panel";
-import { byScheduledStart, sameDay } from "@/components/ops/calendar/calendar-utils";
+import {
+  byScheduledStart,
+  getDefaultVisitDay,
+  sameDay,
+} from "@/components/ops/calendar/calendar-utils";
 import { useInfiniteVisits } from "@/components/ops/hooks/useInfiniteVisits";
 import { useJobOccurrences } from "@/components/ops/hooks/useJobOccurrences";
+import { useTodayKey } from "@/components/ops/hooks/useTodayKey";
 import { useVisitFilterOptions } from "@/components/ops/hooks/useVisitFilterOptions";
 import { JobOccurrenceDialog } from "@/components/ops/jobs/job-occurrence-dialog";
 import { ScheduleBoard } from "@/components/ops/schedules/schedule-board";
@@ -41,6 +46,7 @@ const mergeOptions = <T extends { id: string; name: string }>(
 
 export const VisitsPage = () => {
   const { month, monthKey, monthRange, setMonth } = useOpsSelectedMonth();
+  const todayKey = useTodayKey();
   const [selectedDate, setSelectedDate] = useState<Date | undefined>();
   const [viewState, setViewState] = useOpsPersistedState(
     "bambu:ops:visits:view",
@@ -56,11 +62,12 @@ export const VisitsPage = () => {
     ? filterSession.filters
     : DEFAULT_CALENDAR_FILTERS;
   const exactDate = filterSession.monthKey === monthKey ? filterSession.exactDate : "";
+  // Nobody picked a day in this month: today in the current one, else the 1st.
   const visibleSelectedDate = selectedDate &&
     selectedDate.getFullYear() === month.getFullYear() &&
     selectedDate.getMonth() === month.getMonth()
       ? selectedDate
-      : monthRange.start;
+      : getDefaultVisitDay(month, todayKey);
   const calendarQuery = useJobOccurrences({
     endDate: monthRange.end,
     includeArchived: false,
