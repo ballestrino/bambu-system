@@ -1,5 +1,6 @@
-import type { OpsOccurrence } from "@/components/ops/types";
+import type { OccurrenceDialogIntent } from "@/components/ops/jobs/job-occurrence-dialog-utils";
 import { hasOccurrenceEmployees } from "@/components/ops/jobs/occurrence-employees";
+import type { OpsOccurrence } from "@/components/ops/types";
 import { formatTime, getMonthRange } from "@/components/ops/utils";
 
 export const byScheduledStart = (a: OpsOccurrence, b: OpsOccurrence) =>
@@ -23,16 +24,21 @@ export const getDefaultVisitDay = (month: Date, todayKey: string | null) => {
   return isCurrentMonth ? new Date(year, monthNumber - 1, day) : getMonthRange(month).start;
 };
 
-export const shouldCompleteOccurrenceOnSave = (occurrence: OpsOccurrence) =>
+// An assigned visit without its real times is waiting to be registered.
+export const getVisitDialogIntent = (
+  occurrence: OpsOccurrence
+): OccurrenceDialogIntent =>
   hasOccurrenceEmployees(occurrence) &&
-  (!occurrence.actualStartAt || !occurrence.actualEndAt);
+  (!occurrence.actualStartAt || !occurrence.actualEndAt)
+    ? "complete"
+    : "schedule";
 
 export const getVisitActionLabel = (occurrence: OpsOccurrence) => {
   if (!hasOccurrenceEmployees(occurrence)) {
     return "Asignar";
   }
 
-  if (shouldCompleteOccurrenceOnSave(occurrence)) {
+  if (getVisitDialogIntent(occurrence) === "complete") {
     return "Registrar horario";
   }
 

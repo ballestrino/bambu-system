@@ -11,7 +11,7 @@ const views = [
   { icon: CalendarDays, label: "Calendario", value: "calendar" },
   { icon: CalendarRange, label: "Cronograma", value: "schedule" },
   { icon: List, label: "Lista", value: "list" },
-  { icon: LayoutGrid, label: "Cards", value: "cards" },
+  { icon: LayoutGrid, label: "Tarjetas", value: "cards" },
 ] as const;
 
 export const isVisitView = (value: unknown): value is VisitView =>
@@ -36,7 +36,8 @@ export const VisitViewSwitcher = ({
         Cambia el nivel de detalle sin perder los filtros.
       </p>
     </div>
-    <div className="flex rounded-md border border-[#53985E]/20 bg-background p-1">
+    {/* Two by two on phones: four labels in a row overflow 390 px. */}
+    <div className="grid w-full grid-cols-2 gap-1 rounded-md border border-[#53985E]/20 bg-background p-1 sm:flex sm:w-auto sm:gap-0">
       {views.map(({ icon: Icon, label, value: nextView }) => (
         <Button
           aria-pressed={value === nextView}

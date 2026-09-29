@@ -36,6 +36,7 @@
     "check:schedule-move": "tsx scripts/check-schedule-move.ts",
     "check:schedule-pdf": "tsx scripts/check-schedule-pdf.ts",
     "check:settings-auth": "tsx scripts/check-settings-auth.ts",
+    "check:visits-view": "tsx scripts/check-visits-view.ts",
     "start": "next start",
     "lint": "eslint",
     "harness": "node scripts/harness-validate.mjs"

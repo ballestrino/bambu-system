@@ -12,19 +12,24 @@ export type OccurrenceDefaults = {
   scheduledStartAt?: string;
 };
 
+// schedule plans or edits a visit as it is; complete registers how it went:
+// it prefills the real times from the schedule and marks a scheduled visit done.
+export type OccurrenceDialogIntent = "complete" | "schedule";
+
 export const getInitialOccurrenceState = (
-  occurrence?: OpsOccurrence,
-  completeOnSave = false,
+  occurrence: OpsOccurrence | undefined,
+  intent: OccurrenceDialogIntent,
   defaults?: OccurrenceDefaults
 ) => {
+  const completing = intent === "complete";
   const scheduledStartAt =
     toDateTimeLocalValue(occurrence?.scheduledStartAt) || defaults?.scheduledStartAt || "";
   const scheduledEndAt =
     toDateTimeLocalValue(occurrence?.scheduledEndAt) || defaults?.scheduledEndAt || "";
   const actualStartAt = toDateTimeLocalValue(occurrence?.actualStartAt);
   const actualEndAt = toDateTimeLocalValue(occurrence?.actualEndAt);
-  const shouldPrefillActualStart = completeOnSave && !actualStartAt;
-  const shouldPrefillActualEnd = completeOnSave && !actualEndAt;
+  const shouldPrefillActualStart = completing && !actualStartAt;
+  const shouldPrefillActualEnd = completing && !actualEndAt;
 
   return {
     jobId: occurrence?.jobId ?? defaults?.jobId ?? "",
@@ -38,7 +43,7 @@ export const getInitialOccurrenceState = (
     actualStartAt: shouldPrefillActualStart ? scheduledStartAt : actualStartAt,
     actualEndAt: shouldPrefillActualEnd ? scheduledEndAt : actualEndAt,
     status:
-      completeOnSave && occurrence?.status === "SCHEDULED"
+      completing && occurrence?.status === "SCHEDULED"
         ? "DONE"
         : occurrence?.status ?? "SCHEDULED",
     notes: occurrence?.notes ?? "",

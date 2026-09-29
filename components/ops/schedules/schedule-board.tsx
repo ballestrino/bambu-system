@@ -169,6 +169,7 @@ export const ScheduleBoard = () => {
       {dialog ? (
         <JobOccurrenceDialog
           defaults={dialog.mode === "create" ? dialog.defaults : undefined}
+          intent="schedule"
           key={dialog.mode === "edit" ? dialog.occurrence.id : "create"}
           occurrence={dialog.mode === "edit" ? dialog.occurrence : undefined}
           onOpenChange={(open) => {

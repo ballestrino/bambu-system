@@ -127,7 +127,7 @@ export const JobOccurrencesPage = ({ jobId }: { jobId: string }) => {
             <Button asChild size="sm" variant="outline">
               <Link href={`/dashboard/jobs/${jobId}`}>Volver al trabajo</Link>
             </Button>
-            <JobOccurrenceDialog jobId={jobId} scheduleRules={scheduleRules} />
+            <JobOccurrenceDialog intent="schedule" jobId={jobId} scheduleRules={scheduleRules} />
           </>
         }
       />

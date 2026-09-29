@@ -712,3 +712,29 @@
 - Queda fuera: "Setiembre De 2026" en el selector de mes (`capitalize`), el
   desborde a 390 px del selector de vistas de Visitas y de Finanzas, y el
   `Close` en inglés de los Sheet y Dialog.
+
+## 2026-09-28 - Feature 17 intents de visitas, Tarjetas y error de la agenda
+
+- `JobOccurrenceDialog` recibe `intent: "schedule" | "complete"`
+  (obligatorio) en lugar de `completeOnSave`.
+  - Completar precarga el horario real y marca Realizada una visita
+    Programada. El botón dice "Completar visita" solo si va a cerrarla.
+  - Todos los llamadores pasan un intent y los contratos de guardado no
+    cambiaron.
+- "Cards" pasa a "Tarjetas" (el valor guardado sigue siendo `cards`). El
+  selector de vistas es 2x2 en celulares y ya no desborda a 390 px.
+- La agenda muestra un error con Reintentar cuando el mes no carga, y un
+  aviso si falla un refresco con visitas en pantalla.
+  - El smoke encontró que una consulta en pausa (pestaña oculta u offline)
+    mostraba "No hay visitas para este día". Ahora cuenta como carga
+    fallida.
+- PASS: `init.ps1`, `tsc`, lint, los 31 `check:*` (con `check:visits-view`,
+  nuevo, y sus mutaciones) y `next build`. Smoke sin escribir datos en el
+  Chrome del usuario: los errores y el guardado se interceptaron en la
+  página. Se probó en escritorio y en 390x844 dentro de un iframe (la
+  ventana estaba minimizada). Detalle en
+  `progress/impl_ops_visits_guided_intents.md`.
+- Queda fuera:
+  - Los contadores del mes en 0 cuando el mes no carga.
+  - Refrescar colgado si las opciones de filtro se pausan.
+  - El toast en inglés de un server action fallido.

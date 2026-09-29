@@ -3,11 +3,15 @@ import { AlertCircle, AlertTriangle, BriefcaseBusiness, Clock3, UsersRound } fro
 
 import { dashboardSecondaryActionClass } from "@/components/dashboard/dashboard-styles";
 import {
+  CalendarAgendaError,
+  CalendarAgendaStaleNotice,
+} from "@/components/ops/calendar/calendar-agenda-error";
+import {
   getCalendarStats,
   getVisitActionLabel,
+  getVisitDialogIntent,
   groupOccurrencesByHour,
   needsOccurrenceAttention,
-  shouldCompleteOccurrenceOnSave,
   type CalendarHourGroup,
 } from "@/components/ops/calendar/calendar-utils";
 import { JobOccurrenceDialog } from "@/components/ops/jobs/job-occurrence-dialog";
@@ -59,7 +63,7 @@ const CalendarAgendaItem = ({ occurrence }: { occurrence: OpsOccurrence }) => (
           </Link>
         </Button>
         <JobOccurrenceDialog
-          completeOnSave={shouldCompleteOccurrenceOnSave(occurrence)}
+          intent={getVisitDialogIntent(occurrence)}
           occurrence={occurrence}
           triggerLabel={getVisitActionLabel(occurrence)}
         />
@@ -103,21 +107,32 @@ const CalendarAgendaHourGroup = ({
 
 export const CalendarAgendaPanel = ({
   allOccurrences,
+  error,
   hasActiveFilters,
+  hasData,
   isLoading,
+  isRetrying,
   occurrences,
   onClearFilters,
+  onRetry,
   selectedDate,
 }: {
   allOccurrences: OpsOccurrence[];
+  error: Error | null;
   hasActiveFilters: boolean;
+  hasData: boolean;
   isLoading: boolean;
+  isRetrying: boolean;
   occurrences: OpsOccurrence[];
   onClearFilters: () => void;
+  onRetry: () => void;
   selectedDate?: Date;
 }) => {
   const { needsAttentionCount } = getCalendarStats(allOccurrences);
   const hourGroups = groupOccurrencesByHour(occurrences);
+  // No data once loading stops: the query failed, or its retries paused
+  // (offline or a hidden tab) and it is not fetching anymore.
+  const failedToLoad = !isLoading && !hasData;
 
   return (
     <section className={cn(opsSurface.panel, "p-4 md:p-5")}>
@@ -127,13 +142,21 @@ export const CalendarAgendaPanel = ({
             Agenda del {selectedDate ? formatDate(selectedDate) : "día seleccionado"}
           </h2>
           <p className="text-sm text-ops-text-muted">
-            {occurrences.length} visita(s) en el día · {needsAttentionCount} requieren atención este mes
+            {failedToLoad
+              ? "Las visitas del mes no se cargaron."
+              : `${occurrences.length} visita(s) en el día · ${needsAttentionCount} requieren atención este mes`}
           </p>
         </div>
       </div>
 
+      {error && hasData ? (
+        <CalendarAgendaStaleNotice isRetrying={isRetrying} onRetry={onRetry} />
+      ) : null}
+
       {isLoading ? (
         <div className="min-h-56 animate-pulse rounded-md bg-muted/40" />
+      ) : failedToLoad ? (
+        <CalendarAgendaError isRetrying={isRetrying} onRetry={onRetry} />
       ) : hourGroups.length ? (
         <div>
           {hourGroups.map((group, index) => (
@@ -163,7 +186,7 @@ export const CalendarAgendaPanel = ({
                 Limpiar filtros
               </Button>
             ) : (
-              <JobOccurrenceDialog triggerLabel="Nueva visita" />
+              <JobOccurrenceDialog intent="schedule" triggerLabel="Nueva visita" />
             )
           }
         />
