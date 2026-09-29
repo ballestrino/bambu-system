@@ -16,8 +16,7 @@ Status: idle
 ## Last Closed Work
 
 - 2026-09-28: intents explícitos del diálogo de visitas, "Tarjetas" y error
-  con Reintentar en la agenda (17), en la rama
-  `feat/17-ops-visits-guided-intents`, sin mergear. Queda fuera: contadores
+  con Reintentar en la agenda (17), en `main` sin push. Queda fuera: contadores
   del mes en 0 cuando el mes no carga, Refrescar colgado si las opciones de
   filtro se pausan y el toast en inglés de un server action fallido.
 - 2026-09-28: calendario y fechas de operaciones en es-UY (16), en `main` sin
