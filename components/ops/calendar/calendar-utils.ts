@@ -1,6 +1,6 @@
 import type { OpsOccurrence } from "@/components/ops/types";
 import { hasOccurrenceEmployees } from "@/components/ops/jobs/occurrence-employees";
-import { formatTime } from "@/components/ops/utils";
+import { formatTime, getMonthRange } from "@/components/ops/utils";
 
 export const byScheduledStart = (a: OpsOccurrence, b: OpsOccurrence) =>
   new Date(a.scheduledStartAt).getTime() - new Date(b.scheduledStartAt).getTime();
@@ -9,6 +9,19 @@ export const sameDay = (date: Date | string, selectedDate?: Date) =>
   selectedDate
     ? new Date(date).toDateString() === selectedDate.toDateString()
     : false;
+
+// The day the calendar selects until someone picks one: today while it shows
+// the current month, the first day of any other month. todayKey is the
+// visitor's local YYYY-MM-DD, null while it is not known yet.
+export const getDefaultVisitDay = (month: Date, todayKey: string | null) => {
+  if (!todayKey) return getMonthRange(month).start;
+
+  const [year, monthNumber, day] = todayKey.split("-").map(Number);
+  const isCurrentMonth =
+    year === month.getFullYear() && monthNumber - 1 === month.getMonth();
+
+  return isCurrentMonth ? new Date(year, monthNumber - 1, day) : getMonthRange(month).start;
+};
 
 export const shouldCompleteOccurrenceOnSave = (occurrence: OpsOccurrence) =>
   hasOccurrenceEmployees(occurrence) &&

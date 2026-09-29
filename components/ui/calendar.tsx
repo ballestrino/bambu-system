@@ -7,13 +7,19 @@ import {
   ChevronRightIcon,
 } from "lucide-react"
 import {
+  DateLib,
   DayPicker,
   getDefaultClassNames,
   type DayButton,
 } from "react-day-picker"
+import { es } from "react-day-picker/locale"
 
 import { cn } from "@/lib/utils"
 import { Button, buttonVariants } from "@/components/ui/button"
+
+// DayPicker hands its own date library to every formatter; this one only
+// answers when a formatter is called without it.
+const spanishDateLib = new DateLib({ locale: es })
 
 function Calendar({
   className,
@@ -21,6 +27,8 @@ function Calendar({
   showOutsideDays = true,
   captionLayout = "label",
   buttonVariant = "ghost",
+  locale = es,
+  weekStartsOn = 1,
   formatters,
   components,
   ...props
@@ -32,6 +40,8 @@ function Calendar({
   return (
     <DayPicker
       showOutsideDays={showOutsideDays}
+      locale={locale}
+      weekStartsOn={weekStartsOn}
       className={cn(
         "bg-background group/calendar p-3 [--cell-size:--spacing(8)] [[data-slot=card-content]_&]:bg-transparent [[data-slot=popover-content]_&]:bg-transparent",
         String.raw`rtl:**:[.rdp-button\_next>svg]:rotate-180`,
@@ -40,8 +50,9 @@ function Calendar({
       )}
       captionLayout={captionLayout}
       formatters={{
-        formatMonthDropdown: (date) =>
-          date.toLocaleString("default", { month: "short" }),
+        // Short month name in the calendar's locale, not the runtime default.
+        formatMonthDropdown: (month, dateLib = spanishDateLib) =>
+          dateLib.format(month, "LLL"),
         ...formatters,
       }}
       classNames={{
