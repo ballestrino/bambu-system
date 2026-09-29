@@ -74,8 +74,8 @@ Rama `feature/16-ops-es-uy-locale`, desde `main` en `4eec427`. Código en
 
 - El calendario dice "septiembre" (date-fns `es`, como pide el criterio) y
   el resto de Operaciones "setiembre" (`Intl` es-UY: el selector de mes
-  "Setiembre De 2026" y "Semana del 28 de setiembre…" del cronograma). Ambas
-  se aceptan; falta decidir si el calendario debe decir "setiembre".
+  "Setiembre De 2026" y "Semana del 28 de setiembre…" del cronograma). El
+  usuario decidió dejar "septiembre".
 - El selector de mes de arriba muestra "Setiembre De 2026": la clase
   `capitalize` pone en mayúscula también el "de".
 - A 390 px el documento se desborda en dos pantallas que no usan el
