@@ -26,6 +26,7 @@ export const useJobOccurrences = (
     isLoading: occurrencesQuery.isLoading,
     isFetching: occurrencesQuery.isFetching,
     error: occurrencesQuery.error,
+    hasData: occurrencesQuery.data !== undefined,
     refetch: occurrencesQuery.refetch,
   };
 };

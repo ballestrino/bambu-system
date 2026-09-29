@@ -1,9 +1,10 @@
 "use client";
 
 import type { ReactElement, ReactNode } from "react";
-import { CalendarClock, CalendarPlus } from "lucide-react";
+import { CalendarCheck2, CalendarClock, CalendarPlus } from "lucide-react";
 
 import { JobOccurrenceDialogActions } from "@/components/ops/jobs/job-occurrence-dialog-actions";
+import type { OccurrenceDialogIntent } from "@/components/ops/jobs/job-occurrence-dialog-utils";
 import {
   OpsFormBody,
   OpsFormDialogContent,
@@ -29,37 +30,52 @@ import { useIsMobile } from "@/hooks/use-mobile";
 type JobOccurrenceDialogPresentationProps = {
   canSubmit: boolean;
   children: ReactNode;
+  intent: OccurrenceDialogIntent;
   isEditing: boolean;
   isPending: boolean;
   onOpenChange: (open: boolean) => void;
   onRemove: () => void | Promise<void>;
   onSubmit: () => void;
   open: boolean;
+  submitsCompletion: boolean;
   trigger?: ReactElement | null;
 };
 
-const presentationCopy = (isEditing: boolean) => ({
-  description: isEditing
-    ? "Actualiza la planificación, el equipo o el estado sin perder el contexto de la agenda."
-    : "Define la planificación. Puede quedar sin equipo para resolverla luego desde la agenda.",
-  eyebrow: isEditing ? "Detalle de la agenda" : "Planificación de la agenda",
-  title: isEditing ? "Editar visita" : "Crear visita",
-});
+const presentationCopy = (intent: OccurrenceDialogIntent, isEditing: boolean) => {
+  if (intent === "complete") {
+    return {
+      description: "Confirma el horario real, el equipo y las notas para dejar la visita lista para pagos.",
+      eyebrow: "Horario real",
+      Icon: CalendarCheck2,
+      title: "Registrar visita",
+    };
+  }
+
+  return {
+    description: isEditing
+      ? "Actualiza la planificación, el equipo o el estado sin perder el contexto de la agenda."
+      : "Define la planificación. Puede quedar sin equipo para resolverla luego desde la agenda.",
+    eyebrow: isEditing ? "Detalle de la agenda" : "Planificación de la agenda",
+    Icon: isEditing ? CalendarClock : CalendarPlus,
+    title: isEditing ? "Editar visita" : "Crear visita",
+  };
+};
 
 export const JobOccurrenceDialogPresentation = ({
   canSubmit,
   children,
+  intent,
   isEditing,
   isPending,
   onOpenChange,
   onRemove,
   onSubmit,
   open,
+  submitsCompletion,
   trigger,
 }: JobOccurrenceDialogPresentationProps) => {
   const isMobile = useIsMobile();
-  const copy = presentationCopy(isEditing);
-  const Icon = isEditing ? CalendarClock : CalendarPlus;
+  const { Icon, ...copy } = presentationCopy(intent, isEditing);
   const actions = (
     <JobOccurrenceDialogActions
       canSubmit={canSubmit}
@@ -69,6 +85,7 @@ export const JobOccurrenceDialogPresentation = ({
       onCancel={() => onOpenChange(false)}
       onRemove={onRemove}
       onSubmit={onSubmit}
+      submitLabel={submitsCompletion ? "Completar visita" : "Guardar visita"}
     />
   );
 

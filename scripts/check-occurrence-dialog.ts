@@ -1,3 +1,5 @@
+import { readFileSync } from "node:fs";
+
 import {
   getInitialOccurrenceState,
   getJobOccurrenceEmployeeOptions,
@@ -5,7 +7,10 @@ import {
   updateOccurrenceScheduledTime,
 } from "@/components/ops/jobs/job-occurrence-dialog-utils";
 import { occurrenceStatusInputClass } from "@/components/ops/jobs/job-occurrence-status-field";
-import { shouldCompleteOccurrenceOnSave } from "@/components/ops/calendar/calendar-utils";
+import {
+  getVisitActionLabel,
+  getVisitDialogIntent,
+} from "@/components/ops/calendar/calendar-utils";
 import type { OpsOccurrence } from "@/components/ops/types";
 
 const assert = (condition: boolean, message: string) => {
@@ -68,17 +73,47 @@ const occurrence = {
   scheduledStartAt: new Date("2026-08-06T12:00:00Z"),
   status: "SCHEDULED",
 } as unknown as OpsOccurrence;
-const completionState = getInitialOccurrenceState(occurrence, true);
+const completionState = getInitialOccurrenceState(occurrence, "complete");
 
 assert(
-  shouldCompleteOccurrenceOnSave(occurrence),
-  "Assigned visit without real times was not marked for completion"
+  getVisitDialogIntent(occurrence) === "complete" &&
+    getVisitActionLabel(occurrence) === "Registrar horario",
+  "Assigned visit without real times is not offered to register them"
 );
 assert(completionState.status === "DONE", "Register timing did not complete the visit");
 assert(
   completionState.actualStartAt === completionState.scheduledStartAt &&
     completionState.actualEndAt === completionState.scheduledEndAt,
   "Register timing did not prefill actual times"
+);
+
+// Scheduling keeps the visit as it is: no real times, same status.
+const scheduleState = getInitialOccurrenceState(occurrence, "schedule");
+
+assert(
+  scheduleState.status === "SCHEDULED" &&
+    scheduleState.actualStartAt === "" &&
+    scheduleState.actualEndAt === "",
+  "Scheduling changed the status or prefilled actual times"
+);
+assert(
+  getVisitDialogIntent({ ...occurrence, employees: [] }) === "schedule",
+  "A visit without team was opened to complete"
+);
+assert(
+  getVisitDialogIntent({
+    ...occurrence,
+    actualEndAt: occurrence.scheduledEndAt,
+    actualStartAt: occurrence.scheduledStartAt,
+  }) === "schedule",
+  "A registered visit was opened to complete again"
+);
+
+// Completing a visit that is no longer scheduled keeps its status.
+assert(
+  getInitialOccurrenceState({ ...occurrence, status: "CANCELED" }, "complete").status ===
+    "CANCELED",
+  "Completing overwrote a non-scheduled status"
 );
 
 const shiftedStart = updateOccurrenceScheduledTime({
@@ -131,5 +166,35 @@ const employeeOptions = getJobOccurrenceEmployeeOptions(
 
 assert(employeeOptions.length === 2, "Assigned archived employee was not merged");
 assert(employeeOptions[1]?.id === "archived", "Archived employee is not removable");
+
+// Every caller says what the dialog is for; the old flag is gone.
+const callers = [
+  "components/ops/calendar/calendar-agenda-panel.tsx",
+  "components/ops/dashboard/dashboard-quick-actions.tsx",
+  "components/ops/jobs/job-occurrences-page.tsx",
+  "components/ops/jobs/job-occurrences-panel.tsx",
+  "components/ops/jobs/pending-visits-panel.tsx",
+  "components/ops/schedules/schedule-board.tsx",
+  "components/ops/visits/visit-item-actions.tsx",
+  "components/ops/visits/visits-page.tsx",
+];
+
+for (const file of callers) {
+  const source = readFileSync(file, "utf8");
+  // Each opening tag up to its self-closing end, props spread over lines.
+  const dialogs = source.split("<JobOccurrenceDialog").slice(1);
+
+  assert(dialogs.length > 0, `${file} no longer renders the visit dialog`);
+  assert(
+    dialogs.every((dialog) => /\bintent=/.test(dialog.split("/>")[0])),
+    `${file} opens the visit dialog without an intent`
+  );
+  assert(!source.includes("completeOnSave"), `${file} still passes completeOnSave`);
+}
+
+assert(
+  readFileSync(callers[5], "utf8").includes('intent="schedule"'),
+  "The schedule board does not schedule"
+);
 
 console.log("Occurrence dialog checks passed.");

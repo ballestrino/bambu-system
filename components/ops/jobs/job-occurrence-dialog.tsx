@@ -11,6 +11,7 @@ import {
   getInitialOccurrenceState,
   getJobOccurrenceEmployeeOptions,
   type OccurrenceDefaults,
+  type OccurrenceDialogIntent,
 } from "@/components/ops/jobs/job-occurrence-dialog-utils";
 import { JobOccurrenceTrigger } from "@/components/ops/jobs/job-occurrence-trigger";
 import { useJobOccurrenceDialogSubmit } from "@/components/ops/jobs/use-job-occurrence-dialog-submit";
@@ -19,8 +20,8 @@ import { parseDateTimeLocalValue } from "@/components/ops/utils";
 import { Button } from "@/components/ui/button";
 
 type JobOccurrenceDialogProps = {
-  completeOnSave?: boolean;
   defaults?: OccurrenceDefaults;
+  intent: OccurrenceDialogIntent;
   jobId?: string;
   onOpenChange?: (open: boolean) => void;
   open?: boolean;
@@ -32,8 +33,8 @@ type JobOccurrenceDialogProps = {
 };
 
 export const JobOccurrenceDialog = ({
-  completeOnSave = false,
   defaults,
+  intent,
   jobId,
   onOpenChange: onControlledOpenChange,
   open: controlledOpen,
@@ -51,7 +52,7 @@ export const JobOccurrenceDialog = ({
     onControlledOpenChange?.(nextOpen);
   };
   const [formState, setFormState] = useState(
-    getInitialOccurrenceState(occurrence, completeOnSave, defaults)
+    getInitialOccurrenceState(occurrence, intent, defaults)
   );
   // Loaded on open: Visits mounts one dialog per agenda item and the header.
   const { employees: activeEmployees } = useEmployees({ isActive: true }, open);
@@ -104,7 +105,7 @@ export const JobOccurrenceDialog = ({
 
   const onOpenChange = (nextOpen: boolean) => {
     if (nextOpen) {
-      setFormState(getInitialOccurrenceState(occurrence, completeOnSave, defaults));
+      setFormState(getInitialOccurrenceState(occurrence, intent, defaults));
     }
     setOpen(nextOpen);
   };
@@ -114,12 +115,14 @@ export const JobOccurrenceDialog = ({
       canSubmit={
         !isPending && Boolean(resolvedJobId) && hasCompleteScheduledTimes
       }
+      intent={intent}
       isEditing={Boolean(occurrence)}
       isPending={isPending}
       open={open}
       onOpenChange={onOpenChange}
       onRemove={remove}
       onSubmit={submit}
+      submitsCompletion={intent === "complete" && formState.status === "DONE"}
       trigger={
         isControlled ? null : (
           <JobOccurrenceTrigger

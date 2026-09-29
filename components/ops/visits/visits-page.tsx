@@ -134,7 +134,7 @@ export const VisitsPage = () => {
   return (
     <OpsPageShell>
       <OpsPageHeader
-        actions={<><OpsRefreshButton isRefreshing={isCalendar ? calendarQuery.isFetching : feedQuery.isFetching} onRefresh={refresh} /><JobOccurrenceDialog triggerLabel="Nueva visita" /></>}
+        actions={<><OpsRefreshButton isRefreshing={isCalendar ? calendarQuery.isFetching : feedQuery.isFetching} onRefresh={refresh} /><JobOccurrenceDialog intent="schedule" triggerLabel="Nueva visita" /></>}
         description="Calendario e historial operativo de visitas, asignaciones y horarios reales."
         eyebrow="Operaciones"
         title="Visitas"
@@ -162,8 +162,8 @@ export const VisitsPage = () => {
         <ScheduleBoard />
       ) : isCalendar ? (
         <div className="grid gap-5 xl:grid-cols-[minmax(0,420px)_1fr]">
-          <CalendarMonthPanel month={month} monthIsEmpty={!calendarQuery.isLoading && !calendarQuery.error && !calendarQuery.occurrences.length} occurrences={filteredOccurrences} selectedDate={visibleSelectedDate} onMonthChange={setMonth} onSelectDate={setSelectedDate} />
-          <CalendarAgendaPanel allOccurrences={filteredOccurrences} hasActiveFilters={hasActiveCalendarFilters(filters)} isLoading={calendarQuery.isLoading} occurrences={selectedDayOccurrences} onClearFilters={clearFilters} selectedDate={visibleSelectedDate} />
+          <CalendarMonthPanel month={month} monthIsEmpty={calendarQuery.hasData && !calendarQuery.error && !calendarQuery.occurrences.length} occurrences={filteredOccurrences} selectedDate={visibleSelectedDate} onMonthChange={setMonth} onSelectDate={setSelectedDate} />
+          <CalendarAgendaPanel allOccurrences={filteredOccurrences} error={calendarQuery.error} hasActiveFilters={hasActiveCalendarFilters(filters)} hasData={calendarQuery.hasData} isLoading={calendarQuery.isLoading} isRetrying={calendarQuery.isFetching} occurrences={selectedDayOccurrences} onClearFilters={clearFilters} onRetry={() => void calendarQuery.refetch()} selectedDate={visibleSelectedDate} />
         </div>
       ) : (
         <VisitFeed

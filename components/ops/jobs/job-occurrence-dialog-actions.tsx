@@ -13,6 +13,7 @@ type JobOccurrenceDialogActionsProps = {
   onCancel: () => void;
   onRemove: () => void | Promise<void>;
   onSubmit: () => void;
+  submitLabel: string;
 };
 
 const DeleteVisitAction = ({
@@ -51,9 +52,10 @@ const PrimaryActions = ({
   isPending,
   onCancel,
   onSubmit,
+  submitLabel,
 }: Pick<
   JobOccurrenceDialogActionsProps,
-  "canSubmit" | "isPending" | "onCancel" | "onSubmit"
+  "canSubmit" | "isPending" | "onCancel" | "onSubmit" | "submitLabel"
 >) => (
   <>
     <Button className="min-h-11" variant="outline" onClick={onCancel}>
@@ -61,7 +63,7 @@ const PrimaryActions = ({
     </Button>
     <Button className="min-h-11" disabled={!canSubmit} onClick={onSubmit}>
       {isPending ? <LoaderCircle className="h-4 w-4 animate-spin" /> : null}
-      Guardar visita
+      {submitLabel}
     </Button>
   </>
 );
