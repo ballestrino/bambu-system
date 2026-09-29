@@ -18,9 +18,9 @@ export const getBudgetsAction = async (filters: BudgetFilters): Promise<{
       throw new ValidationError(result.error)
     }
     
-    // Narrowing: TypeScript now knows result is the success variant (or we force cast if needed, but 'in' check should work)
+    // An error key without a message still is not a list.
     if ('error' in result) {
-         throw new ValidationError("Unexpected error state")
+         throw new ValidationError("No se pudieron leer los presupuestos")
     }
 
     return result

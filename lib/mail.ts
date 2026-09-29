@@ -1,10 +1,27 @@
 import { Resend } from "resend"
 
-const resend = new Resend(process.env.RESEND_API_KEY)
-const baseUrl = process.env.NEXT_PUBLIC_BASE_URL
+let resend: Resend | null = null
+
+// Created with the first email, so a missing key breaks sending mail and not
+// every action that imports this file (login, register, settings).
+const getResend = () => {
+  if (resend) return resend
+  const apiKey = process.env.RESEND_API_KEY
+  if (!apiKey) throw new Error("Falta RESEND_API_KEY: no se pueden enviar correos")
+  resend = new Resend(apiKey)
+  return resend
+}
+
+// Read when the email is sent, so a missing value fails loudly instead of
+// mailing "undefined/auth/..." links.
+const getBaseUrl = () => {
+  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL
+  if (!baseUrl) throw new Error("Falta NEXT_PUBLIC_BASE_URL: no se pueden armar los links de los correos")
+  return baseUrl.replace(/\/+$/, "")
+}
 
 export const sendTwoFactorEmail = async (email: string, token: string) => {
-  await resend.emails.send({
+  await getResend().emails.send({
     from: "twofactorverification@bambu-servicios.com",
     to: email,
     subject: "Tu código de autenticación - Bambú System",
@@ -23,9 +40,9 @@ export const sendTwoFactorEmail = async (email: string, token: string) => {
 }
 
 export const sendPasswordResetEmail = async (email: string, token: string) => {
-  const resetLink = `${baseUrl}/auth/new-password?token=${token}`
+  const resetLink = `${getBaseUrl()}/auth/new-password?token=${token}`
 
-  await resend.emails.send({
+  await getResend().emails.send({
     from: "passwordreset@bambu-servicios.com",
     to: email,
     subject: "Restablecer tu contraseña - Bambú System",
@@ -45,9 +62,9 @@ export const sendPasswordResetEmail = async (email: string, token: string) => {
 }
 
 export const sendVerificationEmail = async (email: string, token: string) => {
-  const confirmLink = `${baseUrl}/auth/new-verification?token=${token}`
+  const confirmLink = `${getBaseUrl()}/auth/new-verification?token=${token}`
 
-  await resend.emails.send({
+  await getResend().emails.send({
     from: "verification@bambu-servicios.com",
     to: email,
     subject: "Confirma tu correo electrónico - Bambú System",

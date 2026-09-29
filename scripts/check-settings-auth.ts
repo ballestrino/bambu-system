@@ -51,6 +51,13 @@ const account = read("actions/settings/account.ts");
 assert.match(account, /generateVerificationToken\(email, user\.email\)/);
 assert.doesNotMatch(account, /oldemail/i);
 
+// Profile uploads are off since Cloudinary was retired: the action says so
+// with an error instead of reporting a success.
+const profileImage = account.slice(account.indexOf("export const updateProfileImage"));
+assert.match(profileImage, /return \{ error: "La subida de imágenes de perfil está desactivada" \}/);
+assert.doesNotMatch(profileImage, /success:/);
+assert.ok(!exists("lib/cloudinary.ts"), "lib/cloudinary.ts volvió");
+
 // --- The session helper reads the id from auth(), not from an argument.
 const sessionUser = read("lib/session-user.ts");
 assert.match(sessionUser, /^import "server-only"/);
@@ -104,6 +111,10 @@ for (const link of ["/auth/new-verification", "/auth/new-password"]) {
   assert.ok(routeList("publicRoutes").includes(`"${link}"`), `${link} no es pública`);
   assert.ok(!routeList("authRoutes").includes(`"${link}"`), `${link} redirige con sesión`);
 }
+// "¿Olvidaste tu contraseña?" in the login links to /auth/reset: it must open
+// without a session, or proxy.ts sends it back to the login.
+assert.match(read("components/auth/LoginForm.tsx"), /<Link href=\{"\/auth\/reset"\}>/);
+assert.ok(routeList("authRoutes").includes(`"/auth/reset"`), "/auth/reset no abre sin sesión");
 assert.match(read("actions/new-verification.ts"), /return \{ success: "Email actualizado correctamente", emailChanged: true \}/);
 assert.match(read("components/auth/NewVerificationForm.tsx"), /router\.push\('emailChanged' in result \? '\/settings' : '\/auth\/login'\)/);
 

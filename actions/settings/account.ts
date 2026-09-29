@@ -87,8 +87,9 @@ export const updateProfileImage = async (values: UpdateProfileImageValues) => {
       return { error: getSettingsValidationError(validatedFields.error) }
     }
 
-    // Uploads stay off: Cloudinary is being retired (runtime_sdk_cleanup).
-    return { success: "Actualización de imagen desactivada" }
+    // Uploads are off since Cloudinary was retired: nothing is saved, so the
+    // caller gets an error, not a success.
+    return { error: "La subida de imágenes de perfil está desactivada" }
   } catch {
     return { error: "Algo salió mal" }
   }

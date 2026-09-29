@@ -9,14 +9,6 @@ const nextConfig: NextConfig = {
   turbopack: {
     root: configDirectory,
   },
-  images: {
-    remotePatterns: [
-      {
-        protocol: "https",
-        hostname: "res.cloudinary.com",
-      },
-    ],
-  },
 };
 
 export default nextConfig;
