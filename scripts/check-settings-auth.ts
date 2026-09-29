@@ -111,6 +111,10 @@ for (const link of ["/auth/new-verification", "/auth/new-password"]) {
   assert.ok(routeList("publicRoutes").includes(`"${link}"`), `${link} no es pública`);
   assert.ok(!routeList("authRoutes").includes(`"${link}"`), `${link} redirige con sesión`);
 }
+// "¿Olvidaste tu contraseña?" in the login links to /auth/reset: it must open
+// without a session, or proxy.ts sends it back to the login.
+assert.match(read("components/auth/LoginForm.tsx"), /<Link href=\{"\/auth\/reset"\}>/);
+assert.ok(routeList("authRoutes").includes(`"/auth/reset"`), "/auth/reset no abre sin sesión");
 assert.match(read("actions/new-verification.ts"), /return \{ success: "Email actualizado correctamente", emailChanged: true \}/);
 assert.match(read("components/auth/NewVerificationForm.tsx"), /router\.push\('emailChanged' in result \? '\/settings' : '\/auth\/login'\)/);
 
