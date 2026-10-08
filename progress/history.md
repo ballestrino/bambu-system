@@ -796,3 +796,18 @@
   - el login con Google dentro de la app instalada puede no guardar la
     sesión
 
+## 2026-10-08 - Fix del deploy de la feature 22 (CSS viejo en Vercel)
+
+- Tras el push, la app instalada seguía con la hamburguesa y sin tabs.
+- Causa: el build de Vercel restauró el caché de Turbopack del deploy
+  anterior ("Restored build cache") y compiló un `app/globals.css` viejo.
+  El CSS publicado tenía las utilidades nuevas, pero le faltaban:
+  - la variante `app-tabs`
+  - `--bottom-tabs-space` y el padding del body
+  - las reglas del teclado
+- Lo mismo había pasado en `pnpm dev` hasta reiniciarlo. En local no se
+  reprodujo con un caché viejo.
+- Fix: `experimental.turbopackFileSystemCacheForBuild: false` en
+  `next.config.ts`, para que cada build compile desde el código.
+- PASS: `tsc` y `next build` local con las reglas de standalone en el CSS.
+
