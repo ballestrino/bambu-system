@@ -11,7 +11,6 @@ import { useAgentConversations, useAgentSettings } from "@/components/agent/hook
 import { conversationListQuery, conversationQuery, refreshAfterTurn } from "@/components/agent/queries";
 import type { AgentConversationDetail, AgentUIMessage } from "@/components/agent/types";
 import type { AgentConversationScope } from "@/lib/agent/conversation-scope";
-import { DEFAULT_AGENT_SKILL, type AgentSkillId } from "@/lib/agent/skills";
 import { DEFAULT_AGENT_MODE, type AgentMode } from "@/lib/ai/modes";
 
 export type TurnNotice = "stopped" | "interrupted";
@@ -31,9 +30,6 @@ export const useAgentSession = ({ scope }: { scope: AgentConversationScope }) =>
   const [state, setState] = useState<SessionState>({ status: "idle" });
   const [modeOverride, setModeOverride] = useState<AgentMode | null>(null);
   const [notices, setNotices] = useState<Record<string, TurnNotice>>({});
-  // La habilidad elegida sigue marcada al cerrar el Sheet o cambiar de
-  // conversación.
-  const [skill, setSkill] = useState<AgentSkillId>(DEFAULT_AGENT_SKILL);
   // Cada cambio de conversación invalida las lecturas que seguían en curso.
   const requestRef = useRef(0);
   const started = state.status !== "idle";
@@ -131,8 +127,6 @@ export const useAgentSession = ({ scope }: { scope: AgentConversationScope }) =>
     title: conversation?.title ?? null,
     mode,
     modes: settings.data?.modes ?? null,
-    skill,
-    setSkill,
     notices,
     changeMode,
     startNew,

@@ -6,10 +6,12 @@ import { useState } from "react";
 import { AgentConversationList } from "@/components/agent/agent-conversation-list";
 import { AgentCostDialog } from "@/components/agent/agent-cost-dialog";
 import { AgentHistoryDialog } from "@/components/agent/agent-history-dialog";
+import { agentPageFullScreen } from "@/components/agent/agent-page-full-screen";
 import { AgentPageHeader } from "@/components/agent/agent-page-header";
 import { AgentSessionBody } from "@/components/agent/agent-session-body";
 import { useAgentPageUrl } from "@/components/agent/hooks/use-agent-page-url";
 import { useAgentSession } from "@/components/agent/hooks/use-agent-session";
+import { useKeyboardViewport } from "@/components/agent/hooks/use-keyboard-viewport";
 import { agentKeys } from "@/components/agent/query-keys";
 import { opsSurface } from "@/components/ops/shared/ops-theme";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -24,12 +26,14 @@ import { cn } from "@/lib/utils";
 // todas las conversaciones. Una conversación de un presupuesto sigue hablando
 // de él; las nuevas van sin presupuesto. El alto es fijo (el alto de la
 // pantalla menos el nav y el padding del dashboard): los mensajes scrollean
-// adentro y el composer queda siempre a la vista.
+// adentro y el composer queda siempre a la vista. En la app instalada en el
+// celular ocupa la pantalla completa (agentPageFullScreen).
 export function AgentPageHost() {
   const queryClient = useQueryClient();
   const session = useAgentSession({ scope: ALL_AGENT_CONVERSATIONS });
   const [dialog, setDialog] = useState<"history" | "costs" | null>(null);
   useAgentPageUrl(session);
+  useKeyboardViewport();
 
   const budget = session.conversation?.budget ?? null;
 
@@ -46,8 +50,14 @@ export function AgentPageHost() {
 
   return (
     <TooltipProvider>
-      <div className="flex h-[calc(100dvh-9.5rem)] min-h-[32rem] w-full max-w-7xl flex-col gap-3 md:h-[calc(100dvh-9rem)]">
-        <div>
+      <div
+        data-agent-page
+        className={cn(
+          "flex h-[calc(100dvh-9.5rem-var(--bottom-tabs-space))] min-h-[32rem] w-full max-w-7xl flex-col gap-3 md:h-[calc(100dvh-9rem)]",
+          agentPageFullScreen
+        )}
+      >
+        <div className="app-tabs:hidden">
           <h1 className="text-2xl font-bold tracking-tight">Agente</h1>
           <p className="hidden text-sm text-muted-foreground sm:block">
             Presupuestos, correos y consejos con los datos de Bambú. Es el mismo de “Generar con IA”:
@@ -61,7 +71,7 @@ export function AgentPageHost() {
           <div
             className={cn(
               opsSurface.panel,
-              "grid h-full overflow-hidden @4xl/panel:grid-cols-[20rem_minmax(0,1fr)]"
+              "grid h-full overflow-hidden @4xl/panel:grid-cols-[20rem_minmax(0,1fr)] app-tabs:rounded-none app-tabs:border-0"
             )}
           >
             <aside aria-label="Conversaciones" className="hidden min-h-0 flex-col border-r @4xl/panel:flex">

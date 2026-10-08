@@ -9,7 +9,6 @@ import { useBudgetEditor } from "@/components/agent/hooks/use-budget-editor";
 import { AgentEmptyState } from "@/components/agent/agent-empty-state";
 import { AgentErrorBanner } from "@/components/agent/agent-error-banner";
 import { AgentMessageList } from "@/components/agent/agent-message-list";
-import { AgentSkillChips } from "@/components/agent/agent-skill-chips";
 import { useAgentChat } from "@/components/agent/hooks/use-agent-chat";
 import { useAgentProposalMutations } from "@/components/agent/hooks/use-agent-proposal-mutations";
 import { useAgentProposals } from "@/components/agent/hooks/use-agent-queries";
@@ -18,7 +17,7 @@ import type { AgentUIMessage } from "@/components/agent/types";
 import { isSavableBudgetPartType } from "@/lib/agent/budget-draft";
 import { readAgentError } from "@/lib/agent/chat-request";
 import type { ProposalResult } from "@/lib/agent/proposals";
-import type { AgentSkillId } from "@/lib/agent/skills";
+import { DEFAULT_AGENT_SKILL } from "@/lib/agent/skills";
 import type { AgentMode } from "@/lib/ai/modes";
 import type { AgentBudgetContextInput } from "@/schemas/agent";
 
@@ -29,14 +28,13 @@ const hasProposalParts = (messages: AgentUIMessage[]) =>
     message.parts.some((part) => part.type.startsWith("tool-propose") || isSavableBudgetPartType(part.type))
   );
 
-// Una conversación: mensajes con sus tarjetas, aviso de error, habilidades y
-// composer. No sabe en qué pantalla está: el contexto llega como función.
+// Una conversación: mensajes con sus tarjetas, aviso de error y composer. Los
+// mensajes van con la habilidad general (todas las tools). No sabe en qué
+// pantalla está: el contexto llega como función.
 export function AgentChat({
   conversationId,
   chat,
   mode,
-  skill,
-  onSkillChange,
   notices,
   contextLabel,
   getContext,
@@ -45,8 +43,6 @@ export function AgentChat({
   conversationId: string;
   chat: Chat<AgentUIMessage>;
   mode: AgentMode;
-  skill: AgentSkillId;
-  onSkillChange: (skill: AgentSkillId) => void;
   notices: Record<string, TurnNotice>;
   contextLabel: string;
   getContext: () => AgentBudgetContextInput | undefined;
@@ -77,13 +73,7 @@ export function AgentChat({
           status={view.status}
           notices={notices}
           onRetry={view.canRetry ? view.retry : undefined}
-          emptyState={
-            <AgentEmptyState
-              skill={skill}
-              contextLabel={contextLabel}
-              onSuggestion={(text) => view.send(text, skill)}
-            />
-          }
+          emptyState={<AgentEmptyState contextLabel={contextLabel} />}
         />
         {errorMessage && (
           <AgentErrorBanner
@@ -92,10 +82,16 @@ export function AgentChat({
             onDismiss={view.clearError}
           />
         )}
-        <div className="border-t px-4 pt-3 pb-[max(0.75rem,env(safe-area-inset-bottom))]">
-          <div className="mx-auto max-w-3xl space-y-2">
-            <AgentSkillChips value={skill} onChange={onSkillChange} />
-            <AgentComposer busy={view.busy} onSend={(text) => view.send(text, skill)} onStop={view.stop} />
+        <div
+          data-agent-composer
+          className="border-t px-4 pt-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] in-data-agent-page:app-tabs:pb-3"
+        >
+          <div className="mx-auto max-w-3xl">
+            <AgentComposer
+              busy={view.busy}
+              onSend={(text) => view.send(text, DEFAULT_AGENT_SKILL)}
+              onStop={view.stop}
+            />
           </div>
         </div>
       </div>

@@ -86,7 +86,7 @@ export function MailThreadDetailPanel({
                 {message.attachments.map((attachment) =>
                   attachment.providerPartId && !message.requiresHandoff ? (
                     <Badge key={attachment.id} variant="outline" asChild>
-                      <a href={`/api/mail/attachments/${attachment.id}`}>
+                      <a href={`/api/mail/attachments/${attachment.id}`} target="_blank" rel="noopener">
                         {attachment.filename} · {Math.ceil(attachment.sizeBytes / 1024)} KB
                       </a>
                     </Badge>

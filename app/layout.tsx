@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { SessionProvider } from "next-auth/react";
@@ -20,6 +20,19 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "Bambú System",
   description: "Sistema de gestión para Bambú - Soluciones integrales para tu negocio",
+  applicationName: "Bambú",
+  appleWebApp: { capable: true, statusBarStyle: "default", title: "Bambú" },
+};
+
+// viewportFit "cover" activa env(safe-area-inset-*) en iPhone; sin eso valen 0.
+export const viewport: Viewport = {
+  initialScale: 1,
+  themeColor: [
+    { color: "#ffffff", media: "(prefers-color-scheme: light)" },
+    { color: "#10130d", media: "(prefers-color-scheme: dark)" },
+  ],
+  viewportFit: "cover",
+  width: "device-width",
 };
 
 export default async function RootLayout({
@@ -44,7 +57,9 @@ export default async function RootLayout({
             disableTransitionOnChange
           >
             <Nav />
-            <Toaster />
+            <Toaster
+              mobileOffset={{ bottom: "calc(16px + var(--bottom-tabs-space))" }}
+            />
             <ReactQueryProvider>
               {children}
             </ReactQueryProvider>

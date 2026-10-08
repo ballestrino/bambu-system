@@ -15,6 +15,12 @@ Status: idle
 
 ## Last Closed Work
 
+- 2026-10-08: Bambú como app en iOS (22): manifest, íconos y meta de iOS;
+  tabs Inicio · Visitas · Presupuestos · Agente · Más solo en la app
+  instalada; agente a pantalla completa y acomodado al teclado; selector de
+  modo compacto con costo estimado por mensaje; sin sugerencias ni chips.
+  Probada por el usuario en su iPhone por Wi-Fi. Mergeada y pusheada a
+  `main` con autorización del 2026-10-08.
 - 2026-09-29: modos del agente (21): Bajo/default Luna 6 xhigh;
   Medio Sol 6.1 low; Alto Sol 6.1 medium. Checks, TypeScript, init y smoke
   autenticado del selector verdes. Commit y push a main autorizados el

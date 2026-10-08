@@ -362,6 +362,23 @@
         "AI gateway and agent sheet checks, TypeScript, init.ps1 and browser mode-selector smoke pass"
       ],
       "status": "done"
+    },
+    {
+      "id": 22,
+      "name": "pwa_ios_standalone",
+      "title": "Open Bambú as an iOS home-screen app with bottom tabs",
+      "area": "navigation",
+      "description": "Adding Bambú to the iOS home screen shows a plain web page: there is no manifest, apple icon, viewport-fit or appleWebApp metadata, and mobile navigation relies on two hamburger menus.",
+      "acceptance": [
+        "A web app manifest, square opaque icons and iOS metadata (viewport-fit=cover, theme-color, appleWebApp) are served without auth redirects",
+        "In standalone mode on phones, admins get bottom tabs Inicio, Visitas, Presupuestos, Agente and Más, and both hamburger menus are hidden",
+        "Más opens a bottom sheet with the remaining sections, tools, theme, settings and sign out",
+        "Browser mode (desktop and mobile Safari/Chrome) keeps the current navigation with no tabs",
+        "Content, the agent composer and button, and toasts stay above the tabs and the home indicator",
+        "init.ps1, build, browser smoke with simulated standalone and an iPhone home-screen check are recorded",
+        "Requested during iPhone testing: the agent page fills the installed app; the mode select is compact with an estimated cost per message, the conversation cost is small at the top right, suggestions and skill chips are gone, and opening the history does not focus its search"
+      ],
+      "status": "done"
     }
   ]
 }
