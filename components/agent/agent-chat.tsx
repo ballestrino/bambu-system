@@ -92,7 +92,7 @@ export function AgentChat({
             onDismiss={view.clearError}
           />
         )}
-        <div className="border-t px-4 pt-3 pb-[max(0.75rem,env(safe-area-inset-bottom))]">
+        <div className="border-t px-4 pt-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] in-data-agent-page:app-tabs:pb-3">
           <div className="mx-auto max-w-3xl space-y-2">
             <AgentSkillChips value={skill} onChange={onSkillChange} />
             <AgentComposer busy={view.busy} onSend={(text) => view.send(text, skill)} onStop={view.stop} />

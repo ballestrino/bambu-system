@@ -46,7 +46,7 @@ export function AgentPageHost() {
 
   return (
     <TooltipProvider>
-      <div className="flex h-[calc(100dvh-9.5rem)] min-h-[32rem] w-full max-w-7xl flex-col gap-3 md:h-[calc(100dvh-9rem)]">
+      <div data-agent-page className="flex h-[calc(100dvh-9.5rem-var(--bottom-tabs-space))] min-h-[32rem] w-full max-w-7xl flex-col gap-3 md:h-[calc(100dvh-9rem)]">
         <div>
           <h1 className="text-2xl font-bold tracking-tight">Agente</h1>
           <p className="hidden text-sm text-muted-foreground sm:block">

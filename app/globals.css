@@ -3,6 +3,16 @@
 
 @custom-variant dark (&:is(.dark *));
 
+/* Tabs inferiores: solo en la app abierta desde la pantalla de inicio, en
+   celular y cuando la página los renderiza (usuarios admin). */
+@custom-variant app-tabs {
+  @media (display-mode: standalone) and (width < 48rem) {
+    :root:has([data-bottom-tabs]) & {
+      @slot;
+    }
+  }
+}
+
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
@@ -155,8 +165,17 @@
   * {
     @apply border-border outline-ring/50;
   }
+  :root {
+    --bottom-tabs-space: 0px;
+  }
+  @media (display-mode: standalone) and (width < 48rem) {
+    :root:has([data-bottom-tabs]) {
+      --bottom-tabs-space: calc(3.5rem + env(safe-area-inset-bottom));
+    }
+  }
   body {
     @apply bg-background text-foreground;
+    padding-bottom: var(--bottom-tabs-space);
   }
 }
 

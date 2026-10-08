@@ -1,11 +1,9 @@
 "use client";
 
 import Link from "next/link";
-import { BadgeDollarSign, Calculator, List, Mail, Sparkles } from "lucide-react";
 import { usePathname } from "next/navigation";
 
-import { isOpsNavItemActive, opsNavItems } from "@/components/ops/nav-items";
-import { AGENT_PAGE_PATH } from "@/lib/agent/page-url";
+import { dashboardNavGroups } from "@/components/dashboard/dashboard-nav";
 import {
   Sidebar,
   SidebarContent,
@@ -18,74 +16,6 @@ import {
   SidebarTrigger,
   useSidebar,
 } from "@/components/ui/sidebar";
-
-const budgetNavItems = [
-  {
-    title: "Generador",
-    description: "Cálculos y escenarios",
-    url: "/dashboard/budgets",
-    icon: Calculator,
-    match: (pathname: string) =>
-      pathname === "/dashboard/budgets" ||
-      pathname.startsWith("/dashboard/budgets/create") ||
-      pathname.startsWith("/dashboard/budgets/edit") ||
-      pathname.startsWith("/dashboard/budgets/budget"),
-  },
-  {
-    title: "Presupuestos oficiales",
-    description: "Precios publicados y versiones",
-    url: "/dashboard/official-budgets",
-    icon: BadgeDollarSign,
-    match: (pathname: string) =>
-      pathname.startsWith("/dashboard/official-budgets"),
-  },
-  {
-    title: "Categorías",
-    description: "Rubros y subcategorías",
-    url: "/dashboard/budgets/categories",
-    icon: List,
-    match: (pathname: string) =>
-      pathname.startsWith("/dashboard/budgets/categories"),
-  },
-] as const;
-
-const groups = [
-  {
-    label: "Precios",
-    items: budgetNavItems,
-  },
-  {
-    label: "Operaciones",
-    items: opsNavItems.map((item) => ({
-      ...item,
-      match: (pathname: string) => isOpsNavItemActive(pathname, item.url),
-    })),
-  },
-  {
-    label: "Comunicaciones",
-    items: [
-      {
-        title: "Correo",
-        description: "Bandeja compartida y agente",
-        url: "/dashboard/email",
-        icon: Mail,
-        match: (pathname: string) => pathname.startsWith("/dashboard/email"),
-      },
-    ],
-  },
-  {
-    label: "Asistente",
-    items: [
-      {
-        title: "Agente",
-        description: "Presupuestos, correos y consejos",
-        url: AGENT_PAGE_PATH,
-        icon: Sparkles,
-        match: (pathname: string) => pathname.startsWith(AGENT_PAGE_PATH),
-      },
-    ],
-  },
-] as const;
 
 export function DashboardSidebar() {
   const pathname = usePathname();
@@ -108,7 +38,7 @@ export function DashboardSidebar() {
           </div>
         </SidebarGroup>
 
-        {groups.map((group) => (
+        {dashboardNavGroups.map((group) => (
           <SidebarGroup key={group.label} className="pt-0">
             <SidebarGroupLabel className="px-2 text-[11px] font-semibold uppercase tracking-wider text-[#244C2D]/55 dark:text-[#D4E3B8]/55">
               {group.label}
@@ -149,7 +79,7 @@ export function DashboardSidebarFloatingTrigger() {
   }
 
   return (
-    <div className="fixed left-3 top-24 z-30 md:left-4">
+    <div className="fixed left-3 top-24 z-30 md:left-4 app-tabs:hidden">
       <SidebarTrigger className="border border-[#53985E]/20 bg-background/90 text-[#244C2D] shadow-sm hover:bg-[#EAF5EC] dark:text-[#D4E3B8]" />
     </div>
   );

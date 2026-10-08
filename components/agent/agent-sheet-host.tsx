@@ -66,7 +66,7 @@ export function AgentSheetHost({ budgetId, budgetSlug, budgetName, getFormValues
       {trigger ? (
         <SheetTrigger asChild>{trigger}</SheetTrigger>
       ) : (
-        <div className="fixed inset-x-0 bottom-10 z-40 mx-auto w-fit">
+        <div className="fixed inset-x-0 bottom-[calc(2.5rem+var(--bottom-tabs-space))] z-40 mx-auto w-fit">
           <SheetTrigger asChild>
             <AIButton className="h-auto rounded-full px-6 py-3 text-lg transition-transform hover:scale-105" />
           </SheetTrigger>
