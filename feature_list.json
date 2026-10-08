@@ -379,6 +379,22 @@
         "Requested during iPhone testing: the agent page fills the installed app; the mode select is compact with an estimated cost per message, the conversation cost is small at the top right, suggestions and skill chips are gone, and opening the history does not focus its search"
       ],
       "status": "done"
+    },
+    {
+      "id": 23,
+      "name": "agent_voice_and_images",
+      "title": "Dictate with gpt-transcribe and attach up to 7 images in the agent",
+      "area": "agent",
+      "description": "The agent composer only accepts typed text. Add a microphone that transcribes short voice notes with gpt-transcribe into the composer, and a + menu to attach up to 7 images per message that the model sees, within the Vercel request limit and OpenAI input limits.",
+      "acceptance": [
+        "A microphone button records up to 2 minutes, transcribes with gpt-transcribe in Spanish with business keyword hints, and puts the text in the composer to review before sending",
+        "Each transcription is recorded as a TRANSCRIPTION usage event priced per minute and appears in Costos de IA",
+        "A + button opens a menu to upload images; at most 7 per message, compressed in the browser and uploaded one per request so every request stays under the 4.5 MB Vercel limit",
+        "Images are stored in AgentAttachment (owner only), shown in the user bubble, linked to their message and sent to the model as image inputs in that turn and the following history",
+        "Messages can be image-only; retry and regenerate keep the same attachments; a reused or foreign attachment is rejected",
+        "Focused checks, TypeScript, init.ps1, build and an authenticated browser smoke of dictation and images are recorded"
+      ],
+      "status": "done"
     }
   ]
 }

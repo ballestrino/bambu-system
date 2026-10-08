@@ -811,3 +811,29 @@
   `next.config.ts`, para que cada build compile desde el código.
 - PASS: `tsc` y `next build` local con las reglas de standalone en el CSS.
 
+## 2026-10-08 - Feature 23 dictado e imágenes en el agente
+
+- Micrófono en el composer:
+  - Graba hasta 2 minutos y transcribe con `gpt-transcribe`, en español y
+    con palabras del negocio como pistas (`keywords[]`, `languages[]=es`).
+  - El texto queda en el composer para revisarlo; no se envía solo.
+  - Cada dictado es un `AgentUsageEvent` `TRANSCRIPTION` con `audioSeconds`,
+    a US$ 0,0045 por minuto, y "Costos de IA" lo muestra en minutos.
+- "+" con "Subir imágenes", hasta 7 por mensaje:
+  - Se achican en el navegador (1600 px, JPEG) y se suben una por pedido:
+    ninguno se acerca al corte de 4,5 MB de Vercel.
+  - Se guardan en `AgentAttachment`, se sirven solo a su dueño y se borran
+    con el mensaje; las no enviadas, a las 24 horas.
+  - El modelo ve las 14 más recientes del historial. Un importe de una imagen
+    no es fuente de precios.
+  - Un mensaje puede ser solo imágenes ("Imagen adjunta").
+- Migración aditiva `20261008120000_agent_attachments_transcription`,
+  aplicada en Neon con permiso del usuario.
+- PASS:
+  - `init.ps1`, `tsc`, `next build`, los checks del agente y el nuevo
+    `check:agent-attachments`
+  - un dictado real contra OpenAI (13 s, texto exacto, US$ 0,000975)
+  - smoke de solo lectura en el Chrome del usuario
+- No hecho: dictado y subida de imágenes de punta a punta; el usuario eligió
+  no crear datos de prueba y cerró la feature.
+- Detalle en `progress/impl_agent_voice_and_images.md`.
