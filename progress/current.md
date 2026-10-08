@@ -15,8 +15,9 @@ Status: active
   `next build`, archivos PWA sin sesión y smoke en Chrome con standalone
   simulado y en modo navegador. Detalle en
   `progress/impl_pwa_ios_standalone.md`.
-- Falta, antes de cerrar: la prueba del usuario en el iPhone por Wi-Fi
-  (`DEV_ALLOWED_ORIGINS=<IP de la PC>`).
+- iPhone: el usuario lo probó por Wi-Fi y funciona bien. Después pidió que
+  el agente ocupe la pantalla completa en la app; hecho y verificado con
+  standalone simulado. Falta que lo mire en el iPhone y apruebe el merge.
 
 ## Queue
 

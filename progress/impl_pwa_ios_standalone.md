@@ -86,7 +86,19 @@ Rama `feat/pwa-ios-standalone`. Plan aprobado por el usuario el 2026-10-08.
 - Turbopack sirvió un `globals.css` viejo hasta reiniciar `pnpm dev`. Si
   la variante no aparece, reiniciar el server.
 
-## Pendiente
+## iPhone y agente a pantalla completa
 
-- Prueba en el iPhone del usuario: barra de Safari, inset inferior, barra de
-  estado clara y oscura, swipe para volver, un adjunto y una descarga de PDF.
+- 2026-10-08: el usuario probó la app instalada en su iPhone por Wi-Fi
+  (`DEV_ALLOWED_ORIGINS=192.168.1.5`) y funciona bien.
+- Pidió que el agente ocupe la pantalla completa. Con `app-tabs`, la página
+  del agente y su fallback quedan `fixed` entre la barra de estado y los tabs
+  (`components/agent/agent-page-full-screen.ts`, `z-45`, encima del header
+  `z-40` y debajo de los Sheet/Dialog `z-50`). El título y el borde del panel
+  se ocultan; los tabs siguen visibles. En navegador y escritorio no cambia.
+- Los tabs toman el alto de `--bottom-tabs-space` (borde e inset incluidos).
+  Antes medían 56 px más el borde y el agente pisaba ~1 px de su borde.
+- PASS: `tsc`, `init.ps1` y `next build`. Smoke en el Chrome del usuario con
+  standalone simulado:
+  - el agente va de y=0 hasta el borde de los tabs, sin scroll del documento
+  - el historial abre encima
+  - en modo navegador sigue `static`, con título y header
