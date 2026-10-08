@@ -139,3 +139,29 @@ Sheet, celular y escritorio):
     escritorio y el Sheet de "Generar con IA" en un presupuesto, sin enviar
     mensajes ni cambiar el modo
 
+## Teclado en la app instalada (pedido del 2026-10-08)
+
+- iOS no achica la página al abrir el teclado: corre el viewport visual y se
+  lleva el header. `interactive-widget=resizes-content` no está soportado en
+  iOS 26 (según caniuse y reportes de WebKit).
+- `components/agent/hooks/use-keyboard-viewport.ts` corre solo en
+  standalone, en la página del agente y en su Sheet mientras está abierto.
+  Con un campo enfocado y el viewport visual achicado más de 120 px, publica
+  en `<html>`:
+  - `data-keyboard="open"`
+  - `--keyboard-viewport-top` y `--keyboard-viewport-height`
+- Desde el segundo teclado, en el `focusin` ya acomoda el agente con el alto
+  del teclado anterior, así iOS no corre la pantalla. A los 600 ms
+  recalcula; eso cubre un iPad con teclado físico.
+- CSS fuera de capas en `app/globals.css` (standalone y menos de 48rem):
+  - `[data-agent-page]` y `[data-agent-sheet]` ocupan esa área
+  - el composer (`[data-agent-composer]`) deja el padding del inset
+  - los tabs se esconden
+- Descartado: `window.scrollTo(0, 0)` al cerrar el teclado. En la página de
+  un presupuesto llevaría el formulario de fondo hasta arriba.
+- PASS: `tsc`, lint, `init.ps1`, `next build` y los checks del agente. En
+  Chrome con standalone simulado, puse a mano `data-keyboard` y un área
+  visible de 400 px: el agente mide 400, el header queda en y=0, el composer
+  termina en 381 y los tabs se esconden. El comportamiento real del teclado
+  solo se puede probar en el iPhone.
+

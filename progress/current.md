@@ -20,7 +20,9 @@ Status: active
   standalone simulado. Después pidió compactar los controles del agente
   (modo con costo por mensaje, costo de la conversación en gris, sin
   sugerencias ni chips, historial sin foco en el buscador); hecho y
-  verificado. Falta que lo mire en el iPhone y apruebe el merge.
+  verificado. Luego pidió que el teclado suba el composer sin correr la
+  pantalla (`use-keyboard-viewport`); hecho, CSS verificado con valores
+  simulados. Falta que lo pruebe en el iPhone y apruebe el merge.
 
 ## Queue
 
