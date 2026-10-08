@@ -1,28 +1,10 @@
 # Current Harness Session
 
-Status: active
+Status: idle
 
 ## Active Feature
 
-- 22 `pwa_ios_standalone`, rama `feat/pwa-ios-standalone` (pedida por el
-  usuario el 2026-10-08, antes de la 18).
-- Plan aprobado: manifest e íconos estáticos, meta de iOS
-  (`viewport-fit=cover`, `theme-color`, `appleWebApp` con barra `default`),
-  tabs Inicio · Visitas · Presupuestos · Agente · Más solo en standalone y en
-  celular, con la variante `app-tabs` y la variable `--bottom-tabs-space`.
-- Prueba final en el iPhone del usuario con `pnpm dev` por Wi-Fi, sin Vercel.
-- Avance (2026-10-08): implementación completa. PASS: `init.ps1`, `tsc`,
-  `next build`, archivos PWA sin sesión y smoke en Chrome con standalone
-  simulado y en modo navegador. Detalle en
-  `progress/impl_pwa_ios_standalone.md`.
-- iPhone: el usuario lo probó por Wi-Fi y funciona bien. Después pidió que
-  el agente ocupe la pantalla completa en la app; hecho y verificado con
-  standalone simulado. Después pidió compactar los controles del agente
-  (modo con costo por mensaje, costo de la conversación en gris, sin
-  sugerencias ni chips, historial sin foco en el buscador); hecho y
-  verificado. Luego pidió que el teclado suba el composer sin correr la
-  pantalla (`use-keyboard-viewport`); hecho, CSS verificado con valores
-  simulados. Falta que lo pruebe en el iPhone y apruebe el merge.
+- None.
 
 ## Queue
 
@@ -33,6 +15,12 @@ Status: active
 
 ## Last Closed Work
 
+- 2026-10-08: Bambú como app en iOS (22): manifest, íconos y meta de iOS;
+  tabs Inicio · Visitas · Presupuestos · Agente · Más solo en la app
+  instalada; agente a pantalla completa y acomodado al teclado; selector de
+  modo compacto con costo estimado por mensaje; sin sugerencias ni chips.
+  Probada por el usuario en su iPhone por Wi-Fi. Mergeada y pusheada a
+  `main` con autorización del 2026-10-08.
 - 2026-09-29: modos del agente (21): Bajo/default Luna 6 xhigh;
   Medio Sol 6.1 low; Alto Sol 6.1 medium. Checks, TypeScript, init y smoke
   autenticado del selector verdes. Commit y push a main autorizados el

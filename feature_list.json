@@ -378,7 +378,7 @@
         "init.ps1, build, browser smoke with simulated standalone and an iPhone home-screen check are recorded",
         "Requested during iPhone testing: the agent page fills the installed app; the mode select is compact with an estimated cost per message, the conversation cost is small at the top right, suggestions and skill chips are gone, and opening the history does not focus its search"
       ],
-      "status": "in_progress"
+      "status": "done"
     }
   ]
 }

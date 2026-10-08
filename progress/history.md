@@ -752,3 +752,47 @@
 - Sin llamadas reales a los modelos ni escrituras de datos. El usuario
   autorizó commit y push a main el 2026-09-29; origin/main estaba 20 commits
   detrás, sin divergencia. Detalle en progress/impl_agent_model_modes_refresh.md.
+
+## 2026-10-08 - Feature 22 Bambú como app en iOS
+
+- Investigación: desde iOS 26, todo sitio agregado a la pantalla de inicio
+  abre como web app. Igual se sumaron:
+  - manifest (`app/manifest.ts`, `start_url` `/dashboard`)
+  - íconos PNG generados con `pnpm asset:icons`
+  - meta de iOS: `viewport-fit=cover`, `theme-color` claro y oscuro, barra
+    `default`
+  - No hace falta service worker.
+- Tabs Inicio · Visitas · Presupuestos · Agente · Más solo en standalone y
+  en celular:
+  - Variante `app-tabs` y variable `--bottom-tabs-space`.
+  - "Más" es una hoja con el resto de las secciones, herramientas y cuenta.
+  - La navegación se comparte con el sidebar en
+    `components/dashboard/dashboard-nav.ts`.
+  - Se ocultan las dos hamburguesas.
+- Arreglo de paso: el wrapper del sidebar sumaba 80 px de scroll en todo el
+  dashboard.
+- Agente en la app:
+  - Ocupa la pantalla completa.
+  - Con el teclado abierto se acomoda al área visible, con
+    `use-keyboard-viewport` y `visualViewport`; iOS no soporta
+    `interactive-widget`.
+- Agente en todas partes:
+  - Selector de modo compacto, con un costo estimado por mensaje: promedio
+    real de 60 días o uso típico a precio del modelo.
+  - Costo de la conversación chico y en gris.
+  - Sin sugerencias ni chips de habilidades.
+  - El historial no enfoca el buscador.
+- `allowedDevOrigins` sale de `DEV_ALLOWED_ORIGINS`, para probar `pnpm dev`
+  desde el iPhone por Wi-Fi.
+- PASS:
+  - `init.ps1`, `tsc`, `next build` y los 32 `check:*`, con
+    `check:agent-cost-estimate` nuevo
+  - smoke en el Chrome del usuario con standalone simulado
+  - prueba del usuario en su iPhone
+- Detalle en `progress/impl_pwa_ios_standalone.md`.
+- Queda fuera:
+  - service worker, offline y push
+  - descargas blob de PDF/Excel en standalone (no se reportaron problemas)
+  - el login con Google dentro de la app instalada puede no guardar la
+    sesión
+
