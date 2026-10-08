@@ -29,7 +29,9 @@ function TabContent({ active, icon: Icon, title }: { active: boolean; icon: Luci
 }
 
 // Visible solo con la variante app-tabs (app instalada, celular); en el
-// navegador queda oculta y la navegación sigue en las hamburguesas.
+// navegador queda oculta y la navegación sigue en las hamburguesas. El alto
+// sale de --bottom-tabs-space (borde e inset incluidos), la misma medida que
+// usan el body y la página del agente para no quedar debajo.
 export function BottomTabs({ user }: { user?: ExtendedUser }) {
   const pathname = usePathname();
   const activeTab = bottomTabItems.find((item) => item.match(pathname));
@@ -40,9 +42,9 @@ export function BottomTabs({ user }: { user?: ExtendedUser }) {
     <nav
       data-bottom-tabs
       aria-label="Secciones"
-      className="fixed inset-x-0 bottom-0 z-40 hidden border-t bg-background/95 pb-[env(safe-area-inset-bottom)] backdrop-blur supports-backdrop-filter:bg-background/80 app-tabs:block"
+      className="fixed inset-x-0 bottom-0 z-40 hidden h-(--bottom-tabs-space) border-t bg-background/95 pb-[env(safe-area-inset-bottom)] backdrop-blur supports-backdrop-filter:bg-background/80 app-tabs:block"
     >
-      <div className="flex h-14 items-stretch px-1">
+      <div className="flex h-full items-stretch px-1">
         {bottomTabItems.map((item) => {
           const active = item === activeTab;
 
