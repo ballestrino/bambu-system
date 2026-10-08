@@ -5,11 +5,12 @@ import { sumUsage, type NormalizedUsage } from "@/lib/ai/usage";
 
 // Junta el consumo de un turno: cada paso del modelo principal (TURN), las
 // llamadas anidadas como draftEmail (SKILL) y el título (TITLE). Puro: la
-// persistencia está en usage-store.ts.
-export type AgentUsageKind = "TURN" | "SKILL" | "TITLE";
+// persistencia está en usage-store.ts. El dictado (TRANSCRIPTION) no pasa por
+// acá: se cobra por minuto y se guarda solo (persistTranscriptionUsage).
+export type AgentUsageKind = "TURN" | "SKILL" | "TITLE" | "TRANSCRIPTION";
 
 export type UsageEntry = {
-  kind: AgentUsageKind;
+  kind: Exclude<AgentUsageKind, "TRANSCRIPTION">;
   modelId: string;
   // El razonamiento pedido: "Costos de IA" separa Luna 6 Extra alto de Medio.
   reasoning: AgentReasoning;

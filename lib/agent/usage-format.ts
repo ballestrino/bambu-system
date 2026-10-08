@@ -77,4 +77,9 @@ export const USAGE_KIND_LABELS = {
   TURN: "Turno",
   SKILL: "Habilidad",
   TITLE: "Título",
+  TRANSCRIPTION: "Dictado",
 } as const;
+
+// "45 s", "2,5 min": el dictado se cobra por audio, no por tokens.
+export const formatAudioDuration = (seconds: number) =>
+  seconds < 60 ? `${integer.format(seconds)} s` : `${decimal.format(Math.round(seconds / 6) / 10)} min`;

@@ -89,7 +89,8 @@ export function AgentChat({
           <div className="mx-auto max-w-3xl">
             <AgentComposer
               busy={view.busy}
-              onSend={(text) => view.send(text, DEFAULT_AGENT_SKILL)}
+              voiceRequest={() => ({ mode, conversationId })}
+              onSend={({ text, files }) => view.send(text, DEFAULT_AGENT_SKILL, files)}
               onStop={view.stop}
             />
           </div>

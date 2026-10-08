@@ -4,18 +4,37 @@ import { AlertTriangle } from "lucide-react";
 
 import type { AgentConversationCost, AgentMonthlyCost } from "@/components/agent/types";
 import { Skeleton } from "@/components/ui/skeleton";
-import { formatModelWithReasoning, formatTokenCount, USAGE_KIND_LABELS } from "@/lib/agent/usage-format";
+import {
+  formatAudioDuration,
+  formatModelWithReasoning,
+  formatTokenCount,
+  USAGE_KIND_LABELS,
+} from "@/lib/agent/usage-format";
 import { formatAgentModeLabel } from "@/lib/ai/modes";
 import { formatUsd } from "@/lib/ai/pricing";
 
-type CostRow = { key: string; label: string; detail: string; tokens: number; costUsd: number; priced: boolean };
+type CostRow = { key: string; label: string; detail: string; usage: string; costUsd: number; priced: boolean };
 
-// Cada registro de consumo es un turno, un borrador de draftEmail o un título.
+type UsageAmounts = { inputTokens: number; outputTokens: number; audioSeconds: number };
+
+// Cada registro de consumo es un turno, un borrador de draftEmail, un título
+// o un dictado.
 const EVENT_NAMES = {
   TURN: ["turno", "turnos"],
   SKILL: ["borrador", "borradores"],
   TITLE: ["título", "títulos"],
+  TRANSCRIPTION: ["dictado", "dictados"],
 } as const;
+
+// Tokens y, si hubo dictados, sus minutos de audio: se cobran por duración.
+const formatUsageAmounts = ({ inputTokens, outputTokens, audioSeconds }: UsageAmounts) => {
+  const tokens = inputTokens + outputTokens;
+  const audio = audioSeconds ? formatAudioDuration(audioSeconds) : null;
+  if (audio && !tokens) return `${audio} de audio`;
+  return audio ? `${formatTokenCount(tokens)} tokens · ${audio}` : `${formatTokenCount(tokens)} tokens`;
+};
+
+const MONTHLY_TASK_LABELS = { titles: "Títulos", transcriptions: "Dictado" } as const;
 
 type EventKind = keyof typeof EVENT_NAMES;
 
@@ -28,7 +47,7 @@ const countEventsByKind = (eventsByKind: Partial<Record<EventKind, number>>) =>
     .flatMap((kind) => (eventsByKind[kind] ? [countEvents(kind, eventsByKind[kind])] : []))
     .join(" · ");
 
-function CostTable({ rows, total }: { rows: CostRow[]; total: { tokens: number; costUsd: number } }) {
+function CostTable({ rows, total }: { rows: CostRow[]; total: UsageAmounts & { costUsd: number } }) {
   return (
     <table className="w-full text-xs tabular-nums">
       <tbody>
@@ -38,7 +57,7 @@ function CostTable({ rows, total }: { rows: CostRow[]; total: { tokens: number; 
               <span className="font-medium">{row.label}</span>
               <span className="block text-muted-foreground">{row.detail}</span>
             </td>
-            <td className="py-1.5 text-right text-muted-foreground">{formatTokenCount(row.tokens)} tokens</td>
+            <td className="py-1.5 text-right text-muted-foreground">{row.usage}</td>
             <td className="py-1.5 pl-3 text-right">
               {row.priced ? formatUsd(row.costUsd) : <span className="text-amber-700 dark:text-amber-400">sin precio</span>}
             </td>
@@ -48,7 +67,7 @@ function CostTable({ rows, total }: { rows: CostRow[]; total: { tokens: number; 
       <tfoot>
         <tr className="font-semibold">
           <td className="pt-2">Total</td>
-          <td className="pt-2 text-right text-muted-foreground">{formatTokenCount(total.tokens)} tokens</td>
+          <td className="pt-2 text-right text-muted-foreground">{formatUsageAmounts(total)}</td>
           <td className="pt-2 pl-3 text-right">{formatUsd(total.costUsd)}</td>
         </tr>
       </tfoot>
@@ -82,16 +101,13 @@ export function ConversationCostSection({ cost }: { cost: AgentConversationCost 
     key: `${row.kind}-${row.modelId}-${row.reasoning}`,
     label: USAGE_KIND_LABELS[row.kind],
     detail: `${formatModelWithReasoning(row.modelId, row.reasoning)} · ${countEvents(row.kind, row.events)}`,
-    tokens: row.inputTokens + row.outputTokens,
+    usage: formatUsageAmounts(row),
     costUsd: row.costUsd,
     priced: row.priced,
   }));
   return (
     <div className="space-y-2">
-      <CostTable
-        rows={rows}
-        total={{ tokens: cost.total.inputTokens + cost.total.outputTokens, costUsd: cost.total.costUsd }}
-      />
+      <CostTable rows={rows} total={cost.total} />
       <UnpricedNotice events={cost.unpricedEvents} />
     </div>
   );
@@ -103,19 +119,16 @@ export function ConversationCostSection({ cost }: { cost: AgentConversationCost 
 export function MonthlyCostSection({ cost }: { cost: AgentMonthlyCost }) {
   if (!cost.rows.length) return <p className="text-xs text-muted-foreground">Sin consumo en este mes.</p>;
   const rows = cost.rows.map((row) => ({
-    key: `${row.modelId}-${row.reasoning}-${row.mode}-${row.titles}`,
-    label: `${formatModelWithReasoning(row.modelId, row.reasoning)} · ${row.titles ? "Títulos" : formatAgentModeLabel(row.mode)}`,
+    key: `${row.modelId}-${row.reasoning}-${row.mode}-${row.task}`,
+    label: `${formatModelWithReasoning(row.modelId, row.reasoning)} · ${row.task === "chat" ? formatAgentModeLabel(row.mode) : MONTHLY_TASK_LABELS[row.task]}`,
     detail: countEventsByKind(row.eventsByKind),
-    tokens: row.inputTokens + row.outputTokens,
+    usage: formatUsageAmounts(row),
     costUsd: row.costUsd,
     priced: row.priced,
   }));
   return (
     <div className="space-y-3">
-      <CostTable
-        rows={rows}
-        total={{ tokens: cost.total.inputTokens + cost.total.outputTokens, costUsd: cost.total.costUsd }}
-      />
+      <CostTable rows={rows} total={cost.total} />
       <UnpricedNotice events={cost.unpricedEvents} />
       {cost.topConversations.length > 0 && (
         <div className="space-y-1">

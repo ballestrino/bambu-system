@@ -2,13 +2,15 @@ import { isStaticToolUIPart } from "ai";
 import { RotateCcw } from "lucide-react";
 
 import { AgentMarkdown } from "@/components/agent/agent-markdown";
+import { AgentMessageImages } from "@/components/agent/agent-message-images";
 import { AgentToolPart } from "@/components/agent/agent-tool-part";
 import type { TurnNotice } from "@/components/agent/hooks/use-agent-session";
 import type { AgentUIMessage } from "@/components/agent/types";
 import { Button } from "@/components/ui/button";
-import { getMessageText } from "@/lib/agent/messages";
+import { getMessageImages, getMessageText } from "@/lib/agent/messages";
 import { AGENT_SKILLS } from "@/lib/agent/skills";
 import { formatUsageDetail, formatUsageLine } from "@/lib/agent/usage-format";
+import { cn } from "@/lib/utils";
 
 // La línea discreta de cada respuesta: modelo, modo, tokens y costo. Una
 // respuesta cortada lo dice. Una detenida también, con el consumo que se
@@ -61,15 +63,23 @@ export function AgentMessage({
 }) {
   if (message.role === "user") {
     const skill = message.metadata?.skill;
+    const text = getMessageText(message);
+    const images = getMessageImages(message);
     return (
       <div className="flex justify-end">
-        <div className="max-w-[85%] space-y-1 rounded-2xl rounded-br-sm bg-primary px-3 py-2 text-sm text-primary-foreground">
+        <div
+          className={cn(
+            "max-w-[85%] space-y-1 rounded-2xl rounded-br-sm bg-primary px-3 py-2 text-sm text-primary-foreground",
+            images.length > 1 && "w-72"
+          )}
+        >
           {skill && skill !== "general" && (
             <span className="inline-flex rounded-full bg-primary-foreground/15 px-2 py-0.5 text-[11px] font-medium">
               {AGENT_SKILLS[skill].label}
             </span>
           )}
-          <p className="whitespace-pre-wrap break-words">{getMessageText(message)}</p>
+          <AgentMessageImages images={images} />
+          {text && <p className="whitespace-pre-wrap break-words">{text}</p>}
         </div>
       </div>
     );

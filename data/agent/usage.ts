@@ -14,6 +14,7 @@ const sumFields = {
   cachedInputTokens: true,
   cacheWriteTokens: true,
   reasoningTokens: true,
+  audioSeconds: true,
   costUsd: true,
 } as const;
 
@@ -24,6 +25,7 @@ type UsageSums = {
     cachedInputTokens: number | null;
     cacheWriteTokens: number | null;
     reasoningTokens: number | null;
+    audioSeconds: number | null;
     costUsd: Prisma.Decimal | null;
   };
   _count: { _all: number };
@@ -35,6 +37,7 @@ const toCostRow = ({ _sum, _count }: UsageSums) => ({
   cachedInputTokens: _sum.cachedInputTokens ?? 0,
   cacheWriteTokens: _sum.cacheWriteTokens ?? 0,
   reasoningTokens: _sum.reasoningTokens ?? 0,
+  audioSeconds: _sum.audioSeconds ?? 0,
   costUsd: _sum.costUsd === null ? 0 : Number(_sum.costUsd),
   // Postgres suma NULL como NULL: ningún registro del grupo tenía precio. La
   // UI dice "sin precio" en vez de mostrar US$ 0,00.
@@ -49,14 +52,15 @@ const totalOf = (rows: CostRow[]) =>
     (total, row) => ({
       inputTokens: total.inputTokens + row.inputTokens,
       outputTokens: total.outputTokens + row.outputTokens,
+      audioSeconds: total.audioSeconds + row.audioSeconds,
       costUsd: Math.round((total.costUsd + row.costUsd) * 1_000_000) / 1_000_000,
       events: total.events + row.events,
     }),
-    { inputTokens: 0, outputTokens: 0, costUsd: 0, events: 0 }
+    { inputTokens: 0, outputTokens: 0, audioSeconds: 0, costUsd: 0, events: 0 }
   );
 
-// Costo de una conversación del usuario, por tipo (turno, habilidad, título),
-// modelo y razonamiento. unpricedEvents cuenta el uso sin precio configurado.
+// Costo de una conversación del usuario, por tipo (turno, habilidad, título,
+// dictado), modelo y razonamiento. unpricedEvents cuenta el uso sin precio configurado.
 export const getConversationCost = async (conversationId: string) => {
   const session = await requireAdminSession();
   const owned = await db.agentConversation.count({
@@ -104,7 +108,7 @@ export const getConversationCostTotals = async (conversationIds: string[]) => {
 };
 
 // Gasto del mes (en Montevideo) de todo el equipo, por modelo, razonamiento y
-// modo, con los títulos aparte (buildMonthlyCostRows). Incluye
+// modo, con los títulos y los dictados aparte (buildMonthlyCostRows). Incluye
 // el uso de conversaciones borradas. El top 10 ordena por costo con precio y
 // muestra el título solo de las conversaciones propias.
 export const getMonthlyAgentCost = async (monthKey: string) => {

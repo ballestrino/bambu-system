@@ -1,6 +1,8 @@
 import "server-only";
 
 import { getApprovedAgentKnowledge } from "@/data/agent/knowledge";
+import { getAttachmentIds } from "@/lib/agent/attachment-rules";
+import { checkMessageAttachments, linkMessageAttachments } from "@/lib/agent/attachment-store";
 import { resolveBudgetContext } from "@/lib/agent/context";
 import {
   claimAgentConversation,
@@ -13,6 +15,7 @@ import {
 import {
   fallbackConversationTitle,
   needsModelTitle,
+  titleSourceText,
 } from "@/lib/agent/conversation-title-rules";
 import { addGroundedAmounts, collectGroundingFromMessages } from "@/lib/agent/grounding";
 import { getMessageText, type AgentUIMessage } from "@/lib/agent/messages";
@@ -43,17 +46,24 @@ export const prepareAgentTurn = async (actor: AgentActor, request: AgentChatRequ
     metadata: { mode: request.mode, skill: request.skill, createdAt: new Date().toISOString() },
   };
   const userText = getMessageText(userMessage);
+  const attachmentIds = getAttachmentIds(userMessage.parts);
   const messageOwner = await getMessageConversationId(userMessage.id);
   if (messageOwner && messageOwner !== request.id) {
     return { ok: false, error: "El mensaje no pertenece a esta conversación", status: 409 } as const;
   }
+  const attachmentError = await checkMessageAttachments({
+    userId: actor.id,
+    messageId: userMessage.id,
+    ids: attachmentIds,
+  });
+  if (attachmentError) return { ok: false, error: attachmentError, status: 409 } as const;
   const budgetContext = await resolveBudgetContext(request.context);
 
   const conversation = await claimAgentConversation({
     id: request.id,
     actorId: actor.id,
     mode: request.mode,
-    title: fallbackConversationTitle(userText),
+    title: fallbackConversationTitle(titleSourceText(userMessage)),
     budgetId: budgetContext.budgetId,
     contextKind: budgetContext.kind,
   });
@@ -65,6 +75,7 @@ export const prepareAgentTurn = async (actor: AgentActor, request: AgentChatRequ
     skill: request.skill,
   });
   if ("error" in saved) return { ok: false, error: saved.error, status: 409 } as const;
+  await linkMessageAttachments({ userId: actor.id, messageId: userMessage.id, ids: attachmentIds });
   await discardMessagesAfter(request.id, saved.createdAt);
   await expireDiscardedProposals(request.id, saved.createdAt);
 

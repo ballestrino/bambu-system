@@ -15,6 +15,12 @@ Status: idle
 
 ## Last Closed Work
 
+- 2026-10-08: dictado e imágenes en el agente (23): micrófono con
+  `gpt-transcribe` (texto al composer, costo por minuto en "Costos de IA") y
+  "+" para subir hasta 7 imágenes por mensaje, achicadas en el navegador y
+  subidas una por pedido. Migración aditiva aplicada en Neon. Mergeada y
+  pusheada a `main` con autorización del 2026-10-08. Sin smoke de punta a
+  punta: el usuario eligió no crear datos de prueba.
 - 2026-10-08: Bambú como app en iOS (22): manifest, íconos y meta de iOS;
   tabs Inicio · Visitas · Presupuestos · Agente · Más solo en la app
   instalada; agente a pantalla completa y acomodado al teclado; selector de

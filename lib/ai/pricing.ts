@@ -130,6 +130,21 @@ export const estimateUsageCost = (
   return { costUsd: roundUsd(microUsd / 1_000_000), priced: true };
 };
 
+// Dictado: USD por minuto de audio, de la misma página de precios
+// (2026-10-08). OpenAI cobra por segundo, sin mínimo.
+export const TRANSCRIPTION_PRICES_PER_MINUTE: Readonly<Record<string, number>> = {
+  "gpt-transcribe": 0.0045,
+  "gpt-4o-transcribe": 0.006,
+  "gpt-4o-mini-transcribe": 0.003,
+  "whisper-1": 0.006,
+};
+
+export const estimateTranscriptionCost = (modelId: string, seconds: number): UsageCost => {
+  const bareId = modelId.replace(/^openai\//, "");
+  if (!Object.hasOwn(TRANSCRIPTION_PRICES_PER_MINUTE, bareId)) return { costUsd: null, priced: false };
+  return { costUsd: roundUsd((Math.max(seconds, 0) / 60) * TRANSCRIPTION_PRICES_PER_MINUTE[bareId]), priced: true };
+};
+
 const usdFormatter = new Intl.NumberFormat("es-UY", {
   style: "currency",
   currency: "USD",

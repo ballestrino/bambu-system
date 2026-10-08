@@ -17,8 +17,12 @@ assert.equal(proposalTools.match(/toModelOutput: hideFromModel\("values"\)/g)?.l
 // The values come from the stored row, like the rest of the card (also when
 // the same call arrives twice).
 assert.match(proposalTools, /const values = readCreateValues\(proposal\);[\s\S]*?\.\.\.\(values \? \{ values \} : \{\}\),/);
-// The history the model reads goes through the same tools (and toModelOutput).
-assert.match(read("lib/agent/run.ts"), /convertToModelMessages\(input\.messages, \{\n\s+tools,/);
+// The history the model reads goes through the same tools (and toModelOutput),
+// with the recent images inlined (feature 23).
+assert.match(
+  read("lib/agent/run.ts"),
+  /convertToModelMessages\(await inlineHistoryImages\(input\.messages, input\.actorId\), \{\n\s+tools,/
+);
 
 // --- Saving: admin session, validated input, a tool call of a budget in a
 // conversation of the user, the slug pre-check, a revised or new proposal of

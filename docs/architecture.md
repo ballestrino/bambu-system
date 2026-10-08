@@ -26,6 +26,10 @@ occurrences, client payments, operational costs, settings, and AI chat.
 - `app/api/agent/chat/` streams the Bambú agent as a UI message stream with
   tool parts, which a Server Action cannot return. It requires an admin
   session and keeps its logic in `lib/agent/` (see `docs/agent.md`).
+- `app/api/agent/attachments/` (upload and serve composer images) and
+  `app/api/agent/transcribe/` (dictation) are upload routes: a Server Action
+  accepts 1 MB by default and cannot serve bytes. Both require an admin
+  session and keep their logic in `lib/agent/` and `lib/ai/`.
 
 ## Data Flow
 

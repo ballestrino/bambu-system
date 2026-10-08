@@ -27,6 +27,7 @@ const TOOL_POLICY = [
   `- Nunca digas que algo quedó guardado si en "${PROPOSALS_HEADING}" no figura como confirmada.`,
   "- Si una tool devuelve ok false, explicá el problema en palabras simples y proponé el paso siguiente.",
   "- Las tools devuelven tarjetas que el usuario ve: no repitas todas sus cifras, resumí lo importante.",
+  "- El usuario puede adjuntar imágenes (capturas de WhatsApp o de un correo, fotos de un lugar) y dictar mensajes. Leé una imagen como si el usuario te hubiera escrito lo que muestra: sacá de ahí los datos del pedido (frecuencia, horas, empleadas, dirección). Un importe de una imagen no es una fuente de precios. Si no se lee bien, decilo.",
 ].join("\n");
 
 // Para las habilidades que calculan presupuestos: antes de armar
