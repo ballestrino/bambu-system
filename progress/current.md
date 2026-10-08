@@ -17,7 +17,10 @@ Status: active
   `progress/impl_pwa_ios_standalone.md`.
 - iPhone: el usuario lo probó por Wi-Fi y funciona bien. Después pidió que
   el agente ocupe la pantalla completa en la app; hecho y verificado con
-  standalone simulado. Falta que lo mire en el iPhone y apruebe el merge.
+  standalone simulado. Después pidió compactar los controles del agente
+  (modo con costo por mensaje, costo de la conversación en gris, sin
+  sugerencias ni chips, historial sin foco en el buscador); hecho y
+  verificado. Falta que lo mire en el iPhone y apruebe el merge.
 
 ## Queue
 

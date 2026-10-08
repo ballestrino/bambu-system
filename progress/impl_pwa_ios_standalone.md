@@ -102,3 +102,40 @@ Rama `feat/pwa-ios-standalone`. Plan aprobado por el usuario el 2026-10-08.
   - el agente va de y=0 hasta el borde de los tabs, sin scroll del documento
   - el historial abre encima
   - en modo navegador sigue `static`, con título y header
+
+## Controles del agente (pedido del 2026-10-08)
+
+Cambios pedidos tras probar en el iPhone. Valen en todas partes (página y
+Sheet, celular y escritorio):
+
+- **Selector de modo.** Es más chico (h-8 en el teléfono, h-7 en escritorio),
+  sin tooltip ni nombre de modelo. Al lado muestra "≈ US$ X por mensaje" y
+  cada opción muestra el suyo.
+  - El estimado sale de `getAgentSettings`
+    (`data/agent/usage-estimates.ts` y `lib/agent/message-cost-estimate.ts`).
+  - Si hay 5 o más mensajes de los últimos 60 días con el mismo modelo y
+    razonamiento, es su promedio real.
+  - Si no, se valora a precio del modelo el uso típico de un mensaje más los
+    tokens de razonamiento de su nivel.
+  - Hoy da: Bajo ≈ 0,003 (67 mensajes con Luna 6 xhigh), Medio ≈ 0,029 y
+    Alto ≈ 0,036 (Sol 6.1 todavía no tiene 5 mensajes).
+  - Si falla la lectura del uso, los modos se muestran sin estimado.
+- **Costo de la conversación.** Pasa a texto chico y gris a la derecha de la
+  fila del modo. Sigue abriendo Costos de IA.
+- **Estado vacío.** Sin sugerencias ni descripción de habilidad.
+- **Chips de habilidades.** Se eliminan Presupuestos, Emails y Consejos
+  (`agent-skill-chips.tsx` borrado, y el `skill` sale de la sesión). Los
+  mensajes van con la habilidad general, la que ya era el default.
+- **Historial.** El diálogo recibe el foco en vez del buscador
+  (`onOpenAutoFocus`), así en el teléfono no salta el teclado.
+- **Checks.** `agent-page-source-checks.ts` y
+  `check-official-budget-workspace.ts` ahora leen
+  `components/dashboard/dashboard-nav.ts`. Los cambios de navegación de esta
+  feature los habían roto y no se habían corrido.
+- PASS:
+  - los 32 `check:*`, con `check:agent-cost-estimate` nuevo
+  - `tsc`, `init.ps1` y `next build`
+  - smoke en el Chrome del usuario: standalone simulado a 390 px,
+    escritorio y el Sheet de "Generar con IA" en un presupuesto, sin enviar
+    mensajes ni cambiar el modo
+
