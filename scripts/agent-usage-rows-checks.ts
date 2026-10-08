@@ -2,12 +2,12 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 
-import { formatModelWithReasoning } from "../lib/agent/usage-format";
+import { formatAudioDuration, formatModelWithReasoning, USAGE_KIND_LABELS } from "../lib/agent/usage-format";
 import { buildMonthlyCostRows } from "../lib/agent/usage-rows";
 import { AGENT_REASONING_LEVELS, REASONING_LABELS } from "../lib/ai/modes";
 
 // Imported by check-agent-sheet.ts. "Costos de IA" by model and reasoning:
-// "Luna 6 Extra alto · Medio", with the titles in their own row.
+// "Luna 6 Extra alto · Medio", with the titles and dictations in their own row.
 
 // --- Labels: every reasoning level has one; usage recorded before the
 // reasoning column shows only the model.
@@ -21,28 +21,44 @@ assert.equal(formatModelWithReasoning("gpt-5.6-terra", null), "Terra 5.6");
 assert.equal(formatModelWithReasoning("gpt-6-sol", "constructor"), "Sol 6");
 
 // --- Monthly rows: drafts add to the turns of the same model, reasoning and
-// mode; titles and another reasoning get their own row; a row is priced when
-// any of its records was.
+// mode; titles, dictations and another reasoning get their own row; a row is
+// priced when any of its records was.
 const sums = (costUsd: number, events: number, priced = true) => ({
-  inputTokens: 100, outputTokens: 10, cachedInputTokens: 0, cacheWriteTokens: 0, reasoningTokens: 5, costUsd, priced, events,
+  inputTokens: 100, outputTokens: 10, cachedInputTokens: 0, cacheWriteTokens: 0, reasoningTokens: 5,
+  audioSeconds: 0, costUsd, priced, events,
 });
 const luna = { modelId: "gpt-6-luna", mode: "medio" };
+const dictation = (seconds: number, costUsd: number) => ({
+  modelId: "gpt-transcribe", mode: "medio", kind: "TRANSCRIPTION" as const, reasoning: null,
+  ...sums(costUsd, 1), inputTokens: 0, outputTokens: 0, reasoningTokens: 0, audioSeconds: seconds,
+});
 const rows = buildMonthlyCostRows([
   { ...luna, kind: "TURN", reasoning: "xhigh", ...sums(0.01, 3) },
   { ...luna, kind: "SKILL", reasoning: "xhigh", ...sums(0.002, 1, false) },
   { ...luna, kind: "TITLE", reasoning: "medium", ...sums(0.0001, 3) },
   { ...luna, kind: "TURN", reasoning: "high", ...sums(0.005, 1) },
   { modelId: "gpt-5.6-luna", mode: "bajo", kind: "TITLE", reasoning: null, ...sums(0, 2, false) },
+  dictation(30, 0.00225),
+  dictation(45, 0.003375),
 ]);
-assert.equal(rows.length, 4);
+assert.equal(rows.length, 5);
 assert.deepEqual(rows[0], {
-  ...luna, reasoning: "xhigh", titles: false, eventsByKind: { TURN: 3, SKILL: 1 },
+  ...luna, reasoning: "xhigh", task: "chat", eventsByKind: { TURN: 3, SKILL: 1 },
   inputTokens: 200, outputTokens: 20, cachedInputTokens: 0, cacheWriteTokens: 0, reasoningTokens: 10,
-  costUsd: 0.012, priced: true, events: 4,
+  audioSeconds: 0, costUsd: 0.012, priced: true, events: 4,
 });
-assert.deepEqual([rows[1].titles, rows[1].reasoning, rows[1].eventsByKind], [true, "medium", { TITLE: 3 }]);
+assert.deepEqual([rows[1].task, rows[1].reasoning, rows[1].eventsByKind], ["titles", "medium", { TITLE: 3 }]);
 assert.equal(rows[2].reasoning, "high");
-assert.deepEqual([rows[3].titles, rows[3].reasoning, rows[3].priced], [true, null, false]);
+assert.deepEqual([rows[3].task, rows[3].reasoning, rows[3].priced], ["titles", null, false]);
+assert.deepEqual(
+  [rows[4].task, rows[4].audioSeconds, rows[4].costUsd, rows[4].eventsByKind],
+  ["transcriptions", 75, 0.005625, { TRANSCRIPTION: 2 }]
+);
+
+// --- Dictation duration: seconds under a minute, minutes with one decimal.
+assert.equal(formatAudioDuration(45), "45 s");
+assert.equal(formatAudioDuration(150), "2,5 min");
+assert.equal(USAGE_KIND_LABELS.TRANSCRIPTION, "Dictado");
 
 // --- Source text: every call records its reasoning, the store saves it, the
 // reports group by it, and the migration only adds a nullable column. Un

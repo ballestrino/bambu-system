@@ -1,6 +1,7 @@
 "use client";
 
 import { useChat, type Chat } from "@ai-sdk/react";
+import type { FileUIPart } from "ai";
 
 import type { AgentUIMessage } from "@/components/agent/types";
 import type { AgentRequestOptions } from "@/lib/agent/chat-request";
@@ -33,11 +34,14 @@ export const useAgentChat = ({
     context: getContext(),
   });
 
-  const send = (text: string, skill: AgentSkillId) => {
+  // Texto, imágenes ya subidas o las dos cosas. Sin texto no va una parte de
+  // texto vacía.
+  const send = (text: string, skill: AgentSkillId, files: FileUIPart[] = []) => {
     const trimmed = text.trim();
-    if (!trimmed || busy) return false;
+    if ((!trimmed && !files.length) || busy) return false;
+    const metadata = { mode, skill, createdAt: new Date().toISOString() };
     void sendMessage(
-      { text: trimmed, metadata: { mode, skill, createdAt: new Date().toISOString() } },
+      trimmed ? { text: trimmed, files, metadata } : { files, metadata },
       { body: requestOptions(skill) }
     );
     return true;

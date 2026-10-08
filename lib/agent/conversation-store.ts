@@ -2,6 +2,7 @@ import "server-only";
 
 import { Prisma } from "@prisma/client";
 
+import { getAttachmentIds } from "@/lib/agent/attachment-rules";
 import { toDbAgentMode } from "@/lib/agent/conversation-mode";
 import {
   getMessageText,
@@ -84,11 +85,14 @@ export const saveUserMessage = async (input: {
   const text = getMessageText(input.message);
   const existing = await db.agentMessage.findUnique({
     where: { id: input.message.id },
-    select: { conversationId: true, createdAt: true, role: true, text: true },
+    select: { conversationId: true, createdAt: true, role: true, text: true, parts: true },
   });
   if (existing) {
     if (existing.conversationId !== input.conversationId) return { error: FOREIGN_MESSAGE };
-    if (existing.role !== "USER" || existing.text !== text) {
+    const storedParts = (Array.isArray(existing.parts) ? existing.parts : []) as AgentUIMessage["parts"];
+    const sameImages =
+      getAttachmentIds(storedParts).join() === getAttachmentIds(input.message.parts).join();
+    if (existing.role !== "USER" || existing.text !== text || !sameImages) {
       return { error: "Ese mensaje ya existe con otro contenido: mandalo como uno nuevo." };
     }
     return { createdAt: existing.createdAt };

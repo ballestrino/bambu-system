@@ -5,6 +5,7 @@ import { convertToModelMessages, isStepCount, streamText } from "ai";
 import type { ResolvedBudgetContext } from "@/lib/agent/context";
 import type { Grounding } from "@/lib/agent/grounding";
 import type { AgentUIMessage } from "@/lib/agent/messages";
+import { inlineHistoryImages } from "@/lib/agent/model-attachments";
 import { getAgentSkill, resolveSkillToolNames, type AgentSkillId } from "@/lib/agent/skills";
 import { createAgentTools } from "@/lib/agent/tools";
 import type { AgentUsageCollector } from "@/lib/agent/usage-collector";
@@ -50,7 +51,9 @@ export const runAgentTurn = async (input: {
   const result = streamText({
     ...settings,
     instructions: input.instructions,
-    messages: await convertToModelMessages(input.messages, {
+    // Las imágenes recientes van con sus bytes: el modelo no puede leer la
+    // ruta que las sirve.
+    messages: await convertToModelMessages(await inlineHistoryImages(input.messages, input.actorId), {
       tools,
       ignoreIncompleteToolCalls: true,
     }),

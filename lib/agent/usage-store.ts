@@ -41,3 +41,29 @@ export const persistUsageEntries = async ({
     })),
   });
 };
+
+// Un dictado: se cobra por segundo de audio, sin tokens. Va a la conversación
+// si ya existe; el primer mensaje de una nueva todavía no la tiene y queda
+// solo en el gasto del mes.
+export const persistTranscriptionUsage = async (input: {
+  conversationId: string | null;
+  mode: AgentMode;
+  modelId: string;
+  seconds: number;
+  costUsd: number | null;
+  priced: boolean;
+}) => {
+  await db.agentUsageEvent.create({
+    data: {
+      conversationId: input.conversationId,
+      messageId: null,
+      kind: "TRANSCRIPTION",
+      mode: toDbAgentMode(input.mode),
+      modelId: input.modelId,
+      reasoning: null,
+      audioSeconds: Math.ceil(input.seconds),
+      costUsd: input.costUsd === null ? null : new Prisma.Decimal(input.costUsd),
+      priced: input.priced,
+    },
+  });
+};

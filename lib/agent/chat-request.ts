@@ -1,3 +1,4 @@
+import { parseAgentAttachmentId } from "@/lib/agent/attachment-rules";
 import type { AgentUIMessage } from "@/lib/agent/messages";
 import type { AgentSkillId } from "@/lib/agent/skills/types";
 import type { AgentMode } from "@/lib/ai/modes";
@@ -16,6 +17,26 @@ export type AgentRequestOptions = {
   context?: AgentBudgetContextInput;
 };
 
+// Las partes que viajan: el texto (sin los vacíos de un mensaje con solo
+// imágenes) y las imágenes ya subidas, por su dirección.
+type RequestPart =
+  | { type: "text"; text: string }
+  | { type: "file"; mediaType: string; url: string; filename?: string };
+
+const toRequestParts = (parts: AgentUIMessage["parts"]) =>
+  parts.flatMap<RequestPart>((part) => {
+    if (part.type === "text") return part.text.trim() ? [{ type: "text" as const, text: part.text }] : [];
+    if (part.type !== "file" || parseAgentAttachmentId(part.url) === null) return [];
+    return [
+      {
+        type: "file" as const,
+        mediaType: part.mediaType,
+        url: part.url,
+        ...(part.filename ? { filename: part.filename } : {}),
+      },
+    ];
+  });
+
 // Solo el último mensaje del usuario: el historial lo lee el servidor de la
 // base, así nadie lo puede reescribir desde el navegador.
 export const buildAgentChatBody = (input: {
@@ -33,9 +54,7 @@ export const buildAgentChatBody = (input: {
     message: {
       id: message.id,
       role: "user" as const,
-      parts: message.parts.flatMap((part) =>
-        part.type === "text" ? [{ type: "text" as const, text: part.text }] : []
-      ),
+      parts: toRequestParts(message.parts),
     },
     mode,
     skill,

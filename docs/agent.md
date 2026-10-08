@@ -28,6 +28,9 @@ este documento describe lo que ya existe y se actualiza con cada feature.
   `medium`, también más barato que Terra. Bajo se retiró.
 - Formato de precio y empleadas: los precios se escriben "$ 54.100 + IVA" y,
   si no dicen cuántas empleadas, el agente asume 1 sin preguntar.
+- Imágenes y dictado: el "+" del composer adjunta hasta 7 imágenes por
+  mensaje y el micrófono dicta con `gpt-transcribe` (ver "Imágenes y
+  dictado").
 - El agente de correo (`lib/mail-agent/**`) no usa esta capa y no cambia.
 
 ## Núcleo
@@ -393,6 +396,71 @@ Presupuestos iguales y pedidos de presupuesto:
   gpt-6 (Medio razona con `xhigh`) los turnos se alargaron, y
   `maxDuration` subió a 300 s (ver "Núcleo").
 
+## Imágenes y dictado
+
+El composer (`components/agent/agent-composer.tsx`) tiene un "+" con "Subir
+imágenes" y un micrófono. Los dos funcionan igual en el Sheet y en la página.
+
+| Límite | Valor | Por qué |
+| --- | --- | --- |
+| Imágenes por mensaje | 7 | Pedido del usuario (`AGENT_MAX_IMAGES`) |
+| Lado máximo | 1600 px, JPEG 0,82 | Con gpt-6, unos 1.900 parches (unos 2.300 tokens); OpenAI rechaza más de 30.000 |
+| Imagen ya achicada | 3 MB | Cada una va en su propio pedido: Vercel corta los de más de 4,5 MB |
+| Original | 30 MB | Uno más grande no se abre: decodificarlo en el teléfono puede agotar la memoria |
+| Dictado | 2 minutos, 4 MB | Opus a 32 kbps (unos 480 KB) o AAC en Safari; OpenAI acepta hasta 25 MB |
+
+Los números están en `lib/agent/attachment-rules.ts`, que comparten el
+navegador, las rutas y el check.
+
+Imágenes:
+
+- Se achican en el navegador (`lib/agent/image-compress.ts`, con la
+  orientación EXIF que aplica el navegador y fondo blanco para los PNG
+  transparentes) y se suben apenas se eligen, una por pedido, a `POST
+  /api/agent/attachments`. La ruta exige admin, mira el tamaño antes de leer y
+  el formato real por los primeros bytes (`lib/agent/image-signature.ts`: JPEG,
+  PNG o WEBP; el GIF queda afuera porque OpenAI no acepta los animados).
+- Se guardan en `AgentAttachment` (bytes en la base, de su dueño) sin mensaje.
+  El mensaje lleva partes `file` con la dirección
+  `/api/agent/attachments/<id>`, nunca un data URL: el historial queda liviano.
+  `GET` la sirve solo a su dueño, con caché privado inmutable y `nosniff`.
+- Al enviar, `prepareAgentTurn` valida antes de tocar la conversación que cada
+  imagen sea de quien envía y esté libre (o ya sea de ese mensaje, en un
+  reintento), y la vincula después de guardar el mensaje. Se borra con el
+  mensaje o la conversación (cascada). Las que se subieron y nunca se enviaron
+  se borran a las 24 horas, en la próxima subida.
+- Reenviar un id con otras imágenes da 409, como con otro texto.
+- Un mensaje puede ser solo imágenes. Su título provisorio es "Imagen
+  adjunta" (o "3 imágenes adjuntas") y no se pide título al modelo, que lo
+  escribe con el texto.
+- El modelo no puede leer la ruta (pide sesión): `inlineHistoryImages`
+  (`lib/agent/model-attachments.ts` sobre `lib/agent/history-images.ts`) cambia
+  las 14 más recientes del historial por data URL antes de
+  `convertToModelMessages`. Las anteriores y las borradas pasan a ser un aviso
+  de texto. Con Luna 6, siete imágenes son unos US$ 0,002 por turno.
+- El prompt dice que una imagen se lee como lo que escribió el usuario y que un
+  importe de una imagen no es fuente de precios: la regla de precios no cambia.
+
+Dictado:
+
+- `useVoiceRecorder` graba con `MediaRecorder` (webm/opus en Chrome y Firefox,
+  mp4 en Safari) hasta 2 minutos y manda el audio a `POST
+  /api/agent/transcribe`. El texto se agrega al composer para revisarlo antes
+  de enviar: no se envía solo. Se puede dictar mientras el agente responde.
+- Sin https no hay micrófono: probando el iPhone contra la PC por IP en la red
+  local, el botón avisa. En producción funciona.
+- `lib/ai/transcription.ts` llama a OpenAI directo (también con
+  `AI_PROVIDER=gateway`) con la misma `OPENAI_API_KEY`: `@ai-sdk/openai`
+  4.0.69 no conoce `gpt-transcribe` ni sus campos. Van `prompt`, `keywords[]`
+  (palabras del negocio, `lib/agent/transcription-hints.ts`) y
+  `languages[]=es`. Con un modelo anterior (`AI_TRANSCRIPTION_MODEL`) van
+  `language` y las palabras dentro del prompt.
+- Cada dictado es un `AgentUsageEvent` `TRANSCRIPTION` con `audioSeconds` y su
+  costo por minuto. La duración es la que informa OpenAI o, si no la informa,
+  la del navegador acotada a 2 minutos. Va a la conversación si ya existe; el
+  dictado del primer mensaje de una nueva queda solo en el mes. "Costos de IA"
+  lo muestra en minutos de audio, con su fila "Dictado".
+
 ## Formato de precio y empleadas
 
 - `PRICE_FORMAT_RULE` (`lib/agent/system-prompt.ts`) va en el tono del chat y
@@ -491,6 +559,7 @@ Reglas:
 | `AI_DEFAULT_MODE` | `bajo` | `bajo`, `medio` o `alto` |
 | `AI_MODEL_<MODO>` | tabla de modos | Id del modelo de `BAJO`, `MEDIO` o `ALTO` |
 | `AI_REASONING_<MODO>` | tabla de modos | `provider-default`, `none`, `minimal`, `low`, `medium`, `high` o `xhigh` |
+| `AI_TRANSCRIPTION_MODEL` | `gpt-transcribe` | Modelo del dictado. Siempre va directo a OpenAI con `OPENAI_API_KEY` |
 | `AI_PRICE_<MODELO>` | tabla de precios | `entrada,cacheada,salida[,escritura]` en USD por millón, con punto decimal. Sin el cuarto valor, la escritura de caché se cobra 1,25 veces la entrada, como en gpt-6 y gpt-5.6. Un campo vacío, una coma de más, hexadecimal o exponente lanzan un error |
 
 - Una variable vacía cuenta como no configurada. Un valor inválido lanza un
@@ -534,6 +603,11 @@ en USD por millón de tokens:
 - gpt-5.6 queda en la tabla para volver a un modo con `AI_MODEL_*`. El precio de `gpt-5.6-sol` es promocional "at least through
   November 21, 2026", según la página de precios; si se vuelve a usar y
   cambia, actualizar `MODEL_PRICES` o fijarlo con `AI_PRICE_GPT_5_6_SOL`.
+- Dictado, en USD por minuto de audio (`TRANSCRIPTION_PRICES_PER_MINUTE`, de
+  la misma página el 2026-10-08; OpenAI cobra por segundo):
+  `gpt-transcribe` 0,0045, `gpt-4o-transcribe` 0,006,
+  `gpt-4o-mini-transcribe` 0,003 y `whisper-1` 0,006. Un modelo fuera de la
+  tabla queda sin precio.
 - Costo = (entrada − cacheada − escritura) × entrada + cacheada × cacheada +
   escritura × escritura + salida × salida. Los tokens de razonamiento ya están
   dentro de la salida y no se cobran dos veces.
@@ -627,6 +701,17 @@ en USD por millón de tokens:
   layout de admin, el sidebar, el host, la lectura propia del historial, la
   búsqueda por presupuesto, el borrado que sobrevive al cierre del historial,
   "Abrir en página" y la sesión con `scope`.
+- `pnpm check:agent-attachments`: hasta 7 imágenes (ni 8, ni repetidas, ni
+  direcciones ajenas, data URL o GIF), mensajes con solo imágenes, el cuerpo
+  del pedido contra el schema de la ruta, el título "Imagen adjunta", las 14
+  imágenes del historial y los avisos de las viejas y borradas, que cada pedido
+  queda debajo de los 4,5 MB de Vercel, el achicado a 1600 px, el formato real
+  por bytes, los formatos de audio, el pedido a OpenAI (`keywords[]` y
+  `languages[]` con gpt-transcribe, `language` y prompt con los anteriores,
+  palabras limpias), la duración de la respuesta, el costo por minuto y, por
+  texto fuente, la sesión de admin de las tres rutas, el dueño de cada
+  consulta, el orden de los chequeos del turno, la migración aditiva y el
+  tamaño de los archivos.
 - `pnpm check:agent-budget-editor`: los valores de las salidas viejas, que el
   modelo no ve `values`, la validación del editor en castellano, que guardar
   arma la misma propuesta con lo editado (aportes en 0 incluidos), qué

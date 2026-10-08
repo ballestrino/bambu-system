@@ -68,6 +68,7 @@ model User {
   agentConversations               AgentConversation[]
   agentAuditEvents                 AgentAuditEvent[]
   agentProposals                   AgentProposal[]
+  agentAttachments                 AgentAttachment[]
 }
 
 model Account {
@@ -1125,6 +1126,8 @@ enum AgentUsageKind {
   TURN
   SKILL
   TITLE
+  // Dictado del composer (gpt-transcribe), cobrado por minuto de audio.
+  TRANSCRIPTION
 }
 
 enum AgentProposalKind {
@@ -1176,9 +1179,31 @@ model AgentMessage {
   text           String            @db.Text
   metadata       Json?
   skill          String?
+  attachments    AgentAttachment[]
   createdAt      DateTime          @default(now())
 
   @@index([conversationId, createdAt])
+}
+
+// Imagen adjunta a un mensaje del usuario, achicada en el navegador. Se sube
+// antes de enviar (messageId null) y se vincula al guardar el mensaje: se
+// borra con él. Las que nunca se enviaron se limpian a las 24 horas.
+model AgentAttachment {
+  id        String        @id @default(cuid())
+  userId    String
+  user      User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  messageId String?
+  message   AgentMessage? @relation(fields: [messageId], references: [id], onDelete: Cascade)
+  mediaType String
+  filename  String?
+  size      Int
+  width     Int
+  height    Int
+  data      Bytes
+  createdAt DateTime      @default(now())
+
+  @@index([messageId])
+  @@index([userId, createdAt])
 }
 
 // Consumo por llamada al modelo. El costo se fija al guardar, así el
@@ -1200,6 +1225,8 @@ model AgentUsageEvent {
   cachedInputTokens Int                @default(0)
   cacheWriteTokens  Int                @default(0)
   reasoningTokens   Int                @default(0)
+  // Segundos de audio de un dictado (TRANSCRIPTION); 0 en el resto.
+  audioSeconds      Int                @default(0)
   costUsd           Decimal?           @db.Decimal(12, 6)
   priced            Boolean            @default(false)
   createdAt         DateTime           @default(now())

@@ -50,3 +50,13 @@ export const getMessageText = (message: Pick<AgentUIMessage, "parts">) =>
     .flatMap((part) => (part.type === "text" ? [part.text] : []))
     .join("\n\n")
     .trim();
+
+// Las imágenes adjuntas del mensaje (partes file de tipo imagen).
+export const getMessageImages = (message: Pick<AgentUIMessage, "parts">) =>
+  message.parts.flatMap((part) =>
+    part.type === "file" && part.mediaType.startsWith("image/") ? [part] : []
+  );
+
+// "Imagen adjunta" o "3 imágenes adjuntas": lo que dice un mensaje sin texto.
+export const formatImageCount = (count: number) =>
+  count === 1 ? "Imagen adjunta" : `${count} imágenes adjuntas`;
