@@ -179,3 +179,20 @@
   }
 }
 
+/* Teclado abierto en la app instalada: iOS corre la página en vez de
+   achicarla, así que el agente se acomoda al área visible que publica
+   components/agent/hooks/use-keyboard-viewport.ts y los tabs se esconden.
+   Va fuera de las capas para ganarle a las utilidades app-tabs:*. */
+@media (display-mode: standalone) and (width < 48rem) {
+  :root[data-keyboard="open"] :is([data-agent-page], [data-agent-sheet]) {
+    top: var(--keyboard-viewport-top);
+    bottom: auto;
+    height: var(--keyboard-viewport-height);
+  }
+  :root[data-keyboard="open"] [data-agent-composer] {
+    padding-bottom: 0.75rem;
+  }
+  :root[data-keyboard="open"] [data-bottom-tabs] {
+    display: none;
+  }
+}

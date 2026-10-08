@@ -8,6 +8,7 @@ import { AgentHistoryDialog } from "@/components/agent/agent-history-dialog";
 import { AgentSessionBody } from "@/components/agent/agent-session-body";
 import { AgentSheetHeader } from "@/components/agent/agent-sheet-header";
 import { useAgentSession } from "@/components/agent/hooks/use-agent-session";
+import { useKeyboardViewport } from "@/components/agent/hooks/use-keyboard-viewport";
 import { AIButton } from "@/components/budgets/create-budget/AiButton";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -36,6 +37,7 @@ export function AgentSheetHost({ budgetId, budgetSlug, budgetName, getFormValues
   const [dialog, setDialog] = useState<"history" | "costs" | null>(null);
   const scope = budgetConversationScope(budgetId ?? null);
   const session = useAgentSession({ scope });
+  useKeyboardViewport(open);
 
   const contextLabel = budgetId
     ? `Presupuesto: ${budgetName ?? "guardado"}`
@@ -72,7 +74,10 @@ export function AgentSheetHost({ budgetId, budgetSlug, budgetName, getFormValues
           </SheetTrigger>
         </div>
       )}
-      <SheetContent className="flex h-full w-full flex-col gap-0 p-0 sm:w-[600px] sm:max-w-[600px] [&>button]:hidden">
+      <SheetContent
+        data-agent-sheet
+        className="flex h-full w-full flex-col gap-0 p-0 sm:w-[600px] sm:max-w-[600px] [&>button]:hidden"
+      >
         <TooltipProvider>
           <AgentSheetHeader
             session={session}

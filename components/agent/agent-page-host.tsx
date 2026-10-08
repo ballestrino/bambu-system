@@ -11,6 +11,7 @@ import { AgentPageHeader } from "@/components/agent/agent-page-header";
 import { AgentSessionBody } from "@/components/agent/agent-session-body";
 import { useAgentPageUrl } from "@/components/agent/hooks/use-agent-page-url";
 import { useAgentSession } from "@/components/agent/hooks/use-agent-session";
+import { useKeyboardViewport } from "@/components/agent/hooks/use-keyboard-viewport";
 import { agentKeys } from "@/components/agent/query-keys";
 import { opsSurface } from "@/components/ops/shared/ops-theme";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -32,6 +33,7 @@ export function AgentPageHost() {
   const session = useAgentSession({ scope: ALL_AGENT_CONVERSATIONS });
   const [dialog, setDialog] = useState<"history" | "costs" | null>(null);
   useAgentPageUrl(session);
+  useKeyboardViewport();
 
   const budget = session.conversation?.budget ?? null;
 

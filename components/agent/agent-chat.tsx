@@ -82,7 +82,10 @@ export function AgentChat({
             onDismiss={view.clearError}
           />
         )}
-        <div className="border-t px-4 pt-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] in-data-agent-page:app-tabs:pb-3">
+        <div
+          data-agent-composer
+          className="border-t px-4 pt-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] in-data-agent-page:app-tabs:pb-3"
+        >
           <div className="mx-auto max-w-3xl">
             <AgentComposer
               busy={view.busy}
