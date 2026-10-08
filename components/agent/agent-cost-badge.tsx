@@ -1,13 +1,10 @@
 "use client";
 
-import { CircleDollarSign } from "lucide-react";
-
 import { useConversationCost } from "@/components/agent/hooks/use-agent-queries";
-import { Button } from "@/components/ui/button";
 import { formatUsd } from "@/lib/ai/pricing";
 
-// Lo gastado en esta conversación (turnos, borradores y título). Abre el
-// informe de costos de IA.
+// Lo gastado en esta conversación (turnos, borradores y título), chico y en
+// gris arriba a la derecha del chat. Abre el informe de costos de IA.
 export function AgentCostBadge({
   conversationId,
   persisted,
@@ -22,16 +19,14 @@ export function AgentCostBadge({
   const unpriced = (cost.data?.unpricedEvents ?? 0) > 0;
   const label = `${formatUsd(total)}${unpriced ? " + sin precio" : ""}`;
   return (
-    <Button
-      variant="outline"
-      size="sm"
-      className="h-11 gap-1.5 tabular-nums sm:h-8"
+    <button
+      type="button"
+      className="ml-auto shrink-0 rounded px-1 py-1 text-xs text-muted-foreground tabular-nums transition-colors hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/50"
       onClick={onClick}
-      title="Costo estimado de esta conversación. Ver costos de IA"
+      title="Costo de esta conversación. Ver costos de IA"
       aria-label={`Costo de esta conversación: ${label}. Ver costos de IA`}
     >
-      <CircleDollarSign aria-hidden />
       {label}
-    </Button>
+    </button>
   );
 }

@@ -59,8 +59,6 @@ export function AgentSessionBody({
       conversationId={state.id}
       chat={state.chat}
       mode={session.mode}
-      skill={session.skill}
-      onSkillChange={session.setSkill}
       notices={session.notices}
       contextLabel={contextLabel}
       getContext={getContext}

@@ -10,7 +10,8 @@ import { Button } from "@/components/ui/button";
 import { SheetClose, SheetDescription, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 
 // Cabecera del Sheet: título de la conversación, contexto, abrir en la página,
-// historial, nueva conversación, modo y costo. En el teléfono va en dos filas.
+// historial, nueva conversación, modo con su costo por mensaje y, a la
+// derecha, lo gastado en la conversación. En el teléfono va en dos filas.
 export function AgentSheetHeader({
   session,
   contextLabel,
@@ -60,7 +61,7 @@ export function AgentSheetHeader({
           <SquarePen aria-hidden />
         </Button>
       </div>
-      <div className="flex flex-wrap items-center gap-2">
+      <div className="flex min-w-0 items-center gap-2">
         <AgentModeSelect mode={session.mode} modes={session.modes} onChange={session.changeMode} />
         <AgentCostBadge
           conversationId={session.conversationId}

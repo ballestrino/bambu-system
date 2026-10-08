@@ -11,7 +11,8 @@ import { pageContextLabel } from "@/lib/agent/conversation-scope";
 import { getBudgetUrl } from "@/lib/agent/proposals";
 
 // Cabecera de la conversación en la página: título, presupuesto (con link al
-// presupuesto), nueva conversación, modo y costo. El historial va en la
+// presupuesto), nueva conversación, modo con su costo por mensaje y, a la
+// derecha, lo gastado en la conversación. El historial va en la
 // columna; si el panel no tiene lugar para ella, en su diálogo. En una columna
 // angosta va en dos filas.
 export function AgentPageHeader({
@@ -62,7 +63,7 @@ export function AgentPageHeader({
           <SquarePen aria-hidden />
         </Button>
       </div>
-      <div className="flex flex-wrap items-center gap-2">
+      <div className="flex min-w-0 items-center gap-2">
         <AgentModeSelect mode={session.mode} modes={session.modes} onChange={session.changeMode} />
         <AgentCostBadge
           conversationId={session.conversationId}

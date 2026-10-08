@@ -19,7 +19,7 @@ const [
 ] = await Promise.all([
   read("app/(private)/dashboard/official-budgets/page.tsx"),
   read("app/(private)/dashboard/official-budgets/[id]/page.tsx"),
-  read("components/dashboard/dashboard-sidebar.tsx"),
+  read("components/dashboard/dashboard-nav.ts"),
   read("components/nav/MobileNav.tsx"),
   read("components/budgets/BudgetCard.tsx"),
   read("components/budgets/budget-details/BudgetView.tsx"),

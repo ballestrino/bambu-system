@@ -39,7 +39,15 @@ export function AgentHistoryDialog({
 }) {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="flex h-[80vh] flex-col gap-0 p-0 sm:max-w-md">
+      {/* El foco va al diálogo y no al buscador: en el teléfono el teclado
+          saltaba apenas se abría el historial. */}
+      <DialogContent
+        className="flex h-[80vh] flex-col gap-0 p-0 sm:max-w-md"
+        onOpenAutoFocus={(event) => {
+          event.preventDefault();
+          if (event.currentTarget instanceof HTMLElement) event.currentTarget.focus();
+        }}
+      >
         <DialogHeader className="border-b px-4 py-3 pr-12 text-left">
           <DialogTitle className="flex items-center gap-2">
             <History className="size-5" aria-hidden /> Historial
