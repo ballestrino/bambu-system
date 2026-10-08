@@ -1,10 +1,22 @@
 # Current Harness Session
 
-Status: idle
+Status: active
 
 ## Active Feature
 
-- None.
+- 22 `pwa_ios_standalone`, rama `feat/pwa-ios-standalone` (pedida por el
+  usuario el 2026-10-08, antes de la 18).
+- Plan aprobado: manifest e íconos estáticos, meta de iOS
+  (`viewport-fit=cover`, `theme-color`, `appleWebApp` con barra `default`),
+  tabs Inicio · Visitas · Presupuestos · Agente · Más solo en standalone y en
+  celular, con la variante `app-tabs` y la variable `--bottom-tabs-space`.
+- Prueba final en el iPhone del usuario con `pnpm dev` por Wi-Fi, sin Vercel.
+- Avance (2026-10-08): implementación completa. PASS: `init.ps1`, `tsc`,
+  `next build`, archivos PWA sin sesión y smoke en Chrome con standalone
+  simulado y en modo navegador. Detalle en
+  `progress/impl_pwa_ios_standalone.md`.
+- Falta, antes de cerrar: la prueba del usuario en el iPhone por Wi-Fi
+  (`DEV_ALLOWED_ORIGINS=<IP de la PC>`).
 
 ## Queue
 
