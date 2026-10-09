@@ -1,105 +1,106 @@
 "use client";
 
-import { FileText, MoreHorizontal, Pencil, Trash2 } from "lucide-react";
-import { useRef } from "react";
+import { FileText, MoreHorizontal, Sparkles } from "lucide-react";
 
-import { formatDateTime } from "@/components/agent/format";
+import { AgentConversationMenu, type ConversationActionHandler } from "@/components/agent/agent-conversation-menu";
 import type { AgentConversationItem } from "@/components/agent/types";
-import { Button } from "@/components/ui/button";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+import { conversationActivity, formatConversationTime } from "@/lib/agent/conversation-groups";
 import { AGENT_MODES } from "@/lib/ai/modes";
 import { formatUsd } from "@/lib/ai/pricing";
 import { cn } from "@/lib/utils";
 
-type RowAction = (trigger: HTMLElement | null) => void;
+// El modo y lo gastado. Como el badge: el uso sin precio no se muestra como
+// US$ 0,00.
+export const conversationCostLabel = (conversation: AgentConversationItem) =>
+  `${AGENT_MODES[conversation.mode].label} · ${formatUsd(conversation.costUsd)}${
+    conversation.unpricedEvents > 0 ? " + sin precio" : ""
+  }`;
 
-// Una conversación del historial: abrirla, o renombrarla y borrarla desde su
-// menú. El diálogo de la opción elegida se abre recién cuando el menú terminó
-// de cerrarse: si no, el menú recupera el foco al cerrarse y el diálogo queda
-// sin foco. El diálogo recibe el botón del menú para devolverle el foco.
+// Debajo del título: el presupuesto en la página (que lista todos) y, en el
+// historial de un presupuesto, el modo y el costo.
+export function ConversationSubtitle({
+  conversation,
+  showBudget,
+  className,
+}: {
+  conversation: AgentConversationItem;
+  showBudget: boolean;
+  className?: string;
+}) {
+  if (!showBudget) return <span className={cn("truncate tabular-nums", className)}>{conversationCostLabel(conversation)}</span>;
+  const Icon = conversation.budget ? FileText : Sparkles;
+  return (
+    <span className={cn("flex min-w-0 items-center gap-1", className)}>
+      <Icon className="size-3 shrink-0" aria-hidden />
+      <span className="min-w-0 truncate">{conversation.budget?.name ?? "Sin presupuesto"}</span>
+    </span>
+  );
+}
+
+// Una conversación de la columna de la página (y del historial del Sheet):
+// título, hora y presupuesto. La abierta va resaltada y con su "…" a la
+// vista; en las demás aparece al pasar el mouse (con pantalla táctil, siempre).
 export function AgentConversationRow({
   conversation,
   active,
   showBudget,
+  now,
   onSelect,
-  onRename,
-  onDelete,
+  onAction,
 }: {
   conversation: AgentConversationItem;
   active: boolean;
-  // En la página, que lista conversaciones de todos los presupuestos.
   showBudget: boolean;
+  now: Date;
   onSelect: () => void;
-  onRename: RowAction;
-  onDelete: RowAction;
+  onAction: ConversationActionHandler;
 }) {
-  const triggerRef = useRef<HTMLButtonElement>(null);
-  const pendingAction = useRef<RowAction | null>(null);
-
   return (
-    <li
-      className={cn(
-        "flex items-center gap-1 rounded-lg border bg-card pr-1 transition-colors hover:bg-accent/50",
-        active && "border-primary/60 bg-accent/40"
-      )}
-    >
+    <li className="group relative">
       <button
         type="button"
         onClick={onSelect}
         aria-current={active ? "true" : undefined}
-        className="min-h-11 min-w-0 flex-1 rounded-lg px-3 py-2 text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/50"
-      >
-        <p className="truncate text-sm font-medium">{conversation.title}</p>
-        {showBudget && conversation.budget && (
-          <p className="flex items-center gap-1 text-xs text-muted-foreground">
-            <FileText className="size-3 shrink-0" aria-hidden />
-            <span className="min-w-0 truncate">{conversation.budget.name}</span>
-          </p>
+        title={showBudget ? conversationCostLabel(conversation) : undefined}
+        className={cn(
+          "flex min-h-11 w-full flex-col gap-0.5 rounded-[10px] py-2 pr-10 pl-2.5 text-left transition-colors focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none",
+          active ? "bg-ops-bamboo-soft" : "hover:bg-ops-surface-muted"
         )}
-        <p className="truncate text-xs text-muted-foreground tabular-nums">
-          {formatDateTime(conversation.lastMessageAt ?? conversation.updatedAt)} ·{" "}
-          {AGENT_MODES[conversation.mode].label} · {formatUsd(conversation.costUsd)}
-          {/* Como el badge: el uso sin precio no se muestra como US$ 0,00. */}
-          {conversation.unpricedEvents > 0 && " + sin precio"}
-        </p>
-      </button>
-      <DropdownMenu modal={false}>
-        <DropdownMenuTrigger asChild>
-          <Button
-            ref={triggerRef}
-            variant="ghost"
-            size="icon"
-            className="size-11 shrink-0 sm:size-9"
-            aria-label={`Opciones de “${conversation.title}”`}
+      >
+        <span className="flex w-full items-baseline gap-2">
+          <span
+            className={cn(
+              "min-w-0 flex-1 truncate text-[13.5px]",
+              active ? "font-semibold text-ops-bamboo-strong" : "font-medium"
+            )}
           >
-            <MoreHorizontal aria-hidden />
-          </Button>
-        </DropdownMenuTrigger>
-        <DropdownMenuContent
-          align="end"
-          onCloseAutoFocus={(event) => {
-            const action = pendingAction.current;
-            pendingAction.current = null;
-            if (!action) return;
-            event.preventDefault();
-            action(triggerRef.current);
-          }}
+            {conversation.title}
+          </span>
+          <span className="shrink-0 text-[11px] text-ops-text-muted tabular-nums">
+            {formatConversationTime(conversationActivity(conversation), now)}
+          </span>
+        </span>
+        <ConversationSubtitle
+          conversation={conversation}
+          showBudget={showBudget}
+          className={cn("w-full text-xs", active ? "text-ops-bamboo-strong/80" : "text-ops-text-muted")}
+        />
+      </button>
+      <AgentConversationMenu
+        pinned={Boolean(conversation.pinnedAt)}
+        onAction={onAction}
+      >
+        <button
+          type="button"
+          aria-label={`Opciones de “${conversation.title}”`}
+          className={cn(
+            "absolute top-1/2 right-1.5 grid size-8 -translate-y-1/2 place-items-center rounded-lg text-ops-bamboo-strong transition-opacity hover:bg-ops-bamboo/15 focus-visible:opacity-100 focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none data-[state=open]:opacity-100",
+            !active && "[@media(hover:hover)]:opacity-0 [@media(hover:hover)]:group-hover:opacity-100"
+          )}
         >
-          <DropdownMenuItem onSelect={() => (pendingAction.current = onRename)}>
-            <Pencil aria-hidden />
-            Renombrar
-          </DropdownMenuItem>
-          <DropdownMenuItem variant="destructive" onSelect={() => (pendingAction.current = onDelete)}>
-            <Trash2 aria-hidden />
-            Borrar
-          </DropdownMenuItem>
-        </DropdownMenuContent>
-      </DropdownMenu>
+          <MoreHorizontal className="size-4" aria-hidden />
+        </button>
+      </AgentConversationMenu>
     </li>
   );
 }

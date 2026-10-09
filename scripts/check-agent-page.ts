@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 
 import { generateId } from "ai";
 
+import "./agent-conversation-groups-checks";
 import "./agent-page-source-checks";
 import { isAgentClientId } from "../lib/agent/client-id";
 import {

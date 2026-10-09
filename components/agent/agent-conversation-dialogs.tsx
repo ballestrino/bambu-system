@@ -3,7 +3,6 @@
 import { useState } from "react";
 
 import { useAgentConversationMutations } from "@/components/agent/hooks/use-agent-conversation-mutations";
-import type { AgentConversationItem } from "@/components/agent/types";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -17,6 +16,10 @@ import { Input } from "@/components/ui/input";
 
 const TITLE_MAX = 120;
 
+// Lo que necesitan los diálogos: una fila del historial o la conversación
+// abierta.
+export type ConversationRef = { id: string; title: string };
+
 // Al cerrar, el foco vuelve al botón del menú de la fila si sigue en pantalla
 // (después de borrar ya no está y Radix decide).
 const focusBack = (target: HTMLElement | null | undefined) => (event: Event) => {
@@ -25,7 +28,7 @@ const focusBack = (target: HTMLElement | null | undefined) => (event: Event) => 
   target.focus();
 };
 
-function RenameForm({ conversation, onDone }: { conversation: AgentConversationItem; onDone: () => void }) {
+function RenameForm({ conversation, onDone }: { conversation: ConversationRef; onDone: () => void }) {
   const { rename } = useAgentConversationMutations();
   const [title, setTitle] = useState(conversation.title);
   const trimmed = title.trim();
@@ -65,7 +68,7 @@ export function AgentRenameDialog({
   onClose,
 }: {
   open: boolean;
-  conversation: AgentConversationItem | null;
+  conversation: ConversationRef | null;
   returnFocusTo?: HTMLElement | null;
   onClose: () => void;
 }) {
@@ -92,7 +95,7 @@ export function AgentDeleteDialog({
   onDeleted,
 }: {
   open: boolean;
-  conversation: AgentConversationItem | null;
+  conversation: ConversationRef | null;
   returnFocusTo?: HTMLElement | null;
   onClose: () => void;
   onDeleted: (conversationId: string) => void;

@@ -5,12 +5,14 @@ import { useState } from "react";
 
 import { AgentConversationList } from "@/components/agent/agent-conversation-list";
 import { AgentCostDialog } from "@/components/agent/agent-cost-dialog";
-import { AgentHistoryDialog } from "@/components/agent/agent-history-dialog";
 import { agentPageFullScreen } from "@/components/agent/agent-page-full-screen";
 import { AgentPageHeader } from "@/components/agent/agent-page-header";
 import { AgentSessionBody } from "@/components/agent/agent-session-body";
 import { useAgentPageUrl } from "@/components/agent/hooks/use-agent-page-url";
+import { useAgentPageView } from "@/components/agent/hooks/use-agent-page-view";
 import { useAgentSession } from "@/components/agent/hooks/use-agent-session";
+import { useConversationActions } from "@/components/agent/hooks/use-conversation-actions";
+import { useEdgeSwipeBack } from "@/components/agent/hooks/use-edge-swipe-back";
 import { useKeyboardViewport } from "@/components/agent/hooks/use-keyboard-viewport";
 import { agentKeys } from "@/components/agent/query-keys";
 import { opsSurface } from "@/components/ops/shared/ops-theme";
@@ -26,21 +28,39 @@ import { cn } from "@/lib/utils";
 // todas las conversaciones. Una conversación de un presupuesto sigue hablando
 // de él; las nuevas van sin presupuesto. El alto es fijo (el alto de la
 // pantalla menos el nav y el padding del dashboard): los mensajes scrollean
-// adentro y el composer queda siempre a la vista. En la app instalada en el
-// celular ocupa la pantalla completa (agentPageFullScreen).
+// adentro y el composer queda siempre a la vista.
+//
+// Con lugar (container query del panel, 56rem) va el diseño 2a: la columna del
+// historial y la conversación. Sin lugar va el 2b: el historial es la
+// pantalla de inicio y una conversación se abre a pantalla completa (en la app
+// instalada, sin tabs: agentPageFullScreen y data-agent-view). Se vuelve con
+// "‹ Agente" o deslizando desde el borde.
 export function AgentPageHost() {
   const queryClient = useQueryClient();
   const session = useAgentSession({ scope: ALL_AGENT_CONVERSATIONS });
-  const [dialog, setDialog] = useState<"history" | "costs" | null>(null);
+  const page = useAgentPageView();
+  const [costsOpen, setCostsOpen] = useState(false);
+  const chatRef = useEdgeSwipeBack<HTMLElement>(page.showList, page.view === "chat");
   useAgentPageUrl(session);
   useKeyboardViewport();
 
   const budget = session.conversation?.budget ?? null;
+  // Borrar la abierta arranca una nueva; desde su cabecera, además se vuelve
+  // al historial.
+  const headerActions = useConversationActions((id) => {
+    session.onConversationDeleted(id);
+    page.showList();
+  });
 
   const select = (id: string) => {
-    setDialog(null);
+    page.showChat();
     if (id !== session.conversationId) void session.openConversation(id);
   };
+  const startNew = () => {
+    page.showChat();
+    session.startNew();
+  };
+  const openCosts = () => setCostsOpen(true);
 
   // Una propuesta confirmada puede cambiar el nombre del presupuesto que
   // muestran la lista y la cabecera.
@@ -48,48 +68,66 @@ export function AgentPageHost() {
     void queryClient.invalidateQueries({ queryKey: agentKeys.conversations() });
   };
 
+  const listProps = {
+    scope: ALL_AGENT_CONVERSATIONS,
+    enabled: true,
+    activeId: session.conversationId,
+    showBudget: true,
+    onSelect: select,
+    onDeleted: session.onConversationDeleted,
+    onOpenCosts: openCosts,
+    onNew: startNew,
+  };
+
   return (
     <TooltipProvider>
       <div
         data-agent-page
+        data-view={page.view}
         className={cn(
-          "flex h-[calc(100dvh-9.5rem-var(--bottom-tabs-space))] min-h-[32rem] w-full max-w-7xl flex-col gap-3 md:h-[calc(100dvh-9rem)]",
-          agentPageFullScreen
+          "flex h-[calc(100dvh-9.5rem-var(--bottom-tabs-space))] min-h-[32rem] w-full max-w-7xl flex-col md:h-[calc(100dvh-9rem)]",
+          agentPageFullScreen,
+          page.view === "list" && "app-tabs:bg-ops-canvas"
         )}
       >
-        <div className="app-tabs:hidden">
-          <h1 className="text-2xl font-bold tracking-tight">Agente</h1>
-          <p className="hidden text-sm text-muted-foreground sm:block">
-            Presupuestos, correos y consejos con los datos de Bambú. Es el mismo de “Generar con IA”:
-            las conversaciones se comparten.
-          </p>
-        </div>
-        {/* La columna del historial depende del ancho del panel, no de la
-            ventana: con el sidebar abierto a 1024 px el chat quedaría más
-            angosto que el Sheet. Sin lugar, el historial va en su diálogo. */}
         <div className="@container/panel min-h-0 flex-1">
           <div
             className={cn(
               opsSurface.panel,
-              "grid h-full overflow-hidden @4xl/panel:grid-cols-[20rem_minmax(0,1fr)] app-tabs:rounded-none app-tabs:border-0"
+              "grid h-full grid-cols-1 overflow-hidden shadow-[0_1px_2px_rgb(24_37_29/0.04)] @4xl/panel:grid-cols-[300px_minmax(0,1fr)] app-tabs:rounded-none app-tabs:border-0 app-tabs:shadow-none"
             )}
           >
-            <aside aria-label="Conversaciones" className="hidden min-h-0 flex-col border-r @4xl/panel:flex">
-              <AgentConversationList
-                scope={ALL_AGENT_CONVERSATIONS}
-                enabled
-                activeId={session.conversationId}
-                showBudget
-                onSelect={select}
-                onDeleted={session.onConversationDeleted}
-                onOpenCosts={() => setDialog("costs")}
-              />
+            <aside
+              aria-label="Conversaciones"
+              className="hidden min-h-0 flex-col border-r border-ops-border bg-ops-canvas/60 @4xl/panel:flex"
+            >
+              <h1 className="sr-only">Agente</h1>
+              <AgentConversationList {...listProps} />
             </aside>
-            <section aria-label="Conversación" className="@container/chat flex min-h-0 min-w-0 flex-col">
+            <div
+              className={cn(
+                "min-h-0 min-w-0 flex-col bg-ops-canvas @4xl/panel:hidden",
+                page.view === "list" ? "flex" : "hidden"
+              )}
+            >
+              <AgentConversationList {...listProps} variant="stack" />
+            </div>
+            <section
+              ref={chatRef}
+              aria-label="Conversación"
+              className={cn(
+                "@container/chat min-h-0 min-w-0 flex-col bg-ops-surface",
+                page.view === "chat" ? "flex" : "hidden @4xl/panel:flex"
+              )}
+            >
               <AgentPageHeader
                 session={session}
-                onOpenHistory={() => setDialog("history")}
-                onOpenCosts={() => setDialog("costs")}
+                onBack={page.showList}
+                onNew={startNew}
+                onOpenCosts={openCosts}
+                onAction={(action, trigger) =>
+                  session.conversation && headerActions.run(session.conversation, action, trigger)
+                }
               />
               <AgentSessionBody
                 session={session}
@@ -101,18 +139,10 @@ export function AgentPageHost() {
           </div>
         </div>
       </div>
-      <AgentHistoryDialog
-        open={dialog === "history"}
-        onOpenChange={(next) => setDialog(next ? "history" : null)}
-        scope={ALL_AGENT_CONVERSATIONS}
-        activeId={session.conversationId}
-        onSelect={select}
-        onDeleted={session.onConversationDeleted}
-        onOpenCosts={() => setDialog("costs")}
-      />
+      {headerActions.dialogs}
       <AgentCostDialog
-        open={dialog === "costs"}
-        onOpenChange={(next) => setDialog(next ? "costs" : null)}
+        open={costsOpen}
+        onOpenChange={setCostsOpen}
         conversationId={session.persisted ? session.conversationId : null}
       />
     </TooltipProvider>

@@ -1158,6 +1158,8 @@ model AgentConversation {
   contextKind   String?
   mode          AgentMode         @default(MEDIO)
   lastMessageAt DateTime?
+  // Fijada arriba del historial; null = sin fijar.
+  pinnedAt      DateTime?
   messages      AgentMessage[]
   usageEvents   AgentUsageEvent[]
   proposals     AgentProposal[]

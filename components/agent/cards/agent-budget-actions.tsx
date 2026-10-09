@@ -9,6 +9,10 @@ import { CardNote } from "@/components/agent/cards/agent-card";
 import { Button } from "@/components/ui/button";
 import { isBudgetLocked } from "@/lib/agent/budget-draft";
 
+// En el teléfono los botones se reparten el ancho; en escritorio van a su
+// medida, a la izquierda.
+const buttonClass = "h-11 flex-1 rounded-[10px] font-semibold sm:h-[34px] sm:flex-none";
+
 // "Ver detalle" y "Editar" de un presupuesto que armó el agente: los dos
 // abren el editor. La tarjeta de un cálculo muestra además si ya se guardó en
 // el generador (la de una propuesta ya dice su estado). Si ya hay propuesta,
@@ -25,11 +29,11 @@ export function AgentBudgetActions({ target, showSaved }: { target: BudgetEditor
     openBudget(proposal?.values ? { ...target, values: proposal.values } : target, tab);
 
   return (
-    <div className="space-y-2 border-t pt-2">
+    <div className="space-y-2">
       {showSaved && saved && (
         <CardNote>
           Guardado en el generador:{" "}
-          <Link href={saved.url} className="text-primary underline-offset-4 hover:underline">
+          <Link href={saved.url} className="text-ops-bamboo-strong underline-offset-4 hover:underline">
             {saved.label}
           </Link>
         </CardNote>
@@ -52,13 +56,13 @@ export function AgentBudgetActions({ target, showSaved }: { target: BudgetEditor
             : "Tenés cambios sin guardar."}
         </CardNote>
       )}
-      <div className="flex flex-col gap-2 sm:flex-row sm:justify-end">
-        <Button variant="outline" className="h-11 sm:h-9" onClick={() => open("detail")}>
+      <div className="flex gap-2">
+        <Button variant="outline" className={buttonClass} onClick={() => open("detail")}>
           <Eye aria-hidden />
           Ver detalle
         </Button>
         {!locked && (
-          <Button variant="outline" className="h-11 sm:h-9" onClick={() => open("edit")}>
+          <Button variant="outline" className={buttonClass} onClick={() => open("edit")}>
             <Pencil aria-hidden />
             Editar
           </Button>

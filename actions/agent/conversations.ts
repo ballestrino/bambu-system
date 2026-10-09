@@ -131,3 +131,29 @@ export const setAgentConversationMode = async (values: unknown) => {
     return { error: actionError(error, "Error al cambiar el modo") };
   }
 };
+
+const pinSchema = z.object({ id: agentClientIdSchema, pinned: z.boolean() });
+
+// Fijar deja la conversación arriba del historial, en "Fijados".
+export const setAgentConversationPinned = async (values: unknown) => {
+  try {
+    const session = await requireAdminSession();
+    const parsed = pinSchema.safeParse(values);
+    if (!parsed.success) return { error: "Conversación inválida" };
+    const { count } = await db.agentConversation.updateMany({
+      where: { id: parsed.data.id, userId: session.user.id },
+      data: { pinnedAt: parsed.data.pinned ? new Date() : null },
+    });
+    if (!count) return { error: "Conversación no encontrada" };
+    await recordAgentAudit({
+      actorId: session.user.id,
+      action: parsed.data.pinned ? "conversation.pin" : "conversation.unpin",
+      entityType: "AgentConversation",
+      entityId: parsed.data.id,
+    });
+    return { success: parsed.data.pinned ? "Conversación fijada" : "Conversación desfijada" };
+  } catch (error) {
+    console.error("Error pinning agent conversation:", error);
+    return { error: actionError(error, "Error al fijar la conversación") };
+  }
+};

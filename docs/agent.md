@@ -201,8 +201,9 @@ el contexto y el botón que lo abre.
   empleadas vacía) no viajan (`sanitizeFormContextValues`): el servidor usa
   el valor por defecto en vez de rechazar el turno.
 - Cabecera: título (el del modelo llega unos segundos después del primer
-  turno), contexto, abrir en la página, historial, nueva conversación, modo y
-  costo. "Abrir en página" lleva a `/dashboard/agent?conversacion=<id>` (sin
+  turno), contexto, costo, abrir en la página, historial y nueva
+  conversación. El modo va en el composer, junto al "+" (desde la 24, como en
+  la página). "Abrir en página" lleva a `/dashboard/agent?conversacion=<id>` (sin
   id si todavía no se guardó) y está deshabilitado mientras responde (salir de
   la pantalla corta el stream) y mientras una conversación con mensajes
   todavía no figura guardada: el historial se relee al terminar el turno, y
@@ -212,9 +213,10 @@ el contexto y el botón que lo abre.
   se guarda en el momento.
 - Chips Presupuestos, Emails y Consejos (ninguno = General). La habilidad
   viaja con cada mensaje, se ve en la burbuja y sigue marcada al reabrir.
-- Cada tool se ve como un chip con su tipo (Lectura, Cálculo, Propuesta,
-  Borrador) y al terminar su tarjeta, según `card`. Un error de la tool se
-  muestra sin alarma: el modelo suele corregirse.
+- Cada tool se ve como un chip (su tipo, Lectura, Cálculo, Propuesta o
+  Borrador, va en el title) y al terminar su tarjeta, según `card`. Las tools
+  seguidas juntan sus chips en una fila y después van sus tarjetas. Un error
+  de la tool se muestra sin alarma: el modelo suele corregirse.
 - Cada respuesta cierra con "Luna 6 · Medio · 3,2k tokens · US$ 0,03" (o
   "precio no configurado"). Una detenida lo dice, también al recargar.
 - La tarjeta de correo copia como email (texto y HTML), WhatsApp o Markdown
@@ -224,9 +226,10 @@ el contexto y el botón que lo abre.
   invalida presupuestos, detalle, oficiales y propuestas; si cambió la
   dirección del presupuesto abierto, redirige a la nueva. Esas reglas son
   puras y tienen prueba (`lib/agent/proposal-outcome.ts`).
-- Historial: conversaciones del presupuesto (o sin presupuesto en crear),
-  búsqueda sin acentos, costo por fila (con "+ sin precio" si hubo uso sin
-  precio, como el badge), renombrar y borrar. Borrar la activa arranca una
+- Historial: conversaciones del presupuesto (o sin presupuesto en crear), en
+  grupos como en la página, búsqueda sin acentos, modo y costo por fila (con
+  "+ sin precio" si hubo uso sin precio, como el badge), fijar, renombrar y
+  borrar. Borrar la activa arranca una
   nueva, aunque el historial se cierre antes de que responda el servidor.
 - Un link de una respuesta va por `next/link` solo si es una ruta de la app
   (`/…`); `//dominio` es externo y abre en otra pestaña.
@@ -256,10 +259,34 @@ los mismos componentes que el Sheet: `AgentPageHost` es otro host para
   `all`, `lib/agent/conversation-scope.ts`): el Sheet sigue listando las de su
   presupuesto, o las sin presupuesto en crear, que ahora incluyen las
   generales de la página.
-- La columna del historial depende del ancho del panel (container query
-  `@4xl/panel`, 56rem), no de la ventana: con el sidebar abierto a 1024 px el
-  chat quedaría más angosto que el Sheet. Sin lugar, el historial va en su
-  diálogo, como en el teléfono.
+- Diseño (feature 24, "Agente Bambu 2a-2b" de claude-design): depende del
+  ancho del panel (container query `@4xl/panel`, 56rem), no de la ventana:
+  con el sidebar abierto a 1024 px el chat quedaría más angosto que el Sheet.
+  - Con lugar (2a): la columna del historial (búsqueda, "+" para una nueva,
+    grupos y "Costos de IA · US$ x este mes" al pie) y la conversación. La
+    cabecera tiene título, presupuesto con link, el costo (si ya está
+    guardada) y un "…" con Nueva conversación, Costos de IA, Fijar,
+    Renombrar y Borrar.
+  - Sin lugar (2b, el teléfono): el historial es la pantalla de inicio, con
+    título grande, filas en tarjetas como en iOS y "Costos de IA" al final.
+    Una conversación se abre a pantalla completa; se vuelve con "‹ Agente" o,
+    en la app instalada, deslizando desde el borde izquierdo
+    (`use-edge-swipe-back.ts`; en Safari ese gesto es el "atrás"). Deslizar
+    una fila a la izquierda muestra Fijar, Renombrar y Borrar
+    (`use-swipe-reveal.ts`); con mouse, un "…". Se entra a la conversación si
+    la dirección trae una (`use-agent-page-view.ts`).
+  - En la app instalada, la conversación esconde los tabs: `data-agent-view`
+    en `<html>` y la regla de `app/globals.css`. En el historial los tabs
+    flotan encima y la lista deja su lugar al final.
+- Grupos del historial (página y Sheet): Fijados, Hoy, Ayer y Anteriores por
+  la última actividad (el último mensaje o la creación), con la hora hoy y
+  ayer, "6 oct" este año y "6 oct 2025" antes. Puro, con prueba
+  (`lib/agent/conversation-groups.ts`, en `check:agent-page`).
+- Fijar: `pinnedAt` en `AgentConversation` (migración aditiva
+  `20261008200000_agent_conversation_pinned`). El servidor las trae primero,
+  así entran en el tope aunque sean viejas; el Sheet de un presupuesto sigue
+  retomando la última que se tocó (`latestConversationId`), no la primera
+  fijada. Se ve en el momento (actualización optimista).
 - Dirección: la conversación abierta, si ya está guardada, va en
   `?conversacion=<id>` (`lib/agent/page-url.ts`). La sesión se refleja con
   `history.replaceState` (sin ida al servidor, sin remontar el chat y sin
@@ -274,7 +301,8 @@ los mismos componentes que el Sheet: `AgentPageHost` es otro host para
 - Alto fijo (la pantalla menos el nav y el padding del dashboard): los
   mensajes scrollean adentro, sin arrastrar la página (`overscroll-contain`),
   y el composer queda a la vista. Los mensajes y el composer van en un ancho de
-  lectura (`max-w-3xl`), que en el Sheet no cambia nada.
+  lectura (720 px), que en el Sheet no cambia nada. Las respuestas llevan el
+  logo de Bambú al lado si el hilo tiene lugar (`@lg/thread`).
 - Una propuesta confirmada desde la página invalida además el historial: el
   nombre del presupuesto de la lista y de la cabecera puede cambiar.
 
@@ -398,7 +426,10 @@ Presupuestos iguales y pedidos de presupuesto:
 
 ## Imágenes y dictado
 
-El composer (`components/agent/agent-composer.tsx`) tiene un "+" con "Subir
+El composer (`components/agent/agent-composer.tsx`) lleva el texto arriba y
+una barra abajo: "+", el modo con su costo por mensaje (en el teléfono, una
+píldora que abre el menú con lo gastado en la conversación al pie), el
+micrófono y un círculo verde para enviar o detener. El "+" tiene "Subir
 imágenes" y un micrófono. Los dos funcionan igual en el Sheet y en la página.
 
 | Límite | Valor | Por qué |

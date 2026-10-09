@@ -3,6 +3,7 @@ import {
   deleteAgentConversation,
   renameAgentConversation,
   setAgentConversationMode,
+  setAgentConversationPinned,
 } from "@/actions/agent/conversations";
 import { rejectAgentProposal } from "@/actions/agent/reject-proposal";
 import { saveAgentBudget } from "@/actions/agent/save-budget";
@@ -23,6 +24,12 @@ export const renameConversationAction = async (input: { id: string; title: strin
 
 export const deleteConversationAction = async (conversationId: string) => {
   const result = await deleteAgentConversation(conversationId);
+  if (!result.success) throw new ValidationError(result.error ?? WRITE_ERROR);
+  return result.success;
+};
+
+export const pinConversationAction = async (input: { id: string; pinned: boolean }) => {
+  const result = await setAgentConversationPinned(input);
   if (!result.success) throw new ValidationError(result.error ?? WRITE_ERROR);
   return result.success;
 };

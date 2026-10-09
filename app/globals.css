@@ -168,9 +168,12 @@
   :root {
     --bottom-tabs-space: 0px;
   }
+  /* Los tabs flotan (components/nav/bottom-tabs.tsx): 4rem de píldora, su
+     distancia al borde (sobre el indicador de inicio) y medio rem de aire. */
   @media (display-mode: standalone) and (width < 48rem) {
     :root:has([data-bottom-tabs]) {
-      --bottom-tabs-space: calc(3.5rem + env(safe-area-inset-bottom));
+      --bottom-tabs-offset: max(0.75rem, calc(env(safe-area-inset-bottom) - 0.5rem));
+      --bottom-tabs-space: calc(4.5rem + var(--bottom-tabs-offset));
     }
   }
   body {
@@ -193,6 +196,15 @@
     padding-bottom: 0.75rem;
   }
   :root[data-keyboard="open"] [data-bottom-tabs] {
+    display: none;
+  }
+  /* Una conversación del agente va a pantalla completa, sin tabs (diseño 2b):
+     se vuelve al historial con "‹ Agente" o deslizando desde el borde
+     (components/agent/hooks/use-agent-page-view.ts). */
+  :root[data-agent-view="chat"] {
+    --bottom-tabs-space: 0px;
+  }
+  :root[data-agent-view="chat"] [data-bottom-tabs] {
     display: none;
   }
 }

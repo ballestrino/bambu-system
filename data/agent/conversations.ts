@@ -16,6 +16,7 @@ const conversationSelect = {
   budget: { select: { id: true, name: true, slug: true } },
   contextKind: true,
   lastMessageAt: true,
+  pinnedAt: true,
   createdAt: true,
   updatedAt: true,
 } as const;
@@ -28,6 +29,7 @@ type ConversationRow = {
   budget: { id: string; name: string; slug: string } | null;
   contextKind: string | null;
   lastMessageAt: Date | null;
+  pinnedAt: Date | null;
   createdAt: Date;
   updatedAt: Date;
 };
@@ -36,6 +38,7 @@ const serializeConversation = (row: ConversationRow) => ({
   ...row,
   mode: fromDbAgentMode(row.mode),
   lastMessageAt: row.lastMessageAt?.toISOString() ?? null,
+  pinnedAt: row.pinnedAt?.toISOString() ?? null,
   createdAt: row.createdAt.toISOString(),
   updatedAt: row.updatedAt.toISOString(),
 });
@@ -44,6 +47,7 @@ export type AgentConversationDto = ReturnType<typeof serializeConversation>;
 
 // Las conversaciones son de cada usuario: las del presupuesto abierto, las que
 // no tienen presupuesto (la pantalla de crear) o, con all, todas (la página).
+// Las fijadas van primero: así entran en el tope aunque sean viejas.
 export const getAgentConversations = async ({
   budgetId,
   all,
@@ -60,7 +64,7 @@ export const getAgentConversations = async ({
       ...(all ? {} : { budgetId: budgetId ?? null }),
       title: query ? { contains: query, mode: "insensitive" } : undefined,
     },
-    orderBy: { updatedAt: "desc" },
+    orderBy: [{ pinnedAt: { sort: "desc", nulls: "last" } }, { updatedAt: "desc" }],
     take: conversationListLimit(all),
     select: conversationSelect,
   });

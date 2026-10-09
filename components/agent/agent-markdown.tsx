@@ -56,7 +56,7 @@ const components: Components = {
 
 export function AgentMarkdown({ content }: { content: string }) {
   return (
-    <div className="break-words text-sm leading-relaxed">
+    <div className="break-words text-[14.5px] leading-[1.6] text-pretty">
       <ReactMarkdown remarkPlugins={[remarkGfm]} components={components}>
         {withHardLineBreaks(cleanChatContent(content))}
       </ReactMarkdown>

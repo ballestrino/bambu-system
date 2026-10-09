@@ -11,13 +11,14 @@ import type { AgentUIMessage } from "@/components/agent/types";
 // mueve.
 const STICK_THRESHOLD_PX = 80;
 
+// Con lugar para el logo, alineado con el texto de las respuestas.
 function Thinking() {
   return (
-    <div className="flex items-center gap-2 text-xs text-muted-foreground" role="status">
+    <div className="flex items-center gap-2 text-xs text-ops-text-muted @lg/thread:pl-10" role="status">
       <span className="flex gap-1" aria-hidden>
-        <span className="size-1.5 animate-bounce rounded-full bg-current [animation-delay:-0.3s]" />
-        <span className="size-1.5 animate-bounce rounded-full bg-current [animation-delay:-0.15s]" />
-        <span className="size-1.5 animate-bounce rounded-full bg-current" />
+        <span className="size-1.5 animate-bounce rounded-full bg-ops-bamboo [animation-delay:-0.3s]" />
+        <span className="size-1.5 animate-bounce rounded-full bg-ops-bamboo [animation-delay:-0.15s]" />
+        <span className="size-1.5 animate-bounce rounded-full bg-ops-bamboo" />
       </span>
       Pensando…
     </div>
@@ -65,14 +66,14 @@ export function AgentMessageList({
       role="log"
       aria-busy={busy}
       aria-label="Conversación con el asistente"
-      className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-4 py-4"
+      className="@container/thread min-h-0 flex-1 overflow-y-auto overscroll-contain px-4 py-5 sm:px-6 @2xl/chat:px-8"
     >
       {messages.length === 0 && !busy ? (
         emptyState
       ) : (
         // En la página la columna es ancha: los mensajes quedan en un ancho de
-        // lectura (en el Sheet no cambia nada).
-        <div className="mx-auto max-w-3xl space-y-5">
+        // lectura, el mismo del composer (en el Sheet no cambia nada).
+        <div className="mx-auto max-w-[720px] space-y-6">
           {messages.map((message) => (
             <AgentMessage
               key={message.id}
