@@ -20,7 +20,7 @@ export function AgentMicButton({ onStart }: { onStart: () => void }) {
       type="button"
       variant="ghost"
       size="icon"
-      className="size-11 shrink-0 rounded-full"
+      className="size-11 shrink-0 rounded-full text-ops-bamboo-strong hover:bg-ops-surface-muted hover:text-ops-bamboo-strong sm:size-9 [&_svg:not([class*='size-'])]:size-[18px]"
       onClick={onStart}
       aria-label="Dictar mensaje"
     >
@@ -68,7 +68,7 @@ export function AgentRecordingBar({
         type="button"
         variant="secondary"
         size="icon"
-        className="size-11 shrink-0 rounded-full"
+        className="size-11 shrink-0 rounded-full bg-ops-surface-muted text-ops-text hover:bg-ops-border sm:size-9"
         disabled={!recording}
         onClick={onStop}
         aria-label="Terminar y revisar el texto"
@@ -78,7 +78,7 @@ export function AgentRecordingBar({
       <Button
         type="button"
         size="icon"
-        className="size-11 shrink-0 rounded-full"
+        className="size-11 shrink-0 rounded-full bg-ops-bamboo-strong text-ops-surface hover:bg-ops-bamboo-strong/90 sm:size-9"
         disabled={!recording}
         onClick={onSend}
         aria-label="Transcribir y enviar"

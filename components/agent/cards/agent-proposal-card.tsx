@@ -1,6 +1,6 @@
 "use client";
 
-import { AlertTriangle, FileCheck2 } from "lucide-react";
+import { AlertTriangle, Check, FileCheck2 } from "lucide-react";
 
 import { useAgentChatContext } from "@/components/agent/agent-chat-context";
 import { AgentBudgetActions } from "@/components/agent/cards/agent-budget-actions";
@@ -51,20 +51,50 @@ export function AgentProposalCard({ data, toolCallId }: { data: ProposalCardData
   const busy = busyProposalId === data.proposalId;
   const canAct = canActOnProposal(status, live, busyProposalId);
 
+  const footer =
+    status === "PENDING" ? (
+      <>
+        <p className="min-w-0 flex-[1_1_220px] text-xs leading-snug text-ops-text-muted">
+          {CONFIRM_TEXT[data.kind]} Vence el {formatDateTime(live?.expiresAt ?? data.expiresAt)}.
+        </p>
+        <div className="flex w-full gap-2 sm:w-auto">
+          <Button
+            variant="outline"
+            className="h-11 flex-1 rounded-[10px] font-semibold sm:h-[34px]"
+            disabled={!canAct}
+            onClick={() => rejectProposal(data.proposalId)}
+          >
+            Rechazar
+          </Button>
+          <Button
+            className="h-11 flex-1 rounded-[10px] bg-ops-bamboo-strong font-semibold text-ops-surface hover:bg-ops-bamboo-strong/90 sm:h-[34px]"
+            disabled={!canAct}
+            onClick={() => confirmProposal(data.proposalId)}
+          >
+            <Check aria-hidden />
+            {busy ? "Guardando…" : "Confirmar"}
+          </Button>
+        </div>
+      </>
+    ) : (
+      <ProposalOutcome status={status} live={live} slug={summary.slug} />
+    );
+
   return (
     <AgentCard
       icon={FileCheck2}
       title={summary.title}
       subtitle={summary.slug && data.kind !== "DUPLICATE_BUDGET" ? `/${summary.slug}` : null}
       aside={<ProposalStatusBadge status={busy ? "EXECUTING" : status} />}
+      footer={footer}
     >
       <AgentProposalDetails summary={summary} />
 
       {summary.warnings.length > 0 && (
-        <ul className="space-y-1">
+        <ul className="space-y-1.5 rounded-[10px] bg-amber-50 px-3 py-2 text-xs leading-snug text-amber-800 dark:bg-amber-500/15 dark:text-amber-200">
           {summary.warnings.map((warning) => (
-            <li key={warning} className="flex gap-2 text-xs text-amber-700 dark:text-amber-400">
-              <AlertTriangle className="mt-0.5 size-3.5 shrink-0" aria-hidden />
+            <li key={warning} className="flex gap-2">
+              <AlertTriangle className="mt-px size-3.5 shrink-0" aria-hidden />
               <span>{warning}</span>
             </li>
           ))}
@@ -78,31 +108,6 @@ export function AgentProposalCard({ data, toolCallId }: { data: ProposalCardData
       )}
 
       {target && <AgentBudgetActions target={target} showSaved={false} />}
-
-      {status === "PENDING" ? (
-        <div className="space-y-2 border-t pt-2">
-          <CardNote>
-            {CONFIRM_TEXT[data.kind]} Vence el {formatDateTime(live?.expiresAt ?? data.expiresAt)}.
-          </CardNote>
-          <div className="flex flex-col gap-2 sm:flex-row sm:justify-end">
-            <Button
-              variant="outline"
-              className="h-11 sm:h-9"
-              disabled={!canAct}
-              onClick={() => rejectProposal(data.proposalId)}
-            >
-              Rechazar
-            </Button>
-            <Button className="h-11 sm:h-9" disabled={!canAct} onClick={() => confirmProposal(data.proposalId)}>
-              {busy ? "Guardando…" : "Confirmar"}
-            </Button>
-          </div>
-        </div>
-      ) : (
-        <div className="border-t pt-2">
-          <ProposalOutcome status={status} live={live} slug={summary.slug} />
-        </div>
-      )}
     </AgentCard>
   );
 }

@@ -48,7 +48,7 @@ assert.match(read("lib/agent/system-prompt.ts"), /Un importe de una imagen no es
 // and ➤ sends it; the meter starts in the tap (before any await), because iOS
 // only starts an AudioContext from a user gesture.
 const composer = read("components/agent/agent-composer.tsx");
-assert.match(composer, /\{!voiceActive && <AgentAttachMenu /);
+assert.match(composer, /\{voiceActive \? \([\s\S]*?<AgentRecordingBar[\s\S]*?\) : \([\s\S]*?<AgentAttachMenu /);
 assert.match(composer, /onStop=\{\(\) => voice\.stop\("review"\)\}/);
 assert.match(composer, /onSend=\{\(\) => voice\.stop\("send"\)\}/);
 const recorder = read("components/agent/hooks/use-voice-recorder.ts");

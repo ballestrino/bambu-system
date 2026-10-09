@@ -10,6 +10,7 @@ import { useAgentConversationMutations } from "@/components/agent/hooks/use-agen
 import { useAgentConversations, useAgentSettings } from "@/components/agent/hooks/use-agent-queries";
 import { conversationListQuery, conversationQuery, refreshAfterTurn } from "@/components/agent/queries";
 import type { AgentConversationDetail, AgentUIMessage } from "@/components/agent/types";
+import { latestConversationId } from "@/lib/agent/conversation-groups";
 import type { AgentConversationScope } from "@/lib/agent/conversation-scope";
 import { DEFAULT_AGENT_MODE, type AgentMode } from "@/lib/ai/modes";
 
@@ -92,7 +93,7 @@ export const useAgentSession = ({ scope }: { scope: AgentConversationScope }) =>
     const request = begin({ status: "loading", id: null });
     const latest = await queryClient
       .fetchQuery(conversationListQuery(scope))
-      .then((list) => list[0]?.id ?? null, () => null);
+      .then(latestConversationId, () => null);
     if (request !== requestRef.current) return;
     if (latest) await openConversation(latest);
     else startNew();

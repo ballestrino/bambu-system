@@ -2,8 +2,9 @@ import { isStaticToolUIPart } from "ai";
 import { RotateCcw } from "lucide-react";
 
 import { AgentMarkdown } from "@/components/agent/agent-markdown";
+import { AgentLogoTile } from "@/components/agent/agent-logo-tile";
 import { AgentMessageImages } from "@/components/agent/agent-message-images";
-import { AgentToolPart } from "@/components/agent/agent-tool-part";
+import { AgentToolRun, type AgentToolUIPart } from "@/components/agent/agent-tool-part";
 import type { TurnNotice } from "@/components/agent/hooks/use-agent-session";
 import type { AgentUIMessage } from "@/components/agent/types";
 import { Button } from "@/components/ui/button";
@@ -30,7 +31,7 @@ function UsageLine({
       <div className="flex flex-wrap items-center gap-2 text-xs text-amber-700 dark:text-amber-400">
         <span>La respuesta se cortó antes de terminar.</span>
         {onRetry && (
-          <Button variant="outline" size="sm" className="h-11 sm:h-7" onClick={onRetry}>
+          <Button variant="outline" size="sm" className="h-11 rounded-[10px] sm:h-7" onClick={onRetry}>
             <RotateCcw aria-hidden />
             Reintentar
           </Button>
@@ -41,16 +42,33 @@ function UsageLine({
   const stopped = notice === "stopped" || message.metadata?.stopped;
   if (!usage) {
     return stopped ? (
-      <p className="text-[11px] text-muted-foreground">Respuesta detenida · sin consumo medido</p>
+      <p className="text-[11px] text-ops-text-muted">Respuesta detenida · sin consumo medido</p>
     ) : null;
   }
   return (
-    <p className="text-[11px] tabular-nums text-muted-foreground" title={formatUsageDetail(usage)}>
+    <p className="text-[11px] tabular-nums text-ops-text-muted" title={formatUsageDetail(usage)}>
       {stopped ? "Respuesta detenida · " : ""}
       {formatUsageLine(usage, message.metadata?.mode)}
     </p>
   );
 }
+
+type Block = { kind: "text"; key: string; text: string } | { kind: "tools"; key: string; parts: AgentToolUIPart[] };
+
+// Las partes visibles en bloques: cada texto por su lado y las tools seguidas
+// juntas (sus chips en una fila). El razonamiento y los marcadores de paso no
+// se muestran.
+const toBlocks = (message: AgentUIMessage) =>
+  message.parts.reduce<Block[]>((blocks, part, index) => {
+    if (part.type === "text") {
+      if (part.text.trim()) blocks.push({ kind: "text", key: `text-${index}`, text: part.text });
+    } else if (isStaticToolUIPart(part)) {
+      const last = blocks.at(-1);
+      if (last?.kind === "tools") last.parts.push(part);
+      else blocks.push({ kind: "tools", key: part.toolCallId, parts: [part] });
+    }
+    return blocks;
+  }, []);
 
 export function AgentMessage({
   message,
@@ -69,34 +87,37 @@ export function AgentMessage({
       <div className="flex justify-end">
         <div
           className={cn(
-            "max-w-[85%] space-y-1 rounded-2xl rounded-br-sm bg-primary px-3 py-2 text-sm text-primary-foreground",
+            "max-w-[80%] space-y-1.5 rounded-[18px] rounded-br-md bg-ops-bamboo-strong px-3.5 py-2.5 text-[14.5px] leading-normal text-ops-surface",
             images.length > 1 && "w-72"
           )}
         >
           {skill && skill !== "general" && (
-            <span className="inline-flex rounded-full bg-primary-foreground/15 px-2 py-0.5 text-[11px] font-medium">
+            <span className="inline-flex rounded-full bg-ops-surface/15 px-2 py-0.5 text-[11px] font-medium">
               {AGENT_SKILLS[skill].label}
             </span>
           )}
           <AgentMessageImages images={images} />
-          {text && <p className="whitespace-pre-wrap break-words">{text}</p>}
+          {text && <p className="whitespace-pre-wrap break-words text-pretty">{text}</p>}
         </div>
       </div>
     );
   }
 
-  // Texto como Markdown y tools como chip más tarjeta. El razonamiento y los
-  // marcadores de paso no se muestran.
+  // Texto como Markdown y tools como chips más tarjetas, con el logo al lado
+  // si hay lugar (en el teléfono no).
   return (
-    <div className="space-y-2">
-      {message.parts.map((part, index) => {
-        if (part.type === "text") {
-          return part.text.trim() ? <AgentMarkdown key={index} content={part.text} /> : null;
-        }
-        if (isStaticToolUIPart(part)) return <AgentToolPart key={part.toolCallId} part={part} />;
-        return null;
-      })}
-      <UsageLine message={message} notice={notice} onRetry={onRetry} />
+    <div className="flex items-start gap-3">
+      <AgentLogoTile size="sm" className="hidden @lg/thread:grid" />
+      <div className="min-w-0 flex-1 space-y-3">
+        {toBlocks(message).map((block) =>
+          block.kind === "text" ? (
+            <AgentMarkdown key={block.key} content={block.text} />
+          ) : (
+            <AgentToolRun key={block.key} parts={block.parts} />
+          )
+        )}
+        <UsageLine message={message} notice={notice} onRetry={onRetry} />
+      </div>
     </div>
   );
 }

@@ -1,9 +1,8 @@
 import { Calculator, FileText } from "lucide-react";
-import Link from "next/link";
 
 import type { BudgetEditorTarget } from "@/components/agent/hooks/use-budget-editor";
 import { AgentBudgetActions } from "@/components/agent/cards/agent-budget-actions";
-import { AgentCard, CardNote, CardRow } from "@/components/agent/cards/agent-card";
+import { AgentCard, CardNote, CardOpenLink, CardRow } from "@/components/agent/cards/agent-card";
 import { formatHours, formatMoney, formatPercent, formatVisits } from "@/components/agent/format";
 import type { BudgetTotalsCardData } from "@/components/agent/types";
 import type { BudgetCalculation } from "@/lib/agent/budget-calculation";
@@ -61,7 +60,7 @@ export function BudgetPriceTable({ calculation }: { calculation: BudgetCalculati
   return (
     <table className="w-full text-sm tabular-nums">
       <thead>
-        <tr className="text-xs text-muted-foreground">
+        <tr className="text-xs text-ops-text-muted">
           <th className="py-1 text-left font-normal">Precio mensual</th>
           {options.map((option) => (
             <th key={option.label} className="py-1 text-right font-normal">{option.label}</th>
@@ -71,7 +70,7 @@ export function BudgetPriceTable({ calculation }: { calculation: BudgetCalculati
       <tbody>
         {rows.map((row) => (
           <tr key={row.key} className={row.key === "final" ? "font-semibold" : undefined}>
-            <td className="py-0.5 text-muted-foreground">{row.label}</td>
+            <td className="py-0.5 text-ops-text-muted">{row.label}</td>
             {options.map((option) => (
               <td key={option.label} className="py-0.5 text-right">{formatMoney(option.prices[row.key])}</td>
             ))}
@@ -82,9 +81,38 @@ export function BudgetPriceTable({ calculation }: { calculation: BudgetCalculati
   );
 }
 
+// El precio mensual final grande, con su base sin IVA y el IVA debajo; con
+// productos, también esa opción. A la derecha, qué cambió respecto de la base.
+function FinalPrice({ calculation, changed }: { calculation: BudgetCalculation; changed: string[] }) {
+  const { withoutProducts, withProducts } = calculation;
+  return (
+    <div className="flex flex-wrap items-end justify-between gap-3">
+      <div className="flex flex-col gap-0.5 tabular-nums">
+        <span className="text-xs text-ops-text-muted">Precio mensual final{withProducts ? " sin productos" : ""}</span>
+        <span className="text-2xl leading-tight font-semibold tracking-tight">{formatMoney(withoutProducts.final)}</span>
+        <span className="text-xs text-ops-text-muted">
+          {formatMoney(withoutProducts.net)} sin IVA · IVA {formatPercent(calculation.ivaPercent)} {formatMoney(withoutProducts.iva)}
+        </span>
+        {withProducts && (
+          <span className="text-xs text-ops-text-muted">
+            Con productos: <span className="font-semibold text-ops-text">{formatMoney(withProducts.final)}</span> ·{" "}
+            {formatMoney(withProducts.net)} sin IVA
+          </span>
+        )}
+      </div>
+      {changed.length > 0 && (
+        <span className="inline-flex items-center rounded-full border border-ops-bamboo/35 bg-ops-bamboo-soft px-2.5 py-0.5 text-xs font-medium text-ops-bamboo-strong">
+          Cambia: {changed.join(", ")}
+        </span>
+      )}
+    </div>
+  );
+}
+
 function CostBreakdown({ calculation }: { calculation: BudgetCalculation }) {
   return (
-    <div className="grid gap-x-6 gap-y-0.5 text-xs sm:grid-cols-2">
+    <div className="grid gap-x-5 gap-y-1 rounded-[10px] bg-ops-canvas px-3 py-2.5 text-xs sm:grid-cols-2">
+      <CardRow label="Hora sin IVA" value={formatMoney(calculation.withoutProducts.hourlyNet)} />
       <CardRow label="Horas del mes" value={formatHours(calculation.totalHours)} />
       <CardRow label="Costo laboral" value={formatMoney(calculation.laborCost)} />
       <CardRow label="Aportes" value={formatMoney(calculation.contributions)} />
@@ -110,15 +138,9 @@ export function AgentBudgetTotalsCard({ data, toolCallId }: { data: BudgetTotals
       icon={saved ? FileText : Calculator}
       title={saved ? name : `Cálculo · ${name}`}
       subtitle={saved ? describeInputs(data.inputs) : `${BASE_LABELS[data.base.source]} · ${describeInputs(data.inputs)}`}
-      aside={
-        slug ? (
-          <Link href={getBudgetUrl(slug)} className="shrink-0 text-xs text-primary underline-offset-4 hover:underline">
-            Abrir
-          </Link>
-        ) : null
-      }
+      aside={slug ? <CardOpenLink href={getBudgetUrl(slug)} /> : null}
     >
-      {changed.length > 0 && <CardNote>Cambia: {changed.join(", ")}.</CardNote>}
+      <FinalPrice calculation={data.calculation} changed={changed} />
       {rounding && (
         <CardNote>
           Precio redondeado: {formatMoney(rounding.from)} → {formatMoney(rounding.to)} sin IVA, con margen{" "}
@@ -132,7 +154,6 @@ export function AgentBudgetTotalsCard({ data, toolCallId }: { data: BudgetTotals
             : `Margen necesario: ${formatPercent(target.revenuePercent)}.`}
         </CardNote>
       )}
-      <BudgetPriceTable calculation={data.calculation} />
       <CostBreakdown calculation={data.calculation} />
       {data.card === "budget-totals" && <AgentBudgetActions target={calculationTarget(data, toolCallId)} showSaved />}
     </AgentCard>

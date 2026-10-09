@@ -395,6 +395,23 @@
         "Focused checks, TypeScript, init.ps1, build and an authenticated browser smoke of dictation and images are recorded"
       ],
       "status": "done"
+    },
+    {
+      "id": 24,
+      "name": "agent_redesign",
+      "title": "Redesign the agent page and the installed-app navigation from the claude-design mock (2a desktop, 2b iPhone)",
+      "area": "agent",
+      "description": "Apply the design \"Agente Bambu 2a-2b\": on desktop, a conversation column with search, new button, pinned/Hoy/Ayer/Anteriores groups and the monthly AI cost, a lighter chat header, the mode selector inside the composer and restyled messages, tool chips and cards. On the iPhone app, the agent history is the home of the Agente tab and a conversation opens full screen without tabs (back with Agente or an edge swipe), rows swipe to Fijar/Renombrar/Borrar, and the bottom tabs float as a translucent pill across the whole installed app.",
+      "acceptance": [
+        "Conversations can be pinned and unpinned (additive migration with pinnedAt, applied to Neon with the user permission); pinned ones come first in every history",
+        "Desktop page matches 2a: list column with search, + new, groups Fijados/Hoy/Ayer/Anteriores, row menu (Fijar, Renombrar, Borrar) and Costos de IA with the month total; header with title, budget link, conversation cost and a menu",
+        "The composer has the text on top and a bottom row with +, the mode selector with its per-message estimate, mic and a round send/stop button, in the page and the Sheet; dictation keeps the ChatGPT-style waveform",
+        "Messages, tool chips, cards, empty state, thinking and error follow the mock with ops tokens (dark mode keeps working)",
+        "Narrow panel / installed app follows 2b: history as home with large title, grouped rows with swipe actions and costs link; the chat is full screen without tabs with back to Agente and an edge swipe",
+        "Bottom tabs are a floating translucent pill in the whole installed app, content and toasts stay clear of it",
+        "init.ps1, tsc, build, agent checks and a browser smoke of desktop and mobile layouts are recorded"
+      ],
+      "status": "done"
     }
   ]
 }

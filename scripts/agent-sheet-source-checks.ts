@@ -127,7 +127,7 @@ assert.match(usage, /priced: _sum\.costUsd !== null/);
 assert.match(usage, /unpricedEvents: group\._count\._all - group\._count\.costUsd/);
 assert.match(read("components/agent/agent-cost-sections.tsx"), /row\.priced \? formatUsd\(row\.costUsd\) :/);
 assert.match(read("actions/agent/conversations.ts"), /unpricedEvents: costs\[conversation\.id\]\?\.unpricedEvents \?\? 0,/);
-assert.match(read("components/agent/agent-conversation-row.tsx"), /conversation\.unpricedEvents > 0 && " \+ sin precio"/);
+assert.match(read("components/agent/agent-conversation-row.tsx"), /conversation\.unpricedEvents > 0 \? " \+ sin precio" : ""/);
 
 // --- The email card copies through the shared formatter (email, WhatsApp).
 assert.match(read("components/agent/cards/agent-copy-menu.tsx"), /getChatCopyPayload\(content, format\)/);

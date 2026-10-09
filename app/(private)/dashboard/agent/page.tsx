@@ -8,12 +8,11 @@ import { cn } from "@/lib/utils";
 function AgentPageFallback() {
   return (
     <div
-      className={cn("flex w-full max-w-7xl flex-col gap-3", agentPageFullScreen)}
+      className={cn("flex w-full max-w-7xl flex-col", agentPageFullScreen)}
       aria-busy="true"
       aria-label="Cargando el agente"
     >
-      <Skeleton className="h-8 w-40 app-tabs:hidden" />
-      <Skeleton className="h-[calc(100dvh-13rem-var(--bottom-tabs-space))] min-h-[28rem] w-full rounded-xl app-tabs:h-full app-tabs:min-h-0 app-tabs:rounded-none" />
+      <Skeleton className="h-[calc(100dvh-9.5rem-var(--bottom-tabs-space))] min-h-[32rem] w-full rounded-xl md:h-[calc(100dvh-9rem)] app-tabs:h-full app-tabs:min-h-0 app-tabs:rounded-none" />
     </div>
   );
 }

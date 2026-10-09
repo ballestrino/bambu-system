@@ -16,7 +16,7 @@ export function AgentMessageImages({ images }: { images: FileUIPart[] }) {
           href={image.url}
           target="_blank"
           rel="noreferrer"
-          className="block overflow-hidden rounded-xl bg-primary-foreground/10"
+          className="block overflow-hidden rounded-xl bg-ops-surface/10"
         >
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img

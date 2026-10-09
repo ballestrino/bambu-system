@@ -39,16 +39,16 @@ export function AgentAttachMenu({ full, onFiles }: { full: boolean; onFiles: (fi
             type="button"
             variant="ghost"
             size="icon"
-            className="size-11 shrink-0 rounded-full"
+            className="size-11 shrink-0 rounded-full text-ops-bamboo-strong hover:bg-ops-surface-muted hover:text-ops-bamboo-strong data-[state=open]:bg-ops-bamboo-soft sm:size-8 [&_svg:not([class*='size-'])]:size-[18px]"
             aria-label="Adjuntar"
           >
             <Plus aria-hidden />
           </Button>
         </DropdownMenuTrigger>
-        <DropdownMenuContent align="start" side="top">
+        <DropdownMenuContent align="start" side="top" sideOffset={10} className="w-[250px] rounded-[14px] p-1.5 shadow-[var(--ops-shadow-elevated)]">
           <DropdownMenuItem asChild disabled={full}>
-            <label htmlFor={inputId} className="cursor-pointer">
-              <ImagePlus aria-hidden />
+            <label htmlFor={inputId} className="min-h-11 cursor-pointer gap-2.5 rounded-[10px] px-2.5 text-sm font-medium">
+              <ImagePlus className="size-[18px] text-ops-bamboo-strong" aria-hidden />
               Subir imágenes
               <span className="ml-auto pl-3 text-xs text-muted-foreground">
                 {full ? "Máximo alcanzado" : `hasta ${AGENT_MAX_IMAGES}`}

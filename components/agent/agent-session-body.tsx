@@ -3,6 +3,8 @@
 import { AlertCircle } from "lucide-react";
 
 import { AgentChat } from "@/components/agent/agent-chat";
+import { AgentConversationCost } from "@/components/agent/agent-cost-badge";
+import { AgentModeSelect } from "@/components/agent/agent-mode-select";
 import type { AgentSession } from "@/components/agent/hooks/use-agent-session";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -23,7 +25,8 @@ function LoadingConversation() {
 
 // Lo que se ve según el estado de la sesión: cargando, error al abrir o la
 // conversación (con su instancia Chat, que vive en el host). Igual en el Sheet
-// y en la página.
+// y en la página. El modo va en el composer, con lo gastado en la
+// conversación al pie de su menú.
 export function AgentSessionBody({
   session,
   contextLabel,
@@ -63,6 +66,14 @@ export function AgentSessionBody({
       contextLabel={contextLabel}
       getContext={getContext}
       onProposalConfirmed={onProposalConfirmed}
+      composerTools={
+        <AgentModeSelect
+          mode={session.mode}
+          modes={session.modes}
+          onChange={session.changeMode}
+          footer={<AgentConversationCost conversationId={session.conversationId} persisted={session.persisted} />}
+        />
+      }
     />
   );
 }

@@ -15,6 +15,13 @@ Status: idle
 
 ## Last Closed Work
 
+- 2026-10-08: rediseño del agente (24), diseño de claude-design "Agente
+  Bambu 2a-2b": columna del historial con grupos (Fijados, Hoy, Ayer,
+  Anteriores) y costo del mes, modo dentro del composer, mensajes y tarjetas
+  nuevas; en el teléfono el historial es el inicio y la conversación va a
+  pantalla completa sin tabs; tabs flotantes en toda la app instalada.
+  Migración aditiva `pinnedAt` aplicada en Neon. Mergeada y pusheada a `main`
+  con autorización del 2026-10-08.
 - 2026-10-08: ajuste de la 23, dictado estilo ChatGPT: el "+" desaparece
   mientras graba, onda de la voz, ■ deja el texto y ➤ lo envía. Mergeado y
   pusheado a `main` con autorización del 2026-10-08.

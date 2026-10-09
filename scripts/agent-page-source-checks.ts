@@ -42,8 +42,25 @@ assert.match(host, /useAgentSession\(\{ scope: ALL_AGENT_CONVERSATIONS \}\)/);
 assert.match(host, /useAgentPageUrl\(session\)/);
 assert.match(host, /getContext=\{\(\) => pageBudgetContext\(budget\)\}/);
 assert.match(host, /const budget = session\.conversation\?\.budget \?\? null;/);
-assert.match(host, /<AgentConversationList[\s\S]*?showBudget[\s\S]*?onDeleted=\{session\.onConversationDeleted\}/);
-assert.match(host, /<AgentHistoryDialog[\s\S]*?scope=\{ALL_AGENT_CONVERSATIONS\}/);
+assert.match(host, /const listProps = \{[\s\S]*?showBudget: true,[\s\S]*?onDeleted: session\.onConversationDeleted,/);
+
+// --- Design 2a/2b (feature 24): with room, the history column next to the
+// chat; without it, the history is the home screen and a conversation opens
+// full screen. The phone list and the column are the same component.
+assert.match(host, /<AgentConversationList \{\.\.\.listProps\} \/>/);
+assert.match(host, /<AgentConversationList \{\.\.\.listProps\} variant="stack" \/>/);
+assert.match(host, /page\.view === "chat" \? "flex" : "hidden @4xl\/panel:flex"/);
+assert.match(host, /useEdgeSwipeBack<HTMLElement>\(page\.showList, page\.view === "chat"\)/);
+assert.match(read("components/agent/hooks/use-agent-page-view.ts"), /useState<AgentPageView>\(urlId \? "chat" : "list"\)/);
+assert.match(read("components/agent/hooks/use-edge-swipe-back.ts"), /matchMedia\("\(display-mode: standalone\)"\)\.matches/);
+// In the installed app a conversation hides the tabs; the list leaves room
+// for the floating ones.
+const css = read("app/globals.css");
+assert.match(css, /:root\[data-agent-view="chat"\] \{\n\s+--bottom-tabs-space: 0px;/);
+assert.match(css, /:root\[data-agent-view="chat"\] \[data-bottom-tabs\] \{\n\s+display: none;/);
+assert.match(read("components/agent/agent-page-full-screen.ts"), /app-tabs:bottom-0/);
+assert.match(read("components/agent/agent-conversation-list.tsx"), /app-tabs:pb-\[calc\(var\(--bottom-tabs-space\)\+1\.5rem\)\]/);
+assert.match(read("components/nav/bottom-tabs.tsx"), /fixed inset-x-3\.5 bottom-\(--bottom-tabs-offset\) z-50/);
 // The history dialog of the page shows each row's budget, and the header links
 // to the budget of the open conversation.
 assert.match(read("components/agent/agent-history-dialog.tsx"), /showBudget=\{scope\.kind === "all"\}/);
@@ -78,6 +95,11 @@ const listRead = declaration(data, "export const getAgentConversations", "export
 assert.match(listRead, /const session = await requireAdminSession\(\);[\s\S]*?userId: session\.user\.id,/);
 assert.match(listRead, /\.\.\.\(all \? \{\} : \{ budgetId: budgetId \?\? null \}\)/);
 assert.match(listRead, /take: conversationListLimit\(all\),/);
+// Pinned ones first, so they fit in the limit however old they are.
+assert.match(listRead, /orderBy: \[\{ pinnedAt: \{ sort: "desc", nulls: "last" \} \}, \{ updatedAt: "desc" \}\],/);
+// Pinning is the user's own conversation only.
+const pinAction = declaration(read("actions/agent/conversations.ts"), "export const setAgentConversationPinned", "export const");
+assert.match(pinAction, /where: \{ id: parsed\.data\.id, userId: session\.user\.id \},\n\s+data: \{ pinnedAt: parsed\.data\.pinned \? new Date\(\) : null \},/);
 assert.match(data, /budget: \{ select: \{ id: true, name: true, slug: true \} \}/);
 const list = read("components/agent/agent-conversation-list.tsx");
 assert.match(list, /matches\(\[conversation\.title, showBudget \? conversation\.budget\?\.name : null\]\)/);
@@ -96,6 +118,8 @@ assert.match(session, /const persisted = conversation !== null;/);
 // The Sheet keeps its behavior with the scope: create starts a new one (only
 // a budget resumes its latest), and deleting the open one starts a new one.
 assert.match(session, /if \(scope\.kind !== "budget"\) return startNew\(\);/);
+// A budget resumes the last touched conversation, not the first pinned one.
+assert.match(session, /\.then\(latestConversationId, \(\) => null\);/);
 assert.match(session, /if \(deletedId === id\) startNew\(\);/);
 
 // --- Size and harness state.
@@ -105,6 +129,18 @@ assert.match(session, /if \(deletedId === id\) startNew\(\);/);
   "components/agent/agent-page-header.tsx",
   "components/agent/agent-conversation-list.tsx",
   "components/agent/hooks/use-agent-page-url.ts",
+  "components/agent/hooks/use-agent-page-view.ts",
+  "components/agent/hooks/use-edge-swipe-back.ts",
+  "components/agent/hooks/use-swipe-reveal.ts",
+  "components/agent/hooks/use-conversation-actions.tsx",
+  "components/agent/agent-conversation-groups.tsx",
+  "components/agent/agent-conversation-row.tsx",
+  "components/agent/agent-conversation-stack-row.tsx",
+  "components/agent/agent-conversation-menu.tsx",
+  "components/agent/agent-mode-select.tsx",
+  "components/agent/agent-composer.tsx",
+  "components/agent/agent-message.tsx",
+  "lib/agent/conversation-groups.ts",
   "lib/agent/conversation-scope.ts",
   "lib/agent/page-url.ts",
 ].forEach((path) => assert.ok(lines(path) <= 200, `${path} supera las 200 líneas`));

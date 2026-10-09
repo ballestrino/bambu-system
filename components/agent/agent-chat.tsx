@@ -39,6 +39,7 @@ export function AgentChat({
   contextLabel,
   getContext,
   onProposalConfirmed,
+  composerTools,
 }: {
   conversationId: string;
   chat: Chat<AgentUIMessage>;
@@ -47,6 +48,8 @@ export function AgentChat({
   contextLabel: string;
   getContext: () => AgentBudgetContextInput | undefined;
   onProposalConfirmed?: (result: ProposalResult | null) => void;
+  // Lo que va junto al "+" del composer: el modo.
+  composerTools?: React.ReactNode;
 }) {
   const view = useAgentChat({ chat, mode, getContext });
   const proposals = useAgentProposals(conversationId, hasProposalParts(view.messages));
@@ -84,11 +87,12 @@ export function AgentChat({
         )}
         <div
           data-agent-composer
-          className="border-t px-4 pt-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] in-data-agent-page:app-tabs:pb-3"
+          className="px-3 pt-2 pb-[max(0.75rem,env(safe-area-inset-bottom))] sm:px-6 sm:pb-5 @2xl/chat:px-8"
         >
-          <div className="mx-auto max-w-3xl">
+          <div className="mx-auto max-w-[720px]">
             <AgentComposer
               busy={view.busy}
+              tools={composerTools}
               voiceRequest={() => ({ mode, conversationId })}
               onSend={({ text, files }) => view.send(text, DEFAULT_AGENT_SKILL, files)}
               onStop={view.stop}

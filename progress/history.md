@@ -859,3 +859,36 @@
   `check:agent-sheet` y `check:agent-tools`.
 - Sin prueba en el navegador del agente: el usuario pidió hacerla él y la
   cerró el 2026-10-08.
+
+## 2026-10-08 - Feature 24 rediseño del agente
+
+- Pedido del usuario: implementar el diseño de claude-design "Agente Bambu
+  2a-2b" (2a escritorio, 2b iPhone).
+- Decisiones del usuario: fijar con migración aditiva; el dictado sigue con
+  el estilo ChatGPT (no el "Grabando" con ✕ y ✓ del diseño); tabs flotantes
+  en toda la app instalada.
+- Escritorio (2a):
+  - Columna del historial con búsqueda, "+", grupos Fijados, Hoy, Ayer y
+    Anteriores (`lib/agent/conversation-groups.ts`) y "Costos de IA · US$ x
+    este mes".
+  - Cabecera con título, presupuesto con link, costo y un "…" con Nueva
+    conversación, Costos de IA, Fijar, Renombrar y Borrar.
+  - El modo pasó al composer (también en el Sheet); mensajes, chips en fila,
+    tarjetas, vacío, error y "Pensando…" con los tokens ops.
+- Teléfono (2b): el historial es el inicio; la conversación va a pantalla
+  completa sin tabs, se vuelve con "‹ Agente" o deslizando desde el borde
+  (solo en la app instalada); las filas se deslizan para Fijar, Renombrar y
+  Borrar.
+- Tabs inferiores: píldora translúcida flotante; `--bottom-tabs-space` y
+  `--bottom-tabs-offset` en `app/globals.css`.
+- Migración aditiva `20261008200000_agent_conversation_pinned`, aplicada en
+  Neon con permiso del usuario.
+- PASS:
+  - `init.ps1`, `tsc`, `pnpm build` y los checks del agente (page con los
+    grupos, sheet, attachments, tools, proposals, budget-editor, pricing,
+    cost-estimate)
+  - smoke en el Chrome del usuario: escritorio claro y oscuro, menú del modo,
+    fijar y desfijar una conversación, vista de 390 px y el Sheet
+  - prueba del usuario en su iPhone por Wi-Fi contra `pnpm dev`
+- Queda fuera: la marca verde del borde que el diseño usa para señalar el
+  gesto de volver.
