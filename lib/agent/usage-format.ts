@@ -1,7 +1,8 @@
 import type { TurnUsageSummary } from "@/lib/agent/usage-collector";
 import {
+  LEGACY_MODE_LABELS,
   REASONING_LABELS,
-  formatAgentModeLabel,
+  formatModelLabel,
   type AgentReasoning,
   type RecordedAgentMode,
 } from "@/lib/ai/modes";
@@ -10,15 +11,7 @@ import { formatUsd } from "@/lib/ai/pricing";
 // Cómo se muestran el modelo, los tokens y el costo en el Sheet. Puro: lo
 // usan la línea de uso, el badge, los diálogos y el check.
 
-// "gpt-6-luna" → "Luna 6", "gpt-5.6-luna" → "Luna 5.6": el historial tiene
-// las dos generaciones. Con el gateway llega "openai/gpt-6-luna". Otro modelo
-// se muestra con su id, sin el proveedor.
-export const formatModelLabel = (modelId: string | null | undefined) => {
-  if (!modelId) return "Modelo desconocido";
-  const bare = modelId.split("/").pop() || modelId;
-  const [, version, family] = bare.match(/^gpt-(6\.1|6|5\.6)-([a-z]+)$/) ?? [];
-  return family ? `${family[0].toUpperCase()}${family.slice(1)} ${version}` : bare;
-};
+export { formatModelLabel };
 
 // "Luna 6 Extra alto". Los consumos anteriores al 2026-09-23 no guardaron el
 // razonamiento y se muestran solo con el modelo.
@@ -50,11 +43,20 @@ export const formatUsageCost = (usage: { costUsd: number | null; priced: boolean
   return "precio no configurado";
 };
 
-// "Luna 6 · Medio · 3,2k tokens · US$ 0,03"
+// Lo que va después del modelo: el esfuerzo del turno ("Alto") o, en los
+// mensajes anteriores al 2026-10-09, el nombre del modo con que se pidió.
+const formatTurnEffort = (usage: TurnUsageSummary, mode?: RecordedAgentMode) => {
+  if (usage.reasoning && Object.hasOwn(REASONING_LABELS, usage.reasoning)) {
+    return REASONING_LABELS[usage.reasoning];
+  }
+  return mode ? (LEGACY_MODE_LABELS[mode] ?? null) : null;
+};
+
+// "Haiku 5.5 · Alto · 3,2k tokens · US$ 0,03"
 export const formatUsageLine = (usage: TurnUsageSummary, mode?: RecordedAgentMode) =>
   [
     formatModelLabel(usage.modelId),
-    mode ? formatAgentModeLabel(mode) : null,
+    formatTurnEffort(usage, mode),
     `${formatTokenCount(usage.tokens.total)} tokens`,
     formatUsageCost(usage),
   ]

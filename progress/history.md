@@ -892,3 +892,30 @@
   - prueba del usuario en su iPhone por Wi-Fi contra `pnpm dev`
 - Queda fuera: la marca verde del borde que el diseño usa para señalar el
   gesto de volver.
+
+## 2026-10-09 - Feature 25 Claude como proveedor del agente
+
+- `@ai-sdk/anthropic` 4.0.75 con `ANTHROPIC_API_KEY` (o el gateway). Modos
+  nuevos: `haiku_high` (recomendado y por defecto), `haiku_xhigh`,
+  `sonnet_high` y `opus_medium`; los de OpenAI (Bajo, Medio, Alto) no cambian.
+- Composer: menú de modelo agrupado por proveedor (Claude y ChatGPT) con costo
+  por mensaje y "Recomendado" en Haiku 5.5, y menú de esfuerzo con los de ese
+  modelo. Un modelo sin clave se ve deshabilitado; sin clave de Anthropic el
+  default es Bajo.
+- Claude va con pensamiento adaptativo resumido, el esfuerzo del modo, caché
+  de prompts, sin tools en paralelo, `drop_block` y fallback del servidor en
+  Opus/Sonnet. No se le reenvía el razonamiento de turnos anteriores (el
+  historial del agente no es append-only).
+- Precios oficiales de Claude (2026-10-09) en `MODEL_PRICES`. Los mensajes
+  nuevos guardan el esfuerzo en la línea de uso ("Haiku 5.5 · Alto").
+- Migración aditiva `20261009150000_agent_claude_modes`, aplicada en Neon con
+  permiso del usuario.
+- PASS:
+  - `init.ps1` con build, `tsc`, lint, `check:ai-gateway` (con
+    `scripts/ai-claude-checks.ts`) y los checks del agente
+  - selector en el Chrome del usuario (escritorio, sin elegir nada)
+  - llamadas reales a la API sin tocar la base: Haiku Alto con tool y caché,
+    Haiku Extra alto con historial y razonamiento, salida estructurada en
+    Sonnet y Opus; sin avisos, menos de US$ 0,01
+- Queda: el smoke en la app lo hace el usuario; la vista en el teléfono no se
+  revisó.

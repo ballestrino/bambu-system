@@ -15,6 +15,11 @@ Status: idle
 
 ## Last Closed Work
 
+- 2026-10-09: Claude como proveedor del agente (25): Haiku 5.5 Alto (default
+  y recomendado) y Extra alto, Sonnet 5.5 Alto y Opus 5.5 Medio, con selector
+  de modelo y esfuerzo y costo por mensaje. Migración aditiva aplicada en
+  Neon. Mergeada y pusheada a `main` con autorización del 2026-10-09. El
+  smoke en la app lo hace el usuario.
 - 2026-10-08: rediseño del agente (24), diseño de claude-design "Agente
   Bambu 2a-2b": columna del historial con grupos (Fijados, Hoy, Ayer,
   Anteriores) y costo del mes, modo dentro del composer, mensajes y tarjetas

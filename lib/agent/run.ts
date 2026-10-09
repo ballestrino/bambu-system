@@ -6,6 +6,7 @@ import type { ResolvedBudgetContext } from "@/lib/agent/context";
 import type { Grounding } from "@/lib/agent/grounding";
 import type { AgentUIMessage } from "@/lib/agent/messages";
 import { inlineHistoryImages } from "@/lib/agent/model-attachments";
+import { prepareHistoryForModel } from "@/lib/agent/model-history";
 import { getAgentSkill, resolveSkillToolNames, type AgentSkillId } from "@/lib/agent/skills";
 import { createAgentTools } from "@/lib/agent/tools";
 import type { AgentUsageCollector } from "@/lib/agent/usage-collector";
@@ -52,11 +53,12 @@ export const runAgentTurn = async (input: {
     ...settings,
     instructions: input.instructions,
     // Las imágenes recientes van con sus bytes: el modelo no puede leer la
-    // ruta que las sirve.
-    messages: await convertToModelMessages(await inlineHistoryImages(input.messages, input.actorId), {
-      tools,
-      ignoreIncompleteToolCalls: true,
-    }),
+    // ruta que las sirve. A Claude no se le reenvía el razonamiento de turnos
+    // anteriores (ver lib/agent/model-history.ts).
+    messages: await convertToModelMessages(
+      await inlineHistoryImages(prepareHistoryForModel(input.messages, spec.modelId), input.actorId),
+      { tools, ignoreIncompleteToolCalls: true }
+    ),
     tools,
     // Todas registradas (el historial puede traer tools de otra habilidad),
     // solo las de la habilidad disponibles para este turno.

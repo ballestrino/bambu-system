@@ -5,14 +5,14 @@ import { FileText, MoreHorizontal, Sparkles } from "lucide-react";
 import { AgentConversationMenu, type ConversationActionHandler } from "@/components/agent/agent-conversation-menu";
 import type { AgentConversationItem } from "@/components/agent/types";
 import { conversationActivity, formatConversationTime } from "@/lib/agent/conversation-groups";
-import { AGENT_MODES } from "@/lib/ai/modes";
+import { formatAgentModeLabel } from "@/lib/ai/modes";
 import { formatUsd } from "@/lib/ai/pricing";
 import { cn } from "@/lib/utils";
 
-// El modo y lo gastado. Como el badge: el uso sin precio no se muestra como
+// El modelo y el esfuerzo ("Haiku 5.5 Alto") y lo gastado. Como el badge: el uso sin precio no se muestra como
 // US$ 0,00.
 export const conversationCostLabel = (conversation: AgentConversationItem) =>
-  `${AGENT_MODES[conversation.mode].label} · ${formatUsd(conversation.costUsd)}${
+  `${formatAgentModeLabel(conversation.mode)} · ${formatUsd(conversation.costUsd)}${
     conversation.unpricedEvents > 0 ? " + sin precio" : ""
   }`;
 

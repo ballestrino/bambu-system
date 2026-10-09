@@ -10,7 +10,7 @@ import {
   formatTokenCount,
   USAGE_KIND_LABELS,
 } from "@/lib/agent/usage-format";
-import { formatAgentModeLabel } from "@/lib/ai/modes";
+import { LEGACY_MODE_LABELS } from "@/lib/ai/modes";
 import { formatUsd } from "@/lib/ai/pricing";
 
 type CostRow = { key: string; label: string; detail: string; usage: string; costUsd: number; priced: boolean };
@@ -113,14 +113,20 @@ export function ConversationCostSection({ cost }: { cost: AgentConversationCost 
   );
 }
 
-// El gasto del equipo en el mes, por modelo, razonamiento y modo ("Luna 6
-// Extra alto · Medio"), con los títulos aparte y las conversaciones que más
-// gastaron (el título solo de las propias).
+// El gasto del equipo en el mes, por modelo, razonamiento y modo ("Haiku 5.5
+// Alto"; los modos de antes llevan su nombre: "Luna 6 Extra alto · Bajo"),
+// con los títulos aparte y las conversaciones que más gastaron (el título
+// solo de las propias).
 export function MonthlyCostSection({ cost }: { cost: AgentMonthlyCost }) {
   if (!cost.rows.length) return <p className="text-xs text-muted-foreground">Sin consumo en este mes.</p>;
   const rows = cost.rows.map((row) => ({
     key: `${row.modelId}-${row.reasoning}-${row.mode}-${row.task}`,
-    label: `${formatModelWithReasoning(row.modelId, row.reasoning)} · ${row.task === "chat" ? formatAgentModeLabel(row.mode) : MONTHLY_TASK_LABELS[row.task]}`,
+    label: [
+      formatModelWithReasoning(row.modelId, row.reasoning),
+      row.task === "chat" ? LEGACY_MODE_LABELS[row.mode] : MONTHLY_TASK_LABELS[row.task],
+    ]
+      .filter(Boolean)
+      .join(" · "),
     detail: countEventsByKind(row.eventsByKind),
     usage: formatUsageAmounts(row),
     costUsd: row.costUsd,

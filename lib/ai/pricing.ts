@@ -56,6 +56,30 @@ export const MODEL_PRICES: Readonly<Record<string, ModelPrice>> = {
     cacheWritePerMillion: 5,
     outputPerMillion: 20,
   },
+  // Claude, de https://platform.claude.com/docs/en/about-claude/pricing
+  // (2026-10-09). La escritura es la de 5 minutos (1,25 veces la entrada), la
+  // que usa el agente. Opus 5.5 y Sonnet 5.5 leen de caché a 0,05 veces la
+  // entrada, Haiku 5.5 a 0,1. Haiku 5.5 cobra 5 veces más con prompts de más
+  // de 100K tokens; no se modela porque el agente recorta el historial muy por
+  // debajo.
+  "claude-haiku-5-5": {
+    inputPerMillion: 0.1,
+    cachedInputPerMillion: 0.01,
+    cacheWritePerMillion: 0.125,
+    outputPerMillion: 0.5,
+  },
+  "claude-sonnet-5-5": {
+    inputPerMillion: 2,
+    cachedInputPerMillion: 0.1,
+    cacheWritePerMillion: 2.5,
+    outputPerMillion: 10,
+  },
+  "claude-opus-5-5": {
+    inputPerMillion: 4,
+    cachedInputPerMillion: 0.2,
+    cacheWritePerMillion: 5,
+    outputPerMillion: 20,
+  },
 };
 
 export type UsageCost = { costUsd: number | null; priced: boolean };
@@ -92,13 +116,14 @@ const parsePriceOverride = (key: string, raw: string): ModelPrice => {
   };
 };
 
-// Con el gateway los ids de OpenAI llegan como "openai/<modelo>" y comparten
-// precio con el id directo. Un override de entorno gana sobre la tabla.
+// Con el gateway los ids llegan como "openai/<modelo>" o "anthropic/<modelo>"
+// y comparten precio con el id directo. Un override de entorno gana sobre la
+// tabla.
 export const resolveModelPrice = (
   modelId: string,
   env: AiEnv = process.env
 ): ModelPrice | null => {
-  const bareId = modelId.replace(/^openai\//, "");
+  const bareId = modelId.replace(/^(openai|anthropic)\//, "");
   for (const id of new Set([modelId, bareId])) {
     const key = getPriceEnvKey(id);
     const override = readAiEnv(env, key);

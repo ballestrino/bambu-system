@@ -412,6 +412,22 @@
         "init.ps1, tsc, build, agent checks and a browser smoke of desktop and mobile layouts are recorded"
       ],
       "status": "done"
+    },
+    {
+      "id": 25,
+      "name": "agent_claude_provider",
+      "title": "Claude as a second agent provider with a model and effort picker and per-message cost",
+      "area": "agent",
+      "description": "Add Anthropic next to OpenAI in the agent: Haiku 5.5 (high, xhigh), Sonnet 5.5 (high) and Opus 5.5 (medium) through @ai-sdk/anthropic with ANTHROPIC_API_KEY (or the gateway). The composer picks a model and then one of its efforts, each with its estimated cost per message; the OpenAI modes stay with theirs. Haiku 5.5 high is recommended and the default.",
+      "acceptance": [
+        "Four new modes (additive AgentMode enum migration, applied to Neon with the user permission) resolve to the Claude models and efforts; OpenAI modes are unchanged",
+        "The composer shows a model menu grouped by vendor with cost per message and a Recomendado badge on Haiku 5.5, and an effort menu with the efforts of the selected model and their cost",
+        "A model without its provider key is disabled with the missing variable; without ANTHROPIC_API_KEY the default mode falls back to Luna 6",
+        "Claude calls use adaptive summarized thinking with the selected effort, prompt caching, no parallel tools, drop_block for stale thinking and server fallback on Opus/Sonnet; earlier turns' thinking is not replayed to Claude",
+        "Claude usage is priced from the official table and shown in the usage line, Costos de IA and the history",
+        "check:ai-gateway and the agent checks, tsc, lint, init.ps1, build and a real Claude turn smoke are recorded"
+      ],
+      "status": "done"
     }
   ]
 }

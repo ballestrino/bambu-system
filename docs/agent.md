@@ -31,6 +31,10 @@ este documento describe lo que ya existe y se actualiza con cada feature.
 - Imágenes y dictado: el "+" del composer adjunta hasta 7 imágenes por
   mensaje y el micrófono dicta con `gpt-transcribe` (ver "Imágenes y
   dictado").
+- Claude (feature 25): Haiku 5.5 (Alto y Extra alto, el recomendado y por
+  defecto), Sonnet 5.5 (Alto) y Opus 5.5 (Medio) junto a los de OpenAI. El
+  composer elige modelo y después esfuerzo, con el costo por mensaje de cada
+  uno (ver "Modos" y "Claude").
 - El agente de correo (`lib/mail-agent/**`) no usa esta capa y no cambia.
 
 ## Núcleo
@@ -528,12 +532,33 @@ Dictado:
 
 ## Modos
 
-| Modo | Modelo | Razonamiento | Uso |
+Cada modo es un modelo con un esfuerzo. El selector del composer muestra el
+modelo (agrupado por proveedor) y después los esfuerzos de ese modelo
+(`lib/ai/model-choices.ts`), cada uno con su costo por mensaje.
+
+| Modo (id) | Modelo | Esfuerzo | Uso |
 | --- | --- | --- | --- |
-| Bajo (default) | `gpt-6-luna` | `xhigh` | Económico y razona a fondo; el de todos los días |
-| Medio | `gpt-6.1-sol` | `low` | Sol 6.1 para tareas más exigentes |
-| Alto | `gpt-6.1-sol` | `medium` | Más razonamiento para análisis y presupuestos complejos |
+| `haiku_high` (default, recomendado) | `claude-haiku-5-5` | `high` | Rápido y económico, el de todos los días |
+| `haiku_xhigh` | `claude-haiku-5-5` | `xhigh` | Haiku pensando más |
+| `sonnet_high` | `claude-sonnet-5-5` | `high` | Correos y presupuestos complejos |
+| `opus_medium` | `claude-opus-5-5` | `medium` | Análisis exigentes |
+| `bajo` | `gpt-6-luna` | `xhigh` | Económico y razona a fondo |
+| `medio` | `gpt-6.1-sol` | `low` | Sol 6.1 para tareas más exigentes |
+| `alto` | `gpt-6.1-sol` | `medium` | Más razonamiento para análisis y presupuestos complejos |
 | Título (interno) | `gpt-6-luna` | `medium` | Nombre corto de la conversación, con `after()` |
+
+- Desde el 2026-10-09 el default es Haiku 5.5 Alto. Sin `ANTHROPIC_API_KEY`
+  (o sin gateway) el default es Bajo, para que una conversación nueva no
+  falle, y los modelos de Claude se ven deshabilitados con "Falta configurar
+  ANTHROPIC_API_KEY". `AI_DEFAULT_MODE` siempre manda.
+- Al cambiar de modelo se elige su esfuerzo recomendado o el primero.
+- Bajo, Medio y Alto conservan el id y el enum: los mensajes y consumos
+  anteriores al 2026-10-09 muestran ese nombre ("Luna 6 · Medio"); los nuevos
+  guardan el esfuerzo en `usage.reasoning` y muestran "Haiku 5.5 · Alto". En
+  el historial, un modo se nombra por modelo y esfuerzo ("Haiku 5.5 Alto");
+  en el mes, las filas de los modos de antes llevan además su nombre ("Luna 6
+  Extra alto · Bajo").
+- Lo que sigue de esta sección es de la etapa con tres modos de OpenAI.
 
 - Desde el 2026-09-29, Bajo vuelve a estar activo y es el default. Los tres
   modos se aceptan en la ruta y en `AI_DEFAULT_MODE`. Una conversación
@@ -573,9 +598,10 @@ Dictado:
 
 | Archivo | Responsabilidad |
 | --- | --- |
-| `lib/ai/modes.ts` | Modos, etiquetas, defaults y spec del título. Puro |
-| `lib/ai/model-spec.ts` | `resolveModelSpec(mode, env)`, `resolveTitleModelSpec`, `resolveDefaultMode`. Puro |
-| `lib/ai/providers.ts` | `getOpenAIProvider`, `getGatewayProvider` y `resolveLanguageModel(spec)`, perezosos |
+| `lib/ai/modes.ts` | Modos, etiquetas de modelo y esfuerzo, defaults y spec del título. Puro |
+| `lib/ai/model-choices.ts` | Modelos del selector, con sus modos y el recomendado. Puro |
+| `lib/ai/model-spec.ts` | `resolveModelSpec(mode, env)`, `resolveTitleModelSpec`, `resolveDefaultMode`, `hasProviderCredentials`. Puro |
+| `lib/ai/providers.ts` | `getOpenAIProvider`, `getAnthropicProvider`, `getGatewayProvider` y `resolveLanguageModel(spec)`, perezosos |
 | `lib/ai/safety-identifier.ts` | `getAiSafetyIdentifier('agent' \| 'mail', actorId)` |
 | `lib/ai/call-settings.ts` | `buildAgentCallSettings(spec, { actorId })` |
 | `lib/ai/pricing.ts` | Tabla de precios, `estimateUsageCost`, `formatUsd`. Puro |
@@ -597,11 +623,12 @@ Reglas:
 
 | Variable | Default | Efecto |
 | --- | --- | --- |
-| `OPENAI_API_KEY` | — | Requerida con `AI_PROVIDER=openai` |
-| `AI_PROVIDER` | `openai` | `openai` (directo, Responses API) o `gateway` (Vercel AI Gateway) |
+| `OPENAI_API_KEY` | — | Requerida con `AI_PROVIDER=openai`: modos de OpenAI, título y dictado |
+| `ANTHROPIC_API_KEY` | — | Modos de Claude con `AI_PROVIDER=openai`. Sin ella se ven deshabilitados y el default es Bajo |
+| `AI_PROVIDER` | `openai` | `openai` (directo: cada modelo a su proveedor, Responses API de OpenAI o Messages API de Anthropic) o `gateway` (Vercel AI Gateway) |
 | `AI_GATEWAY_API_KEY` | — | Clave del gateway. Sin ella se usa el OIDC del proyecto de Vercel: existe en los deploys y en local después de `vercel env pull`. El token local vence a las 12 horas; vencido, la llamada falla hasta volver a correr `vercel env pull` |
-| `AI_DEFAULT_MODE` | `bajo` | `bajo`, `medio` o `alto` |
-| `AI_MODEL_<MODO>` | tabla de modos | Id del modelo de `BAJO`, `MEDIO` o `ALTO` |
+| `AI_DEFAULT_MODE` | `haiku_high` (`bajo` sin clave de Anthropic) | Cualquier id de la tabla de modos |
+| `AI_MODEL_<MODO>` | tabla de modos | Id del modelo del modo, en mayúsculas (`BAJO`, `HAIKU_HIGH`…). Un id `claude-*` va a Anthropic |
 | `AI_REASONING_<MODO>` | tabla de modos | `provider-default`, `none`, `minimal`, `low`, `medium`, `high` o `xhigh` |
 | `AI_TRANSCRIPTION_MODEL` | `gpt-transcribe` | Modelo del dictado. Siempre va directo a OpenAI con `OPENAI_API_KEY` |
 | `AI_PRICE_<MODELO>` | tabla de precios | `entrada,cacheada,salida[,escritura]` en USD por millón, con punto decimal. Sin el cuarto valor, la escritura de caché se cobra 1,25 veces la entrada, como en gpt-6 y gpt-5.6. Un campo vacío, una coma de más, hexadecimal o exponente lanzan un error |
@@ -620,12 +647,40 @@ AI_MODEL_ALTO=anthropic/claude-sonnet-5
 AI_PRICE_ANTHROPIC_CLAUDE_SONNET_5=3,0.3,15,3.75
 ```
 
-- Con el gateway, un id sin `/` se manda como `openai/<id>`: los modos que no
-  se tocan siguen en gpt-6.
+- Con el gateway, un id sin `/` se manda con el prefijo de su dueño
+  (`openai/<id>` o `anthropic/<id>`).
 - `reasoning` es agnóstico: el SDK lo traduce al equivalente de cada
-  proveedor. Las opciones `providerOptions.openai` se ignoran con otros.
-- Un proveedor directo nuevo (por ejemplo `@ai-sdk/anthropic`) es un literal
-  más en `AI_PROVIDERS` y una factory en `providers.ts`.
+  proveedor. Las opciones de un proveedor se ignoran con otros.
+- Un proveedor directo nuevo es un valor más de `AiProvider`, su dueño en
+  `getModelVendor`, su clave en `PROVIDER_KEY_NAMES` y una factory en
+  `providers.ts`, como Anthropic.
+
+## Claude
+
+- `@ai-sdk/anthropic` 4.0.75 (la última que pnpm aceptaba el 2026-10-09 por
+  `minimumReleaseAge`; ya conoce `claude-haiku-5-5`, el `effort` con `xhigh`
+  y `blockBinding`), a la Messages API con `ANTHROPIC_API_KEY`.
+- Opciones (`buildAnthropicOptions`, `lib/ai/call-settings.ts`): pensamiento
+  `adaptive` con `display: "summarized"` (se ve como el razonamiento de
+  OpenAI), el `effort` del modo, `disableParallelToolUse`, `cacheControl`
+  arriba (OpenAI cachea solo; Claude necesita la marca, y cada paso del turno
+  lee de caché lo del anterior), `metadata.userId` seudónimo y, en Opus y
+  Sonnet 5.5, `fallbacks: "default"`: un "refusal" de sus safeguards se
+  reintenta en otro modelo dentro de la llamada (Haiku no tiene fallback).
+- Claude no apaga el razonamiento: `none` y `minimal` van como `low`. Opus y
+  Sonnet 5.5 rechazan `tool_choice` forzado: el agente usa `auto`, y la salida
+  estructurada de `draftEmail` va con `output_format` nativo (el SDK lo elige
+  para estos modelos).
+- Pensamiento ligado: Claude ata cada bloque al modelo y a la conversación
+  exacta que lo produjo, y en cuentas creadas desde el 2026-08-31 reenviar un
+  bloque sobre un historial cambiado da 400. El historial del agente no es
+  append-only (propuestas vivas en el prompt y en las salidas `propose*`,
+  imágenes viejas como aviso, ventana de 24), así que
+  `prepareHistoryForModel` (`lib/agent/model-history.ts`) no le reenvía a
+  Claude el razonamiento de turnos anteriores (texto y tools sí); dentro del
+  turno el SDK lo reenvía entre pasos. Con `blockBinding: drop_block`, un
+  bloque que igual no corresponda se descarta en vez de fallar. A OpenAI no
+  le llega el razonamiento de Claude (lo saltearía con un aviso).
 
 ## Costos
 
@@ -643,6 +698,19 @@ en USD por millón de tokens:
 | `gpt-5.6-luna` | 0.20 | 0.02 | 0.25 | 1.20 |
 | `gpt-5.6-terra` | 2.00 | 0.20 | 2.50 | 12.00 |
 | `gpt-5.6-sol` | 4.00 | 0.40 | 5.00 | 20.00 |
+| `claude-haiku-5-5` | 0.10 | 0.01 | 0.125 | 0.50 |
+| `claude-sonnet-5-5` | 2.00 | 0.10 | 2.50 | 10.00 |
+| `claude-opus-5-5` | 4.00 | 0.20 | 5.00 | 20.00 |
+
+- Claude, de <https://platform.claude.com/docs/en/about-claude/pricing>
+  (2026-10-09). La escritura es la de 5 minutos (1,25 veces la entrada), la
+  que usa el agente; Opus y Sonnet 5.5 leen de caché a 0,05 veces la entrada.
+  Haiku 5.5 cobra 5 veces más con prompts de más de 100K tokens: no se modela,
+  el historial queda muy por debajo. Con el gateway, `anthropic/<id>` comparte
+  precio con el id directo.
+- El costo por mensaje del selector es el promedio real con 5 mensajes del
+  mismo modelo y esfuerzo; antes, una estimación con los tokens típicos del
+  equipo, que hasta tener uso de Claude salen de OpenAI (otro tokenizer).
 
 - gpt-5.6 queda en la tabla para volver a un modo con `AI_MODEL_*`. El precio de `gpt-5.6-sol` es promocional "at least through
   November 21, 2026", según la página de precios; si se vuelve a usar y
@@ -679,7 +747,12 @@ en USD por millón de tokens:
 
 ## Verificación
 
-- `pnpm check:ai-gateway`: modos (Bajo/default Luna 6 xhigh, Medio Sol 6.1
+- `pnpm check:ai-gateway`: los siete modos y los modelos del selector, Claude
+  directo y por gateway, el default (Haiku con clave, Bajo sin ella), las
+  credenciales por proveedor, los precios de Claude, las opciones de
+  Anthropic (esfuerzo, pensamiento, caché, fallback) y el historial sin el
+  razonamiento anterior (`scripts/ai-claude-checks.ts`); modos de OpenAI
+  (Bajo Luna 6 xhigh, Medio Sol 6.1
   low y Alto Sol 6.1 medium, los tres aceptados en ruta y entorno, una
   conversación conserva su selección, el historial conserva el modo,
   el enum de la base con todos los modos y las etiquetas de
