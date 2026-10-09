@@ -1,6 +1,6 @@
+import { isAttentionVisit } from "@/lib/ops/visit-day";
 import type { OpsOccurrence } from "@/components/ops/types";
 import { getOccurrenceEmployees } from "@/components/ops/jobs/occurrence-employees";
-import { needsOccurrenceAttention } from "@/components/ops/calendar/calendar-utils";
 
 export const ALL_CALENDAR_FILTER = "ALL";
 export const UNASSIGNED_EMPLOYEE_FILTER = "UNASSIGNED";
@@ -92,5 +92,5 @@ export const filterCalendarOccurrences = (
       return false;
     }
 
-    return !filters.attentionOnly || needsOccurrenceAttention(occurrence);
+    return !filters.attentionOnly || isAttentionVisit(occurrence);
   });

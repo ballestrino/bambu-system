@@ -11,7 +11,32 @@ Status: in_progress
   global queda visible y la tira y el mini mes navegan dentro de él; el
   Cronograma conserva arrastrar, Generar semana, huecos, disponibilidad,
   filtro L–D y PDF, y suma pines para comparar.
-- Avance: (se completa durante la sesión).
+- Avance 2026-10-09:
+  - Escritorio (3a): Agenda (tira, lista por hora, panel con detalle,
+    registro y asignación con disponibilidad), Día por empleada (mini mes,
+    atención, grilla 07–20 con línea de ahora, detalle superpuesto y modal de
+    registro) y Cronograma restilizado (pines y "Comparar fijadas", Exportar
+    en menú, Generar semana con presets de mes, "Sin asignar" como primera
+    fila; se conservan arrastrar, huecos, disponibilidad y filtro L–D).
+  - Celular (2a): encabezado compacto, píldora semanal, agenda por empleada
+    con "+", cronograma deslizable con selector de empleadas y hojas de
+    detalle, registrar, asignar, filtros y mes.
+  - Se quitaron Lista/Tarjetas, `useInfiniteVisits`, `getVisitWeekAction`,
+    los paneles viejos del calendario y `calendar-utils.ts`; el feed del
+    servidor queda para el agente.
+  - Lógica nueva en `lib/ops/visit-day.ts`, `visit-calendar.ts` y
+    `visit-availability.ts` con `check:visit-day`; `check:visits-view`,
+    `check:ops-locale`, `check:occurrence-dialog` y
+    `check:occurrence-generation` actualizados. Documentado en
+    `docs/visits.md`.
+- Verificación: `HARNESS_FULL=1 .init.ps1` (harness, Prisma, ESLint y
+  build) verde; tsc y checks de visitas, cronograma y
+  agente en verde. Smoke de solo lectura en el Chrome del usuario contra
+  `pnpm dev` (base de producción): las tres vistas a ~1270 px, celular a
+  390 px (iframe), modo claro y oscuro, pines y comparar (revertidos), hojas
+  de detalle, registrar y filtros sin guardar. Sin errores de consola.
+- Pendiente: probar registrar y asignar de verdad (escriben en producción,
+  necesita permiso o que lo pruebe el usuario) y el iPhone instalado.
 
 ## Queue
 

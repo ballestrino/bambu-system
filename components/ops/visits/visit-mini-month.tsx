@@ -16,6 +16,7 @@ export const VisitMiniMonth = ({
   dayKey,
   month,
   onPick,
+  onShiftMonth = onPick,
   size = "sm",
   todayKey,
   totals,
@@ -23,6 +24,9 @@ export const VisitMiniMonth = ({
   dayKey: string;
   month: { month: number; year: number };
   onPick: (dayKey: string) => void;
+  // Las flechas del mes van al 1 del mes vecino; la hoja del celular no se
+  // cierra con eso, solo al elegir un dia.
+  onShiftMonth?: (dayKey: string) => void;
   size?: "lg" | "sm";
   todayKey: string | null;
   totals: Map<string, VisitDayTotals>;
@@ -30,7 +34,7 @@ export const VisitMiniMonth = ({
   const large = size === "lg";
   const shift = (delta: number) => {
     const date = new Date(month.year, month.month - 1 + delta, 1);
-    onPick(monthStartKey(date.getFullYear(), date.getMonth() + 1));
+    onShiftMonth(monthStartKey(date.getFullYear(), date.getMonth() + 1));
   };
 
   return (

@@ -303,7 +303,7 @@
       "name": "ops_contextual_period",
       "title": "Show the month control only where it changes data",
       "area": "operations",
-      "description": "The operations layout renders one global month selector on every route, including pages with their own ranges, and Visits duplicates month navigation with the calendar arrows.",
+      "description": "The operations layout renders one global month selector on every route, including pages with their own ranges, and Visits duplicates month navigation with the calendar arrows. Since feature 26, Visits navigates by day and week inside the global month (strip, mini month and day arrows move it with setMonth) and has no month arrows of its own besides the mini month.",
       "acceptance": [
         "An OpsPeriodControl replaces the always-rendered global selector and appears only on Visits month views, Finance, Jobs profitability, and the employee payroll section",
         "The employee list, accruals, weekly schedule, email, and job occurrences routes do not show a month control",

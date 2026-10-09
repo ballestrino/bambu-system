@@ -7,10 +7,7 @@ import {
   updateOccurrenceScheduledTime,
 } from "@/components/ops/jobs/job-occurrence-dialog-utils";
 import { occurrenceStatusInputClass } from "@/components/ops/jobs/job-occurrence-status-field";
-import {
-  getVisitActionLabel,
-  getVisitDialogIntent,
-} from "@/components/ops/calendar/calendar-utils";
+import { getVisitAction } from "@/components/ops/visits/visit-view-model";
 import type { OpsOccurrence } from "@/components/ops/types";
 
 const assert = (condition: boolean, message: string) => {
@@ -76,8 +73,8 @@ const occurrence = {
 const completionState = getInitialOccurrenceState(occurrence, "complete");
 
 assert(
-  getVisitDialogIntent(occurrence) === "complete" &&
-    getVisitActionLabel(occurrence) === "Registrar horario",
+  getVisitAction(occurrence).kind === "registrar" &&
+    getVisitAction(occurrence).label === "Registrar horario",
   "Assigned visit without real times is not offered to register them"
 );
 assert(completionState.status === "DONE", "Register timing did not complete the visit");
@@ -97,15 +94,15 @@ assert(
   "Scheduling changed the status or prefilled actual times"
 );
 assert(
-  getVisitDialogIntent({ ...occurrence, employees: [] }) === "schedule",
+  getVisitAction({ ...occurrence, employees: [] }).kind === "asignar",
   "A visit without team was opened to complete"
 );
 assert(
-  getVisitDialogIntent({
+  getVisitAction({
     ...occurrence,
     actualEndAt: occurrence.scheduledEndAt,
     actualStartAt: occurrence.scheduledStartAt,
-  }) === "schedule",
+  }).kind === "editar",
   "A registered visit was opened to complete again"
 );
 
@@ -169,14 +166,12 @@ assert(employeeOptions[1]?.id === "archived", "Archived employee is not removabl
 
 // Every caller says what the dialog is for; the old flag is gone.
 const callers = [
-  "components/ops/calendar/calendar-agenda-panel.tsx",
   "components/ops/dashboard/dashboard-quick-actions.tsx",
   "components/ops/jobs/job-occurrences-page.tsx",
   "components/ops/jobs/job-occurrences-panel.tsx",
   "components/ops/jobs/pending-visits-panel.tsx",
   "components/ops/schedules/schedule-board.tsx",
-  "components/ops/visits/visit-item-actions.tsx",
-  "components/ops/visits/visits-page.tsx",
+  "components/ops/visits/visit-dialogs.tsx",
 ];
 
 for (const file of callers) {
@@ -193,7 +188,7 @@ for (const file of callers) {
 }
 
 assert(
-  readFileSync(callers[5], "utf8").includes('intent="schedule"'),
+  readFileSync("components/ops/schedules/schedule-board.tsx", "utf8").includes('intent="schedule"'),
   "The schedule board does not schedule"
 );
 

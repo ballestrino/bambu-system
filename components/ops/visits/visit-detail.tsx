@@ -106,17 +106,20 @@ export const VisitDetailBody = ({
 const outline = "flex flex-1 items-center justify-center gap-1.5 rounded-[10px] border border-ops-border font-semibold whitespace-nowrap text-ops-text hover:bg-ops-surface-muted";
 
 export const VisitDetailFooter = ({
+  bare = false,
   large,
   onEdit,
   onRegister,
   visit,
 }: {
+  // Sin borde ni margen propios: la hoja del celular ya pone su pie.
+  bare?: boolean;
   large?: boolean;
   onEdit: () => void;
   onRegister: () => void;
   visit: OpsOccurrence;
 }) => (
-  <div className={cn("flex flex-none gap-2 border-t border-ops-surface-muted px-5 pt-3", large ? "flex-col pb-[max(1.25rem,env(safe-area-inset-bottom))]" : "pb-4")}>
+  <div className={cn("flex flex-none gap-2", large && "flex-col", !bare && "border-t border-ops-surface-muted px-5 pt-3 pb-4")}>
     {isRegistrableVisit(visit) ? (
       <button
         className={cn(

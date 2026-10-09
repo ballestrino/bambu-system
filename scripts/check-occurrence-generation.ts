@@ -162,7 +162,6 @@ assert.match(actions, /OccurrenceGenerationSchema\.safeParse\(input\)/);
 // loads jobs and employees only while open.
 for (const path of [
   "components/ops/schedules/schedule-toolbar.tsx",
-  "components/ops/calendar/calendar-month-panel.tsx",
   "components/ops/jobs/job-schedule-rules-panel.tsx",
 ]) {
   assert.match(read(path), /<GenerateOccurrencesDialog/, path);
