@@ -15,6 +15,9 @@ Status: idle
 
 ## Last Closed Work
 
+- 2026-10-08: ajuste de la 23, dictado estilo ChatGPT: el "+" desaparece
+  mientras graba, onda de la voz, ■ deja el texto y ➤ lo envía. Mergeado y
+  pusheado a `main` con autorización del 2026-10-08.
 - 2026-10-08: dictado e imágenes en el agente (23): micrófono con
   `gpt-transcribe` (texto al composer, costo por minuto en "Costos de IA") y
   "+" para subir hasta 7 imágenes por mensaje, achicadas en el navegador y
