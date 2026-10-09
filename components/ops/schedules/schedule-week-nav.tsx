@@ -1,6 +1,6 @@
 "use client";
 
-import { CalendarCheck, ChevronLeft, ChevronRight } from "lucide-react";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 
 import {
   isBeyondGenerationHorizon,
@@ -8,15 +8,18 @@ import {
   parseScheduleWeekParam,
   shiftScheduleWeekKey,
 } from "@/lib/ops/schedule-week";
-import { Button } from "@/components/ui/button";
+import { formatWeekRange } from "@/lib/ops/visit-calendar";
+
+const arrow =
+  "flex size-8 items-center justify-center rounded-lg border border-ops-border hover:bg-ops-surface-muted disabled:opacity-40";
 
 export const ScheduleWeekNav = ({
   onWeekChange,
-  weekLabel,
+  weekEndKey,
   weekStart,
 }: {
   onWeekChange: (weekStart: string) => void;
-  weekLabel: string;
+  weekEndKey: string;
   weekStart: string;
 }) => {
   const currentKey = getScheduleWeek(new Date()).startKey;
@@ -26,44 +29,42 @@ export const ScheduleWeekNav = ({
   );
 
   return (
-    <div className="flex flex-wrap items-center gap-2">
-      <div className="flex items-center gap-1">
-        <Button
+    <div className="flex items-center gap-3">
+      <div className="flex gap-1">
+        <button
           aria-label="Semana anterior"
+          className={arrow}
           onClick={() => onWeekChange(shiftScheduleWeekKey(weekStart, -1))}
-          size="icon"
           type="button"
-          variant="outline"
         >
-          <ChevronLeft className="h-4 w-4" />
-        </Button>
-        <Button
+          <ChevronLeft className="size-4" />
+        </button>
+        <button
           aria-label="Semana siguiente"
+          className={arrow}
           disabled={isNextBlocked}
           onClick={() => onWeekChange(nextKey)}
-          size="icon"
           title={
             isNextBlocked
               ? "Las visitas recurrentes se generan hasta tres meses adelante"
               : undefined
           }
           type="button"
-          variant="outline"
         >
-          <ChevronRight className="h-4 w-4" />
-        </Button>
+          <ChevronRight className="size-4" />
+        </button>
       </div>
-      <p className="min-w-0 text-sm font-medium text-ops-text">{weekLabel}</p>
+      <span className="text-base font-semibold whitespace-nowrap text-ops-text">
+        {formatWeekRange(weekStart, weekEndKey)}
+      </span>
       {weekStart === currentKey ? null : (
-        <Button
+        <button
+          className="h-7 rounded-full bg-ops-bamboo-soft px-2.5 text-xs font-semibold whitespace-nowrap text-ops-bamboo-strong"
           onClick={() => onWeekChange(currentKey)}
-          size="sm"
           type="button"
-          variant="outline"
         >
-          <CalendarCheck className="h-4 w-4" />
           Esta semana
-        </Button>
+        </button>
       )}
     </div>
   );

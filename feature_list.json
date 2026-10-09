@@ -428,6 +428,23 @@
         "check:ai-gateway and the agent checks, tsc, lint, init.ps1, build and a real Claude turn smoke are recorded"
       ],
       "status": "done"
+    },
+    {
+      "id": 26,
+      "name": "visits_redesign",
+      "title": "Redesign the Visits page from the claude-design mock (3a desktop, 2a iPhone)",
+      "area": "operations",
+      "description": "Apply the design \"Visitas Bambu 3a-2a\": on desktop a three-view selector (Agenda with day strip, hourly list and a fixed detail panel that also registers the real time; Día por empleada with mini month, attention list and a 07-19 time grid per employee; Cronograma weekly board with pins to compare). On the phone a compact header, week strip, Agenda grouped by employee with a floating +, a Cronograma with days fixed on the left and employee columns that slide, plus bottom sheets for detail, register, assign, filters and month. Lista and Tarjetas are removed; the global month selector stays.",
+      "acceptance": [
+        "Visits offers Agenda, Día por empleada and Cronograma on desktop and Agenda and Cronograma on the phone; the old persisted views map to the new ones and Lista/Tarjetas code is removed",
+        "Agenda matches 3a: 7-day strip with counts and attention dots, Mes popover, hourly list with primary action per visit, detail panel with Equipo/Dirección/Horario real/Regla, inline register form and assign list with availability",
+        "Día por empleada matches 3a: mini month, Requiere atención hoy, time grid with Sin asignar plus employees, now line on today, overlay detail and a register dialog",
+        "Cronograma keeps drag, Generar semana, Buscar huecos, Disponibilidad, weekday filter and PDF export, restyled per 3a, and adds up to two pins with Comparar fijadas",
+        "Phone layout matches 2a with bottom sheets for detalle, registrar, asignar, filtros and mes and an employee picker for the Cronograma columns",
+        "Register and assign use updateJobOccurrence; times use America/Montevideo; dark mode keeps working with ops tokens",
+        "init.ps1, tsc, build, visit checks and a browser smoke at 1440, 1024 and 390 px are recorded"
+      ],
+      "status": "in_progress"
     }
   ]
 }

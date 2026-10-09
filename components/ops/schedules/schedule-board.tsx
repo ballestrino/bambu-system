@@ -5,21 +5,15 @@ import { CalendarRange, UsersRound } from "lucide-react";
 
 import { DAY_MINUTES, formatMinuteOfDay } from "@/lib/ops/minute-ranges";
 import type { ScheduleVisit } from "@/lib/ops/schedule-types";
+import { formatHours } from "@/lib/ops/visit-day";
 import { JobOccurrenceDialog } from "@/components/ops/jobs/job-occurrence-dialog";
 import { ScheduleAvailabilityDialog } from "@/components/ops/schedules/schedule-availability-dialog";
-import {
-  ScheduleGapFinder,
-  type ScheduleGapPick,
-} from "@/components/ops/schedules/schedule-gap-finder";
-import {
-  ScheduleGrid,
-  ScheduleList,
-  toScheduleRow,
-} from "@/components/ops/schedules/schedule-grid";
+import { ScheduleGapFinder, type ScheduleGapPick } from "@/components/ops/schedules/schedule-gap-finder";
+import { ScheduleGrid, toScheduleRow } from "@/components/ops/schedules/schedule-grid";
 import { ScheduleToolbar } from "@/components/ops/schedules/schedule-toolbar";
-import { ScheduleUnassignedRow } from "@/components/ops/schedules/schedule-unassigned-row";
 import { useScheduleCells } from "@/components/ops/schedules/use-schedule-cells";
 import { useScheduleDrag } from "@/components/ops/schedules/use-schedule-drag";
+import { useSchedulePins } from "@/components/ops/schedules/use-schedule-pins";
 import { useScheduleVisitMove } from "@/components/ops/schedules/use-schedule-visit-move";
 import { useScheduleWeek } from "@/components/ops/schedules/use-schedule-week";
 import { OpsEmptyState, OpsRecordSkeleton } from "@/components/ops/shared";
@@ -38,8 +32,9 @@ type PanelState = "availability" | "gaps" | null;
 const toLocalValue = (dateKey: string, minute: number) =>
   `${dateKey}T${formatMinuteOfDay(Math.min(minute, DAY_MINUTES - 1))}`;
 
-export const ScheduleBoard = () => {
-  const state = useScheduleWeek();
+export const ScheduleBoard = ({ initialDayKey, todayKey }: { initialDayKey?: string; todayKey: string | null }) => {
+  const state = useScheduleWeek(initialDayKey);
+  const pins = useSchedulePins();
   const [dialog, setDialog] = useState<DialogState | null>(null);
   const [panel, setPanel] = useState<PanelState>(null);
   const moveVisit = useScheduleVisitMove(state.occurrences);
@@ -78,23 +73,31 @@ export const ScheduleBoard = () => {
     if (occurrence) setDialog({ mode: "edit", occurrence });
   };
 
-  const handlers = {
-    drag,
-    getCellState: cells.getCellState,
-    onCreate: openCreate,
-    onEditVisit: openEdit,
-  };
-  const rows = state.schedule.employees.map((employee) =>
-    toScheduleRow(employee, state.visibleWeekdays)
-  );
+  const handlers = { drag, getCellState: cells.getCellState, onCreate: openCreate, onEditVisit: openEdit };
+  const unassigned = toScheduleRow({ days: state.schedule.unassigned, id: null, name: "Sin asignar" }, state.visibleWeekdays);
+  const rows = [
+    ...(unassigned.totalVisits ? [unassigned] : []),
+    ...state.schedule.employees.map((employee) =>
+      toScheduleRow({ days: employee.days, id: employee.id, name: employee.name, source: employee }, state.visibleWeekdays)
+    ),
+  ];
+  const pinnedRows = pins.pins
+    .map((id) => rows.find((row) => row.employeeId === id))
+    .filter((row) => row !== undefined);
+  const compareText = pinnedRows.length
+    ? `Comparando: ${pinnedRows.map((row) => `${row.name} ${formatHours(row.minutes)}`).join("  ·  ")}`
+    : "Fijá hasta dos empleadas con el pin";
 
   return (
-    <div className="space-y-3">
+    <section className="flex h-[max(560px,calc(100dvh-15rem))] flex-col overflow-hidden rounded-[var(--ops-radius-panel)] border border-ops-border bg-ops-surface">
       <ScheduleToolbar
+        compare={pins.compare}
+        compareText={compareText}
         employeeOptions={state.employeeOptions}
         onEmployeesChange={state.setSelectedEmployeeIds}
         onOpenAvailability={() => setPanel("availability")}
         onOpenGaps={() => setPanel("gaps")}
+        onToggleCompare={pins.toggleCompare}
         onWeekChange={state.setWeekStart}
         onWeekdaysChange={state.setVisibleWeekdays}
         occurrenceCount={state.isLoading || state.error ? undefined : state.occurrences.length}
@@ -102,11 +105,10 @@ export const ScheduleBoard = () => {
         schedule={state.schedule}
         selectedEmployeeIds={state.selectedEmployeeIds}
         visibleWeekdays={state.visibleWeekdays}
-        weekLabel={state.schedule.weekLabel}
         weekStart={state.weekStart}
       />
 
-      {state.isLoading ? <OpsRecordSkeleton /> : null}
+      {state.isLoading ? <div className="p-4"><OpsRecordSkeleton /></div> : null}
 
       {state.error && !state.isLoading ? (
         <OpsEmptyState
@@ -122,26 +124,15 @@ export const ScheduleBoard = () => {
       ) : null}
 
       {!state.isLoading && !state.error ? (
-        rows.length ? (
-          <>
-            <ScheduleUnassignedRow
-              handlers={handlers}
-              schedule={state.schedule}
-              visibleWeekdays={state.visibleWeekdays}
-            />
-            <ScheduleGrid
-              handlers={handlers}
-              rows={rows}
-              schedule={state.schedule}
-              visibleWeekdays={state.visibleWeekdays}
-            />
-            <ScheduleList
-              handlers={handlers}
-              rows={rows}
-              schedule={state.schedule}
-              visibleWeekdays={state.visibleWeekdays}
-            />
-          </>
+        state.schedule.employees.length ? (
+          <ScheduleGrid
+            compare={pins.compare}
+            handlers={handlers}
+            onTogglePin={pins.togglePin}
+            pins={pins.pins}
+            rows={rows}
+            todayKey={todayKey ?? ""}
+          />
         ) : (
           <OpsEmptyState
             description="Activá empleadas o limpiá el filtro para ver el cronograma."
@@ -178,6 +169,6 @@ export const ScheduleBoard = () => {
           open
         />
       ) : null}
-    </div>
+    </section>
   );
 };

@@ -2,6 +2,7 @@ import type { OccurrenceDialogIntent } from "@/components/ops/jobs/job-occurrenc
 import { hasOccurrenceEmployees } from "@/components/ops/jobs/occurrence-employees";
 import type { OpsOccurrence } from "@/components/ops/types";
 import { formatTime, getMonthRange } from "@/components/ops/utils";
+import { isAttentionVisit } from "@/lib/ops/visit-day";
 
 export const byScheduledStart = (a: OpsOccurrence, b: OpsOccurrence) =>
   new Date(a.scheduledStartAt).getTime() - new Date(b.scheduledStartAt).getTime();
@@ -46,8 +47,7 @@ export const getVisitActionLabel = (occurrence: OpsOccurrence) => {
 };
 
 export const needsOccurrenceAttention = (occurrence: OpsOccurrence) =>
-  !hasOccurrenceEmployees(occurrence) ||
-  ["CANCELED", "SKIPPED"].includes(occurrence.status);
+  isAttentionVisit(occurrence);
 
 export const getCalendarStats = (occurrences: OpsOccurrence[]) => {
   const done = occurrences.filter((occurrence) => occurrence.status === "DONE");

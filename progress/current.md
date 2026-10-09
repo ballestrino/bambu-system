@@ -1,10 +1,17 @@
 # Current Harness Session
 
-Status: idle
+Status: in_progress
 
 ## Active Feature
 
-- None.
+- 26 `visits_redesign` en `feat/visits-redesign`: diseño de claude-design
+  "Visitas Bambu 3a-2a" (3a escritorio con Agenda, Día por empleada y
+  Cronograma; 2a iPhone). Plan aprobado el 2026-10-09.
+- Decisiones del usuario: se quitan Lista y Tarjetas; el selector de mes
+  global queda visible y la tira y el mini mes navegan dentro de él; el
+  Cronograma conserva arrastrar, Generar semana, huecos, disponibilidad,
+  filtro L–D y PDF, y suma pines para comparar.
+- Avance: (se completa durante la sesión).
 
 ## Queue
 

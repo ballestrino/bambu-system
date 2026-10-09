@@ -1,18 +1,12 @@
 "use client";
 
 import { countOverlapPairs } from "@/lib/ops/schedule-conflicts";
-import type {
-  ScheduleDay,
-  ScheduleEmployee,
-  ScheduleVisit,
-  WeeklySchedule,
-} from "@/lib/ops/schedule-types";
+import type { ScheduleDay, ScheduleEmployee, ScheduleVisit } from "@/lib/ops/schedule-types";
+import { plural } from "@/lib/ops/visit-day";
 import { ScheduleDayCell } from "@/components/ops/schedules/schedule-day-cell";
-import { ScheduleRowOverlaps } from "@/components/ops/schedules/schedule-row-overlaps";
+import { ScheduleRowHeader } from "@/components/ops/schedules/schedule-row-header";
 import type { ScheduleCellReader } from "@/components/ops/schedules/use-schedule-cells";
 import type { ScheduleDragState } from "@/components/ops/schedules/use-schedule-drag";
-import { ScheduleEmployeeExportButton } from "@/components/ops/schedules/schedule-export-buttons";
-import { opsSurface } from "@/components/ops/shared";
 import { cn } from "@/lib/utils";
 
 export type ScheduleHandlers = {
@@ -26,150 +20,128 @@ export type ScheduleRow = {
   days: ScheduleDay[];
   employee?: ScheduleEmployee;
   employeeId: string | null;
+  minutes: number;
   name: string;
   overlapCount: number;
   totalVisits: number;
 };
 
+const sumMinutes = (days: ScheduleDay[]) =>
+  days.reduce(
+    (total, day) => total + day.visits.reduce((sum, visit) => sum + visit.endMinute - visit.startMinute, 0),
+    0
+  );
+
 export const toScheduleRow = (
-  employee: ScheduleEmployee,
+  employee: { days: ScheduleDay[]; id: string | null; name: string; source?: ScheduleEmployee },
   visibleWeekdays: number[]
 ): ScheduleRow => {
   const days = employee.days.filter((day) => visibleWeekdays.includes(day.weekdayNumber));
 
   return {
     days,
-    employee,
+    employee: employee.source,
     employeeId: employee.id,
+    minutes: sumMinutes(days),
     name: employee.name,
-    overlapCount: countOverlapPairs(days),
+    overlapCount: employee.id ? countOverlapPairs(days) : 0,
     totalVisits: days.reduce((total, day) => total + day.visits.length, 0),
   };
 };
 
+// Cronograma semanal de escritorio (3a): filas por empleada, "Sin asignar"
+// primero, dias en columnas. Con la comparacion activa las fijadas suben y un
+// borde grueso las separa del resto.
 export const ScheduleGrid = ({
+  compare,
   handlers,
+  onTogglePin,
+  pins,
   rows,
-  schedule,
-  visibleWeekdays,
+  todayKey,
 }: {
+  compare: boolean;
   handlers: ScheduleHandlers;
+  onTogglePin: (employeeId: string) => void;
+  pins: string[];
   rows: ScheduleRow[];
-  schedule?: WeeklySchedule;
-  visibleWeekdays?: number[];
+  todayKey: string;
 }) => {
-  const columns = rows[0]?.days.length ?? 0;
-  const gridStyle = {
-    gridTemplateColumns: `168px repeat(${columns}, minmax(150px, 1fr))`,
-  };
+  const days = rows[0]?.days ?? [];
+  const gridStyle = { gridTemplateColumns: `220px repeat(${days.length}, minmax(172px, 1fr))` };
+  const isPinned = (row: ScheduleRow) => Boolean(row.employeeId && pins.includes(row.employeeId));
+  const ordered = compare ? [...rows.filter(isPinned), ...rows.filter((row) => !isPinned(row))] : rows;
+  const pinnedCount = compare ? ordered.filter(isPinned).length : 0;
+  // Una visita compartida aparece en dos filas pero cuenta una vez.
+  const dayCount = (index: number) =>
+    new Set(rows.flatMap((row) => row.days[index]?.visits.map((visit) => visit.id) ?? [])).size;
 
   return (
-    <div className={cn(opsSurface.panel, "hidden overflow-x-auto lg:block")}>
-      <div style={{ minWidth: `${168 + columns * 150}px` }}>
-        <div className="grid bg-ops-surface-muted" style={gridStyle}>
-          <div className="sticky left-0 z-10 border-r border-ops-border bg-ops-surface-muted p-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+    <div className="min-h-0 flex-1 overflow-auto">
+      <div style={{ minWidth: 220 + days.length * 172 }}>
+        <div className="sticky top-0 z-[3] grid border-b border-ops-border bg-ops-canvas dark:bg-ops-surface-muted" style={gridStyle}>
+          <div className="sticky left-0 z-[1] border-r border-ops-border bg-ops-canvas px-3.5 py-2.5 text-[11px] font-semibold tracking-wide text-ops-text-muted uppercase dark:bg-ops-surface-muted">
             Empleada
           </div>
-          {rows[0]?.days.map((day) => (
-            <div className="border-r border-ops-border p-2 last:border-r-0" key={day.dateKey}>
-              <p className="text-xs font-semibold text-ops-text">{day.weekdayLabel}</p>
-              <p className="text-xs text-muted-foreground">{day.dayLabel}</p>
+          {days.map((day, index) => (
+            <div
+              className={cn("flex items-baseline gap-1.5 border-r border-ops-surface-muted px-3 py-2", day.dateKey === todayKey && "bg-ops-bamboo-soft")}
+              key={day.dateKey}
+            >
+              <span className={cn("text-[13px] font-semibold whitespace-nowrap", day.dateKey === todayKey ? "text-ops-bamboo-strong" : "text-ops-text")}>
+                {day.weekdayLabel.slice(0, 3)} {Number(day.dateKey.slice(8))}
+              </span>
+              <span className="text-[11.5px] whitespace-nowrap text-ops-text-muted">
+                {dayCount(index) ? plural(dayCount(index), "visita") : "—"}
+              </span>
             </div>
           ))}
         </div>
-        {rows.map((row) => (
-          <div
-            className="grid border-t border-ops-border"
-            key={row.employeeId ?? "unassigned"}
-            style={gridStyle}
-          >
-            <div className="sticky left-0 z-10 space-y-1 border-r border-ops-border bg-ops-surface p-2">
-              <p className="break-words text-sm font-semibold text-ops-text">{row.name}</p>
-              <div className="flex items-center justify-between gap-2">
-                <p className="text-xs text-muted-foreground">
-                  {row.totalVisits} visita{row.totalVisits === 1 ? "" : "s"}
-                </p>
-                {row.employee && schedule ? (
-                  <ScheduleEmployeeExportButton
-                    employee={row.employee}
-                    schedule={schedule}
-                    visibleWeekdays={visibleWeekdays}
+        {ordered.map((row, index) => {
+          const pinned = isPinned(row);
+          const rowTone = !row.employeeId ? "bg-amber-50/40 dark:bg-amber-500/5" : compare && pinned ? "bg-ops-bamboo-soft/40" : "bg-ops-surface";
+
+          return (
+            <div
+              className={cn(
+                "grid",
+                index === 0 ? null : compare && index === pinnedCount ? "border-t-[3px] border-ops-border" : "border-t border-ops-surface-muted",
+                rowTone
+              )}
+              key={row.employeeId ?? "unassigned"}
+              style={gridStyle}
+            >
+              {/* Fondo opaco debajo del tono de la fila: la columna queda fija
+                  y las visitas pasan por detras al desplazar. */}
+              <div className="sticky left-0 z-[2] border-r border-ops-border bg-ops-surface">
+                <div className={cn("h-full", rowTone)}>
+                  <ScheduleRowHeader
+                    onTogglePin={row.employeeId ? () => onTogglePin(row.employeeId!) : undefined}
+                    pinned={pinned}
+                    row={row}
                   />
-                ) : null}
+                </div>
               </div>
-              <ScheduleRowOverlaps count={row.overlapCount} />
+              {row.days.map((day) => (
+                <div
+                  className={cn("min-w-0 border-r border-ops-surface-muted", day.dateKey === todayKey && "bg-ops-bamboo/5")}
+                  key={`${row.employeeId ?? "unassigned"}-${day.dateKey}`}
+                >
+                  <ScheduleDayCell
+                    cell={handlers.getCellState(row.employeeId, day.dateKey)}
+                    day={day}
+                    drag={handlers.drag}
+                    employeeId={row.employeeId}
+                    onCreate={handlers.onCreate}
+                    onEditVisit={handlers.onEditVisit}
+                    unassigned={!row.employeeId}
+                  />
+                </div>
+              ))}
             </div>
-            {row.days.map((day) => (
-              <div
-                className="min-w-0 border-r border-ops-border last:border-r-0"
-                key={`${row.employeeId ?? "unassigned"}-${day.dateKey}`}
-              >
-                <ScheduleDayCell
-                  cell={handlers.getCellState(row.employeeId, day.dateKey)}
-                  compact
-                  day={day}
-                  drag={handlers.drag}
-                  employeeId={row.employeeId}
-                  onCreate={handlers.onCreate}
-                  onEditVisit={handlers.onEditVisit}
-                />
-              </div>
-            ))}
-          </div>
-        ))}
+          );
+        })}
       </div>
     </div>
   );
 };
-
-export const ScheduleList = ({
-  handlers,
-  rows,
-  schedule,
-  visibleWeekdays,
-}: {
-  handlers: ScheduleHandlers;
-  rows: ScheduleRow[];
-  schedule?: WeeklySchedule;
-  visibleWeekdays?: number[];
-}) => (
-  <div className="space-y-3 lg:hidden">
-    {rows.map((row) => (
-      <div className={cn(opsSurface.panel, "min-w-0 p-3")} key={row.employeeId ?? "unassigned"}>
-        <div className="mb-2 flex min-w-0 items-start justify-between gap-2">
-          <div className="min-w-0 space-y-1">
-            <p className="break-words text-sm font-semibold text-ops-text">{row.name}</p>
-            <p className="text-xs text-muted-foreground">
-              {row.totalVisits} visita{row.totalVisits === 1 ? "" : "s"} en la semana
-            </p>
-            <ScheduleRowOverlaps count={row.overlapCount} />
-          </div>
-          {row.employee && schedule ? (
-            <ScheduleEmployeeExportButton
-              employee={row.employee}
-              schedule={schedule}
-              visibleWeekdays={visibleWeekdays}
-            />
-          ) : null}
-        </div>
-        <div className="space-y-2">
-          {row.days.map((day) => (
-            <div className="min-w-0" key={`${row.employeeId ?? "unassigned"}-${day.dateKey}`}>
-              <p className="text-xs font-semibold uppercase tracking-wide text-ops-bamboo-strong">
-                {day.weekdayLabel} {day.dayLabel}
-              </p>
-              <ScheduleDayCell
-                cell={handlers.getCellState(row.employeeId, day.dateKey)}
-                day={day}
-                drag={handlers.drag}
-                employeeId={row.employeeId}
-                onCreate={handlers.onCreate}
-                onEditVisit={handlers.onEditVisit}
-              />
-            </div>
-          ))}
-        </div>
-      </div>
-    ))}
-  </div>
-);
