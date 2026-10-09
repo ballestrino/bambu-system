@@ -445,8 +445,21 @@ Dictado:
 
 - `useVoiceRecorder` graba con `MediaRecorder` (webm/opus en Chrome y Firefox,
   mp4 en Safari) hasta 2 minutos y manda el audio a `POST
-  /api/agent/transcribe`. El texto se agrega al composer para revisarlo antes
-  de enviar: no se envía solo. Se puede dictar mientras el agente responde.
+  /api/agent/transcribe`. Se puede dictar mientras el agente responde.
+- Mientras graba, como en ChatGPT (pedido del usuario el 2026-10-08): el "+"
+  desaparece y el composer muestra la onda de la voz
+  (`agent-voice-waveform.tsx`, una barra cada 70 ms que crece con el volumen y
+  corre hacia la izquierda; en silencio, una línea de puntos), el tiempo, ■ y
+  ➤. ■ deja el texto en el composer, para revisarlo o seguir dictando (el
+  próximo dictado se agrega). ➤ lo envía con lo que ya estaba escrito y las
+  imágenes; si el agente sigue respondiendo o falta subir una imagen, queda en
+  el composer con un aviso. A los 2 minutos se corta como ■. No hay botón para
+  descartar: salir de la pantalla corta sin transcribir.
+- El volumen sale de un `AnalyserNode` sobre el mismo stream
+  (`audio-meter.ts`, nivel en `lib/agent/audio-level.ts`). El `AudioContext`
+  se crea en el toque del micrófono, antes de pedir permiso: Safari en iOS
+  solo lo arranca desde un gesto. Sin Web Audio se graba igual, con la onda
+  plana.
 - Sin https no hay micrófono: probando el iPhone contra la PC por IP en la red
   local, el botón avisa. En producción funciona.
 - `lib/ai/transcription.ts` llama a OpenAI directo (también con

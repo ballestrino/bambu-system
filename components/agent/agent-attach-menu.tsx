@@ -14,16 +14,8 @@ import { AGENT_MAX_IMAGES } from "@/lib/agent/attachment-rules";
 
 // El "+" del composer. La opción es un <label> del input de archivos (que vive
 // fuera del menú): Safari en iOS solo abre el selector desde un toque real, no
-// desde un click() por código.
-export function AgentAttachMenu({
-  disabled,
-  full,
-  onFiles,
-}: {
-  disabled: boolean;
-  full: boolean;
-  onFiles: (files: FileList) => void;
-}) {
+// desde un click() por código. Mientras se dicta no se muestra.
+export function AgentAttachMenu({ full, onFiles }: { full: boolean; onFiles: (files: FileList) => void }) {
   const inputId = useId();
   return (
     <>
@@ -48,7 +40,6 @@ export function AgentAttachMenu({
             variant="ghost"
             size="icon"
             className="size-11 shrink-0 rounded-full"
-            disabled={disabled}
             aria-label="Adjuntar"
           >
             <Plus aria-hidden />

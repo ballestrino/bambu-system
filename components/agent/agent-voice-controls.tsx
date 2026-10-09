@@ -1,10 +1,11 @@
 "use client";
 
-import { Check, Loader2, Mic, X } from "lucide-react";
+import { Loader2, Mic, SendHorizontal, Square } from "lucide-react";
 
+import type { AudioMeter } from "@/components/agent/audio-meter";
+import { AgentVoiceWaveform } from "@/components/agent/agent-voice-waveform";
 import type { VoiceStatus } from "@/components/agent/hooks/use-voice-recorder";
 import { Button } from "@/components/ui/button";
-import { AGENT_MAX_RECORDING_SECONDS } from "@/lib/agent/attachment-rules";
 
 const clock = (seconds: number) => {
   const whole = Math.floor(seconds);
@@ -28,58 +29,61 @@ export function AgentMicButton({ onStart }: { onStart: () => void }) {
   );
 }
 
-// Ocupa el lugar del texto mientras se graba o se transcribe: el tiempo, X
-// para descartar y ✓ para transcribir.
+// Ocupa todo el composer mientras se graba, como en ChatGPT: la onda de la
+// voz, el tiempo, ■ para terminar y revisar el texto (o seguir dictando) y ➤
+// para transcribir y enviar.
 export function AgentRecordingBar({
   status,
   elapsed,
-  onCancel,
+  meter,
   onStop,
+  onSend,
 }: {
   status: VoiceStatus;
   elapsed: number;
-  onCancel: () => void;
+  meter: AudioMeter | null;
   onStop: () => void;
+  onSend: () => void;
 }) {
-  const transcribing = status === "transcribing";
+  const recording = status === "recording";
   return (
-    <div className="flex min-h-11 flex-1 items-center gap-2 px-2" role="status" aria-live="polite">
-      {transcribing || status === "starting" ? (
+    <div className="flex min-h-11 min-w-0 flex-1 items-center gap-2 pl-3">
+      <span className="sr-only" role="status" aria-live="polite">
+        {recording ? "Grabando" : status === "transcribing" ? "Transcribiendo" : "Abriendo el micrófono"}
+      </span>
+      {recording ? (
         <>
-          <Loader2 className="size-4 animate-spin text-muted-foreground" aria-hidden />
-          <span className="flex-1 text-sm text-muted-foreground">
-            {transcribing ? "Transcribiendo…" : "Abriendo el micrófono…"}
+          <AgentVoiceWaveform meter={meter} />
+          <span className="shrink-0 text-xs tabular-nums text-muted-foreground" aria-hidden>
+            {clock(elapsed)}
           </span>
         </>
       ) : (
-        <>
-          <span className="size-2.5 animate-pulse rounded-full bg-red-500" aria-hidden />
-          <span className="flex-1 text-sm tabular-nums">
-            Grabando {clock(elapsed)}
-            <span className="text-muted-foreground"> / {clock(AGENT_MAX_RECORDING_SECONDS)}</span>
-          </span>
-        </>
+        <span className="flex min-w-0 flex-1 items-center gap-2 text-sm text-muted-foreground" aria-hidden>
+          <Loader2 className="size-4 shrink-0 animate-spin" />
+          {status === "transcribing" ? "Transcribiendo…" : "Abriendo el micrófono…"}
+        </span>
       )}
       <Button
         type="button"
-        variant="ghost"
+        variant="secondary"
         size="icon"
         className="size-11 shrink-0 rounded-full"
-        disabled={transcribing}
-        onClick={onCancel}
-        aria-label="Descartar grabación"
+        disabled={!recording}
+        onClick={onStop}
+        aria-label="Terminar y revisar el texto"
       >
-        <X aria-hidden />
+        <Square className="size-3.5 fill-current" aria-hidden />
       </Button>
       <Button
         type="button"
         size="icon"
         className="size-11 shrink-0 rounded-full"
-        disabled={status !== "recording"}
-        onClick={onStop}
-        aria-label="Terminar y transcribir"
+        disabled={!recording}
+        onClick={onSend}
+        aria-label="Transcribir y enviar"
       >
-        <Check aria-hidden />
+        <SendHorizontal aria-hidden />
       </Button>
     </div>
   );
