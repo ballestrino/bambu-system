@@ -45,6 +45,7 @@
     "harness": "node scripts/harness-validate.mjs"
   },
   "dependencies": {
+    "@ai-sdk/anthropic": "4.0.75",
     "@ai-sdk/openai": "^4.0.69",
     "@ai-sdk/react": "^4.0.108",
     "@auth/prisma-adapter": "^2.11.3",

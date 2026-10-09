@@ -18,10 +18,11 @@ assert.equal(proposalTools.match(/toModelOutput: hideFromModel\("values"\)/g)?.l
 // the same call arrives twice).
 assert.match(proposalTools, /const values = readCreateValues\(proposal\);[\s\S]*?\.\.\.\(values \? \{ values \} : \{\}\),/);
 // The history the model reads goes through the same tools (and toModelOutput),
-// with the recent images inlined (feature 23).
+// with the recent images inlined (feature 23) and, for Claude, without the
+// earlier turns' thinking (feature 25).
 assert.match(
   read("lib/agent/run.ts"),
-  /convertToModelMessages\(await inlineHistoryImages\(input\.messages, input\.actorId\), \{\n\s+tools,/
+  /convertToModelMessages\(\n\s+await inlineHistoryImages\(prepareHistoryForModel\(input\.messages, spec\.modelId\), input\.actorId\),\n\s+\{ tools,/
 );
 
 // --- Saving: admin session, validated input, a tool call of a budget in a

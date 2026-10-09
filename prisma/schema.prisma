@@ -1110,10 +1110,16 @@ model MailAuditEvent {
   @@index([actorId, createdAt])
 }
 
+// Cada modo es un modelo con un esfuerzo (lib/ai/modes.ts). Bajo, Medio y
+// Alto son los de OpenAI de antes; los de Claude se agregaron el 2026-10-09.
 enum AgentMode {
   BAJO
   MEDIO
   ALTO
+  HAIKU_HIGH
+  HAIKU_XHIGH
+  SONNET_HIGH
+  OPUS_MEDIUM
 }
 
 enum AgentMessageRole {

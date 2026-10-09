@@ -77,6 +77,9 @@ export const groupUsageEntries = (entries: UsageEntry[], env?: AiEnv) => {
 
 export type TurnUsageSummary = {
   modelId: string | null;
+  // El esfuerzo del turno. Falta en los mensajes anteriores al 2026-10-09,
+  // que muestran el nombre del modo ("Luna 6 · Medio").
+  reasoning?: AgentReasoning;
   tokens: NormalizedUsage & { total: number };
   costUsd: number | null;
   priced: boolean;
@@ -89,8 +92,10 @@ export const summarizeUsage = (entries: UsageEntry[], env?: AiEnv): TurnUsageSum
   const groups = groupUsageEntries(entries, env);
   const usage = sumUsage(...groups.map((group) => group.usage));
   const pricedCosts = groups.flatMap((group) => (group.costUsd === null ? [] : [group.costUsd]));
+  const turn = entries.find((entry) => entry.kind === "TURN") ?? entries[0];
   return {
-    modelId: entries.find((entry) => entry.kind === "TURN")?.modelId ?? entries[0]?.modelId ?? null,
+    modelId: turn?.modelId ?? null,
+    ...(turn ? { reasoning: turn.reasoning } : {}),
     tokens: { ...usage, total: usage.inputTokens + usage.outputTokens },
     costUsd: pricedCosts.length ? roundUsd(pricedCosts.reduce((sum, cost) => sum + cost, 0)) : null,
     priced: groups.length > 0 && groups.every((group) => group.priced),

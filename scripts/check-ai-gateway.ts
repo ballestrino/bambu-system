@@ -13,9 +13,10 @@ import { EMPTY_USAGE, normalizeUsage, readGatewayCost, sumUsage } from "../lib/a
 import { getMailSafetyIdentifier } from "../lib/mail-agent/openai-client";
 
 import "./ai-mode-checks";
+import "./ai-claude-checks";
 
 // The check must not depend on the developer's shell or real credentials.
-["OPENAI_API_KEY", "AI_GATEWAY_API_KEY", "VERCEL", "VERCEL_OIDC_TOKEN"].forEach(
+["OPENAI_API_KEY", "ANTHROPIC_API_KEY", "AI_GATEWAY_API_KEY", "VERCEL", "VERCEL_OIDC_TOKEN"].forEach(
   (key) => delete process.env[key]
 );
 
@@ -100,10 +101,11 @@ assert.deepEqual(sumUsage(turn, turn), {
 });
 assert.deepEqual(sumUsage(), EMPTY_USAGE);
 
-// --- Cost in USD from the OpenAI Standard prices per million tokens.
+// --- Cost in USD from the Standard prices per million tokens (Claude ones
+// are checked in ai-claude-checks.ts).
 assert.deepEqual(
   Object.keys(MODEL_PRICES).sort(),
-  ["gpt-5.6-luna", "gpt-5.6-sol", "gpt-5.6-terra", "gpt-6-luna", "gpt-6-sol", "gpt-6.1-sol"].sort()
+  ["gpt-5.6-luna", "gpt-5.6-sol", "gpt-5.6-terra", "gpt-6-luna", "gpt-6-sol", "gpt-6.1-sol", "claude-haiku-5-5", "claude-sonnet-5-5", "claude-opus-5-5"].sort()
 );
 const usage = {
   ...EMPTY_USAGE, inputTokens: 10_000, cachedInputTokens: 2_000, outputTokens: 1_000, reasoningTokens: 400,

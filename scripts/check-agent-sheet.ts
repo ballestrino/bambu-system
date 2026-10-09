@@ -75,7 +75,7 @@ const usage: TurnUsageSummary = { modelId: "gpt-6-luna", tokens, costUsd: 0.03, 
 const plain = (text: string) => text.replace(/\s/g, " ");
 assert.equal(plain(formatUsageLine(usage, "medio")), "Luna 6 · Medio · 3,2k tokens · US$ 0,03");
 assert.equal(formatModelLabel("openai/gpt-6-sol"), "Sol 6");
-assert.equal(formatModelLabel("anthropic/claude-sonnet-5"), "claude-sonnet-5");
+assert.equal(formatModelLabel("anthropic/claude-sonnet-5"), "Sonnet 5");
 assert.deepEqual([850, 3250, 999_960, 1_500_000].map(formatTokenCount), ["850", "3,3k", "1M", "1,5M"]);
 assert.equal(formatUsageCost({ costUsd: null, priced: false }), "precio no configurado");
 assert.equal(plain(formatUsageCost({ costUsd: 0.02, priced: false })), "US$ 0,02 + precio no configurado");

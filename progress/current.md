@@ -1,10 +1,23 @@
 # Current Harness Session
 
-Status: idle
+Status: in_progress
 
 ## Active Feature
 
-- None.
+- 25 `agent_claude_provider`, rama `feat/claude-provider` (2026-10-09).
+- Hecho: `@ai-sdk/anthropic` 4.0.75; modos `haiku_high` (default y
+  recomendado), `haiku_xhigh`, `sonnet_high` y `opus_medium`; selector de
+  modelo y esfuerzo con costo por mensaje (verificado en escritorio en el
+  Chrome del usuario, sin elegir nada); precios oficiales de Claude; opciones
+  de Anthropic (esfuerzo, pensamiento resumido, caché, `drop_block`,
+  fallback en Opus/Sonnet); historial sin el razonamiento de turnos
+  anteriores para Claude; migración aditiva
+  `20261009150000_agent_claude_modes` escrita, sin aplicar. `check:ai-gateway`
+  y los checks del agente, `tsc`, lint, `init.ps1` y build completo verdes.
+- Falta: aplicar la migración en Neon (pedir permiso), `ANTHROPIC_API_KEY` en
+  `.env` y en Vercel (la carga el usuario), smoke de un turno real con Claude
+  (escribe una conversación en producción: pedir permiso y borrarla), vista
+  en el teléfono, merge.
 
 ## Queue
 

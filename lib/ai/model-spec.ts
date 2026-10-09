@@ -11,9 +11,14 @@ import {
 
 // Qué modelo atiende cada llamada. Puro y sin SDK: el entorno se recibe como
 // parámetro para que el check pueda probar los overrides sin tocar process.env.
+// AI_PROVIDER=openai (el default) es "directo": cada modelo va a su proveedor,
+// OpenAI o Anthropic, con su clave. Con gateway, todo va por Vercel AI Gateway.
 export const AI_PROVIDERS = ["openai", "gateway"] as const;
 
-export type AiProvider = (typeof AI_PROVIDERS)[number];
+export type AiProviderSetting = (typeof AI_PROVIDERS)[number];
+
+// A quién se le pide la llamada.
+export type AiProvider = "openai" | "anthropic" | "gateway";
 
 export type AiEnv = Readonly<Record<string, string | undefined>>;
 
@@ -46,21 +51,31 @@ const readChoice = <T extends string>(
   return value as T;
 };
 
-export const resolveAiProvider = (env: AiEnv = process.env): AiProvider =>
+export const resolveAiProvider = (env: AiEnv = process.env): AiProviderSetting =>
   readChoice(env, "AI_PROVIDER", AI_PROVIDERS) ?? "openai";
 
-// El gateway identifica los modelos como "proveedor/modelo". Sin prefijo, se
-// asume OpenAI para que cambiar AI_PROVIDER no obligue a renombrar modelos.
-const toProviderModelId = (provider: AiProvider, modelId: string, key: string) => {
-  if (provider === "gateway") {
-    return modelId.includes("/") ? modelId : `openai/${modelId}`;
+// De quién es el modelo: los de Claude son de Anthropic y el resto de OpenAI.
+export const getModelVendor = (modelId: string): "openai" | "anthropic" =>
+  /^(anthropic\/)?claude-/.test(modelId) ? "anthropic" : "openai";
+
+// El gateway identifica los modelos como "proveedor/modelo". Sin prefijo se
+// agrega el del dueño del modelo, así cambiar AI_PROVIDER no obliga a
+// renombrar modelos. Directo, un id con "/" pide el gateway.
+const toProviderModel = (
+  setting: AiProviderSetting,
+  modelId: string,
+  key: string
+): Pick<ModelSpec, "provider" | "modelId"> => {
+  if (setting === "gateway") {
+    return {
+      provider: "gateway",
+      modelId: modelId.includes("/") ? modelId : `${getModelVendor(modelId)}/${modelId}`,
+    };
   }
   if (modelId.includes("/")) {
-    throw new Error(
-      `${key} apunta a "${modelId}", que no es de OpenAI. Configurá AI_PROVIDER=gateway.`
-    );
+    throw new Error(`${key} apunta a "${modelId}", que necesita AI_PROVIDER=gateway.`);
   }
-  return modelId;
+  return { provider: getModelVendor(modelId), modelId };
 };
 
 export const resolveModelSpec = (
@@ -71,14 +86,12 @@ export const resolveModelSpec = (
 
   const suffix = mode.toUpperCase();
   const defaults = DEFAULT_MODE_SPECS[mode];
-  const provider = resolveAiProvider(env);
   const modelKey = `AI_MODEL_${suffix}`;
 
   return {
     mode,
-    provider,
-    modelId: toProviderModelId(
-      provider,
+    ...toProviderModel(
+      resolveAiProvider(env),
       readAiEnv(env, modelKey) ?? defaults.modelId,
       modelKey
     ),
@@ -88,14 +101,35 @@ export const resolveModelSpec = (
   };
 };
 
-export const resolveTitleModelSpec = (env: AiEnv = process.env): ModelSpec => {
-  const provider = resolveAiProvider(env);
-  return {
-    provider,
-    modelId: toProviderModelId(provider, TITLE_MODEL_SPEC.modelId, "TITLE_MODEL_SPEC"),
-    reasoning: TITLE_MODEL_SPEC.reasoning,
-  };
-};
+export const resolveTitleModelSpec = (env: AiEnv = process.env): ModelSpec => ({
+  ...toProviderModel(resolveAiProvider(env), TITLE_MODEL_SPEC.modelId, "TITLE_MODEL_SPEC"),
+  reasoning: TITLE_MODEL_SPEC.reasoning,
+});
 
-export const resolveDefaultMode = (env: AiEnv = process.env): AgentMode =>
-  readChoice(env, "AI_DEFAULT_MODE", AGENT_MODE_IDS) ?? DEFAULT_AGENT_MODE;
+// Sin clave, el SDK autentica el gateway con el token OIDC del proyecto de
+// Vercel: existe en los deploys y localmente después de `vercel env pull`. El
+// local vence a las 12 horas: vencido, pasa este chequeo y falla la llamada.
+export const hasGatewayCredentials = (env: AiEnv = process.env) =>
+  Boolean(readAiEnv(env, "AI_GATEWAY_API_KEY") || env.VERCEL || env.VERCEL_OIDC_TOKEN);
+
+export const PROVIDER_KEY_NAMES = {
+  openai: "OPENAI_API_KEY",
+  anthropic: "ANTHROPIC_API_KEY",
+  gateway: "AI_GATEWAY_API_KEY",
+} as const satisfies Record<AiProvider, string>;
+
+// Si la llamada tiene con qué autenticarse. Un modo sin clave se muestra en el
+// selector, deshabilitado y con la variable que falta.
+export const hasProviderCredentials = (provider: AiProvider, env: AiEnv = process.env) =>
+  provider === "gateway"
+    ? hasGatewayCredentials(env)
+    : Boolean(readAiEnv(env, PROVIDER_KEY_NAMES[provider]));
+
+// AI_DEFAULT_MODE manda. Sin él, Haiku 5.5 Alto; si Anthropic no tiene clave
+// todavía, Bajo (Luna 6), para que una conversación nueva no falle.
+export const resolveDefaultMode = (env: AiEnv = process.env): AgentMode => {
+  const configured = readChoice(env, "AI_DEFAULT_MODE", AGENT_MODE_IDS);
+  if (configured) return configured;
+  const spec = resolveModelSpec(DEFAULT_AGENT_MODE, env);
+  return hasProviderCredentials(spec.provider, env) ? DEFAULT_AGENT_MODE : "bajo";
+};
