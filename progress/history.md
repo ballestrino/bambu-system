@@ -837,3 +837,25 @@
 - No hecho: dictado y subida de imágenes de punta a punta; el usuario eligió
   no crear datos de prueba y cerró la feature.
 - Detalle en `progress/impl_agent_voice_and_images.md`.
+
+## 2026-10-08 - Ajuste de la feature 23 (dictado estilo ChatGPT)
+
+- Pedido del usuario: el estilo del micrófono mientras graba.
+- Mientras graba:
+  - El "+" desaparece.
+  - El composer muestra la onda de la voz (`agent-voice-waveform.tsx`): una
+    barra cada 70 ms que crece con el volumen y corre hacia la izquierda; en
+    silencio, una línea de puntos. Al lado, el tiempo.
+  - ■ deja el texto en el composer para revisarlo o seguir dictando.
+  - ➤ lo transcribe y lo envía con lo escrito y las imágenes; si el agente
+    responde o falta subir una imagen, queda en el composer con un aviso.
+  - Sin botón de descartar.
+- El volumen sale de un `AnalyserNode` sobre el mismo stream
+  (`audio-meter.ts`, nivel en `lib/agent/audio-level.ts`). El `AudioContext`
+  se crea en el toque, antes de pedir permiso, porque iOS solo lo arranca
+  desde un gesto.
+- PASS: `init.ps1`, `tsc`, `next build`, `check:agent-attachments` (nivel de
+  la onda, "+" oculto, ■ y ➤, medidor antes del permiso),
+  `check:agent-sheet` y `check:agent-tools`.
+- Sin prueba en el navegador del agente: el usuario pidió hacerla él y la
+  cerró el 2026-10-08.

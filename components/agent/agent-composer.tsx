@@ -3,6 +3,7 @@
 import type { FileUIPart } from "ai";
 import { SendHorizontal, Square } from "lucide-react";
 import { useRef, useState } from "react";
+import { toast } from "sonner";
 
 import { AgentAttachMenu } from "@/components/agent/agent-attach-menu";
 import { AgentComposerImages } from "@/components/agent/agent-composer-images";
@@ -21,8 +22,9 @@ const appendText = (current: string, addition: string) =>
 
 // Enter envía y Shift+Enter hace un salto de línea (salvo mientras un IME
 // compone). Mientras responde, el botón detiene el stream. El "+" adjunta
-// hasta 7 imágenes (se suben al elegirlas) y el micrófono dicta: el texto
-// transcrito queda para revisar antes de enviar.
+// hasta 7 imágenes (se suben al elegirlas) y el micrófono dicta como en
+// ChatGPT: mientras graba, el "+" desaparece, ■ deja el texto para revisar y
+// ➤ lo envía con lo que ya estaba escrito y las imágenes.
 export function AgentComposer({
   busy,
   voiceRequest,
@@ -39,8 +41,17 @@ export function AgentComposer({
   const images = useComposerImages();
   const voice = useVoiceRecorder({
     getRequest: voiceRequest,
-    onText: (transcript) => {
-      setText((current) => appendText(current, transcript));
+    onText: (transcript, intent) => {
+      const next = appendText(text, transcript);
+      if (intent === "send") {
+        if (!busy && !images.uploading && onSend({ text: next, files: images.parts })) {
+          setText("");
+          images.clear();
+          return;
+        }
+        toast.info(busy ? "El asistente está respondiendo: el texto quedó para enviar." : "Esperá a que suban las imágenes y envialo.");
+      }
+      setText(next);
       textarea.current?.focus();
     },
   });
@@ -65,13 +76,14 @@ export function AgentComposer({
     >
       <AgentComposerImages images={images.images} onRemove={images.remove} />
       <div className="flex items-end gap-1">
-        <AgentAttachMenu disabled={voiceActive} full={images.full} onFiles={images.add} />
+        {!voiceActive && <AgentAttachMenu full={images.full} onFiles={images.add} />}
         {voiceActive ? (
           <AgentRecordingBar
             status={voice.status}
             elapsed={voice.elapsed}
-            onCancel={voice.cancel}
-            onStop={voice.stop}
+            meter={voice.meter}
+            onStop={() => voice.stop("review")}
+            onSend={() => voice.stop("send")}
           />
         ) : (
           <>

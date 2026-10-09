@@ -44,6 +44,17 @@ assert.match(read("lib/ai/transcription.ts"), /process\.env\.OPENAI_API_KEY/);
 assert.match(read("lib/agent/usage-store.ts"), /kind: "TRANSCRIPTION",/);
 assert.match(read("lib/agent/system-prompt.ts"), /Un importe de una imagen no es una fuente de precios\./);
 
+// --- Recording like ChatGPT: the "+" disappears, ■ leaves the text to review
+// and ➤ sends it; the meter starts in the tap (before any await), because iOS
+// only starts an AudioContext from a user gesture.
+const composer = read("components/agent/agent-composer.tsx");
+assert.match(composer, /\{!voiceActive && <AgentAttachMenu /);
+assert.match(composer, /onStop=\{\(\) => voice\.stop\("review"\)\}/);
+assert.match(composer, /onSend=\{\(\) => voice\.stop\("send"\)\}/);
+const recorder = read("components/agent/hooks/use-voice-recorder.ts");
+assert.ok(recorder.indexOf("createAudioMeter()") < recorder.indexOf("await navigator.mediaDevices.getUserMedia"));
+assert.doesNotMatch(read("components/agent/agent-voice-controls.tsx"), /Descartar/);
+
 // --- The migration only adds: an enum value, a defaulted column and a table.
 const migration = read("prisma/migrations/20261008120000_agent_attachments_transcription/migration.sql");
 assert.doesNotMatch(migration, /DROP |ALTER COLUMN|RENAME|DELETE FROM|^UPDATE /m);
@@ -57,6 +68,9 @@ assert.match(migration, /REFERENCES "AgentMessage"\("id"\) ON DELETE CASCADE/);
   "components/agent/agent-attach-menu.tsx",
   "components/agent/agent-composer-images.tsx",
   "components/agent/agent-voice-controls.tsx",
+  "components/agent/agent-voice-waveform.tsx",
+  "components/agent/audio-meter.ts",
+  "lib/agent/audio-level.ts",
   "components/agent/agent-message-images.tsx",
   "components/agent/agent-uploads.ts",
   "components/agent/hooks/use-composer-images.ts",
