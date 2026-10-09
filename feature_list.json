@@ -427,7 +427,7 @@
         "Claude usage is priced from the official table and shown in the usage line, Costos de IA and the history",
         "check:ai-gateway and the agent checks, tsc, lint, init.ps1, build and a real Claude turn smoke are recorded"
       ],
-      "status": "in_progress"
+      "status": "done"
     }
   ]
 }

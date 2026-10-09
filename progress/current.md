@@ -1,23 +1,10 @@
 # Current Harness Session
 
-Status: in_progress
+Status: idle
 
 ## Active Feature
 
-- 25 `agent_claude_provider`, rama `feat/claude-provider` (2026-10-09).
-- Hecho: `@ai-sdk/anthropic` 4.0.75; modos `haiku_high` (default y
-  recomendado), `haiku_xhigh`, `sonnet_high` y `opus_medium`; selector de
-  modelo y esfuerzo con costo por mensaje (verificado en escritorio en el
-  Chrome del usuario, sin elegir nada); precios oficiales de Claude; opciones
-  de Anthropic (esfuerzo, pensamiento resumido, caché, `drop_block`,
-  fallback en Opus/Sonnet); historial sin el razonamiento de turnos
-  anteriores para Claude; migración aditiva
-  `20261009150000_agent_claude_modes` escrita, sin aplicar. `check:ai-gateway`
-  y los checks del agente, `tsc`, lint, `init.ps1` y build completo verdes.
-- Falta: aplicar la migración en Neon (pedir permiso), `ANTHROPIC_API_KEY` en
-  `.env` y en Vercel (la carga el usuario), smoke de un turno real con Claude
-  (escribe una conversación en producción: pedir permiso y borrarla), vista
-  en el teléfono, merge.
+- None.
 
 ## Queue
 
@@ -28,6 +15,11 @@ Status: in_progress
 
 ## Last Closed Work
 
+- 2026-10-09: Claude como proveedor del agente (25): Haiku 5.5 Alto (default
+  y recomendado) y Extra alto, Sonnet 5.5 Alto y Opus 5.5 Medio, con selector
+  de modelo y esfuerzo y costo por mensaje. Migración aditiva aplicada en
+  Neon. Mergeada y pusheada a `main` con autorización del 2026-10-09. El
+  smoke en la app lo hace el usuario.
 - 2026-10-08: rediseño del agente (24), diseño de claude-design "Agente
   Bambu 2a-2b": columna del historial con grupos (Fijados, Hoy, Ayer,
   Anteriores) y costo del mes, modo dentro del composer, mensajes y tarjetas
