@@ -1,42 +1,10 @@
 # Current Harness Session
 
-Status: in_progress
+Status: idle
 
 ## Active Feature
 
-- 26 `visits_redesign` en `feat/visits-redesign`: diseño de claude-design
-  "Visitas Bambu 3a-2a" (3a escritorio con Agenda, Día por empleada y
-  Cronograma; 2a iPhone). Plan aprobado el 2026-10-09.
-- Decisiones del usuario: se quitan Lista y Tarjetas; el selector de mes
-  global queda visible y la tira y el mini mes navegan dentro de él; el
-  Cronograma conserva arrastrar, Generar semana, huecos, disponibilidad,
-  filtro L–D y PDF, y suma pines para comparar.
-- Avance 2026-10-09:
-  - Escritorio (3a): Agenda (tira, lista por hora, panel con detalle,
-    registro y asignación con disponibilidad), Día por empleada (mini mes,
-    atención, grilla 07–20 con línea de ahora, detalle superpuesto y modal de
-    registro) y Cronograma restilizado (pines y "Comparar fijadas", Exportar
-    en menú, Generar semana con presets de mes, "Sin asignar" como primera
-    fila; se conservan arrastrar, huecos, disponibilidad y filtro L–D).
-  - Celular (2a): encabezado compacto, píldora semanal, agenda por empleada
-    con "+", cronograma deslizable con selector de empleadas y hojas de
-    detalle, registrar, asignar, filtros y mes.
-  - Se quitaron Lista/Tarjetas, `useInfiniteVisits`, `getVisitWeekAction`,
-    los paneles viejos del calendario y `calendar-utils.ts`; el feed del
-    servidor queda para el agente.
-  - Lógica nueva en `lib/ops/visit-day.ts`, `visit-calendar.ts` y
-    `visit-availability.ts` con `check:visit-day`; `check:visits-view`,
-    `check:ops-locale`, `check:occurrence-dialog` y
-    `check:occurrence-generation` actualizados. Documentado en
-    `docs/visits.md`.
-- Verificación: `HARNESS_FULL=1 .init.ps1` (harness, Prisma, ESLint y
-  build) verde; tsc y checks de visitas, cronograma y
-  agente en verde. Smoke de solo lectura en el Chrome del usuario contra
-  `pnpm dev` (base de producción): las tres vistas a ~1270 px, celular a
-  390 px (iframe), modo claro y oscuro, pines y comparar (revertidos), hojas
-  de detalle, registrar y filtros sin guardar. Sin errores de consola.
-- Pendiente: probar registrar y asignar de verdad (escriben en producción,
-  necesita permiso o que lo pruebe el usuario) y el iPhone instalado.
+- None.
 
 ## Queue
 
@@ -47,6 +15,11 @@ Status: in_progress
 
 ## Last Closed Work
 
+- 2026-10-20: rediseño de Visitas (26): Agenda, Día por empleada y
+  Cronograma con pines en escritorio; agenda por empleada y cronograma
+  deslizable con hojas en el celular. Se quitaron Lista y Tarjetas. Sin
+  migraciones. Probada por el usuario (registrar, asignar e iPhone).
+  Mergeada en `main` sin push.
 - 2026-10-09: Claude como proveedor del agente (25): Haiku 5.5 Alto (default
   y recomendado) y Extra alto, Sonnet 5.5 Alto y Opus 5.5 Medio, con selector
   de modelo y esfuerzo y costo por mensaje. Migración aditiva aplicada en

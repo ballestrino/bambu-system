@@ -444,7 +444,7 @@
         "Register and assign use updateJobOccurrence; times use America/Montevideo; dark mode keeps working with ops tokens",
         "init.ps1, tsc, build, visit checks and a browser smoke at 1440, 1024 and 390 px are recorded"
       ],
-      "status": "in_progress"
+      "status": "done"
     }
   ]
 }
