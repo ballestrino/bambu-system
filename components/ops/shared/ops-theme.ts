@@ -56,6 +56,43 @@ export const opsOccurrenceStatus = {
   CANCELED: { label: "Cancelada", tone: "danger" },
 } satisfies Record<string, OpsStatusConfig>;
 
+// Bloques de visita en la grilla del dia y el cronograma: fondo, borde y barra
+// lateral por estado. "Sin asignar" gana sobre el estado con borde punteado.
+export const opsVisitBlock = {
+  SCHEDULED: {
+    block: "border-ops-bamboo/35 bg-ops-bamboo-soft",
+    bar: "border-l-ops-bamboo",
+    time: "text-ops-bamboo-strong",
+  },
+  DONE: {
+    block: "border-emerald-200 bg-emerald-50/70 dark:border-emerald-500/30 dark:bg-emerald-500/10",
+    bar: "border-l-emerald-500",
+    time: "text-emerald-800 dark:text-emerald-200",
+  },
+  SKIPPED: {
+    block: "border-amber-300 bg-amber-50 opacity-80 dark:border-amber-500/40 dark:bg-amber-500/10",
+    bar: "border-l-ops-amber",
+    time: "text-amber-800 dark:text-amber-200",
+  },
+  CANCELED: {
+    block: "border-red-200 bg-red-50 opacity-70 dark:border-red-500/30 dark:bg-red-500/10",
+    bar: "border-l-red-500",
+    time: "text-red-800 dark:text-red-200",
+  },
+  unassigned: {
+    block: "border-dashed border-amber-400 bg-ops-surface dark:border-amber-500/60",
+    bar: "border-l-ops-amber",
+    time: "text-ops-bamboo-strong",
+  },
+} as const;
+
+// Avisos de "requiere atencion": fondo ambar suave del diseño.
+export const opsAttention = {
+  chip: "border-amber-300 bg-amber-50 text-amber-800 dark:border-amber-500/40 dark:bg-amber-500/15 dark:text-amber-200",
+  card: "border-amber-200 bg-amber-50/50 dark:border-amber-500/30 dark:bg-amber-500/10",
+  text: "text-amber-800 dark:text-amber-200",
+} as const;
+
 export const opsPaymentStatus = {
   RECORDED: { label: "Registrado", tone: "money" },
   VOIDED: { label: "Anulado", tone: "archived" },

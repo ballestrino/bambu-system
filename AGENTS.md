@@ -28,6 +28,7 @@ map, not a complete rule book: read the referenced file when the task needs it.
 | `docs/verification.md` | Required proof before closing work | Before marking done |
 | `docs/agent-plan.md` | Historical plan of the Bambú agent (feature ids before 2026-09-24) | Only for background on agent decisions |
 | `docs/agent.md` | Agent contract: modes, models, environment, costs | Before touching `lib/ai/` or the agent |
+| `docs/visits.md` | Visits page: views, desktop/phone switch, dates and data | Before touching `components/ops/visits/` or the schedule |
 | `CHECKPOINTS.md` | Reviewer checklist | During review |
 | `.codex/agents/` | Codex leader, implementer, reviewer roles | When orchestrating |
 | `scripts/harness-validate.mjs` | Machine checks for harness health | When init fails |

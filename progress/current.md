@@ -15,6 +15,11 @@ Status: idle
 
 ## Last Closed Work
 
+- 2026-10-20: rediseño de Visitas (26): Agenda, Día por empleada y
+  Cronograma con pines en escritorio; agenda por empleada y cronograma
+  deslizable con hojas en el celular. Se quitaron Lista y Tarjetas. Sin
+  migraciones. Probada por el usuario (registrar, asignar e iPhone).
+  Mergeada en `main` sin push.
 - 2026-10-09: Claude como proveedor del agente (25): Haiku 5.5 Alto (default
   y recomendado) y Extra alto, Sonnet 5.5 Alto y Opus 5.5 Medio, con selector
   de modelo y esfuerzo y costo por mensaje. Migración aditiva aplicada en

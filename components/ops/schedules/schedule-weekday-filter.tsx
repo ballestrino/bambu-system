@@ -1,6 +1,5 @@
 "use client";
 
-import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
 export const ALL_WEEKDAYS = [1, 2, 3, 4, 5, 6, 7];
@@ -32,26 +31,26 @@ export const ScheduleWeekdayFilter = ({
   };
 
   return (
-    <div className="flex items-center gap-1" role="group" aria-label="Días visibles">
+    <div className="flex items-center gap-[3px]" role="group" aria-label="Días visibles">
       {weekdayChips.map((chip) => {
         const isVisible = value.includes(chip.number);
 
         return (
-          <Button
+          <button
             aria-label={`Día ${chip.number}`}
             aria-pressed={isVisible}
             className={cn(
-              "h-8 w-8 rounded-full p-0 text-xs font-semibold",
-              !isVisible && "text-muted-foreground/60 line-through"
+              "flex size-7 items-center justify-center rounded-full text-[11.5px] font-semibold transition-colors",
+              isVisible
+                ? "bg-ops-bamboo-strong text-white dark:text-ops-canvas"
+                : "border border-ops-border text-ops-text-muted/70 line-through"
             )}
             key={chip.number}
             onClick={() => toggle(chip.number)}
-            size="sm"
             type="button"
-            variant={isVisible ? "default" : "outline"}
           >
             {chip.label}
-          </Button>
+          </button>
         );
       })}
     </div>

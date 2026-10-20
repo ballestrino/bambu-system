@@ -919,3 +919,29 @@
     Sonnet y Opus; sin avisos, menos de US$ 0,01
 - Queda: el smoke en la app lo hace el usuario; la vista en el teléfono no se
   revisó.
+
+## 2026-10-20 - Feature 26 rediseño de Visitas
+
+- Diseño de claude-design "Visitas Bambu 3a-2a". Escritorio: Agenda (tira de
+  7 días, lista por hora, panel de detalle con registro de horario real y
+  asignación con disponibilidad), Día por empleada (mini mes, "Requiere
+  atención hoy", grilla 07–20 con línea de ahora) y Cronograma restilizado
+  (conserva arrastrar, Generar semana, huecos, disponibilidad, filtro L–D y
+  PDF; suma hasta dos pines y "Comparar fijadas").
+- Celular: encabezado compacto, píldora semanal, agenda por empleada con
+  "+", cronograma deslizable con selector de empleadas y hojas de detalle,
+  registrar, asignar, filtros y mes.
+- Se quitaron Lista y Tarjetas, `useInfiniteVisits`, `getVisitWeekAction`,
+  los paneles viejos del calendario y `calendar-utils.ts`; las vistas viejas
+  guardadas se mapean a las nuevas. Lógica nueva en `lib/ops/visit-day.ts`,
+  `visit-calendar.ts` y `visit-availability.ts`. Documentado en
+  `docs/visits.md`. Sin migraciones.
+- PASS:
+  - `init.ps1` con build, `tsc`, lint y los checks de visitas
+    (`check:visit-day`, `check:visits-view`, `check:ops-locale`,
+    `check:occurrence-dialog`, `check:occurrence-generation`)
+  - smoke de solo lectura en el Chrome del usuario: tres vistas a ~1270 px,
+    celular a 390 px, claro y oscuro, pines, hojas y filtros
+  - prueba del usuario (2026-10-20): registrar, asignar y el iPhone
+    instalado
+- Queda fuera: no se registró un smoke a 1024 px.

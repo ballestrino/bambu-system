@@ -1,111 +1,71 @@
 "use client";
 
 import type { ComponentProps } from "react";
-import { GripVertical, MapPin, TriangleAlert, Users } from "lucide-react";
+import { GripVertical, TriangleAlert } from "lucide-react";
 
 import type { ScheduleVisit } from "@/lib/ops/schedule-types";
-import {
-  getOpsStatusConfig,
-  opsOccurrenceStatus,
-  opsToneClasses,
-} from "@/components/ops/shared";
-import { Badge } from "@/components/ui/badge";
+import { opsVisitBlock } from "@/components/ops/shared";
 import { cn } from "@/lib/utils";
 
+// Tarjeta de una visita en el cronograma (3a): barra lateral por estado, hora
+// y nombre. El asa de la izquierda la arrastra a otro dia o empleada.
 export const ScheduleVisitCard = ({
   handleProps,
   isDragging,
   onEdit,
-  showDetails = true,
+  unassigned = false,
   visit,
   warnings = [],
 }: {
   handleProps?: ComponentProps<"button">;
   isDragging?: boolean;
   onEdit?: () => void;
-  showDetails?: boolean;
+  unassigned?: boolean;
   visit: ScheduleVisit;
   warnings?: string[];
 }) => {
-  const status = getOpsStatusConfig(opsOccurrenceStatus, visit.status);
-  const isOff = visit.status === "CANCELED" || visit.status === "SKIPPED";
+  const look = unassigned ? opsVisitBlock.unassigned : opsVisitBlock[visit.status];
   const hasAlias = visit.displayName !== visit.jobName;
   const warningLabel = warnings.join(" · ");
+  const title = [
+    `${visit.startLabel} – ${visit.endLabel} · ${visit.displayName}`,
+    hasAlias ? visit.jobName : null,
+    visit.address,
+    visit.teammates.length ? `Con ${visit.teammates.join(", ")}` : null,
+    warningLabel || null,
+  ].filter(Boolean).join("\n");
 
   return (
     <div
       className={cn(
-        "flex min-w-0 items-start gap-1 rounded-[var(--ops-radius-row)] border border-ops-border bg-ops-surface p-1.5 text-left",
-        isDragging && "opacity-40 ring-1 ring-ops-bamboo",
-        isOff && "opacity-60",
-        // El aviso se ve, pero no compite con el estado de la visita.
-        warnings.length && "border-l-2 border-l-amber-400 dark:border-l-amber-500/70"
+        "group/card flex min-w-0 items-stretch rounded-lg border border-l-[3px]",
+        look.block,
+        look.bar,
+        isDragging && "opacity-40 ring-1 ring-ops-bamboo"
       )}
+      title={title}
     >
       {handleProps ? (
         <button
           aria-label={`Mover ${visit.displayName}`}
-          className="mt-0.5 shrink-0 cursor-grab touch-none rounded p-0.5 text-muted-foreground/50 hover:text-ops-bamboo-strong active:cursor-grabbing"
+          className="flex w-3.5 shrink-0 cursor-grab touch-none items-center justify-center text-ops-text-muted/40 hover:text-ops-bamboo-strong active:cursor-grabbing"
           type="button"
           {...handleProps}
         >
-          <GripVertical className="h-3.5 w-3.5" />
+          <GripVertical className="size-3" />
         </button>
       ) : null}
-      <button
-        className="min-w-0 flex-1 space-y-0.5 text-left"
-        onClick={onEdit}
-        type="button"
-      >
-        <span className="flex flex-wrap items-center gap-x-1.5 gap-y-1">
-          <span className="text-xs font-semibold text-ops-text">
-            {visit.startLabel} - {visit.endLabel}
-          </span>
+      <button className="flex min-w-0 flex-1 flex-col gap-px py-[5px] pr-[7px] text-left" onClick={onEdit} type="button">
+        <span className={cn("flex items-center gap-1 text-[11px] font-semibold whitespace-nowrap tabular-nums", look.time)}>
+          {visit.startLabel}–{visit.endLabel}
           {warnings.length ? (
-            <span className="inline-flex items-center" title={warningLabel}>
-              <TriangleAlert
-                aria-hidden
-                className="h-3.5 w-3.5 shrink-0 text-amber-500 dark:text-amber-400"
-              />
+            <>
+              <TriangleAlert aria-hidden className="size-[11px] text-ops-amber" />
               <span className="sr-only">{warningLabel}</span>
-            </span>
-          ) : null}
-          {isOff ? (
-            <Badge
-              variant="outline"
-              className={cn("border px-1.5 py-0 text-[10px]", opsToneClasses[status.tone])}
-            >
-              {status.label}
-            </Badge>
+            </>
           ) : null}
         </span>
-        <span className="block break-words text-xs font-medium text-ops-text">
-          {visit.displayName}
-        </span>
-        {hasAlias ? (
-          <span className="block break-words text-[11px] text-muted-foreground/70">
-            {visit.jobName}
-          </span>
-        ) : null}
-        {warnings.length && showDetails ? (
-          <span className="block break-words text-[11px] text-amber-700 dark:text-amber-300">
-            {warningLabel}
-          </span>
-        ) : null}
-        {showDetails ? (
-          <>
-            <span className="flex min-w-0 items-start gap-1 text-[11px] text-muted-foreground">
-              <MapPin className="mt-0.5 h-3 w-3 shrink-0" />
-              <span className="break-words">{visit.address}</span>
-            </span>
-            {visit.teammates.length ? (
-              <span className="flex min-w-0 items-start gap-1 text-[11px] text-muted-foreground">
-                <Users className="mt-0.5 h-3 w-3 shrink-0" />
-                <span className="break-words">{visit.teammates.join(", ")}</span>
-              </span>
-            ) : null}
-          </>
-        ) : null}
+        <span className="truncate text-xs font-medium text-ops-text">{visit.displayName}</span>
       </button>
     </div>
   );

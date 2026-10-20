@@ -1,182 +1,48 @@
 "use client";
 
-import { useMemo, useState } from "react";
-
-import { CalendarAgendaPanel } from "@/components/ops/calendar/calendar-agenda-panel";
-import {
-  DEFAULT_CALENDAR_FILTERS,
-  filterCalendarOccurrences,
-  getCalendarFilterOptions,
-  hasActiveCalendarFilters,
-  type CalendarFilters,
-} from "@/components/ops/calendar/calendar-filter-utils";
-import { CalendarFiltersBar } from "@/components/ops/calendar/calendar-filters";
-import { CalendarMonthPanel } from "@/components/ops/calendar/calendar-month-panel";
-import {
-  byScheduledStart,
-  getDefaultVisitDay,
-  sameDay,
-} from "@/components/ops/calendar/calendar-utils";
-import { useInfiniteVisits } from "@/components/ops/hooks/useInfiniteVisits";
-import { useJobOccurrences } from "@/components/ops/hooks/useJobOccurrences";
-import { useTodayKey } from "@/components/ops/hooks/useTodayKey";
-import { useVisitFilterOptions } from "@/components/ops/hooks/useVisitFilterOptions";
-import { JobOccurrenceDialog } from "@/components/ops/jobs/job-occurrence-dialog";
 import { ScheduleBoard } from "@/components/ops/schedules/schedule-board";
-import {
-  OpsPageHeader,
-  OpsPageShell,
-  OpsRefreshButton,
-  useOpsPersistedState,
-  useOpsSelectedMonth,
-} from "@/components/ops/shared";
-import { VisitFeed } from "@/components/ops/visits/visit-feed";
-import {
-  isVisitView,
-  VisitViewSwitcher,
-  type VisitView,
-} from "@/components/ops/visits/visit-view-switcher";
-import { getVisitExactDateAnchor, getVisitFeedAnchor } from "@/lib/ops/visit-feed";
+import { useElementWidth } from "@/components/ops/visits/hooks/use-element-width";
+import { useVisitsController } from "@/components/ops/visits/hooks/use-visits-controller";
+import { VisitAgendaView } from "@/components/ops/visits/visit-agenda-view";
+import { VisitDayView } from "@/components/ops/visits/visit-day-view";
+import { VisitDialogs } from "@/components/ops/visits/visit-dialogs";
+import { VisitsHeader } from "@/components/ops/visits/visits-header";
+import { VisitsMobile } from "@/components/ops/visits/visits-mobile";
 
-const defaultViewState = { view: "calendar" as VisitView };
-const mergeOptions = <T extends { id: string; name: string }>(
-  primary: T[],
-  fallback: T[]
-) => Array.from(new Map([...primary, ...fallback].map((item) => [item.id, item])).values());
+// Ancho del panel desde el que va el diseño de escritorio (3a). Se mide el
+// panel y no la ventana: la barra lateral lo angosta.
+const DESKTOP_MIN_WIDTH = 896;
 
+// Visitas (feature 26, diseño "Visitas Bambu 3a-2a"). Hasta medir el panel se
+// dibujan los dos diseños y el container query muestra uno; despues solo se
+// monta el que corresponde, asi sus hojas y modales no se abren de mas.
 export const VisitsPage = () => {
-  const { month, monthKey, monthRange, setMonth } = useOpsSelectedMonth();
-  const todayKey = useTodayKey();
-  const [selectedDate, setSelectedDate] = useState<Date | undefined>();
-  const [viewState, setViewState] = useOpsPersistedState(
-    "bambu:ops:visits:view",
-    defaultViewState
-  );
-  const [filterSession, setFilterSession] = useState({
-    exactDate: "",
-    filters: { ...DEFAULT_CALENDAR_FILTERS },
-    monthKey,
-  });
-  const view = isVisitView(viewState.view) ? viewState.view : "calendar";
-  const filters = filterSession.monthKey === monthKey
-    ? filterSession.filters
-    : DEFAULT_CALENDAR_FILTERS;
-  const exactDate = filterSession.monthKey === monthKey ? filterSession.exactDate : "";
-  // Nobody picked a day in this month: today in the current one, else the 1st.
-  const visibleSelectedDate = selectedDate &&
-    selectedDate.getFullYear() === month.getFullYear() &&
-    selectedDate.getMonth() === month.getMonth()
-      ? selectedDate
-      : getDefaultVisitDay(month, todayKey);
-  const calendarQuery = useJobOccurrences({
-    endDate: monthRange.end,
-    includeArchived: false,
-    startDate: monthRange.start,
-  }, monthKey);
-  const filterOptionsQuery = useVisitFilterOptions();
-  const fallbackOptions = useMemo(
-    () => getCalendarFilterOptions(calendarQuery.occurrences),
-    [calendarQuery.occurrences]
-  );
-  const employeeOptions = mergeOptions(
-    filterOptionsQuery.employeeOptions,
-    fallbackOptions.employeeOptions
-  );
-  const jobOptions = mergeOptions(filterOptionsQuery.jobOptions, fallbackOptions.jobOptions);
-  const filteredOccurrences = useMemo(
-    () => filterCalendarOccurrences(calendarQuery.occurrences, filters),
-    [calendarQuery.occurrences, filters]
-  );
-  const selectedDayOccurrences = useMemo(
-    () => filteredOccurrences
-      .filter((occurrence) => sameDay(occurrence.scheduledStartAt, visibleSelectedDate))
-      .sort(byScheduledStart),
-    [filteredOccurrences, visibleSelectedDate]
-  );
-  const anchor = useMemo(() => {
-    if (exactDate) return getVisitExactDateAnchor(exactDate);
-    const [year, monthNumber] = monthKey.split("-").map(Number);
-    return getVisitFeedAnchor(new Date(year, monthNumber - 1, 1));
-  }, [exactDate, monthKey]);
-  const feedQuery = useInfiniteVisits({
-    anchor,
-    enabled: view === "list" || view === "cards",
-    filters: { ...filters, exactDate: exactDate || undefined },
-  });
-
-  const clearFilters = () => setFilterSession({
-    exactDate: "",
-    filters: { ...DEFAULT_CALENDAR_FILTERS },
-    monthKey,
-  });
-  const updateFilters = (changes: Partial<CalendarFilters>) =>
-    setFilterSession((current) => ({
-      exactDate: current.monthKey === monthKey ? current.exactDate : "",
-      filters: {
-        ...(current.monthKey === monthKey ? current.filters : DEFAULT_CALENDAR_FILTERS),
-        ...changes,
-      },
-      monthKey,
-    }));
-  const updateExactDate = (nextDate: string) =>
-    setFilterSession((current) => ({
-      exactDate: nextDate,
-      filters: current.monthKey === monthKey ? current.filters : { ...DEFAULT_CALENDAR_FILTERS },
-      monthKey,
-    }));
-  const isCalendar = view === "calendar";
-  const isSchedule = view === "schedule";
-  const refresh = async () => {
-    await filterOptionsQuery.refetch();
-    return isCalendar ? calendarQuery.refetch() : feedQuery.refetch();
-  };
+  const ctrl = useVisitsController();
+  const { ref, width } = useElementWidth<HTMLDivElement>();
+  const { content, desk } = ctrl;
+  const wide = width === null ? null : width >= DESKTOP_MIN_WIDTH;
+  const countLabel = `${content.visits.length} de ${content.total} visitas`;
 
   return (
-    <OpsPageShell>
-      <OpsPageHeader
-        actions={<><OpsRefreshButton isRefreshing={isCalendar ? calendarQuery.isFetching : feedQuery.isFetching} onRefresh={refresh} /><JobOccurrenceDialog intent="schedule" triggerLabel="Nueva visita" /></>}
-        description="Calendario e historial operativo de visitas, asignaciones y horarios reales."
-        eyebrow="Operaciones"
-        title="Visitas"
-      />
-      <VisitViewSwitcher
-        onChange={(nextView) => setViewState({ view: nextView })}
-        value={view}
-      />
-      {isSchedule ? null : (
-      <CalendarFiltersBar
-        countLabel={isCalendar ? undefined : `${feedQuery.occurrences.length} visita(s) cargadas`}
-        employeeOptions={employeeOptions}
-        exactDate={isCalendar ? undefined : exactDate}
-        filters={filters}
-        jobOptions={jobOptions}
-        onChange={updateFilters}
-        onClear={clearFilters}
-        onExactDateChange={isCalendar ? undefined : updateExactDate}
-        totalCount={calendarQuery.occurrences.length}
-        visibleCount={isCalendar ? filteredOccurrences.length : feedQuery.occurrences.length}
-      />
-      )}
-
-      {isSchedule ? (
-        <ScheduleBoard />
-      ) : isCalendar ? (
-        <div className="grid gap-5 xl:grid-cols-[minmax(0,420px)_1fr]">
-          <CalendarMonthPanel month={month} monthIsEmpty={calendarQuery.hasData && !calendarQuery.error && !calendarQuery.occurrences.length} occurrences={filteredOccurrences} selectedDate={visibleSelectedDate} onMonthChange={setMonth} onSelectDate={setSelectedDate} />
-          <CalendarAgendaPanel allOccurrences={filteredOccurrences} error={calendarQuery.error} hasActiveFilters={hasActiveCalendarFilters(filters)} hasData={calendarQuery.hasData} isLoading={calendarQuery.isLoading} isRetrying={calendarQuery.isFetching} occurrences={selectedDayOccurrences} onClearFilters={clearFilters} onRetry={() => void calendarQuery.refetch()} selectedDate={visibleSelectedDate} />
+    <div className="@container/visits container flex w-full flex-col pb-8" ref={ref}>
+      {wide !== false ? (
+        <div className="hidden flex-col gap-4 @4xl/visits:flex">
+          <VisitsHeader countLabel={countLabel} ctrl={ctrl} />
+          {desk.view === "cron" ? (
+            <ScheduleBoard initialDayKey={desk.dayKey} todayKey={desk.todayKey} />
+          ) : desk.view === "dia" ? (
+            <VisitDayView ctrl={ctrl} />
+          ) : (
+            <VisitAgendaView ctrl={ctrl} />
+          )}
         </div>
-      ) : (
-        <VisitFeed
-          error={feedQuery.error}
-          fetchNextPage={feedQuery.fetchNextPage}
-          hasNextPage={feedQuery.hasNextPage}
-          isFetchingNextPage={feedQuery.isFetchingNextPage}
-          isLoading={feedQuery.isLoading}
-          pages={feedQuery.pages}
-          refetch={feedQuery.refetch}
-          view={view}
-        />
-      )}
-    </OpsPageShell>
+      ) : null}
+      {wide !== true ? (
+        <div className="@4xl/visits:hidden">
+          <VisitsMobile ctrl={ctrl} enabled={wide === false} />
+        </div>
+      ) : null}
+      <VisitDialogs ctrl={ctrl} />
+    </div>
   );
 };

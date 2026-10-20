@@ -12,9 +12,10 @@ import { useOpsPersistedState } from "@/components/ops/shared";
 
 const defaultWeekdayState = { weekdays: ALL_WEEKDAYS };
 
-export const useScheduleWeek = () => {
+// Arranca en la semana del dia elegido en Visitas, o en la actual.
+export const useScheduleWeek = (initialDayKey?: string) => {
   const [weekStart, setWeekStart] = useState(
-    () => getScheduleWeek(new Date()).startKey
+    () => getScheduleWeek(initialDayKey ? parseScheduleWeekParam(initialDayKey) : new Date()).startKey
   );
   const [selectedEmployeeIds, setSelectedEmployeeIds] = useState<string[]>([]);
   const [weekdayState, setWeekdayState] = useOpsPersistedState(
