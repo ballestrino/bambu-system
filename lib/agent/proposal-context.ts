@@ -3,14 +3,17 @@ import { getSummaryAmounts } from "@/lib/agent/proposal-summary";
 import {
   PROPOSAL_STATUS_LABELS,
   type AgentProposalDto,
+  type AgentProposalKind,
   type ProposalChange,
 } from "@/lib/agent/proposals";
+import { isVisitProposalKind } from "@/lib/agent/visit-proposals";
 
 // Lo que el modelo ve de las propuestas. La salida guardada de una tool
 // propose* dice PENDING para siempre: en la prueba real el modelo dio por
 // pendientes propuestas ya confirmadas, rechazadas o vencidas. Y una guardada
 // desde el editor de la 43 tiene otro resumen: el de lo editado. Puro.
 export type ProposalPromptItem = Pick<AgentProposalDto, "status" | "summary" | "result" | "error"> & {
+  kind?: AgentProposalKind;
   unknownOutcome?: boolean;
 };
 
@@ -50,10 +53,11 @@ const describeChanges = (changes: ProposalChange[] = []) => {
 // escribir dos veces.
 export const formatProposalsForPrompt = (proposals: ProposalPromptItem[]) =>
   proposals
-    .map(({ status, summary, result, error, unknownOutcome }) => {
+    .map(({ kind, status, summary, result, error, unknownOutcome }) => {
       const label = unknownOutcome ? "resultado desconocido" : PROPOSAL_STATUS_LABELS[status];
       const line = `- ${summary.title}${describeChanges(summary.changes)}: ${label}`;
-      if (unknownOutcome) return `${line} (se cortó mientras se ejecutaba: revisá el presupuesto antes de proponerla de nuevo).`;
+      const target = kind && isVisitProposalKind(kind) ? "la visita con queryOperations" : "el presupuesto";
+      if (unknownOutcome) return `${line} (se cortó mientras se ejecutaba: revisá ${target} antes de proponerla de nuevo).`;
       if (status === "CONFIRMED" && result) return `${line}. Quedó en ${result.url}${describeSaved(summary.after)}.`;
       if ((status === "FAILED" || status === "EXPIRED") && error) return `${line} (${error}).`;
       return `${line}.`;

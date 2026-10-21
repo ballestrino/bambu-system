@@ -9,6 +9,7 @@ import {
 } from "@/components/agent/actions/agent-writes.action";
 import { agentKeys } from "@/components/agent/query-keys";
 import { invalidateBudgetScopes } from "@/components/budgets/hooks/budget-cache";
+import { invalidateOccurrenceScopes } from "@/components/ops/hooks/useOpsInvalidation";
 import { officialBudgetKeys } from "@/components/official-budgets/query-keys";
 import type { ProposalResult } from "@/lib/agent/proposals";
 
@@ -34,9 +35,14 @@ export const useAgentProposalMutations = ({
       // Primero el host (puede redirigir si cambió la dirección del
       // presupuesto abierto), después las listas y el detalle.
       onConfirmed?.(outcome.result);
+      // Una de visitas trae occurrenceIds. Sin resultado (borraron la
+      // conversación) no se sabe cuál fue: se releen las dos.
+      const visits = Boolean(outcome.result?.occurrenceIds);
+      const budgets = !visits;
       await Promise.all([
-        invalidateBudgetScopes(queryClient),
-        queryClient.invalidateQueries({ queryKey: officialBudgetKeys.all }),
+        budgets ? invalidateBudgetScopes(queryClient) : null,
+        budgets ? queryClient.invalidateQueries({ queryKey: officialBudgetKeys.all }) : null,
+        visits || !outcome.result ? invalidateOccurrenceScopes(queryClient) : null,
       ]);
     },
     onError: showError,

@@ -10,7 +10,8 @@ este documento describe lo que ya existe y se actualiza con cada feature.
 - Núcleo: `lib/agent/**`, habilidades, tools de lectura y cálculo,
   `draftEmail`, persistencia `Agent*` y la ruta `/api/agent/chat`.
 - Propuestas: el agente prepara crear, guardar, duplicar o publicar como
-  oficial un presupuesto y solo se escribe cuando el usuario confirma.
+  oficial un presupuesto, o cambiar o eliminar una visita, y solo se escribe
+  cuando el usuario confirma.
 - Sheet: el agente en el Sheet de Presupuestos (detalle y crear), con modos,
   habilidades, tarjetas, propuestas, historial y costos. Reemplazó al chat
   viejo (`AIChat`, `/api/ai-chat/stream`, `save-chat`), que se borró.
@@ -67,15 +68,17 @@ este documento describe lo que ya existe y se actualiza con cada feature.
   `searchBudgets`, `findMatchingBudgets` (reglas de precio), `getBudget`,
   `calculateBudget`, `solveForTargetPrice`,
   `getFinancialSnapshot`, `getFinancialTrend`, `getJobProfitability`,
-  `getPayrollSummary`, `queryOperations` y `draftEmail`. Devuelven
+  `getPayrollSummary`, `queryOperations` (visitas del mes o de un `day`) y
+  `draftEmail`. Devuelven
   `{ ok, data } | { ok: false, error }` con `card` para la UI; `runTool` pasa
   cada salida por `toPlainJson`, así nunca llega un `Decimal` ni un `Date`.
 - Las entradas de las tools son campos obligatorios y nullable (`null` = sin
   dato o sin cambio): con campos opcionales el modelo inventaba valores. Un
   `null` se pasa como `undefined` antes de llamar a una lectura de `data/`,
   que valida con zod.
-- Las visitas se leen con `data/agent/occurrences.ts`: `getJobOccurrences` y
-  `getVisitWeek` generan ocurrencias antes de leer.
+- Las visitas se leen con `data/agent/occurrences.ts` (`getAgentOccurrences`
+  y los lectores de las propuestas de visitas): solo leen, las visitas se
+  generan a mano.
 - Regla de precios: solo se citan importes de una fuente de la conversación
   (precio oficial exact, presupuesto o cálculo). Las tools que dan importes
   los declaran en `grounding` y se reconstruyen de las partes guardadas.
@@ -185,6 +188,53 @@ Proponer y confirmar: ninguna tool escribe presupuestos durante el turno.
   `Budget.updatedAt`), y publicar o duplicar sobre valores guardados en el
   medio por otra confirmación.
 
+## Propuestas de visitas
+
+Feature 27a. El mismo contrato que las de presupuestos: la tool guarda un
+`AgentProposal` PENDING y la visita solo se escribe al confirmar.
+
+| Tool | Tipo | Al confirmar ejecuta |
+| --- | --- | --- |
+| `proposeUpdateVisit` | `UPDATE_VISIT` | `updateJobOccurrence(occurrenceId, patch)` |
+| `proposeArchiveVisit` | `ARCHIVE_VISIT` | `archiveJobOccurrence(occurrenceId)` |
+
+- Eliminar es archivar, como "Eliminar visita". Cancelar es un cambio de
+  estado (`CANCELED`); "no se hizo" es `SKIPPED`.
+- Entradas planas y nullable (`schemas/agent-visit-tools.ts`), horarios
+  `AAAA-MM-DD HH:mm` de Montevideo, el mismo formato que devuelve
+  `queryOperations`. Para encontrar la visita, `queryOperations` acepta
+  `day` y cada fila trae `id`, `jobId`, `employeeIds`, notas recortadas,
+  `scheduleLabel` y `fromRule`.
+- `resolveVisitUpdate` (`lib/agent/visit-update-builder.ts`, puro): mover
+  solo el inicio conserva la duración; el equipo es la lista completa después
+  del cambio (una empleada que no existe o archivada recién agregada se
+  rechaza, una inactiva se avisa); registrar horario real la marca realizada;
+  realizada sin horario real toma el programado y dejar de estarlo borra el
+  horario real, como el formulario de registrar. Sin cambios se rechaza.
+- El payload (`schemas/agent-visit-proposals.ts`) lleva `baseUpdatedAt`,
+  `baseEmployeeIds` y un `patch` estricto con solo lo que cambia, en ISO
+  UTC: nunca `scheduleRuleId`, `isDetached` ni `generatedStartAt`.
+- Avisos (`lib/agent/visit-warnings.ts`, hasta 3 y "Y N avisos más"): lo que
+  cambia en sueldos (con el aviso de pagos ya cargados de la 27c), cruces con
+  otras visitas de esas empleadas, un horario nuevo que ya pasó, empleadas
+  inactivas y un trabajo que no está activo.
+- Al confirmar, `runClaimed` manda las de visitas a
+  `executeVisitProposal` (`lib/agent/visit-proposal-execute.ts`, `server-only`,
+  sin `"use server"`): re-valida contra una lectura fresca (la visita sigue
+  sin archivar, mismo `updatedAt`, mismo equipo guardado, las empleadas
+  nuevas no se archivaron) y ejecuta la acción de la pantalla. El equipo se
+  compara aparte porque quitar una asignación desde el trabajo no mueve el
+  `updatedAt` de la visita. Queda una ventana de milisegundos entre la
+  re-validación y `updateJobOccurrence`, documentada como las de
+  presupuestos.
+- `result` lleva `label "Visitas"`, `url /dashboard/calendar` y
+  `occurrenceIds`; la tarjeta dice "Quedó en Visitas" y confirmar relee las
+  consultas de visitas (`invalidateOccurrenceScopes`) en vez de las de
+  presupuestos.
+- Solo General las tiene, con `VISIT_RULE` en el prompt: buscar la visita
+  antes, preguntar si hay más de una, una propuesta por visita y no dar nada
+  por hecho hasta verlo confirmado.
+
 ## Sheet
 
 `AgentSheetHost` (`components/agent/**`) no sabe en qué pantalla está: recibe
@@ -215,8 +265,8 @@ el contexto y el botón que lo abre.
   muestra el modelo real de cada uno (`getAgentSettings`, con los overrides
   del entorno) y aplica a los turnos siguientes; si la conversación ya existe
   se guarda en el momento.
-- Chips Presupuestos, Emails y Consejos (ninguno = General). La habilidad
-  viaja con cada mensaje, se ve en la burbuja y sigue marcada al reabrir.
+- Desde la 22 no hay chips: la UI siempre envía General. La habilidad sigue
+  viajando con cada mensaje y se ve en la burbuja de los mensajes viejos.
 - Cada tool se ve como un chip (su tipo, Lectura, Cálculo, Propuesta o
   Borrador, va en el title) y al terminar su tarjeta, según `card`. Las tools
   seguidas juntan sus chips en una fila y después van sus tarjetas. Un error
@@ -746,6 +796,14 @@ en USD por millón de tokens:
   al actualizar, elegir la última versión que cumpla.
 
 ## Verificación
+
+- `pnpm check:agent-visits`: horarios de Montevideo (fechas imposibles
+  rechazadas), mover conservando la duración, registrar, cancelar, equipo,
+  rechazos, avisos de sueldos y cruces, payloads que pasan
+  `UpdateJobOccurrenceSchema`, precondiciones, prompt y tools por habilidad y,
+  por texto fuente, que las tools no escriben, que el ejecutor es
+  `server-only`, re-valida antes de escribir y solo lo importa confirmar, y
+  que la migración solo agrega los dos valores.
 
 - `pnpm check:ai-gateway`: los siete modos y los modelos del selector, Claude
   directo y por gateway, el default (Haiku con clave, Bajo sin ella), las

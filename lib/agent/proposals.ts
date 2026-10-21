@@ -10,6 +10,8 @@ export const AGENT_PROPOSAL_KINDS = [
   "UPDATE_BUDGET",
   "DUPLICATE_BUDGET",
   "PUBLISH_OFFICIAL_BUDGET",
+  "UPDATE_VISIT",
+  "ARCHIVE_VISIT",
 ] as const;
 
 export type AgentProposalKind = (typeof AGENT_PROPOSAL_KINDS)[number];
@@ -81,6 +83,8 @@ export type ProposalResult = {
   slug: string | null;
   officialBudgetId: string | null;
   officialVersion: number | null;
+  // Las visitas que escribió una propuesta de visitas.
+  occurrenceIds?: string[];
 };
 
 export const proposalSelect = {

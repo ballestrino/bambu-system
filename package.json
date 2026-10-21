@@ -9,6 +9,7 @@
     "build": "pnpm exec prisma generate && next build",
     "check:ai-gateway": "tsx scripts/check-ai-gateway.ts",
     "check:agent-tools": "tsx scripts/check-agent-tools.ts",
+    "check:agent-visits": "tsx scripts/check-agent-visits.ts",
     "check:agent-proposals": "tsx scripts/check-agent-proposals.ts",
     "check:agent-sheet": "tsx scripts/check-agent-sheet.ts",
     "check:agent-page": "tsx scripts/check-agent-page.ts",

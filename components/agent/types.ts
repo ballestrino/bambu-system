@@ -45,6 +45,7 @@ export type ListCardData = {
   truncated: boolean;
   rows: Record<string, unknown>[];
   month?: string;
+  day?: string;
   recordedTotal?: number;
 };
 

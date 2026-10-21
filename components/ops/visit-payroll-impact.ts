@@ -47,28 +47,31 @@ export const getVisitPayrollImpact = (
   };
 };
 
+export const joinEmployeeNames = (employees: { name: string }[]) =>
+  joinNames(employees.map((employee) => employee.name));
+
+// The month's payments are already recorded for some of the employees.
+export const formatPaidNotice = (
+  impact: VisitPayrollImpact,
+  paidEmployeeIds: readonly string[] = []
+) => {
+  const paid = impact.employees.filter((employee) => paidEmployeeIds.includes(employee.id));
+  if (!paid.length) return null;
+  const balance = paid.length > 1 ? "sus saldos cambian" : "su saldo cambia";
+  return `Las horas de ${impact.workMonthName} ya tienen pagos cargados para ${joinEmployeeNames(paid)}: ${balance}.`;
+};
+
 export const formatVisitPayrollWarning = (
   impact: VisitPayrollImpact,
   paidEmployeeIds: readonly string[] = []
 ) => {
-  const names = joinNames(impact.employees.map((employee) => employee.name));
   const removed =
     impact.hours > 0
       ? `se restan ${formatHours(impact.hours)} hs y el transporte`
       : "se resta el transporte";
-  const lines = [
-    `Es una visita realizada: ${removed} a ${names} en los sueldos de ${impact.workMonthName}.`,
+  const paid = formatPaidNotice(impact, paidEmployeeIds);
+  return [
+    `Es una visita realizada: ${removed} a ${joinEmployeeNames(impact.employees)} en los sueldos de ${impact.workMonthName}.`,
+    ...(paid ? [paid] : []),
   ];
-
-  const paid = impact.employees.filter((employee) => paidEmployeeIds.includes(employee.id));
-  if (paid.length) {
-    const balance = paid.length > 1 ? "sus saldos cambian" : "su saldo cambia";
-    lines.push(
-      `Las horas de ${impact.workMonthName} ya tienen pagos cargados para ${joinNames(
-        paid.map((employee) => employee.name)
-      )}: ${balance}.`
-    );
-  }
-
-  return lines;
 };

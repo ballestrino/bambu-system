@@ -19,6 +19,7 @@ import {
   type ProposalResult,
   type ProposalSummary,
 } from "@/lib/agent/proposals";
+import { executeVisitProposal } from "@/lib/agent/visit-proposal-execute";
 import { BUDGET_CHANGED_MESSAGE } from "@/lib/budget-errors";
 import { db } from "@/lib/db";
 import {
@@ -27,8 +28,9 @@ import {
 } from "@/lib/require-admin-session";
 import {
   agentProposalIdSchema,
+  isVisitProposal,
   parseProposalPayload,
-  type ParsedProposal,
+  type ParsedBudgetProposal,
 } from "@/schemas/agent-proposals";
 
 type Outcome = { ok: true; result: ProposalResult } | { ok: false; error: string };
@@ -60,7 +62,7 @@ const failure = (error: string | undefined, fallback: string): Outcome => ({
 
 // Las cuatro escrituras son las acciones existentes, con sus propios chequeos
 // de sesión y validación: la propuesta nunca escribe por su cuenta.
-const execute = async (proposal: ParsedProposal, summary: ProposalSummary): Promise<Outcome> => {
+const execute = async (proposal: ParsedBudgetProposal, summary: ProposalSummary): Promise<Outcome> => {
   switch (proposal.kind) {
     case "CREATE_BUDGET": {
       const result = await createBudget(proposal.payload.values);
@@ -114,6 +116,7 @@ const runClaimed = async (
     if (!proposal) {
       return { ok: false, error: "La propuesta guardada no es válida: pedile al asistente una nueva." };
     }
+    if (isVisitProposal(proposal)) return await executeVisitProposal(proposal);
     const budgetId = getProposalBudgetId(proposal);
     const state = budgetId ? await getAgentBudgetState(budgetId) : null;
     const blocked = checkProposalPreconditions(proposal, state);
@@ -123,7 +126,7 @@ const runClaimed = async (
     console.error("Agent proposal execution failed:", error);
     return {
       ok: false,
-      error: "No se pudo completar la propuesta: revisá el presupuesto y pedile al asistente una nueva.",
+      error: "No se pudo completar la propuesta: revisá el presupuesto o la visita y pedile al asistente una nueva.",
     };
   }
 };

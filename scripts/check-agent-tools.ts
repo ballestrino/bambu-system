@@ -148,7 +148,7 @@ assert.ok(!resolveSkillToolNames(AGENT_SKILLS.presupuestos).includes("queryOpera
 
 // --- Inputs: unknown operation kinds and bad months are rejected; the chat
 // body only takes a user text message.
-const noFilters = { query: null, month: null, jobId: null, employeeId: null, jobStatus: null, visitStatus: null, costKind: null, includeInactive: null };
+const noFilters = { query: null, month: null, day: null, jobId: null, employeeId: null, jobStatus: null, visitStatus: null, costKind: null, includeInactive: null };
 assert.equal(queryOperationsInputSchema.safeParse({ ...noFilters, kind: "payroll" }).success, false);
 assert.equal(queryOperationsInputSchema.safeParse({ ...noFilters, kind: "visits", month: "2026-13" }).success, false);
 assert.equal(queryOperationsInputSchema.safeParse({ ...noFilters, kind: "visits", month: "2026-09" }).success, true);

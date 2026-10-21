@@ -46,6 +46,9 @@ modales del escritorio no se abren de más (`visits-page.tsx`).
   (`use-visit-actions.ts`). Para registrar se envían el estado, el horario
   real (solo si la visita fue realizada) y las notas. Para asignar se envía
   `employeeIds: [id]`. Crear y editar siguen en `JobOccurrenceDialog`.
+- El agente también cambia y elimina visitas con propuestas que se
+  confirman en el chat (`docs/agent.md`, "Propuestas de visitas"), con las
+  mismas acciones.
 
 ## Checks
 

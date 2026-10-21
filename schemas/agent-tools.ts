@@ -145,6 +145,7 @@ export const queryOperationsInputSchema = z.object({
   kind: z.enum(OPERATION_KINDS),
   query: z.string().trim().max(120).nullable().describe("Texto a buscar (jobs, employees)"),
   month: monthKeySchema.describe("Mes (visits, clientPayments, operationalCosts, employeePayments)"),
+  day: z.iso.date().nullable().describe("Día AAAA-MM-DD en Montevideo (solo visits); gana sobre month"),
   jobId: idSchema.nullable(),
   employeeId: idSchema.nullable(),
   jobStatus: jobStatusSchema.nullable(),

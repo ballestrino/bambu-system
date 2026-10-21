@@ -2,8 +2,9 @@ import { Loader2 } from "lucide-react";
 import Link from "next/link";
 
 import type { ProposalDisplayStatus } from "@/lib/agent/proposal-outcome";
-import type { AgentProposalDto, ProposalResult } from "@/lib/agent/proposals";
+import type { AgentProposalDto, AgentProposalKind, ProposalResult } from "@/lib/agent/proposals";
 import { getBudgetUrl, getOfficialBudgetUrl } from "@/lib/agent/proposals";
+import { isVisitProposalKind, VISITS_URL } from "@/lib/agent/visit-proposals";
 import { cn } from "@/lib/utils";
 
 // El estado de la tarjeta sale de getDisplayStatus (lib/agent/proposal-outcome):
@@ -71,10 +72,12 @@ export function ProposalOutcome({
   status,
   live,
   slug,
+  kind,
 }: {
   status: ProposalDisplayStatus;
   live: AgentProposalDto | undefined;
   slug: string | null;
+  kind: AgentProposalKind;
 }) {
   if (status === "CONFIRMED" && live?.result) return <ResultLinks result={live.result} />;
   if (status === "EXECUTING") {
@@ -84,7 +87,11 @@ export function ProposalOutcome({
     return (
       <p className="text-xs text-destructive">
         Se cortó mientras se ejecutaba y no se sabe si llegó a guardarse.{" "}
-        {slug ? (
+        {isVisitProposalKind(kind) ? (
+          <Link href={VISITS_URL} className="underline underline-offset-4">
+            Revisá Visitas
+          </Link>
+        ) : slug ? (
           <Link href={getBudgetUrl(slug)} className="underline underline-offset-4">
             Revisá el presupuesto
           </Link>

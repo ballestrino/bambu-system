@@ -34,7 +34,7 @@ import {
   buildDuplicateBudgetProposal,
   buildPublishOfficialBudgetProposal,
 } from "../lib/agent/stored-budget-proposals";
-import { parseProposalPayload } from "../schemas/agent-proposals";
+import { isVisitProposal, parseProposalPayload, type ParsedBudgetProposal } from "../schemas/agent-proposals";
 import { defaultBudgetValues } from "../schemas/BudgetSchema";
 import { budget, roundTrip } from "./agent-proposal-fixture";
 
@@ -43,8 +43,8 @@ import { budget, roundTrip } from "./agent-proposal-fixture";
 const parse = (built: BuiltProposal) => {
   assert.ok(built.ok);
   const parsed = parseProposalPayload(built.kind, roundTrip(built.payload));
-  assert.ok(parsed);
-  return parsed;
+  assert.ok(parsed && !isVisitProposal(parsed));
+  return parsed as ParsedBudgetProposal;
 };
 
 // --- Preconditions are re-checked at confirm time against a fresh read: the
@@ -160,13 +160,15 @@ assert.match(bare, /Guardar siempre es una propuesta/);
 assert.doesNotMatch(bare, /no podés crear, modificar ni borrar/);
 assert.doesNotMatch(AGENT_SKILLS.presupuestos.instructions, /Todavía no podés guardar/);
 
-// --- The four tools are proposals: Presupuestos and General have them,
-// Consejos doesn't, and Emails only creates (the budget it calculated to
-// answer a quote request).
+// --- The four budget tools are proposals: Presupuestos and General have
+// them, Consejos doesn't, and Emails only creates (the budget it calculated to
+// answer a quote request). The visit ones are only in General
+// (check:agent-visits).
 const PROPOSE_TOOLS = ["proposeCreateBudget", "proposeUpdateBudget", "proposeDuplicateBudget", "proposePublishOfficialBudget"] as const;
+const VISIT_PROPOSE_TOOLS = ["proposeUpdateVisit", "proposeArchiveVisit"] as const;
 assert.deepEqual(
   AGENT_TOOL_NAMES.filter((name) => AGENT_TOOL_CATALOG[name].kind === "proposal").sort(),
-  [...PROPOSE_TOOLS].sort()
+  [...PROPOSE_TOOLS, ...VISIT_PROPOSE_TOOLS].sort()
 );
 PROPOSE_TOOLS.forEach((name) => {
   assert.ok(resolveSkillToolNames(AGENT_SKILLS.presupuestos).includes(name), name);
