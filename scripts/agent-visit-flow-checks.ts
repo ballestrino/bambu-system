@@ -5,11 +5,11 @@ import { getSummaryAmounts } from "../lib/agent/proposal-summary";
 import { AGENT_SKILLS, resolveSkillToolNames } from "../lib/agent/skills";
 import { buildAgentInstructions, VISIT_RULE } from "../lib/agent/system-prompt";
 import { toVisitState } from "../lib/agent/visit-format";
-import { checkVisitProposalPreconditions } from "../lib/agent/visit-proposal-preconditions";
+import { checkVisitProposalPreconditions, type ParsedVisitEdit } from "../lib/agent/visit-proposal-preconditions";
 import { VISIT_GONE_MESSAGE, VISIT_STALE_MESSAGE, visitResult } from "../lib/agent/visit-proposals";
 import { buildArchiveVisitProposal, buildUpdateVisitProposal, resolveVisitUpdate } from "../lib/agent/visit-update-builder";
 import { buildArchiveVisitWarnings, buildUpdateVisitWarnings, capWarnings, payrollChangeWarnings } from "../lib/agent/visit-warnings";
-import { isVisitProposal, parseProposalPayload, type ParsedVisitProposal } from "../schemas/agent-proposals";
+import { isVisitProposal, parseProposalPayload } from "../schemas/agent-proposals";
 import { visitPatchSchema } from "../schemas/agent-visit-proposals";
 import { UpdateJobOccurrenceSchema } from "../schemas/ops/job-occurrence";
 import { ANA, BEA, DORA, UPDATED_AT, done, employees, input, roundTrip, visit } from "./agent-visit-fixture";
@@ -84,7 +84,7 @@ assert.deepEqual(archive.summary.changes[0], {
 
 // --- Preconditions against a fresh read.
 const live = { archivedAt: null, updatedAt: UPDATED_AT, employeeIds: [ANA.id] };
-const updateProposal = parsedUpdate as ParsedVisitProposal;
+const updateProposal = parsedUpdate as ParsedVisitEdit;
 const all = [
   { ...ANA, archivedAt: null },
   { ...BEA, archivedAt: null },
@@ -100,7 +100,7 @@ assert.equal(
   checkVisitProposalPreconditions(updateProposal, live, [all[0], { ...BEA, archivedAt: new Date() }]),
   "Bea fue archivada: pedile al asistente una nueva."
 );
-const archiveProposal = parsedArchive as ParsedVisitProposal;
+const archiveProposal = parsedArchive as ParsedVisitEdit;
 assert.equal(checkVisitProposalPreconditions(archiveProposal, live), null);
 assert.equal(checkVisitProposalPreconditions(archiveProposal, { ...live, updatedAt: new Date() }), VISIT_STALE_MESSAGE);
 assert.ok(DORA.id);
@@ -112,7 +112,7 @@ const prompt = (skill: keyof typeof AGENT_SKILLS) =>
 assert.ok(prompt("general").includes(VISIT_RULE));
 assert.match(prompt("general"), /Lo único que podés eliminar es una visita/);
 (["presupuestos", "emails", "consejos"] as const).forEach((skill) => assert.ok(!prompt(skill).includes(VISIT_RULE), skill));
-(["proposeUpdateVisit", "proposeArchiveVisit"] as const).forEach((name) => {
+(["proposeCreateVisits", "proposeUpdateVisit", "proposeArchiveVisit"] as const).forEach((name) => {
   assert.ok(resolveSkillToolNames(AGENT_SKILLS.general).includes(name), name);
   (["presupuestos", "emails", "consejos"] as const).forEach((skill) =>
     assert.ok(!resolveSkillToolNames(AGENT_SKILLS[skill]).includes(name), `${skill}: ${name}`)

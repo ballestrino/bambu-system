@@ -63,26 +63,17 @@ export const getAgentVisitState = async (id: string) => {
     : null;
 };
 
-// Otras visitas programadas o realizadas de esas empleadas que se cruzan con
-// el horario: la tarjeta avisa, no bloquea.
-export const getAgentVisitOverlaps = async ({
-  employeeIds,
-  start,
-  end,
-  excludeId,
-}: {
-  employeeIds: string[];
-  start: Date;
-  end: Date;
-  excludeId: string;
-}) => {
-  await requireAdminSession();
+type TeamRange = { employeeIds: string[]; start: Date; end: Date };
+
+// Las visitas programadas o realizadas de esas empleadas que se cruzan con el
+// rango, con el nombre de las que están en las dos.
+const findTeamVisits = async ({ employeeIds, start, end, excludeId, take }: TeamRange & { excludeId?: string; take: number }) => {
   if (!employeeIds.length) return [];
 
   const visits = await db.jobOccurrence.findMany({
     where: {
       archivedAt: null,
-      id: { not: excludeId },
+      id: excludeId ? { not: excludeId } : undefined,
       status: { in: ["SCHEDULED", "DONE"] },
       employees: { some: { employeeId: { in: employeeIds } } },
       scheduledStartAt: { lt: end },
@@ -95,7 +86,7 @@ export const getAgentVisitOverlaps = async ({
       employees: { select: { employee: { select: { id: true, name: true } } } },
     },
     orderBy: { scheduledStartAt: "asc" },
-    take: 5,
+    take,
   });
   return visits.map((visit) => ({
     job: visit.job.name,
@@ -106,4 +97,31 @@ export const getAgentVisitOverlaps = async ({
       .filter((employee) => employeeIds.includes(employee.id))
       .map((employee) => employee.name),
   }));
+};
+
+// Otras visitas de esas empleadas que se cruzan con el horario: la tarjeta
+// avisa, no bloquea.
+export const getAgentVisitOverlaps = async (range: TeamRange & { excludeId: string }) => {
+  await requireAdminSession();
+  return findTeamVisits({ ...range, take: 5 });
+};
+
+// Los inicios de esos horarios que ya tiene una visita sin archivar del
+// trabajo: un lote no crea una visita encima de otra igual.
+export const getAgentJobTakenStarts = async (jobId: string, starts: Date[]) => {
+  await requireAdminSession();
+  if (!starts.length) return [];
+
+  const visits = await db.jobOccurrence.findMany({
+    where: { jobId, archivedAt: null, scheduledStartAt: { in: starts } },
+    select: { scheduledStartAt: true },
+  });
+  return visits.map((visit) => visit.scheduledStartAt);
+};
+
+// Las visitas de esas empleadas en todo el rango de un lote: los cruces de
+// cada visita se buscan en memoria.
+export const getAgentTeamVisits = async (range: TeamRange) => {
+  await requireAdminSession();
+  return findTeamVisits({ ...range, take: 200 });
 };

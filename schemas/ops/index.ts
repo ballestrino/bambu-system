@@ -8,6 +8,7 @@ export * from "@/schemas/ops/job-client-payment";
 export * from "@/schemas/ops/operational-cost";
 export * from "@/schemas/ops/job-employee-assignment";
 export * from "@/schemas/ops/job-occurrence";
+export * from "@/schemas/ops/job-occurrence-batch";
 export * from "@/schemas/ops/job-schedule-rule";
 export * from "@/schemas/ops/time-entry";
 export * from "@/schemas/ops/visit-feed";

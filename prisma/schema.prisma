@@ -1147,6 +1147,7 @@ enum AgentProposalKind {
   PUBLISH_OFFICIAL_BUDGET
   UPDATE_VISIT
   ARCHIVE_VISIT
+  CREATE_VISITS
 }
 
 enum AgentProposalStatus {

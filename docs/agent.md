@@ -10,8 +10,8 @@ este documento describe lo que ya existe y se actualiza con cada feature.
 - Núcleo: `lib/agent/**`, habilidades, tools de lectura y cálculo,
   `draftEmail`, persistencia `Agent*` y la ruta `/api/agent/chat`.
 - Propuestas: el agente prepara crear, guardar, duplicar o publicar como
-  oficial un presupuesto, o cambiar o eliminar una visita, y solo se escribe
-  cuando el usuario confirma.
+  oficial un presupuesto, o crear, cambiar o eliminar visitas, y solo se
+  escribe cuando el usuario confirma.
 - Sheet: el agente en el Sheet de Presupuestos (detalle y crear), con modos,
   habilidades, tarjetas, propuestas, historial y costos. Reemplazó al chat
   viejo (`AIChat`, `/api/ai-chat/stream`, `save-chat`), que se borró.
@@ -190,11 +190,13 @@ Proponer y confirmar: ninguna tool escribe presupuestos durante el turno.
 
 ## Propuestas de visitas
 
-Feature 27a. El mismo contrato que las de presupuestos: la tool guarda un
-`AgentProposal` PENDING y la visita solo se escribe al confirmar.
+Features 27a (cambiar y eliminar) y 27b (crear en lote). El mismo contrato
+que las de presupuestos: la tool guarda un `AgentProposal` PENDING y las
+visitas solo se escriben al confirmar.
 
 | Tool | Tipo | Al confirmar ejecuta |
 | --- | --- | --- |
+| `proposeCreateVisits` | `CREATE_VISITS` | `createJobOccurrences(payload)` |
 | `proposeUpdateVisit` | `UPDATE_VISIT` | `updateJobOccurrence(occurrenceId, patch)` |
 | `proposeArchiveVisit` | `ARCHIVE_VISIT` | `archiveJobOccurrence(occurrenceId)` |
 
@@ -234,6 +236,40 @@ Feature 27a. El mismo contrato que las de presupuestos: la tool guarda un
 - Solo General las tiene, con `VISIT_RULE` en el prompt: buscar la visita
   antes, preguntar si hay más de una, una propuesta por visita y no dar nada
   por hecho hasta verlo confirmado.
+
+### Crear en lote (27b)
+
+- `proposeCreateVisits` (entrada plana): `jobId`, los días en `dates`
+  (sueltos) **o** en `repeatFrom`, `repeatTo` y `repeatWeekdays` (1 lunes …
+  7 domingo, extremos incluidos), `startTime` y `endTime` (`HH:mm`, el mismo
+  día), `employeeIds` (`null` = el equipo asignado al trabajo, con
+  `resolveEmployeeIds` como al generar), `notes` y `scheduleLabel`. Las dos
+  formas a la vez se rechazan; una lista vacía cuenta como no mandada.
+- `expandVisitDates` (`lib/agent/visit-time.ts`) expande la repetición en el
+  servidor: el modelo nunca hace cuentas de calendario. El rango no pasa de
+  un año; el tope de 20 visitas (`MAX_PROPOSED_VISITS`, el mismo que
+  `CreateJobOccurrencesSchema`) va en `resolveCreateVisits`
+  (`lib/agent/visit-create-builder.ts`, puro), con un mensaje que pide partir
+  el pedido.
+- Se rechaza: trabajo archivado, ningún día en el rango, fin ≤ inicio (una
+  visita que cruza la medianoche se agenda en la pantalla), un equipo del
+  trabajo que cambia dentro del rango (se pide `employeeIds`), empleadas que
+  no existen o archivadas, y días donde el trabajo ya tiene una visita sin
+  archivar que empieza a esa hora.
+- La tarjeta lista cada visita en `summary.items` (`label` con el horario,
+  `detail` con los cruces de esa visita) y el equipo, notas y nombre del
+  cronograma en `changes`. Avisos: trabajo no activo, sin equipo, empleadas
+  inactivas, cruces con otras visitas de esas empleadas (una sola lectura
+  del rango, `getAgentTeamVisits`) y visitas que ya pasaron.
+- El payload lleva el lote ya expandido en ISO UTC (1 a 20 visitas).
+  Confirmar re-valida (`checkCreateVisitsPreconditions`): el trabajo existe
+  y no está archivado, las empleadas existen y no se archivaron, y ninguna
+  visita del trabajo empieza ya a esa hora (la misma propuesta dos veces o
+  una visita creada en el medio). Después `createJobOccurrences`
+  (`actions/ops/job-occurrence-batch.ts`) valida sesión, zod, trabajo y
+  empleadas y escribe todo en una transacción en forma de arreglo
+  (`createOccurrencesWithEmployees`): visitas SCHEDULED sueltas, sin regla
+  ni `generatedStartAt`. Un fallo no deja visitas a medias.
 
 ## Sheet
 
@@ -803,7 +839,13 @@ en USD por millón de tokens:
   `UpdateJobOccurrenceSchema`, precondiciones, prompt y tools por habilidad y,
   por texto fuente, que las tools no escriben, que el ejecutor es
   `server-only`, re-valida antes de escribir y solo lo importa confirmar, y
-  que la migración solo agrega los dos valores.
+  que la migración solo agrega los dos valores. Para crear en lote
+  (`scripts/agent-visit-create-checks.ts`): los martes de octubre de 2026
+  dan 6, 13, 20 y 27, más de 20 se rechaza, `dates` y `repeat*` juntos se
+  rechazan, el equipo del trabajo, avisos, el payload pasa
+  `CreateJobOccurrencesSchema`, las precondiciones y, por texto fuente, el
+  lote en `$transaction([`, SCHEDULED y sin regla, y la migración con solo
+  `CREATE_VISITS`.
 
 - `pnpm check:ai-gateway`: los siete modos y los modelos del selector, Claude
   directo y por gateway, el default (Haiku con clave, Bajo sin ella), las
