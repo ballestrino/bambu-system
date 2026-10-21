@@ -105,7 +105,7 @@ export function AgentListCard({ data }: { data: ListCardData }) {
     <AgentCard
       icon={List}
       title={kind.title}
-      subtitle={`${data.total} ${data.total === 1 ? "resultado" : "resultados"}${data.month ? ` · ${data.month}` : ""}`}
+      subtitle={`${data.total} ${data.total === 1 ? "resultado" : "resultados"}${data.day ?? data.month ? ` · ${data.day ?? data.month}` : ""}`}
     >
       {shown.length === 0 ? (
         <CardNote>No hay resultados.</CardNote>

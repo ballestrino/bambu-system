@@ -14,19 +14,15 @@ import {
   toAssignedMonth,
 } from "@/lib/agent/month";
 import { roundMoney, runTool, toolError, toolOk } from "@/lib/agent/tool-result";
+import { toAgentVisitRow } from "@/lib/agent/visit-format";
 import { DEFAULT_OPS_TIMEZONE } from "@/lib/ops/timezone";
+import { getVisitExactDateRange } from "@/lib/ops/visit-feed";
 import { queryOperationsInputSchema, type QueryOperationsInput } from "@/schemas/agent-tools";
 
 const MAX_ROWS = 50;
 
-const localFormat = new Intl.DateTimeFormat("sv-SE", {
-  dateStyle: "short",
-  timeStyle: "short",
-  timeZone: DEFAULT_OPS_TIMEZONE,
-});
 const dateFormat = new Intl.DateTimeFormat("sv-SE", { timeZone: DEFAULT_OPS_TIMEZONE });
 
-const localDateTime = (date: Date | null) => (date ? localFormat.format(date) : null);
 const localDate = (date: Date) => dateFormat.format(date);
 const money = (value: unknown) => roundMoney(Number(value) || 0);
 
@@ -78,7 +74,7 @@ const readOperations = async (input: QueryOperationsInput) => {
       };
     }
     case "visits": {
-      const range = getZonedMonthRange(month);
+      const range = input.day ? getVisitExactDateRange(input.day) : getZonedMonthRange(month);
       const occurrences = await getAgentOccurrences({
         start: range.start,
         end: range.end,
@@ -86,19 +82,9 @@ const readOperations = async (input: QueryOperationsInput) => {
         employeeId: input.employeeId ?? undefined,
         statuses: input.visitStatus ? [input.visitStatus] : undefined,
       });
-      return {
-        month,
-        rows: occurrences.map((visit) => ({
-          id: visit.id,
-          job: visit.job.name,
-          status: visit.status,
-          scheduledStart: localDateTime(visit.scheduledStartAt),
-          scheduledEnd: localDateTime(visit.scheduledEndAt),
-          actualStart: localDateTime(visit.actualStartAt),
-          actualEnd: localDateTime(visit.actualEndAt),
-          employees: visit.employees.map(({ employee }) => employee.name),
-        })),
-      };
+      return input.day
+        ? { day: input.day, rows: occurrences.map(toAgentVisitRow) }
+        : { month, rows: occurrences.map(toAgentVisitRow) };
     }
     case "clientPayments": {
       const result = await getJobClientPayments({ assignedMonth, jobId: input.jobId ?? undefined });
@@ -150,7 +136,7 @@ const readOperations = async (input: QueryOperationsInput) => {
 export const createOperationsTools = () => ({
   queryOperations: tool({
     description:
-      "Consulta operaciones en modo lectura: trabajos (jobs), empleadas (employees), visitas del mes (visits), cobros (clientPayments), costes (operationalCosts) o pagos a empleadas (employeePayments). Hasta 50 filas; truncated avisa si hay más. No modifica nada.",
+      "Consulta operaciones en modo lectura: trabajos (jobs), empleadas (employees), visitas del mes o de un día (visits, con ids, equipo y horarios AAAA-MM-DD HH:mm de Montevideo), cobros (clientPayments), costes (operationalCosts) o pagos a empleadas (employeePayments). Hasta 50 filas; truncated avisa si hay más. No modifica nada.",
     inputSchema: queryOperationsInputSchema,
     execute: (input) =>
       runTool("queryOperations", async () => {

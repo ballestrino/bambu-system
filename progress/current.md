@@ -11,14 +11,20 @@ Status: idle
 - `feature_list.json` se renumeró el 2026-09-24: las ids 1–10 son contexto
   terminado y la cola va de la 11 a la 20, en orden de prioridad. La tabla de
   equivalencias con los ids viejos está en `progress/history.md`.
-- El agente con visitas sigue con 27a `agent_visit_edits` (cambiar y
-  eliminar una visita) y 27b `agent_visit_batch_create` (crear hasta 20 de
-  un trabajo). El plan está en `plans/bambu-agente-visitas.md` y la crítica
-  en `plans/bambu-agente-visitas-critica.md` (locales: `plans/` está en
-  `.gitignore`). Falta decidir si van antes de la 18 `ops_contextual_period`.
+- El agente con visitas sigue con la 27b `agent_visit_batch_create` (crear
+  hasta 20 visitas de un trabajo en una propuesta, con la migración de
+  `CREATE_VISITS` y `summary.items`). El plan está en
+  `plans/bambu-agente-visitas.md` (local). Falta decidir si va antes de la
+  18 `ops_contextual_period`.
 
 ## Last Closed Work
 
+- 2026-10-21: el agente cambia y elimina visitas (27a): `proposeUpdateVisit`
+  y `proposeArchiveVisit` con confirmación, re-validación de `updatedAt` y
+  equipo, avisos de sueldos y cruces, `queryOperations` por día con el día
+  de la semana. Migración aditiva aplicada en Neon. Smoke con Haiku 5.5 sobre
+  datos de prueba, ya archivados. Mergeada en `main` sin push. La
+  conversación de prueba sigue en el historial del agente.
 - 2026-10-21: visitas de regla movidas y aviso de sueldos (27c):
   `generatedStartAt` evita que "Generar visitas" vuelva a llenar el inicio de
   una visita movida, separada o archivada; backfill de 1338 visitas en Neon;

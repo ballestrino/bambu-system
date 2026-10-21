@@ -1,7 +1,9 @@
 import { z } from "zod";
 
 import type { AgentProposalKind } from "@/lib/agent/proposals";
+import { isVisitProposalKind, type VisitProposalKind } from "@/lib/agent/visit-proposals";
 import { agentClientIdSchema } from "@/schemas/agent";
+import { visitProposalPayloadSchemas } from "@/schemas/agent-visit-proposals";
 import { BudgetSchema } from "@/schemas/BudgetSchema";
 
 // Payloads de las propuestas del agente. Se validan al proponer y otra vez al
@@ -35,6 +37,7 @@ export const proposalPayloadSchemas = {
     sourceBudgetId: idSchema,
     baseUpdatedAt: baseUpdatedAtSchema,
   }),
+  ...visitProposalPayloadSchemas,
 } satisfies Record<AgentProposalKind, z.ZodType>;
 
 export type ProposalPayloads = {
@@ -44,6 +47,13 @@ export type ProposalPayloads = {
 export type ParsedProposal = {
   [K in AgentProposalKind]: { kind: K; payload: ProposalPayloads[K] };
 }[AgentProposalKind];
+
+export type ParsedVisitProposal = Extract<ParsedProposal, { kind: VisitProposalKind }>;
+
+export type ParsedBudgetProposal = Exclude<ParsedProposal, { kind: VisitProposalKind }>;
+
+export const isVisitProposal = (proposal: ParsedProposal): proposal is ParsedVisitProposal =>
+  isVisitProposalKind(proposal.kind);
 
 export const parseProposalPayload = (
   kind: AgentProposalKind,

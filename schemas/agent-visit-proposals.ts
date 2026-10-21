@@ -1,0 +1,37 @@
+import { z } from "zod";
+
+import { cuidSchema } from "@/schemas/ops/common";
+import { occurrenceStatusSchema } from "@/schemas/ops/job-occurrence";
+
+// Payloads de las propuestas de visitas. Las fechas van en ISO UTC: el patch
+// pasa tal cual a updateJobOccurrence, que las convierte con
+// UpdateJobOccurrenceSchema. updatedAt y el equipo de cuando se propuso: si
+// cambiaron, la propuesta ya no describe lo que se va a guardar.
+const isoSchema = z.iso.datetime();
+
+// Solo las claves que cambian; null vacía. Nunca scheduleRuleId, isDetached ni
+// generatedStartAt: el agente no despega visitas de su regla.
+export const visitPatchSchema = z
+  .strictObject({
+    scheduledStartAt: isoSchema.optional(),
+    scheduledEndAt: isoSchema.optional(),
+    employeeIds: z.array(cuidSchema).max(20).optional(),
+    status: occurrenceStatusSchema.optional(),
+    actualStartAt: isoSchema.nullable().optional(),
+    actualEndAt: isoSchema.nullable().optional(),
+    notes: z.string().max(5000).nullable().optional(),
+    scheduleLabel: z.string().max(255).nullable().optional(),
+  })
+  .refine((patch) => Object.keys(patch).length > 0, "La propuesta no cambia nada");
+
+export type VisitPatch = z.infer<typeof visitPatchSchema>;
+
+export const visitProposalPayloadSchemas = {
+  UPDATE_VISIT: z.object({
+    occurrenceId: cuidSchema,
+    baseUpdatedAt: isoSchema,
+    baseEmployeeIds: z.array(cuidSchema),
+    patch: visitPatchSchema,
+  }),
+  ARCHIVE_VISIT: z.object({ occurrenceId: cuidSchema, baseUpdatedAt: isoSchema }),
+};

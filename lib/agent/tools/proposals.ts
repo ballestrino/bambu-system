@@ -29,7 +29,7 @@ import {
   proposeUpdateBudgetInputSchema,
 } from "@/schemas/agent-tools";
 
-type Proposal = Extract<BuiltProposal, { ok: true }>;
+export type Proposal = Extract<BuiltProposal, { ok: true }>;
 
 // Guarda la propuesta PENDING y devuelve la tarjeta. Estas tools nunca
 // escriben presupuestos: eso pasa solo al confirmar, en actions/agent. La
@@ -37,7 +37,7 @@ type Proposal = Extract<BuiltProposal, { ok: true }>;
 // que se muestra es lo que se ejecutaría. Crear suma los valores completos
 // (también de la fila) para editar la propuesta antes de guardarla; el modelo
 // no los ve.
-const saveProposal = async (ctx: AgentToolContext, toolCallId: string, built: Proposal) => {
+export const saveProposal = async (ctx: AgentToolContext, toolCallId: string, built: Proposal) => {
   const proposal = await saveAgentProposal({
     conversationId: ctx.conversationId,
     actorId: ctx.actorId,

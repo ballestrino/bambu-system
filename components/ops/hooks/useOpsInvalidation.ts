@@ -18,6 +18,16 @@ export const invalidateVisitScopes = (queryClient: QueryClient) =>
     invalidateRoot(queryClient, opsQueryKeys.profitabilityRoot),
   ]);
 
+// Lo que muestra una visita: agenda, calendario, finanzas (sueldos) y los
+// filtros de Visitas. Lo usa confirmar una propuesta del agente.
+export const invalidateOccurrenceScopes = (queryClient: QueryClient) =>
+  Promise.all([
+    invalidateRoot(queryClient, opsQueryKeys.occurrenceRoot),
+    invalidateRoot(queryClient, opsQueryKeys.calendarRoot),
+    invalidateRoot(queryClient, opsQueryKeys.financeTrendRoot),
+    invalidateVisitScopes(queryClient),
+  ]);
+
 export const invalidateJobScopes = async (
   queryClient: QueryClient,
   { jobId }: ScopeOptions = {}

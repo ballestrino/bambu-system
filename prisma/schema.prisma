@@ -1145,6 +1145,8 @@ enum AgentProposalKind {
   UPDATE_BUDGET
   DUPLICATE_BUDGET
   PUBLISH_OFFICIAL_BUDGET
+  UPDATE_VISIT
+  ARCHIVE_VISIT
 }
 
 enum AgentProposalStatus {

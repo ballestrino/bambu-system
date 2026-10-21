@@ -14,6 +14,7 @@ import { Button } from "@/components/ui/button";
 import { valuesFromInputs } from "@/lib/agent/budget-draft";
 import { canActOnProposal, getDisplayStatus } from "@/lib/agent/proposal-outcome";
 import type { AgentProposalDto, AgentProposalKind } from "@/lib/agent/proposals";
+import { isVisitProposalKind } from "@/lib/agent/visit-proposals";
 
 // Lo que pasa al confirmar, dicho antes del botón.
 const CONFIRM_TEXT: Record<AgentProposalKind, string> = {
@@ -21,6 +22,8 @@ const CONFIRM_TEXT: Record<AgentProposalKind, string> = {
   UPDATE_BUDGET: "Confirmar guarda estos cambios en el presupuesto.",
   DUPLICATE_BUDGET: "Confirmar crea la copia.",
   PUBLISH_OFFICIAL_BUDGET: "Confirmar publica el precio de lista oficial.",
+  UPDATE_VISIT: "Confirmar guarda el cambio en la visita.",
+  ARCHIVE_VISIT: "Confirmar saca la visita de la agenda.",
 };
 
 // Una propuesta de crear se puede ver y editar antes de guardarla: los
@@ -77,7 +80,7 @@ export function AgentProposalCard({ data, toolCallId }: { data: ProposalCardData
         </div>
       </>
     ) : (
-      <ProposalOutcome status={status} live={live} slug={summary.slug} />
+      <ProposalOutcome status={status} live={live} slug={summary.slug} kind={data.kind} />
     );
 
   return (
@@ -100,6 +103,7 @@ export function AgentProposalCard({ data, toolCallId }: { data: ProposalCardData
           ))}
         </ul>
       )}
+      {isVisitProposalKind(data.kind) && <CardNote>Horarios de Montevideo.</CardNote>}
       {data.kind === "UPDATE_BUDGET" && (
         <CardNote>
           Avisos calculados al proponer

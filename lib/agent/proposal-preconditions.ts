@@ -1,12 +1,13 @@
 import type { ProposalBudgetState } from "@/lib/agent/proposals";
-import type { ParsedProposal } from "@/schemas/agent-proposals";
+import type { ParsedBudgetProposal } from "@/schemas/agent-proposals";
 
-// Precondiciones de confirmar una propuesta. Puro: lo usan confirmar y
+// Precondiciones de confirmar una propuesta de presupuestos (las de visitas
+// están en visit-proposal-preconditions). Puro: lo usan confirmar y
 // check:agent-proposals.
 export const PROPOSAL_STALE_MESSAGE =
   "El presupuesto cambió desde la propuesta: pedile al asistente una nueva.";
 
-export const getProposalBudgetId = (proposal: ParsedProposal) => {
+export const getProposalBudgetId = (proposal: ParsedBudgetProposal) => {
   if (proposal.kind === "CREATE_BUDGET") return null;
   if (proposal.kind === "PUBLISH_OFFICIAL_BUDGET") return proposal.payload.sourceBudgetId;
   return proposal.payload.budgetId;
@@ -15,7 +16,7 @@ export const getProposalBudgetId = (proposal: ParsedProposal) => {
 // Se re-valida al confirmar, contra una lectura fresca: el presupuesto tiene
 // que ser el mismo que mostró la tarjeta. null = se puede ejecutar.
 export const checkProposalPreconditions = (
-  proposal: ParsedProposal,
+  proposal: ParsedBudgetProposal,
   state: ProposalBudgetState | null
 ) => {
   if (proposal.kind === "CREATE_BUDGET") return null;
