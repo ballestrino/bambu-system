@@ -11,19 +11,21 @@ Status: idle
 - `feature_list.json` se renumeró el 2026-09-24: las ids 1–10 son contexto
   terminado y la cola va de la 11 a la 20, en orden de prioridad. La tabla de
   equivalencias con los ids viejos está en `progress/history.md`.
-- Próxima: 18 `ops_contextual_period`.
-- 2026-10-21: el agente con visitas quedó en tres features, en este orden:
-  27c `ops_visit_rule_and_payroll_safety` (una visita de regla movida no se
-  regenera y "Eliminar visita" avisa las horas que resta de sueldos), 27a
-  `agent_visit_edits` (cambiar y eliminar una visita) y 27b
-  `agent_visit_batch_create` (crear hasta 20 de un trabajo). El plan
-  corregido está en `plans/bambu-agente-visitas.md`, la crítica en
-  `plans/bambu-agente-visitas-critica.md` y el plan original en
-  `plans/archive/` (todo local: `plans/` está en `.gitignore`). Falta decidir
-  si pasan adelante de la 18.
+- El agente con visitas sigue con 27a `agent_visit_edits` (cambiar y
+  eliminar una visita) y 27b `agent_visit_batch_create` (crear hasta 20 de
+  un trabajo). El plan está en `plans/bambu-agente-visitas.md` y la crítica
+  en `plans/bambu-agente-visitas-critica.md` (locales: `plans/` está en
+  `.gitignore`). Falta decidir si van antes de la 18 `ops_contextual_period`.
 
 ## Last Closed Work
 
+- 2026-10-21: visitas de regla movidas y aviso de sueldos (27c):
+  `generatedStartAt` evita que "Generar visitas" vuelva a llenar el inicio de
+  una visita movida, separada o archivada; backfill de 1338 visitas en Neon;
+  "Eliminar visita" avisa las horas y el transporte que se restan de sueldos.
+  Migración aditiva aplicada en Neon. Mergeada en `main` sin push. Los
+  posibles duplicados (Lazarina 18/9, Formula 24/9, Godoy 2/10) quedan como
+  están por decisión del usuario.
 - 2026-10-20: rediseño de Visitas (26): Agenda, Día por empleada y
   Cronograma con pines en escritorio; agenda por empleada y cronograma
   deslizable con hojas en el celular. Se quitaron Lista y Tarjetas. Sin
