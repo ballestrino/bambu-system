@@ -4,7 +4,10 @@ Status: idle
 
 ## Active Feature
 
-- None.
+- None. La 27b `agent_visit_batch_create` está `blocked` en
+  `feature/agent-visit-create` (`cd23594` más el commit de pausa): solo le
+  falta el smoke en producción. Para retomarla, mergear `main` en esa rama,
+  pasarla a `in_progress` y hacer el smoke.
 
 ## Queue
 
@@ -19,6 +22,13 @@ Status: idle
 
 ## Last Closed Work
 
+- 2026-10-21: endurecimiento del auth (28): rate limits de contraseña,
+  2FA, mails y registro con `AuthAttempt` (también en
+  `/api/auth/callback/credentials`), `sessionVersion` que corta sesiones al
+  cambiar la contraseña o borrar el usuario, y registro sin contraseña (C3).
+  Migración aditiva aplicada en Neon. Smoke local con Postgres descartable.
+  Mergeada en `main` sin push. Queda del reporte: normalizar emails, errores
+  de Resend, headers y avisos al email anterior.
 - 2026-10-21: el agente cambia y elimina visitas (27a): `proposeUpdateVisit`
   y `proposeArchiveVisit` con confirmación, re-validación de `updatedAt` y
   equipo, avisos de sueldos y cruces, `queryOperations` por día con el día

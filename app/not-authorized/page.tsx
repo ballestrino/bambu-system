@@ -1,6 +1,10 @@
+import EndedSessionRedirect from "@/components/auth/EndedSessionRedirect";
 
 export default function NotAuthorizedPage() {
     return (
-        <div>No estas autorizado para acceder a Bambú</div>
+        <div>
+            <EndedSessionRedirect />
+            No estas autorizado para acceder a Bambú
+        </div>
     )
 }

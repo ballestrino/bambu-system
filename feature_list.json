@@ -492,7 +492,24 @@
         "The card lists every proposed visit and Visitas shows them without a reload after confirming",
         "init.ps1, tsc, build and check:agent-visits are green, and a production smoke with Haiku 5.5 and an OpenAI model on January 2027 test data is recorded and cleaned up"
       ],
-      "status": "pending"
+      "status": "blocked"
+    },
+    {
+      "id": 28,
+      "name": "auth_hardening",
+      "title": "Rate-limit auth, end stale sessions and stop account pre-hijacking",
+      "area": "auth",
+      "description": "Hardening from the pronto-pollo security report, checked against Bambú on 2026-10-21. 1) There is no rate limit anywhere: password attempts (login action and /api/auth/callback/credentials), 2FA codes and auth mails are unlimited. A database-backed limiter reserves the attempt before counting so concurrent requests cannot slip through, and a refused request never extends a lockout. 2) JWT sessions survive a password change or reset and even a deleted user: User gains sessionVersion, copied into the token at sign-in and compared on every jwt callback. 3) C3 pre-hijacking: register sets a password chosen by whoever registers, so verifying the email activates a stranger's password. Register only asks for name and email and the verification link asks for the password.",
+      "acceptance": [
+        "An additive migration adds AuthAttempt and User.sessionVersion and is applied on Neon before any push",
+        "Wrong passwords are limited per IP and email, per IP and per email through both the login action and authorize, a refused attempt is not recorded and a correct password does not count",
+        "2FA codes allow 5 wrong tries per 15 minutes and are compared in constant time; verification, 2FA and reset mails are limited per recipient and per IP, and register per IP",
+        "Login answers the same for an unknown email and a wrong password, compares the password before sending any mail, and the credentials callback answers CredentialsSignin for unverified or 2FA-pending accounts",
+        "A deleted user or a sessionVersion change ends the session; password change and reset increment it",
+        "Register takes name and email only; the verification link of a registration sets the password, and re-registering an unverified account sends a new link",
+        "init.ps1 with HARNESS_FULL=1 is green and a local smoke of register, verification, login, 2FA and password change is recorded"
+      ],
+      "status": "done"
     }
   ]
 }

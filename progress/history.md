@@ -988,3 +988,36 @@
 - Queda: no se probó con OpenAI (pedido del usuario) ni se verificó a ojo que
   Visitas se refresque sin recargar. Detalle en
   `progress/impl_agent_visit_edits.md`.
+
+## 2026-10-21 - Feature 28 endurecimiento del auth
+
+- Sale del reporte de seguridad de pronto-pollo, comparado con Bambú: C1, C6,
+  C5 y `"use server"` en `data/`/`lib/` ya estaban resueltos acá; lo que
+  faltaba era cualquier rate limit, cortar sesiones viejas y C3.
+- Rate limits en `lib/auth/` con la tabla `AuthAttempt` (reserva antes de
+  contar; lo rechazado no se registra ni alarga el bloqueo): contraseña por
+  IP+email 5/15 min, IP 30/15 min y email 50/h en `verifyPasswordAttempt`,
+  que usan `login` y `Credentials.authorize` (cubre
+  `/api/auth/callback/credentials`); 2FA 5/15 min en tiempo constante; mails
+  de verificación, 2FA y reset 3/15 min por destinatario y 10/h por IP;
+  registro 5/h por IP. Login y reset no dicen si el email existe y
+  `authorize` responde `CredentialsSignin` a cuentas sin verificar o con 2FA
+  pendiente.
+- `User.sessionVersion` en el JWT: `jwt` devuelve null si cambia o si el
+  usuario no existe; el cambio y el reset de contraseña la suben, y el cambio
+  cierra la sesión. `/not-authorized` manda al login una sesión cortada.
+- C3: el registro pide solo nombre y email y el enlace de verificación define
+  la contraseña; registrarse de nuevo sin verificar manda otro enlace; el
+  reset también verifica el email. Schema de registro con máximos.
+- Migración aditiva `20261021200000_auth_hardening`, aplicada en Neon con
+  permiso del usuario. Al desplegar, las sesiones abiertas se cierran una vez.
+- PASS:
+  - `init.ps1` con `HARNESS_FULL=1`, `tsc`, lint y build
+  - smoke local contra un Postgres de Docker descartable: registro, enlace con
+    contraseña, límite en la ruta nativa (5 + 2 rechazados, 5 filas),
+    mensajes iguales, login, `sessionVersion`, 2FA (bloqueo y entrada) y
+    cambio de contraseña
+- Queda: no se probó el login con Google ni el cambio de email; el resto del
+  reporte (normalizar emails, errores de Resend en `lib/mail.ts`, headers de
+  seguridad, aviso al email anterior, apagar 2FA sin contraseña) sigue
+  abierto.
