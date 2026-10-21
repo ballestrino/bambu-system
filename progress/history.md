@@ -966,3 +966,25 @@
   - smoke en el panel del navegador: visita de prueba creada, realizada y
     eliminada con el aviso; quedó archivada
 - Detalle en `progress/impl_ops_visit_rule_and_payroll_safety.md`.
+
+## 2026-10-21 - Feature 27a el agente cambia y elimina visitas
+
+- `proposeUpdateVisit` (horario, equipo, estado, horario real, notas y
+  nombre del cronograma) y `proposeArchiveVisit` (eliminar es archivar)
+  guardan una propuesta; la visita se escribe al confirmar, con
+  `updateJobOccurrence` o `archiveJobOccurrence`, después de re-validar
+  `updatedAt` y equipo. Avisos de sueldos (con pagos ya cargados), cruces,
+  horario pasado, empleadas inactivas y trabajo no activo.
+- `queryOperations` acepta `day` y las filas traen ids, equipo, horarios de
+  Montevideo y `when` con el día de la semana. Las tools van solo en General.
+- Migración aditiva `20261021150000_agent_visit_proposals`, aplicada en Neon
+  con permiso del usuario.
+- PASS:
+  - `init.ps1`, `tsc`, lint, build, `check:agent-visits` (nuevo) y los checks
+    del agente y de visitas
+  - smoke con Haiku 5.5 sobre datos de prueba de enero de 2027: mover,
+    propuesta vieja, registrar, cancelar, rechazar y eliminar; datos
+    archivados después
+- Queda: no se probó con OpenAI (pedido del usuario) ni se verificó a ojo que
+  Visitas se refresque sin recargar. Detalle en
+  `progress/impl_agent_visit_edits.md`.
