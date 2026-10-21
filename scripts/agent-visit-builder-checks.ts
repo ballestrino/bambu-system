@@ -1,5 +1,6 @@
 import assert from "node:assert/strict";
 
+import { toAgentVisitRow } from "../lib/agent/visit-format";
 import { formatLocalDateTime, formatVisitRange, parseLocalDateTime } from "../lib/agent/visit-time";
 import { resolveVisitUpdate, type ResolvedVisitUpdate } from "../lib/agent/visit-update-builder";
 import { ANA, BEA, DORA, done, employees, input, visit } from "./agent-visit-fixture";
@@ -17,6 +18,9 @@ assert.equal(formatLocalDateTime(new Date("2026-10-06T12:00:00.000Z")), "2026-10
 const start = new Date("2026-10-14T12:00:00.000Z");
 assert.equal(formatVisitRange(start, new Date("2026-10-14T16:00:00.000Z")), "mié 14/10 09:00–13:00");
 assert.equal(formatVisitRange(start, new Date("2026-10-15T04:00:00.000Z")), "mié 14/10 09:00–jue 15/10 01:00");
+// The row brings the weekday ready: the model got it wrong on its own.
+const row = toAgentVisitRow(visit());
+assert.deepEqual([row.when, row.scheduledStart, row.employeeIds, row.fromRule], ["mié 14/10 09:00–13:00", "2026-10-14 09:00", [ANA.id], true]);
 
 const resolve = (overrides: Parameters<typeof input>[0], source = visit()) =>
   resolveVisitUpdate({ visit: source, input: input(overrides), employees });

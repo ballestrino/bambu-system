@@ -40,11 +40,13 @@ export const toVisitState = (visit: OpsOccurrence): VisitState => ({
 const localOrNull = (date: Date | null) => (date ? formatLocalDateTime(new Date(date)) : null);
 
 // Una fila de queryOperations: lo que el agente necesita para encontrar una
-// visita y proponer cambiarla.
+// visita y proponer cambiarla. when trae el día de la semana: el modelo lo
+// calculaba mal.
 export const toAgentVisitRow = (visit: OpsOccurrence) => ({
   id: visit.id,
   jobId: visit.jobId,
   job: visit.job.name,
+  when: formatVisitRange(new Date(visit.scheduledStartAt), new Date(visit.scheduledEndAt)),
   status: visit.status,
   scheduledStart: formatLocalDateTime(new Date(visit.scheduledStartAt)),
   scheduledEnd: formatLocalDateTime(new Date(visit.scheduledEndAt)),

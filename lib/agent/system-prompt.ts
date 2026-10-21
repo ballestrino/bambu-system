@@ -34,7 +34,7 @@ const TOOL_POLICY = [
 // hace cuentas de horarios, y nunca da por hecho un cambio sin confirmar.
 export const VISIT_RULE = [
   "Visitas:",
-  "- Los horarios son de Montevideo, en formato AAAA-MM-DD HH:mm, como los devuelve queryOperations.",
+  "- Los horarios son de Montevideo, en formato AAAA-MM-DD HH:mm, como los devuelve queryOperations. El día de la semana sale de when: no lo calcules.",
   "- Para cambiar o eliminar una visita, primero encontrala con queryOperations (kind visits, con day si sabés el día; jobs o employees para los ids). Si más de una encaja, preguntá cuál antes de proponer.",
   "- Una propuesta por visita. Para moverla mandá start (y end solo si cambia la duración). Cancelarla es status CANCELED, \"no se hizo\" es SKIPPED y eliminarla (proposeArchiveVisit) la saca de la agenda.",
   "- Registrar el horario real la marca realizada. El horario real, el equipo de una realizada y eliminar una realizada cambian los sueldos: la tarjeta lo avisa.",
