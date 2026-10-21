@@ -56,7 +56,12 @@ export const formatProposalsForPrompt = (proposals: ProposalPromptItem[]) =>
     .map(({ kind, status, summary, result, error, unknownOutcome }) => {
       const label = unknownOutcome ? "resultado desconocido" : PROPOSAL_STATUS_LABELS[status];
       const line = `- ${summary.title}${describeChanges(summary.changes)}: ${label}`;
-      const target = kind && isVisitProposalKind(kind) ? "la visita con queryOperations" : "el presupuesto";
+      const target =
+        kind === "CREATE_VISITS"
+          ? "las visitas con queryOperations"
+          : kind && isVisitProposalKind(kind)
+            ? "la visita con queryOperations"
+            : "el presupuesto";
       if (unknownOutcome) return `${line} (se cortó mientras se ejecutaba: revisá ${target} antes de proponerla de nuevo).`;
       if (status === "CONFIRMED" && result) return `${line}. Quedó en ${result.url}${describeSaved(summary.after)}.`;
       if ((status === "FAILED" || status === "EXPIRED") && error) return `${line} (${error}).`;

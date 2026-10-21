@@ -1,5 +1,6 @@
 import { z } from "zod";
 
+import { MAX_PROPOSED_VISITS } from "@/lib/agent/visit-proposals";
 import { cuidSchema } from "@/schemas/ops/common";
 import { occurrenceStatusSchema } from "@/schemas/ops/job-occurrence";
 
@@ -26,7 +27,23 @@ export const visitPatchSchema = z
 
 export type VisitPatch = z.infer<typeof visitPatchSchema>;
 
+// Un lote de visitas sueltas de un trabajo, ya expandido a horarios: pasa a
+// createJobOccurrences, que lo valida otra vez con CreateJobOccurrencesSchema.
+export const createVisitsPayloadSchema = z.object({
+  jobId: cuidSchema,
+  employeeIds: z.array(cuidSchema).max(20),
+  notes: z.string().max(5000).nullable(),
+  scheduleLabel: z.string().max(255).nullable(),
+  visits: z
+    .array(z.object({ scheduledStartAt: isoSchema, scheduledEndAt: isoSchema }))
+    .min(1)
+    .max(MAX_PROPOSED_VISITS),
+});
+
+export type CreateVisitsPayload = z.infer<typeof createVisitsPayloadSchema>;
+
 export const visitProposalPayloadSchemas = {
+  CREATE_VISITS: createVisitsPayloadSchema,
   UPDATE_VISIT: z.object({
     occurrenceId: cuidSchema,
     baseUpdatedAt: isoSchema,

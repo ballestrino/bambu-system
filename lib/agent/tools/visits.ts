@@ -3,12 +3,18 @@ import "server-only";
 import { tool } from "ai";
 
 import type { VisitPayrollImpact } from "@/components/ops/visit-payroll-impact";
-import { getAgentOccurrence, getAgentVisitOverlaps } from "@/data/agent/occurrences";
-import { getAgentVisitEmployees } from "@/data/agent/visit-targets";
+import {
+  getAgentJobTakenStarts,
+  getAgentOccurrence,
+  getAgentTeamVisits,
+  getAgentVisitOverlaps,
+} from "@/data/agent/occurrences";
+import { getAgentVisitEmployees, getAgentVisitJob } from "@/data/agent/visit-targets";
 import { getPaidEmployeeIds } from "@/data/ops/visit-payroll-status";
 import type { AgentToolContext } from "@/lib/agent/tools/context";
 import { saveProposal } from "@/lib/agent/tools/proposals";
 import { runTool, toolError } from "@/lib/agent/tool-result";
+import { buildCreateVisitsProposal, resolveCreateVisits } from "@/lib/agent/visit-create-builder";
 import { toVisitState } from "@/lib/agent/visit-format";
 import {
   buildArchiveVisitProposal,
@@ -20,7 +26,11 @@ import {
   buildUpdateVisitWarnings,
   visitPayrollImpact,
 } from "@/lib/agent/visit-warnings";
-import { proposeArchiveVisitInputSchema, proposeUpdateVisitInputSchema } from "@/schemas/agent-visit-tools";
+import {
+  proposeArchiveVisitInputSchema,
+  proposeCreateVisitsInputSchema,
+  proposeUpdateVisitInputSchema,
+} from "@/schemas/agent-visit-tools";
 
 // Propuestas sobre visitas: como las de presupuestos, guardan una propuesta
 // PENDING y nunca escriben la visita. Eso pasa solo al confirmar
@@ -43,6 +53,38 @@ const paidFor = async (impact: VisitPayrollImpact | null) => {
 };
 
 export const createVisitTools = (ctx: AgentToolContext) => ({
+  proposeCreateVisits: tool({
+    description:
+      "Prepara agendar visitas nuevas de un trabajo (hasta 20, con el mismo horario y equipo) para que el usuario las confirme en una tarjeta: no guarda nada. Los días van en dates (sueltos) o en repeatFrom, repeatTo y repeatWeekdays (por ejemplo los martes de un mes): el servidor calcula las fechas. Antes buscá el trabajo con queryOperations (kind jobs). Horarios en hora de Montevideo.",
+    inputSchema: proposeCreateVisitsInputSchema,
+    execute: (input, { toolCallId }) =>
+      runTool("proposeCreateVisits", async () => {
+        const job = await getAgentVisitJob(input.jobId);
+        if (!job) return toolError("not_found", "No encontré ese trabajo. Buscalo con queryOperations (kind jobs).");
+        const resolved = resolveCreateVisits(job, input);
+        if (!resolved.ok) return toolError(resolved.code, resolved.message);
+
+        const { slots, teamIds } = resolved;
+        const [employees, takenStarts, teamVisits] = await Promise.all([
+          getAgentVisitEmployees(teamIds),
+          getAgentJobTakenStarts(job.id, slots.map((slot) => slot.start)),
+          getAgentTeamVisits({ employeeIds: teamIds, start: slots[0].start, end: slots[slots.length - 1].end }),
+        ]);
+        const built = buildCreateVisitsProposal({
+          job,
+          input,
+          slots,
+          teamIds,
+          employees,
+          takenStarts,
+          teamVisits,
+          now: new Date(),
+        });
+        if (!built.ok) return toolError(built.code, built.message);
+        return saveProposal(ctx, toolCallId, built);
+      }),
+  }),
+
   proposeUpdateVisit: tool({
     description:
       "Prepara cambiar una visita para que el usuario lo confirme en una tarjeta: no guarda nada. Sirve para moverla de horario, cambiar el equipo, el estado (cancelarla es CANCELED, no se hizo es SKIPPED), registrar el horario real, las notas o el nombre del cronograma. Antes buscá la visita con queryOperations. Horarios en hora de Montevideo; null en todo lo que no cambia.",

@@ -14,3 +14,23 @@ export const getAgentVisitEmployees = async (ids: string[]) => {
     select: { id: true, name: true, isActive: true, archivedAt: true },
   });
 };
+
+// El trabajo de un lote de visitas, archivado o no, con las asignaciones que
+// dan su equipo (las mismas que lee "Generar visitas").
+export const getAgentVisitJob = async (jobId: string) => {
+  await requireAdminSession();
+
+  return db.job.findUnique({
+    where: { id: jobId },
+    select: {
+      id: true,
+      name: true,
+      status: true,
+      archivedAt: true,
+      assignments: {
+        where: { archivedAt: null },
+        select: { assignedFrom: true, assignedTo: true, employeeId: true },
+      },
+    },
+  });
+};

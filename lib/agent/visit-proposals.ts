@@ -1,14 +1,22 @@
 import type { AgentProposalKind, ProposalResult } from "@/lib/agent/proposals";
+import { MAX_BATCH_OCCURRENCES } from "@/schemas/ops/job-occurrence-batch";
 
-// Propuestas del agente sobre visitas (JobOccurrence): cambiar una o
-// eliminarla (archivarla, como "Eliminar visita"). Puro: lo usan las tools,
-// confirmar, el prompt y la tarjeta.
-export const VISIT_PROPOSAL_KINDS = ["UPDATE_VISIT", "ARCHIVE_VISIT"] as const satisfies readonly AgentProposalKind[];
+// Propuestas del agente sobre visitas (JobOccurrence): crear un lote de un
+// trabajo, cambiar una o eliminarla (archivarla, como "Eliminar visita").
+// Puro: lo usan las tools, confirmar, el prompt y la tarjeta.
+export const VISIT_PROPOSAL_KINDS = [
+  "CREATE_VISITS",
+  "UPDATE_VISIT",
+  "ARCHIVE_VISIT",
+] as const satisfies readonly AgentProposalKind[];
 
 export type VisitProposalKind = (typeof VISIT_PROPOSAL_KINDS)[number];
 
 export const isVisitProposalKind = (kind: AgentProposalKind): kind is VisitProposalKind =>
   (VISIT_PROPOSAL_KINDS as readonly string[]).includes(kind);
+
+// Lo que entra en una propuesta de crear: lo mismo que crea el lote.
+export const MAX_PROPOSED_VISITS = MAX_BATCH_OCCURRENCES;
 
 export const VISITS_URL = "/dashboard/calendar";
 

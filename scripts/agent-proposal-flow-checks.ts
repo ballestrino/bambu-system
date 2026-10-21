@@ -165,7 +165,7 @@ assert.doesNotMatch(AGENT_SKILLS.presupuestos.instructions, /Todavía no podés 
 // answer a quote request). The visit ones are only in General
 // (check:agent-visits).
 const PROPOSE_TOOLS = ["proposeCreateBudget", "proposeUpdateBudget", "proposeDuplicateBudget", "proposePublishOfficialBudget"] as const;
-const VISIT_PROPOSE_TOOLS = ["proposeUpdateVisit", "proposeArchiveVisit"] as const;
+const VISIT_PROPOSE_TOOLS = ["proposeCreateVisits", "proposeUpdateVisit", "proposeArchiveVisit"] as const;
 assert.deepEqual(
   AGENT_TOOL_NAMES.filter((name) => AGENT_TOOL_CATALOG[name].kind === "proposal").sort(),
   [...PROPOSE_TOOLS, ...VISIT_PROPOSE_TOOLS].sort()

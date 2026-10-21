@@ -43,3 +43,40 @@ export const proposeUpdateVisitInputSchema = z.object({
 export type ProposeUpdateVisitInput = z.infer<typeof proposeUpdateVisitInputSchema>;
 
 export const proposeArchiveVisitInputSchema = z.object({ occurrenceId: occurrenceIdSchema });
+
+const localDateSchema = z.string().trim().regex(/^\d{4}-\d{2}-\d{2}$/, "Usá AAAA-MM-DD");
+
+const localTimeSchema = z.string().trim().regex(/^\d{2}:\d{2}$/, "Usá HH:mm");
+
+// Los días van en dates o en la terna repeat*, nunca los dos: el servidor
+// expande la repetición (el modelo no hace cuentas de calendario).
+export const proposeCreateVisitsInputSchema = z.object({
+  jobId: idSchema.describe("id del trabajo, de queryOperations (kind jobs)"),
+  dates: z
+    .array(localDateSchema)
+    .max(31)
+    .nullable()
+    .describe("Días sueltos AAAA-MM-DD; null si usás repeatFrom, repeatTo y repeatWeekdays"),
+  repeatFrom: localDateSchema.nullable().describe("Primer día del rango que se repite, AAAA-MM-DD; null si usás dates"),
+  repeatTo: localDateSchema.nullable().describe("Último día del rango (incluido), AAAA-MM-DD; null si usás dates"),
+  repeatWeekdays: z
+    .array(z.number().int().min(1).max(7))
+    .max(7)
+    .nullable()
+    .describe("Días de la semana del rango: 1 lunes … 7 domingo; null si usás dates"),
+  startTime: localTimeSchema.describe("Hora de inicio de cada visita, HH:mm en hora de Montevideo"),
+  endTime: localTimeSchema.describe("Hora de fin de cada visita, HH:mm, el mismo día"),
+  employeeIds: z
+    .array(idSchema)
+    .max(20)
+    .nullable()
+    .describe("El equipo de todas las visitas (ids de queryOperations employees); [] sin equipo; null usa el equipo asignado al trabajo"),
+  notes: z.string().max(2000).nullable().describe("Notas de las visitas; null sin notas"),
+  scheduleLabel: z
+    .string()
+    .max(255)
+    .nullable()
+    .describe("Nombre que ve la empleada en el cronograma; null usa el del trabajo"),
+});
+
+export type ProposeCreateVisitsInput = z.infer<typeof proposeCreateVisitsInputSchema>;

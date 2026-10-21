@@ -12,6 +12,7 @@ export const AGENT_PROPOSAL_KINDS = [
   "PUBLISH_OFFICIAL_BUDGET",
   "UPDATE_VISIT",
   "ARCHIVE_VISIT",
+  "CREATE_VISITS",
 ] as const;
 
 export type AgentProposalKind = (typeof AGENT_PROPOSAL_KINDS)[number];
@@ -74,6 +75,8 @@ export type ProposalSummary = {
   after: BudgetCalculation | null;
   stored: StoredOptionPrice[];
   warnings: string[];
+  // Las visitas de un lote (CREATE_VISITS). Las filas viejas no lo tienen.
+  items?: { label: string; detail: string | null }[];
 };
 
 export type ProposalResult = {

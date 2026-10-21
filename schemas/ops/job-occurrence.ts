@@ -44,7 +44,7 @@ const normalizeEmployeeIds = (value: unknown) => {
   return Array.from(new Set(ids));
 };
 
-const optionalEmployeeIdsSchema = z.preprocess(
+export const optionalEmployeeIdsSchema = z.preprocess(
   normalizeEmployeeIds,
   z.array(cuidSchema).optional()
 );

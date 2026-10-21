@@ -35,6 +35,24 @@ export const createOccurrenceWithEmployees = async (
     });
   });
 
+// Un lote de visitas: una transacción en forma de arreglo (sin timeout
+// interactivo), así un fallo a mitad no deja visitas escritas.
+export const createOccurrencesWithEmployees = async (
+  rows: Prisma.JobOccurrenceUncheckedCreateInput[],
+  employeeIds: string[]
+) =>
+  db.$transaction(
+    rows.map((data) =>
+      db.jobOccurrence.create({
+        data: {
+          ...data,
+          employees: { createMany: { data: employeeIds.map((employeeId) => ({ employeeId })) } },
+        },
+        select: { id: true },
+      })
+    )
+  );
+
 export const updateOccurrenceWithEmployees = async ({
   data,
   employeeIds,
