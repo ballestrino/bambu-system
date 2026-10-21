@@ -67,6 +67,7 @@ export const buildOptimisticOccurrence = (
     createdBy: optimisticAuditUser,
     createdById: optimisticAuditUser.id,
     employees: getEmployeeLinks(queryClient, id, values.employeeIds),
+    generatedStartAt: null,
     isDetached: values.isDetached ?? false,
     job: job
       ? {

@@ -3,6 +3,7 @@ import "server-only";
 import type { JobScheduleRule } from "@prisma/client";
 
 import { db } from "@/lib/db";
+import { getMissingStarts } from "@/lib/ops/generation-starts";
 import { createOccurrenceEmployeeRows } from "@/lib/ops/job-occurrence-employees";
 import { MINUTE } from "@/lib/ops/job-occurrence-recurrence";
 import {
@@ -16,8 +17,9 @@ export type RuleForGeneration = JobScheduleRule & {
   };
 };
 
-// The candidate starts of a rule that have no visit yet. A visit archived or
-// moved by hand still counts, so generating again never brings it back.
+// The candidate starts of a rule that have no visit yet. A visit archived,
+// moved or detached keeps its generatedStartAt, so generating again never
+// brings it back.
 export const findMissingStarts = async (
   rule: RuleForGeneration,
   starts: Date[]
@@ -27,15 +29,15 @@ export const findMissingStarts = async (
   const existing = await db.jobOccurrence.findMany({
     where: {
       jobId: rule.jobId,
-      scheduledStartAt: { in: starts },
+      OR: [
+        { scheduledStartAt: { in: starts } },
+        { generatedStartAt: { in: starts } },
+      ],
     },
-    select: { scheduledStartAt: true },
+    select: { generatedStartAt: true, scheduledStartAt: true },
   });
-  const existingTimes = new Set(
-    existing.map((occurrence) => occurrence.scheduledStartAt.getTime())
-  );
 
-  return starts.filter((start) => !existingTimes.has(start.getTime()));
+  return getMissingStarts(starts, existing);
 };
 
 const buildOccurrenceCandidates = (
@@ -49,6 +51,7 @@ const buildOccurrenceCandidates = (
     return {
       data: {
         createdById: userId,
+        generatedStartAt: scheduledStartAt,
         isDetached: false,
         jobId: rule.jobId,
         scheduleRuleId: rule.id,

@@ -15,6 +15,7 @@ import {
 } from "@/components/ops/jobs/job-occurrence-dialog-utils";
 import { JobOccurrenceTrigger } from "@/components/ops/jobs/job-occurrence-trigger";
 import { useJobOccurrenceDialogSubmit } from "@/components/ops/jobs/use-job-occurrence-dialog-submit";
+import { VisitPayrollWarning } from "@/components/ops/jobs/visit-payroll-warning";
 import type { OpsOccurrence, OpsScheduleRule } from "@/components/ops/types";
 import { parseDateTimeLocalValue } from "@/components/ops/utils";
 import { Button } from "@/components/ui/button";
@@ -122,6 +123,7 @@ export const JobOccurrenceDialog = ({
       onOpenChange={onOpenChange}
       onRemove={remove}
       onSubmit={submit}
+      removeNotice={occurrence ? <VisitPayrollWarning occurrence={occurrence} /> : null}
       submitsCompletion={intent === "complete" && formState.status === "DONE"}
       trigger={
         isControlled ? null : (
