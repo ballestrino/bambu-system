@@ -12,6 +12,15 @@ Status: idle
   terminado y la cola va de la 11 a la 20, en orden de prioridad. La tabla de
   equivalencias con los ids viejos está en `progress/history.md`.
 - Próxima: 18 `ops_contextual_period`.
+- 2026-10-21: el agente con visitas quedó en tres features, en este orden:
+  27c `ops_visit_rule_and_payroll_safety` (una visita de regla movida no se
+  regenera y "Eliminar visita" avisa las horas que resta de sueldos), 27a
+  `agent_visit_edits` (cambiar y eliminar una visita) y 27b
+  `agent_visit_batch_create` (crear hasta 20 de un trabajo). El plan
+  corregido está en `plans/bambu-agente-visitas.md`, la crítica en
+  `plans/bambu-agente-visitas-critica.md` y el plan original en
+  `plans/archive/` (todo local: `plans/` está en `.gitignore`). Falta decidir
+  si pasan adelante de la 18.
 
 ## Last Closed Work
 

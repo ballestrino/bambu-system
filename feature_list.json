@@ -445,6 +445,54 @@
         "init.ps1, tsc, build, visit checks and a browser smoke at 1440, 1024 and 390 px are recorded"
       ],
       "status": "done"
+    },
+    {
+      "id": "27c",
+      "name": "ops_visit_rule_and_payroll_safety",
+      "title": "Stop regenerating moved rule visits and warn before archiving worked visits",
+      "area": "operations",
+      "description": "Two existing operations risks, fixed before the agent can write visits. 1) findMissingStarts dedupes rule starts by scheduledStartAt, so a visit moved, detached or edited off its rule slot leaves the original start free and Generar visitas creates a duplicate there. JobOccurrence gains generatedStartAt (the start the rule gave it), set only by generation and never by edits, and a start counts as taken if any visit of the job has it as scheduledStartAt or generatedStartAt. Existing rows are backfilled with permission after a read-only report. 2) Archived visits leave every read, so archiving a DONE visit with real hours silently subtracts payroll hours, even in a month already paid. Eliminar visita warns with the hours per employee and whether that work month already has payments. Goes first: 27a reuses its payroll helper. Plan in plans/bambu-agente-visitas.md (local, gitignored).",
+      "acceptance": [
+        "An additive migration adds JobOccurrence.generatedStartAt with an index on jobId and generatedStartAt, dated after 20261009150000 and applied on Neon before any push",
+        "Generation stores generatedStartAt; create and update schemas never accept it and edits, moves and detaching keep it",
+        "A moved, detached or archived rule visit never comes back when generating again, proven in check:occurrence-generation",
+        "A read-only report lists rule visits, untouched ones and possible existing duplicates before the backfill; the backfill only fills untouched visits and touched ones whose start matches their rule, and duplicates are left for the user",
+        "Eliminar visita on a DONE visit with real hours shows the hours per employee and the work month, plus a notice when that month already has employee payments; scheduled visits show the current text",
+        "init.ps1, tsc, build, check:occurrence-generation, a new payroll impact check, check:schedule-move, check:visit-day, check:visits-view and check:occurrence-dialog are green, and the warning is checked in the browser"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "27a",
+      "name": "agent_visit_edits",
+      "title": "Let the agent change and remove one visit through proposals",
+      "area": "agent",
+      "description": "The agent proposes UPDATE_VISIT (schedule, team, notes, label, status and real hours) and ARCHIVE_VISIT (remove = archive) like it proposes budget writes: nothing is written during the turn, the user confirms on the card, and confirm re-checks updatedAt and the team against fresh state before running updateJobOccurrence or archiveJobOccurrence. queryOperations gains a day filter to find the visit. The tools live in General (there are no skill chips since feature 22) and their inputs are flat, without nested nullable objects, for OpenAI and Claude. The migration also adds CREATE_VISITS for 27b. Plan in plans/bambu-agente-visitas.md (local, gitignored).",
+      "acceptance": [
+        "AgentProposalKind gains CREATE_VISITS, UPDATE_VISIT and ARCHIVE_VISIT in one additive migration applied on Neon before any push",
+        "Update and archive proposals are blocked on confirm when the visit was archived, its updatedAt changed or its team changed since the proposal",
+        "Times are read and shown in America/Montevideo and invalid local dates are rejected",
+        "Cards warn about payroll changes (real hours or archiving a DONE visit, with the paid-month notice from 27c), overlaps, past dates, inactive employees and inactive jobs",
+        "queryOperations accepts day and returns visit rows with employeeIds, notes, scheduleLabel and fromRule",
+        "Confirming refreshes Visitas without a reload, and the prompt forbids claiming a change before it is confirmed",
+        "init.ps1, tsc, build, check:agent-visits and the existing agent, occurrence and visits checks are green, and a production smoke with Haiku 5.5 and an OpenAI model on January 2027 test data is recorded and cleaned up"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "27b",
+      "name": "agent_visit_batch_create",
+      "title": "Let the agent create up to 20 visits of one job in one proposal",
+      "area": "agent",
+      "description": "proposeCreateVisits takes explicit dates or a flat repeatFrom, repeatTo and repeatWeekdays range expanded on the server, and saves one CREATE_VISITS proposal of up to 20 visits. Confirming runs a new createJobOccurrences action that writes every visit or none in one array transaction. Depends on 27a. Plan in plans/bambu-agente-visitas.md (local, gitignored).",
+      "acceptance": [
+        "createJobOccurrences validates the job and employees and creates all visits or none in one transaction, as SCHEDULED visits without rule or generatedStartAt",
+        "Weekday repetition is expanded on the server: Tuesdays of October 2026 give 6, 13, 20 and 27, and more than 20 visits is refused",
+        "Confirm blocks an archived job, an archived employee or a visit of the job already starting at the same time",
+        "The card lists every proposed visit and Visitas shows them without a reload after confirming",
+        "init.ps1, tsc, build and check:agent-visits are green, and a production smoke with Haiku 5.5 and an OpenAI model on January 2027 test data is recorded and cleaned up"
+      ],
+      "status": "pending"
     }
   ]
 }
