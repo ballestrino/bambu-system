@@ -62,6 +62,8 @@ export default function LoginForm() {
     const result = await login(data)
     if (result?.error) {
       setError(result.error)
+      // Retrying the same data after an error (a rate limit, say) is allowed.
+      setLastSubmittedData(null)
     }
 
     if (result?.emailVerification) {

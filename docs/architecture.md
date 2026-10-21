@@ -52,6 +52,17 @@ Client Component -> hook -> component action wrapper -> actions/* -> Prisma
 - Admin-only flows use a shared guard such as `lib/require-admin-session.ts`.
 - Do not rely on `proxy.ts` as the only authorization layer.
 - Credentials auth requires verified email and supports 2FA tokens.
+- Register takes name and email only; the registration link sets the
+  password (`actions/new-verification.ts`), so whoever registers an email
+  cannot choose the password its owner activates.
+- Auth attempts are rate-limited in `lib/auth/` with the `AuthAttempt` table:
+  wrong passwords in `verifyPasswordAttempt`, which both the login action and
+  `Credentials.authorize` use (so `/api/auth/callback/credentials` is
+  covered), 2FA codes, auth mails and register. The IP comes from
+  `x-real-ip`, which Vercel overwrites.
+- `User.sessionVersion` is copied into the JWT at sign-in; the `jwt` callback
+  ends the session when it changes or the user is gone. Password change and
+  reset increment it.
 
 ## Budget Model
 

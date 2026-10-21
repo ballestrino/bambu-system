@@ -10,6 +10,7 @@ import {
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useState } from 'react'
+import { signOut } from 'next-auth/react'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { Label } from '@/components/ui/label'
@@ -21,11 +22,7 @@ import {
   type UpdatePasswordValues,
 } from '@/schemas/settings'
 
-export default function ChangePasswordForm({
-  onConfirm,
-}: {
-  onConfirm?: () => void
-}) {
+export default function ChangePasswordForm() {
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
@@ -44,9 +41,10 @@ export default function ChangePasswordForm({
       setLoading(false)
     }
     if (result.success) {
+      // The change ended every session, this one too: leave with the
+      // message on screen and sign in again with the new password.
       setSuccess(result.success)
-      setLoading(false)
-      onConfirm?.()
+      await signOut({ redirectTo: '/auth/login' })
     }
   }
 

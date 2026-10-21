@@ -32,7 +32,7 @@ export default function ChangePasswordDialog({ user }: { user: User }) {
             Llena el formulario para cambiar tu contraseña
           </DialogDescription>
         </DialogHeader>
-        <ChangePasswordForm onConfirm={() => setOpen(false)} />
+        <ChangePasswordForm />
 
         <div className="relative">
           <div className="absolute inset-0 flex items-center">

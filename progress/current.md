@@ -1,28 +1,15 @@
 # Current Harness Session
 
-Status: blocked
+Status: active
 
 ## Active Feature
 
-- 27b `agent_visit_batch_create`, rama `feature/agent-visit-create` desde
-  `main` en `314ebdc`.
-- Hecho: `createJobOccurrences` (lote en una transacción en arreglo),
-  `CREATE_VISITS` con migración aditiva `20261021180000` (sin aplicar en
-  Neon), `proposeCreateVisits` con días expandidos en el servidor, tarjeta
-  con `summary.items`, precondiciones al confirmar, prompt, docs y
-  `check:agent-visits` ampliado. tsc, lint y los checks del agente y de
-  visitas en verde.
-- Código en `cd23594`. `HARNESS_FULL=1` en verde. Migración aplicada en Neon
-  el 2026-10-21 con permiso del usuario (`migrate status`: al día).
-- Falta: el smoke en producción (Haiku 5.5 y un modelo de OpenAI, enero de
-  2027), autorizado por el usuario. El modo automático rechazó desarchivar
-  "PRUEBA agente visitas" (`cmvi8t1g600010h8sddsaak92`, archivado, sin
-  reglas ni asignaciones) con una escritura directa y levantar `bambu-dev`.
-  Nadia (`cmtry28qv0001js04z0y0skki`) está activa; no hay visitas sin
-  archivar en enero de 2027.
-- 2026-10-21: pausada (`blocked`) para abrir la 28 `auth_hardening` en
-  `feature/auth-hardening`. Para retomarla: volver a esta rama, pasar la 27b
-  a `in_progress` y hacer el smoke.
+- 27b `agent_visit_batch_create`, rama `feature/agent-visit-create`
+  (`cd23594`, con `main` mergeada después de la 28). Migración
+  `20261021180000` aplicada en Neon el 2026-10-21. `HARNESS_FULL=1` en verde.
+- Falta: el smoke en producción con Haiku 5.5 sobre "PRUEBA agente visitas"
+  (`cmvi8t1g600010h8sddsaak92`, desarchivado por el usuario) y visitas de
+  Nadia en enero de 2027. Sin OpenAI, por decisión del usuario.
 
 ## Queue
 
@@ -37,6 +24,13 @@ Status: blocked
 
 ## Last Closed Work
 
+- 2026-10-21: endurecimiento del auth (28): rate limits de contraseña,
+  2FA, mails y registro con `AuthAttempt` (también en
+  `/api/auth/callback/credentials`), `sessionVersion` que corta sesiones al
+  cambiar la contraseña o borrar el usuario, y registro sin contraseña (C3).
+  Migración aditiva aplicada en Neon. Smoke local con Postgres descartable.
+  Mergeada en `main` sin push. Queda del reporte: normalizar emails, errores
+  de Resend, headers y avisos al email anterior.
 - 2026-10-21: el agente cambia y elimina visitas (27a): `proposeUpdateVisit`
   y `proposeArchiveVisit` con confirmación, re-validación de `updatedAt` y
   equipo, avisos de sueldos y cruces, `queryOperations` por día con el día

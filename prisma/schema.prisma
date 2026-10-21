@@ -28,6 +28,9 @@ model User {
   role                             UserRole                   @default(USER)
   accounts                         Account[]
   isTwoFactorEnabled               Boolean                    @default(false)
+  // Copied into the JWT at sign-in; a password change increments it and ends
+  // every session issued before.
+  sessionVersion                   Int                        @default(0)
   twoFactorConfirmation            TwoFactorConfirmation?
   budgets                          Budget[]
   chats                            Chat[]
@@ -115,6 +118,19 @@ model TwoFactorToken {
   expires DateTime
 
   @@unique([email, token])
+}
+
+// One row per reserved auth attempt (password, 2FA code, mail, register),
+// counted per scope and key inside a time window. Rows older than a day are
+// pruned when new attempts are reserved.
+model AuthAttempt {
+  id        String   @id @default(cuid())
+  scope     String
+  key       String
+  createdAt DateTime @default(now())
+
+  @@index([scope, key, createdAt])
+  @@index([createdAt])
 }
 
 model TwoFactorConfirmation {

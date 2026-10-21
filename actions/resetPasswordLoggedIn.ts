@@ -4,6 +4,8 @@ import { auth } from "@/auth"
 import { getUserById } from "@/data/user"
 import { sendPasswordResetEmail } from "@/lib/mail"
 import { generatePasswordResetToken } from "@/lib/tokens"
+import { getActionClientIp } from "@/lib/auth/client-ip"
+import { AUTH_MAIL_LIMIT_ERROR, reserveAuthMail } from "@/lib/auth/mail-limit"
 
 export const resetPasswordLoggedIn = async () => {
   try {
@@ -19,6 +21,10 @@ export const resetPasswordLoggedIn = async () => {
 
     if (!existingUser || !existingUser.email) {
       return { error: "Usuario no encontrado" }
+    }
+
+    if (!(await reserveAuthMail(existingUser.email, await getActionClientIp()))) {
+      return { error: AUTH_MAIL_LIMIT_ERROR }
     }
 
     // Generate password reset token

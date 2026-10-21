@@ -80,12 +80,21 @@ export const { auth, handlers, signIn, signOut } = NextAuth({
       return session
     },
 
-    async jwt({ token }) {
+    async jwt({ token, user }) {
       if (!token.sub) return token
 
       const existingUser = await getUserById(token.sub)
 
-      if (!existingUser) return token
+      // Returning null ends the session and clears the cookie: a deleted
+      // user, or a password change since this token was issued (tokens from
+      // before sessionVersion end once too).
+      if (!existingUser) return null
+
+      if (user) {
+        token.sessionVersion = existingUser.sessionVersion
+      } else if (token.sessionVersion !== existingUser.sessionVersion) {
+        return null
+      }
 
       // when the token is updated by useSession updates here the data
       token.name = existingUser.name

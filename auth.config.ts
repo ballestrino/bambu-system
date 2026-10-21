@@ -1,11 +1,16 @@
-import bcrypt from "bcryptjs"
-import type { NextAuthConfig } from "next-auth"
+import { CredentialsSignin, type NextAuthConfig } from "next-auth"
 
 import Credentials from "next-auth/providers/credentials"
 
 import { loginFormSchema } from "@/schemas/auth-schemas"
-import { getUserByEmail } from "@/data/user"
+import { getTwoFactorConfirmationByUserId } from "@/data/two-factor-confirmation"
+import { getClientIp } from "@/lib/auth/client-ip"
+import { verifyPasswordAttempt } from "@/lib/auth/password-attempt"
 import Google from "next-auth/providers/google"
+
+export class RateLimitedSignin extends CredentialsSignin {
+  code = "rate_limited"
+}
 
 export default {
   providers: [
@@ -14,20 +19,38 @@ export default {
       clientSecret: process.env.GOOGLE_CLIENT_SECRET
     }),
     Credentials({
-      async authorize(credentials) {
+      async authorize(credentials, request) {
         const validatedFields = loginFormSchema.safeParse(credentials)
-        if (validatedFields.success) {
-          const { email, password } = validatedFields.data
+        if (!validatedFields.success) return null
 
-          const user = await getUserByEmail(email)
-          if (!user || !user.password) return null // user password if the user use a different provider
+        const { email, password } = validatedFields.data
+        // The login action and a direct POST to /api/auth/callback/credentials
+        // both land here, so both go through the same limits.
+        const attempt = await verifyPasswordAttempt(
+          email,
+          password,
+          getClientIp(request.headers)
+        )
 
-          const passwordsMatch = await bcrypt.compare(password, user.password)
-
-          if (passwordsMatch) return user
+        if ("error" in attempt) {
+          if (attempt.error === "rate_limited") throw new RateLimitedSignin()
+          return null
         }
 
-        return null
+        const { user } = attempt
+
+        // Answered like a wrong password, so the callback does not reveal a
+        // correct password of an unverified or 2FA-pending account. The
+        // signIn callback still checks both and consumes the confirmation.
+        if (!user.emailVerified) return null
+        if (
+          user.isTwoFactorEnabled &&
+          !(await getTwoFactorConfirmationByUserId(user.id))
+        ) {
+          return null
+        }
+
+        return user
       }
     })
   ]
