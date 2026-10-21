@@ -37,6 +37,7 @@ type JobOccurrenceDialogPresentationProps = {
   onRemove: () => void | Promise<void>;
   onSubmit: () => void;
   open: boolean;
+  removeNotice?: ReactNode;
   submitsCompletion: boolean;
   trigger?: ReactElement | null;
 };
@@ -71,6 +72,7 @@ export const JobOccurrenceDialogPresentation = ({
   onRemove,
   onSubmit,
   open,
+  removeNotice,
   submitsCompletion,
   trigger,
 }: JobOccurrenceDialogPresentationProps) => {
@@ -85,6 +87,7 @@ export const JobOccurrenceDialogPresentation = ({
       onCancel={() => onOpenChange(false)}
       onRemove={onRemove}
       onSubmit={onSubmit}
+      removeNotice={removeNotice}
       submitLabel={submitsCompletion ? "Completar visita" : "Guardar visita"}
     />
   );

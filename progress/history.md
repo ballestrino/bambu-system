@@ -945,3 +945,24 @@
   - prueba del usuario (2026-10-20): registrar, asignar y el iPhone
     instalado
 - Queda fuera: no se registró un smoke a 1024 px.
+
+## 2026-10-21 - Feature 27c visitas de regla movidas y aviso de sueldos
+
+- `JobOccurrence.generatedStartAt` guarda el inicio que la regla le dio a cada
+  visita. "Generar visitas" da un inicio por ocupado si una visita está ahí o
+  salió de ahí, así una visita movida, separada o archivada no se regenera.
+  Migración aditiva `20261021120000_occurrence_generated_start`, aplicada en
+  Neon con permiso del usuario.
+- Backfill con permiso: 1338 de 1613 visitas de regla completadas; 275
+  quedan en null (movidas fuera de su regla, todas pasadas). Los posibles
+  duplicados (Lazarina 18/9, Formula 24/9, Godoy 2/10) quedan como están por
+  decisión del usuario.
+- "Eliminar visita" en una visita realizada avisa las horas y el transporte
+  que se restan a cada empleada y si ese mes ya tiene pagos. No bloquea.
+- PASS:
+  - `init.ps1`, `tsc`, lint, build, `check:occurrence-generation`,
+    `check:visit-payroll-impact` (nuevo) y los checks de visitas, Cronograma,
+    sueldos y finanzas
+  - smoke en el panel del navegador: visita de prueba creada, realizada y
+    eliminada con el aviso; quedó archivada
+- Detalle en `progress/impl_ops_visit_rule_and_payroll_safety.md`.

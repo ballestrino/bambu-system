@@ -7,6 +7,7 @@ export * from "@/components/ops/actions/employees/get-employee-availability-rule
 export * from "@/components/ops/actions/employees/get-employee-payments.action";
 export * from "@/components/ops/actions/employees/get-employee.action";
 export * from "@/components/ops/actions/employees/get-employees.action";
+export * from "@/components/ops/actions/employees/get-paid-employee-ids.action";
 export * from "@/components/ops/actions/employees/update-employee-payment.action";
 export * from "@/components/ops/actions/employees/update-employee.action";
 export * from "@/components/ops/actions/employees/void-employee-payment.action";

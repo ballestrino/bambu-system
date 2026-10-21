@@ -1,5 +1,6 @@
 "use client";
 
+import type { ReactNode } from "react";
 import { LoaderCircle, Trash2 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -13,6 +14,7 @@ type JobOccurrenceDialogActionsProps = {
   onCancel: () => void;
   onRemove: () => void | Promise<void>;
   onSubmit: () => void;
+  removeNotice?: ReactNode;
   submitLabel: string;
 };
 
@@ -20,9 +22,10 @@ const DeleteVisitAction = ({
   isMobile,
   isPending,
   onRemove,
+  removeNotice,
 }: Pick<
   JobOccurrenceDialogActionsProps,
-  "isMobile" | "isPending" | "onRemove"
+  "isMobile" | "isPending" | "onRemove" | "removeNotice"
 >) => (
   <DeleteDialog
     title="Eliminar visita"
@@ -44,7 +47,9 @@ const DeleteVisitAction = ({
         Eliminar visita
       </Button>
     }
-  />
+  >
+    {removeNotice}
+  </DeleteDialog>
 );
 
 const PrimaryActions = ({

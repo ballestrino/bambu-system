@@ -460,7 +460,7 @@
         "Eliminar visita on a DONE visit with real hours shows the hours per employee and the work month, plus a notice when that month already has employee payments; scheduled visits show the current text",
         "init.ps1, tsc, build, check:occurrence-generation, a new payroll impact check, check:schedule-move, check:visit-day, check:visits-view and check:occurrence-dialog are green, and the warning is checked in the browser"
       ],
-      "status": "pending"
+      "status": "done"
     },
     {
       "id": "27a",

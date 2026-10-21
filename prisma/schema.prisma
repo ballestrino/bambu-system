@@ -446,6 +446,9 @@ model JobOccurrence {
   scheduleRule     JobScheduleRule?        @relation(fields: [scheduleRuleId], references: [id], onDelete: SetNull)
   scheduledStartAt DateTime
   scheduledEndAt   DateTime
+  // The start a schedule rule gave the visit. Only generation sets it; moving,
+  // detaching or editing keep it, so the rule never fills that start again.
+  generatedStartAt DateTime?
   actualStartAt    DateTime?
   actualEndAt      DateTime?
   status           OccurrenceStatus        @default(SCHEDULED)
@@ -463,6 +466,7 @@ model JobOccurrence {
 
   @@unique([scheduleRuleId, scheduledStartAt])
   @@index([jobId, scheduledStartAt])
+  @@index([jobId, generatedStartAt])
   @@index([status, archivedAt])
   @@index([createdById])
   @@index([updatedById])

@@ -16,6 +16,7 @@ import { Button } from "@/components/ui/button"
 export default function DeleteDialog({
   title = "Eliminar",
   description = "¿Estas seguro de eliminar esto?",
+  children,
   onClose,
   onConfirm,
   trigger,
@@ -24,6 +25,8 @@ export default function DeleteDialog({
 }: {
   title?: string
   description?: string
+  // Extra context under the description, such as what else the removal changes.
+  children?: React.ReactNode
   onClose?: () => void
   onConfirm: () => void | Promise<void>
   trigger?: React.ReactNode
@@ -70,6 +73,7 @@ export default function DeleteDialog({
           <DialogTitle>{title}</DialogTitle>
         </DialogHeader>
         <DialogDescription>{description}</DialogDescription>
+        {children}
         <div className='flex w-full justify-end gap-2'>
           <Button variant='outline' onClick={closeOnCancel}>
             Cancelar
