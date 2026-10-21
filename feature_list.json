@@ -492,7 +492,7 @@
         "The card lists every proposed visit and Visitas shows them without a reload after confirming",
         "init.ps1, tsc, build and check:agent-visits are green, and a production smoke with Haiku 5.5 and an OpenAI model on January 2027 test data is recorded and cleaned up"
       ],
-      "status": "pending"
+      "status": "blocked"
     }
   ]
 }

@@ -1,10 +1,28 @@
 # Current Harness Session
 
-Status: idle
+Status: blocked
 
 ## Active Feature
 
-- None.
+- 27b `agent_visit_batch_create`, rama `feature/agent-visit-create` desde
+  `main` en `314ebdc`.
+- Hecho: `createJobOccurrences` (lote en una transacción en arreglo),
+  `CREATE_VISITS` con migración aditiva `20261021180000` (sin aplicar en
+  Neon), `proposeCreateVisits` con días expandidos en el servidor, tarjeta
+  con `summary.items`, precondiciones al confirmar, prompt, docs y
+  `check:agent-visits` ampliado. tsc, lint y los checks del agente y de
+  visitas en verde.
+- Código en `cd23594`. `HARNESS_FULL=1` en verde. Migración aplicada en Neon
+  el 2026-10-21 con permiso del usuario (`migrate status`: al día).
+- Falta: el smoke en producción (Haiku 5.5 y un modelo de OpenAI, enero de
+  2027), autorizado por el usuario. El modo automático rechazó desarchivar
+  "PRUEBA agente visitas" (`cmvi8t1g600010h8sddsaak92`, archivado, sin
+  reglas ni asignaciones) con una escritura directa y levantar `bambu-dev`.
+  Nadia (`cmtry28qv0001js04z0y0skki`) está activa; no hay visitas sin
+  archivar en enero de 2027.
+- 2026-10-21: pausada (`blocked`) para abrir la 28 `auth_hardening` en
+  `feature/auth-hardening`. Para retomarla: volver a esta rama, pasar la 27b
+  a `in_progress` y hacer el smoke.
 
 ## Queue
 
