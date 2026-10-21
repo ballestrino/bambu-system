@@ -21,26 +21,21 @@ import {
 } from "@/components/ui/form"
 import * as z from "zod"
 import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
 
 export default function RegisterForm() {
+  // No password here: the verification link asks for it.
   const form = useForm<z.infer<typeof registerFormSchema>>({
-    resolver: zodResolver(registerFormSchema)
+    resolver: zodResolver(registerFormSchema),
+    defaultValues: { name: "", email: "" }
   })
 
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState<string | null>(null)
   const [isPending, setIsPending] = useState(false)
-  const [confirmPassword, setConfirmPassword] = useState<string>("")
 
   const onsumbit = (data: z.infer<typeof registerFormSchema>) => {
     setError(null)
     setSuccess(null)
-
-    if (data.password !== confirmPassword) {
-      setError("Las contraseñas no coinciden")
-      return
-    }
 
     setIsPending(true)
 
@@ -97,34 +92,6 @@ export default function RegisterForm() {
                 </FormItem>
               )}
             />
-            <FormField
-              control={form.control}
-              name='password'
-              render={({ field }) => (
-                <FormItem className='w-full'>
-                  <FormLabel>Contraseña</FormLabel>
-                  <FormControl>
-                    <Input
-                      type='password'
-                      className='w-full bg-background'
-                      placeholder='******'
-                      {...field}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <div className='flex w-full flex-col gap-2'>
-              <Label>Confirmar contraseña</Label>
-              <Input
-                type='password'
-                className='w-full bg-background'
-                placeholder='******'
-                value={confirmPassword}
-                onChange={e => setConfirmPassword(e.target.value)}
-              />
-            </div>
           </div>
           <div className='flex w-full flex-col items-center gap-6'>
             <Button className='w-full' disabled={isPending}>

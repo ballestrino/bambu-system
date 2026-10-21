@@ -36,10 +36,15 @@ export const updatePassword = async (values: UpdatePasswordValues) => {
 
     await db.user.update({
       where: { id: user.id },
-      data: { password: await bcrypt.hash(newPassword, 12) }
+      // Ends every session, this one included: the form signs out and sends
+      // the user to the login with the new password.
+      data: {
+        password: await bcrypt.hash(newPassword, 12),
+        sessionVersion: { increment: 1 }
+      }
     })
 
-    return { success: "Contraseña actualizada" }
+    return { success: "Contraseña actualizada. Iniciá sesión de nuevo." }
   } catch {
     return { error: "Algo salió mal" }
   }

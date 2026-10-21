@@ -1,18 +1,20 @@
 "use server"
 
 import * as z from "zod"
-import bcrypt from "bcryptjs"
 
-import { AuthError } from "next-auth"
+import { AuthError, CredentialsSignin } from "next-auth"
 import { signIn } from "@/auth"
 import { loginFormSchema } from "@/schemas/auth-schemas"
 
-import { db } from "@/lib/db"
 import { generateVerificationToken, generateTwoFactorToken } from "@/lib/tokens"
-import { getUserByEmail } from "@/data/user"
 import { sendVerificationEmail, sendTwoFactorEmail } from "@/lib/mail"
-import { getTwoFactorTokenByEmail } from "@/data/two-factor-token"
-import { getTwoFactorConfirmationByUserId } from "@/data/two-factor-confirmation"
+import { getActionClientIp } from "@/lib/auth/client-ip"
+import { AUTH_MAIL_LIMIT_ERROR, reserveAuthMail } from "@/lib/auth/mail-limit"
+import { verifyPasswordAttempt } from "@/lib/auth/password-attempt"
+import { confirmTwoFactorCode } from "@/lib/auth/two-factor-code"
+
+const INVALID_LOGIN = "Email o contraseña incorrectos"
+const RATE_LIMITED = "Demasiados intentos. Esperá 15 minutos y probá de nuevo."
 
 export const login = async (values: z.infer<typeof loginFormSchema>) => {
   try {
@@ -20,21 +22,28 @@ export const login = async (values: z.infer<typeof loginFormSchema>) => {
     const validatedFields = loginFormSchema.safeParse(values)
 
     if (!validatedFields.success) {
-      return { error: "Invalid fields" }
+      return { error: "Datos inválidos" }
     }
 
     const { email, password, code } = validatedFields.data
+    const ip = await getActionClientIp()
 
-    const existingUser = await getUserByEmail(email)
+    // The password is checked before any mail goes out, and an unknown email
+    // answers like a wrong password.
+    const attempt = await verifyPasswordAttempt(email, password, ip)
 
-    if (!existingUser || !existingUser.email || !existingUser.password) {
-      return { error: "El email no esta registrado" }
+    if ("error" in attempt) {
+      return { error: attempt.error === "rate_limited" ? RATE_LIMITED : INVALID_LOGIN }
     }
 
-    if (!existingUser.emailVerified) {
-      const verificationToken = await generateVerificationToken(
-        existingUser.email
-      )
+    const { user } = attempt
+
+    if (!user.emailVerified) {
+      if (!(await reserveAuthMail(user.email, ip))) {
+        return { error: AUTH_MAIL_LIMIT_ERROR }
+      }
+
+      const verificationToken = await generateVerificationToken(user.email)
 
       await sendVerificationEmail(
         verificationToken.email,
@@ -43,60 +52,22 @@ export const login = async (values: z.infer<typeof loginFormSchema>) => {
       return { emailVerification: "Email de verificación enviado!" }
     }
 
-    const passwordsMatch = await bcrypt.compare(password, existingUser.password)
-
-    if (!passwordsMatch) {
-      return { error: "Datos invalidos" }
-    }
-
-    if (existingUser.isTwoFactorEnabled && existingUser.email) {
-      if (code) {
-        const twoFactorToken = await getTwoFactorTokenByEmail(
-          existingUser.email
-        )
-
-        if (!twoFactorToken) {
-          return { error: "Invalid code" }
+    if (user.isTwoFactorEnabled) {
+      if (!code) {
+        if (!(await reserveAuthMail(user.email, ip))) {
+          return { error: AUTH_MAIL_LIMIT_ERROR }
         }
 
-        if (twoFactorToken.token !== code) {
-          return { error: "Invalid code" }
-        }
-
-        const hasExpired = new Date(twoFactorToken.expires) < new Date()
-
-        if (hasExpired) {
-          return { error: "Code expired" }
-        }
-
-        await db.twoFactorToken.delete({
-          where: { id: twoFactorToken.id }
-        })
-
-        const existingConfirmation = await getTwoFactorConfirmationByUserId(
-          existingUser.id
-        )
-
-        if (existingConfirmation) {
-          //delete two factor confirmation
-          await db.twoFactorConfirmation.delete({
-            where: { id: existingConfirmation.id }
-          })
-        }
-
-        //create two factor confirmation
-        await db.twoFactorConfirmation.create({
-          data: {
-            userId: existingUser.id
-          }
-        })
-      } else {
-        const twoFactorToken = await generateTwoFactorToken(existingUser.email)
+        const twoFactorToken = await generateTwoFactorToken(user.email)
 
         await sendTwoFactorEmail(twoFactorToken.email, twoFactorToken.token)
 
         return { twoFactor: true }
       }
+
+      const codeError = await confirmTwoFactorCode(user, code)
+
+      if (codeError) return { error: codeError }
     }
 
     await signIn("credentials", {
@@ -110,7 +81,12 @@ export const login = async (values: z.infer<typeof loginFormSchema>) => {
     if (error instanceof AuthError) {
       switch (error.type) {
         case "CredentialsSignin":
-          return { error: "Datos invalidos" }
+          return {
+            error:
+              (error as CredentialsSignin).code === "rate_limited"
+                ? RATE_LIMITED
+                : INVALID_LOGIN
+          }
         default:
           return { error: "Algo salio mal!" }
       }

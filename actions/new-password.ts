@@ -47,8 +47,12 @@ export const newPassword = async (
     where: {
       id: existingUser.id
     },
+    // The reset link proves the mailbox, so it also verifies the email, and
+    // every session issued before ends.
     data: {
-      password: hashedPassword
+      password: hashedPassword,
+      emailVerified: existingUser.emailVerified ?? new Date(),
+      sessionVersion: { increment: 1 }
     }
   })
 
