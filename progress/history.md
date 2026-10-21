@@ -1021,3 +1021,28 @@
   reporte (normalizar emails, errores de Resend en `lib/mail.ts`, headers de
   seguridad, aviso al email anterior, apagar 2FA sin contraseña) sigue
   abierto.
+
+## 2026-10-21 - Feature 27b el agente agenda lotes de visitas
+
+- `proposeCreateVisits` propone hasta 20 visitas de un trabajo con el mismo
+  horario y equipo: días en `dates` o repetición (`repeatFrom`, `repeatTo`,
+  `repeatWeekdays`) que expande el servidor. Sin `employeeIds` usa el equipo
+  asignado al trabajo. Rechaza más de 20, trabajo o empleadas archivadas,
+  equipo que cambia en el rango y días ya ocupados; avisa cruces, pasadas,
+  inactivas, sin equipo y trabajo no activo. La tarjeta lista cada visita.
+- Confirmar re-valida y ejecuta `createJobOccurrences`: todas las visitas o
+  ninguna, en una transacción en arreglo, SCHEDULED y sin regla.
+- Migración aditiva `20261021180000_agent_visit_batch_create`, aplicada en
+  Neon con permiso del usuario.
+- PASS:
+  - `init.ps1` con `HARNESS_FULL=1`, `tsc`, lint, build,
+    `check:agent-visits` (con los casos de crear) y los checks del agente y de
+    visitas
+  - smoke con Haiku 5.5 en enero de 2027: los martes dan 5, 12, 19 y 26,
+    doble clic escribe 4, Visitas las muestra sin recargar, 31 días los parte
+    el modelo en dos, repetir da `already_scheduled`; datos archivados
+- Queda: sin OpenAI (decisión del usuario); el rechazo de más de 20 del
+  servidor no se vio en vivo porque el modelo no lo intentó. Un trabajo
+  archivado no se puede desarchivar desde la app. Pusheada junto con la 28
+  con autorización del 2026-10-21. Detalle en
+  `progress/impl_agent_visit_batch_create.md`.
