@@ -1,10 +1,18 @@
 # Current Harness Session
 
-Status: idle
+Status: active
 
 ## Active Feature
 
-- None.
+- 29 `agent_visit_batch_selection` (rama `feature/agent-visit-selection`): la
+  tarjeta de un lote de visitas tiene una casilla por visita, todas marcadas;
+  confirmar manda las marcadas y solo esas se re-validan y se crean.
+- 2026-10-27: hecho y verde: tsc, init.ps1 (harness, prisma, lint),
+  check:agent-visits, check:agent-sheet, check:agent-proposals,
+  check:agent-page y check:agent-tools. Sin migraciones. Commit `7984fd0`.
+- Falta: smoke en la app (pide una propuesta CREATE_VISITS real en la base de
+  producción; se pregunta antes de crear datos) y el visto bueno para
+  mergear.
 
 ## Queue
 
