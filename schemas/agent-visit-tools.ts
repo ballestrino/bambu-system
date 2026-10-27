@@ -42,6 +42,32 @@ export const proposeUpdateVisitInputSchema = z.object({
 
 export type ProposeUpdateVisitInput = z.infer<typeof proposeUpdateVisitInputSchema>;
 
+// El mismo cambio en varias visitas (marcarlas realizadas, cancelarlas,
+// cambiarles el equipo): sin horarios, que son de cada visita.
+export const proposeUpdateVisitsInputSchema = z.object({
+  occurrenceIds: z
+    .array(occurrenceIdSchema)
+    .min(2)
+    .max(20)
+    .describe("ids de las visitas, de queryOperations (kind visits); de 2 a 20"),
+  status: occurrenceStatusSchema
+    .nullable()
+    .describe("SCHEDULED programada, DONE realizada (registra el horario programado como real), SKIPPED no se hizo, CANCELED cancelada; null no cambia"),
+  employeeIds: z
+    .array(idSchema)
+    .max(20)
+    .nullable()
+    .describe("El equipo completo de cada visita después del cambio (ids de queryOperations employees); [] las deja sin equipo; null no cambia"),
+  notes: z.string().max(2000).nullable().describe('Notas nuevas de todas; "" las borra; null no cambia'),
+  scheduleLabel: z
+    .string()
+    .max(255)
+    .nullable()
+    .describe('Nombre en el cronograma de todas; "" vuelve al del trabajo; null no cambia'),
+});
+
+export type ProposeUpdateVisitsInput = z.infer<typeof proposeUpdateVisitsInputSchema>;
+
 export const proposeArchiveVisitInputSchema = z.object({ occurrenceId: occurrenceIdSchema });
 
 const localDateSchema = z.string().trim().regex(/^\d{4}-\d{2}-\d{2}$/, "Usá AAAA-MM-DD");

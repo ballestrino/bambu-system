@@ -198,6 +198,7 @@ visitas solo se escriben al confirmar.
 | --- | --- | --- |
 | `proposeCreateVisits` | `CREATE_VISITS` | `createJobOccurrences(payload)` |
 | `proposeUpdateVisit` | `UPDATE_VISIT` | `updateJobOccurrence(occurrenceId, patch)` |
+| `proposeUpdateVisits` | `UPDATE_VISITS` | `updateJobOccurrences([{ occurrenceId, values: patch }])` |
 | `proposeArchiveVisit` | `ARCHIVE_VISIT` | `archiveJobOccurrence(occurrenceId)` |
 
 - Eliminar es archivar, como "Eliminar visita". Cancelar es un cambio de
@@ -271,8 +272,33 @@ visitas solo se escriben al confirmar.
   (`createOccurrencesWithEmployees`): visitas SCHEDULED sueltas, sin regla
   ni `generatedStartAt`. Un fallo no deja visitas a medias.
 
+### Cambiar varias visitas con una tarjeta (29)
+
+- `proposeUpdateVisits` (`lib/agent/tools/visit-batch.ts`): de 2 a 20
+  `occurrenceIds` y el mismo cambio para todas (`status`, `employeeIds`,
+  `notes`, `scheduleLabel`), sin horarios: mover una visita o registrar un
+  horario real distinto sigue siendo `proposeUpdateVisit`. El prompt pide una
+  sola propuesta para el mismo cambio en varias visitas, nunca una tarjeta por
+  visita (pasaba al marcar realizadas las de una empleada).
+- `resolveUpdateVisits` (`lib/agent/visit-batch-update-builder.ts`, puro)
+  resuelve cada visita con `resolveVisitUpdate`: realizada sin horario real
+  toma el programado. Las que ya están así quedan fuera (con un aviso); una
+  que no se puede cambiar rechaza el pedido con el nombre de la visita.
+- Avisos: los de sueldos en una línea por tipo de cambio
+  (`batchPayrollWarnings`, con una lectura de pagos por mes), cruces solo de
+  las visitas que pasan a ocupar a alguien, y los de cada visita sin
+  repetir.
+- El payload lleva por visita lo mismo que `UPDATE_VISIT` (`baseUpdatedAt`,
+  `baseEmployeeIds`, `patch`). Confirmar corre las precondiciones de cambiar
+  una sobre cada visita marcada y después `updateJobOccurrences`
+  (`actions/ops/job-occurrence-batch.ts`): cada cambio pasa por
+  `prepareOccurrenceUpdate` (`lib/ops/job-occurrence-update.ts`, la misma
+  validación que `updateJobOccurrence`) y se escriben todos en una
+  transacción en forma de arreglo. Migración aditiva `UPDATE_VISITS`.
+
 ### Elegir las visitas del lote (29)
 
+- Vale para `CREATE_VISITS` y `UPDATE_VISITS` (`isVisitBatchKind`).
 - Con dos o más visitas, la tarjeta pone una casilla en cada fila de
   `summary.items`, todas marcadas (`useVisitSelection`,
   `components/agent/hooks/`). El usuario desmarca las que no quiere; sin
@@ -286,10 +312,10 @@ visitas solo se escriben al confirmar.
   filtra `payload.visits`; una posición fuera del lote deja la propuesta
   FAILED. Las precondiciones y `createJobOccurrences` corren solo sobre las
   marcadas: una visita ya tomada que se desmarcó no frena el lote.
-- `result.visitIndexes` guarda las que se crearon. La tarjeta confirmada
-  tacha las otras ("No se agendó") y la línea de "Propuestas de esta
-  conversación" le dice al modelo cuáles sacó el usuario. Las filas de la
-  27b no lo tienen: se crearon todas.
+- `result.visitIndexes` guarda las que se escribieron. La tarjeta
+  confirmada tacha las otras ("No se agendó" o "Sin cambios") y la línea de
+  "Propuestas de esta conversación" le dice al modelo cuáles sacó el
+  usuario. Las filas de la 27b no lo tienen: se crearon todas.
 
 ## Sheet
 

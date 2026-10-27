@@ -20,6 +20,7 @@ import {
   type ProposalSummary,
 } from "@/lib/agent/proposals";
 import { executeVisitProposal } from "@/lib/agent/visit-proposal-execute";
+import { isVisitBatchKind } from "@/lib/agent/visit-proposals";
 import { BUDGET_CHANGED_MESSAGE } from "@/lib/budget-errors";
 import { db } from "@/lib/db";
 import { AdminAuthorizationError, requireAdminSession } from "@/lib/require-admin-session";
@@ -131,9 +132,7 @@ const runClaimed = async (
 };
 
 const loadProposal = async (id: string) =>
-  serializeProposal(
-    await db.agentProposal.findUniqueOrThrow({ where: { id }, select: proposalSelect })
-  );
+  serializeProposal(await db.agentProposal.findUniqueOrThrow({ where: { id }, select: proposalSelect }));
 
 // Confirmar ejecuta la escritura propuesta una sola vez. El claim atómico
 // (PENDING y sin vencer → EXECUTING) hace que un doble click o un reintento
@@ -153,7 +152,7 @@ export const confirmAgentProposal = async (proposalId: unknown, visitIndexes?: u
       select: { kind: true, payload: true, summary: true },
     });
     if (!stored) return { error: "Propuesta no encontrada" };
-    if (selection.data && stored.kind !== "CREATE_VISITS") return { error: "Propuesta inválida" };
+    if (selection.data && !isVisitBatchKind(stored.kind)) return { error: "Propuesta inválida" };
 
     const now = new Date();
     const claimed = await db.agentProposal.updateMany({

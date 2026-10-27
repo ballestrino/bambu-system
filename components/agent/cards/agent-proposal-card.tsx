@@ -25,6 +25,7 @@ const CONFIRM_TEXT: Record<AgentProposalKind, string> = {
   PUBLISH_OFFICIAL_BUDGET: "Confirmar publica el precio de lista oficial.",
   CREATE_VISITS: "Confirmar agenda las visitas marcadas juntas.",
   UPDATE_VISIT: "Confirmar guarda el cambio en la visita.",
+  UPDATE_VISITS: "Confirmar cambia las visitas marcadas juntas.",
   ARCHIVE_VISIT: "Confirmar saca la visita de la agenda.",
 };
 

@@ -40,6 +40,7 @@ for (const path of [
   "schemas/ops/job-occurrence.ts",
   "lib/ops/job-occurrence-patch.ts",
   "actions/ops/job-occurrences.ts",
+  "lib/ops/job-occurrence-update.ts",
   "lib/ops/job-occurrence-persistence.ts",
 ]) {
   assert.doesNotMatch(read(path), /generatedStartAt/, path);

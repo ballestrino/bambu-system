@@ -13,6 +13,7 @@ export const AGENT_PROPOSAL_KINDS = [
   "UPDATE_VISIT",
   "ARCHIVE_VISIT",
   "CREATE_VISITS",
+  "UPDATE_VISITS",
 ] as const;
 
 export type AgentProposalKind = (typeof AGENT_PROPOSAL_KINDS)[number];

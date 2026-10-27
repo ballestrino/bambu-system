@@ -74,6 +74,9 @@ assert.deepEqual(
 // --- New files stay within the 200-line limit.
 [
   "lib/agent/tools/visits.ts",
+  "lib/agent/tools/visit-batch.ts",
+  "lib/agent/visit-batch-update-builder.ts",
+  "lib/ops/job-occurrence-update.ts",
   "lib/agent/visit-create-builder.ts",
   "actions/ops/job-occurrence-batch.ts",
   "schemas/ops/job-occurrence-batch.ts",

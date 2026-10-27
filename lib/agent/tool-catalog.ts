@@ -31,6 +31,7 @@ export const AGENT_TOOL_CATALOG = {
   proposePublishOfficialBudget: { label: "Propone publicar como oficial", kind: "proposal" },
   proposeCreateVisits: { label: "Propone crear visitas", kind: "proposal" },
   proposeUpdateVisit: { label: "Propone cambiar una visita", kind: "proposal" },
+  proposeUpdateVisits: { label: "Propone cambiar varias visitas", kind: "proposal" },
   proposeArchiveVisit: { label: "Propone eliminar una visita", kind: "proposal" },
 } as const satisfies Record<string, { label: string; kind: AgentToolKind }>;
 

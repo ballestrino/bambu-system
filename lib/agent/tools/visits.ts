@@ -87,7 +87,7 @@ export const createVisitTools = (ctx: AgentToolContext) => ({
 
   proposeUpdateVisit: tool({
     description:
-      "Prepara cambiar una visita para que el usuario lo confirme en una tarjeta: no guarda nada. Sirve para moverla de horario, cambiar el equipo, el estado (cancelarla es CANCELED, no se hizo es SKIPPED), registrar el horario real, las notas o el nombre del cronograma. Antes buscá la visita con queryOperations. Horarios en hora de Montevideo; null en todo lo que no cambia.",
+      "Prepara cambiar una visita para que el usuario lo confirme en una tarjeta: no guarda nada. El mismo cambio en varias visitas va con proposeUpdateVisits, no con una llamada por visita. Sirve para moverla de horario, cambiar el equipo, el estado (cancelarla es CANCELED, no se hizo es SKIPPED), registrar el horario real, las notas o el nombre del cronograma. Antes buscá la visita con queryOperations. Horarios en hora de Montevideo; null en todo lo que no cambia.",
     inputSchema: proposeUpdateVisitInputSchema,
     execute: (input, { toolCallId }) =>
       runTool("proposeUpdateVisit", async () => {

@@ -23,8 +23,9 @@ import {
   stripOccurrenceEmployeeInputs,
   updateOccurrenceWithEmployees,
 } from "@/lib/ops/job-occurrence-persistence";
+import { prepareOccurrenceUpdate } from "@/lib/ops/job-occurrence-update";
 import { requireAdminSession } from "@/lib/require-admin-session";
-import { CreateJobOccurrenceSchema, DetachJobOccurrenceSchema, UpdateJobOccurrenceSchema } from "@/schemas/ops";
+import { CreateJobOccurrenceSchema, DetachJobOccurrenceSchema } from "@/schemas/ops";
 
 export const createJobOccurrence = async (values: unknown) => {
   try {
@@ -64,50 +65,12 @@ export const createJobOccurrence = async (values: unknown) => {
 export const updateJobOccurrence = async (occurrenceId: string, values: unknown) => {
   try {
     const session = await requireAdminSession();
-    const existingOccurrence = await assertOccurrenceExists(occurrenceId);
-    const parsedValues = UpdateJobOccurrenceSchema.safeParse(values);
-    if (!parsedValues.success) {
-      return { error: "Datos invalidos para actualizar la ocurrencia" };
+    const prepared = await prepareOccurrenceUpdate(occurrenceId, values, session.user.id);
+    if ("error" in prepared) {
+      return { error: prepared.error };
     }
 
-    const existingEmployeeIds = await getOccurrenceEmployeeIds(occurrenceId);
-    const employeeIds = getPatchedEmployeeIds({
-      existingEmployeeIds,
-      patch: parsedValues.data,
-    });
-    const mergedValues = buildResolvedJobOccurrence(
-      existingOccurrence,
-      parsedValues.data
-    );
-    const validatedValues = validateResolvedJobOccurrence(mergedValues);
-    if (!validatedValues.success) {
-      return { error: "La ocurrencia resultante es invalida" };
-    }
-
-    await Promise.all([
-      assertOccurrenceEmployeesExist(employeeIds),
-      assertOccurrenceRuleBelongsToJob(
-        mergedValues.scheduleRuleId ?? undefined,
-        existingOccurrence.jobId
-      ),
-    ]);
-
-    const occurrence = await updateOccurrenceWithEmployees({
-      data: {
-        scheduleRuleId: mergedValues.scheduleRuleId,
-        scheduledStartAt: validatedValues.data.scheduledStartAt,
-        scheduledEndAt: validatedValues.data.scheduledEndAt,
-        actualStartAt: mergedValues.actualStartAt,
-        actualEndAt: mergedValues.actualEndAt,
-        status: validatedValues.data.status,
-        isDetached: validatedValues.data.isDetached,
-        notes: mergedValues.notes,
-        scheduleLabel: mergedValues.scheduleLabel,
-        updatedById: session.user.id,
-      },
-      employeeIds,
-      occurrenceId,
-    });
+    const occurrence = await updateOccurrenceWithEmployees(prepared);
 
     return { success: "Ocurrencia actualizada", occurrence };
   } catch (error) {

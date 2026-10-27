@@ -17,10 +17,16 @@ type VisitSelection = {
 
 const NONE: VisitSelection = { selection: undefined, visitIndexes: undefined, confirmText: null, canConfirm: true };
 
-// Las visitas de un lote que se agendan: todas marcadas al principio, y el
-// usuario desmarca las que no quiere antes de confirmar. Con una sola no hay
-// nada que elegir: sacarla es rechazar. Ya confirmado, result dice cuáles se
-// crearon.
+// Cómo se dice en cada lote: agendar visitas nuevas o cambiar las que hay.
+const WORDING = {
+  CREATE_VISITS: { verb: "agenda", skippedLabel: "No se agendó" },
+  UPDATE_VISITS: { verb: "cambia", skippedLabel: "Sin cambios" },
+} as const;
+
+// Las visitas de un lote que se agendan o cambian: todas marcadas al
+// principio, y el usuario desmarca las que no quiere antes de confirmar. Con
+// una sola no hay nada que elegir: sacarla es rechazar. Ya confirmado, result
+// dice cuáles se escribieron.
 export const useVisitSelection = ({
   kind,
   items,
@@ -35,9 +41,10 @@ export const useVisitSelection = ({
   canAct: boolean;
 }): VisitSelection => {
   const [unchecked, setUnchecked] = useState<number[]>([]);
-  if (kind !== "CREATE_VISITS" || !items || items.length < 2) return NONE;
+  if ((kind !== "CREATE_VISITS" && kind !== "UPDATE_VISITS") || !items || items.length < 2) return NONE;
+  const { verb, skippedLabel } = WORDING[kind];
   if (status === "CONFIRMED") {
-    return result?.visitIndexes ? { ...NONE, selection: { created: result.visitIndexes } } : NONE;
+    return result?.visitIndexes ? { ...NONE, selection: { skippedLabel, done: result.visitIndexes } } : NONE;
   }
   if (status !== "PENDING") return NONE;
 
@@ -46,12 +53,12 @@ export const useVisitSelection = ({
   const onToggle = (index: number) =>
     setUnchecked((current) => (current.includes(index) ? current.filter((value) => value !== index) : [...current, index]));
   return {
-    selection: { checked, disabled: !canAct, onToggle },
+    selection: { skippedLabel, checked, disabled: !canAct, onToggle },
     visitIndexes: unchecked.length ? indexes : undefined,
     confirmText: !indexes.length
       ? "Marcá al menos una visita, o rechazá la propuesta."
       : unchecked.length
-        ? `Confirmar agenda ${indexes.length} de ${items.length} visitas juntas.`
+        ? `Confirmar ${verb} ${indexes.length} de ${items.length} visitas juntas.`
         : null,
     canConfirm: indexes.length > 0,
   };

@@ -16,7 +16,7 @@ export type VisitProposalEmployee = { id: string; name: string; archivedAt: Date
 
 const sameIds = (left: string[], right: string[]) => [...left].sort().join() === [...right].sort().join();
 
-export type ParsedVisitEdit = Exclude<ParsedVisitProposal, { kind: "CREATE_VISITS" }>;
+export type ParsedVisitEdit = Exclude<ParsedVisitProposal, { kind: "CREATE_VISITS" | "UPDATE_VISITS" }>;
 
 export const checkVisitProposalPreconditions = (
   proposal: ParsedVisitEdit,
@@ -47,15 +47,15 @@ export type CreateVisitsState = {
   takenStarts: Date[];
 };
 
-// Las visitas marcadas en la tarjeta, en el orden del lote (sin selección,
+// Las visitas marcadas en la tarjeta de un lote, en su orden (sin selección,
 // todas). Una posición fuera del lote es una selección armada a mano: null.
-export const selectProposedVisits = (payload: CreateVisitsPayload, visitIndexes?: number[]) => {
-  const indexes = visitIndexes ?? payload.visits.map((_, index) => index);
-  if (indexes.some((index) => index >= payload.visits.length)) return null;
+export const selectProposedVisits = <V>(visits: V[], visitIndexes?: number[]) => {
+  const indexes = visitIndexes ?? visits.map((_, index) => index);
+  if (indexes.some((index) => index >= visits.length)) return null;
   const chosen = new Set(indexes);
   return {
     indexes: [...chosen].sort((left, right) => left - right),
-    payload: { ...payload, visits: payload.visits.filter((_, index) => chosen.has(index)) },
+    visits: visits.filter((_, index) => chosen.has(index)),
   };
 };
 

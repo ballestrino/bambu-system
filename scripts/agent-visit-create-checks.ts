@@ -149,12 +149,13 @@ assert.equal(
 
 // --- The user unchecks visits on the card: only the checked ones are checked
 // and created, and the model is told which were left out.
-assert.deepEqual(selectProposedVisits(built.payload)?.indexes, [0, 1, 2, 3]);
-const picked = selectProposedVisits(built.payload, [3, 0]);
+assert.deepEqual(selectProposedVisits(built.payload.visits)?.indexes, [0, 1, 2, 3]);
+const picked = selectProposedVisits(built.payload.visits, [3, 0]);
 assert.deepEqual(picked?.indexes, [0, 3]);
-assert.deepEqual(picked?.payload.visits.map((visit) => visit.scheduledStartAt), ["2026-10-06T12:00:00.000Z", "2026-10-27T12:00:00.000Z"]);
-assert.equal(selectProposedVisits(built.payload, [4]), null);
-assert.equal(checkCreateVisitsPreconditions(picked!.payload, { ...live, takenStarts: [new Date("2026-10-13T12:00:00.000Z")] }), null);
+assert.deepEqual(picked?.visits.map((visit) => visit.scheduledStartAt), ["2026-10-06T12:00:00.000Z", "2026-10-27T12:00:00.000Z"]);
+assert.equal(selectProposedVisits(built.payload.visits, [4]), null);
+const pickedPayload = { ...built.payload, visits: picked!.visits };
+assert.equal(checkCreateVisitsPreconditions(pickedPayload, { ...live, takenStarts: [new Date("2026-10-13T12:00:00.000Z")] }), null);
 assert.ok(visitSelectionSchema.safeParse([0, 2]).success);
 [[], [1, 1], [-1], [0.5], [20]].forEach((indexes) => assert.ok(!visitSelectionSchema.safeParse(indexes).success, JSON.stringify(indexes)));
 const confirmedBatch = (visitIndexes?: number[]) => ({

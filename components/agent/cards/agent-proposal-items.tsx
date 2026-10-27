@@ -5,17 +5,19 @@ import { cn } from "@/lib/utils";
 type Items = NonNullable<ProposalSummary["items"]>;
 
 // Pendiente: una casilla por visita para sacar las que no van. Ya confirmado:
-// created dice cuáles se agendaron y las otras se ven tachadas.
-export type ProposalItemsSelection =
+// done dice cuáles se agendaron o cambiaron y las otras se ven tachadas.
+// skippedLabel: lo que dice una sacada ("No se agendó", "Sin cambios").
+export type ProposalItemsSelection = { skippedLabel: string } & (
   | { checked: boolean[]; disabled: boolean; onToggle: (index: number) => void }
-  | { created: number[] };
+  | { done: number[] }
+);
 
-function ItemText({ item, skipped }: { item: Items[number]; skipped: boolean }) {
+function ItemText({ item, skipped }: { item: Items[number]; skipped: string | null }) {
   return (
     <>
       <span className={cn("font-medium", skipped && "text-ops-text-muted line-through")}>{item.label}</span>
       {skipped ? (
-        <span className="text-right text-xs text-ops-text-muted">No se agendó</span>
+        <span className="text-right text-xs text-ops-text-muted">{skipped}</span>
       ) : (
         item.detail && <span className="text-right text-xs text-amber-700 dark:text-amber-300">{item.detail}</span>
       )}
@@ -29,7 +31,8 @@ const ROW = "grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3 border-b bor
 // horario y, si hay, un detalle a la derecha.
 export function AgentProposalItems({ items, selection }: { items: Items; selection?: ProposalItemsSelection }) {
   const editable = selection && "checked" in selection ? selection : null;
-  const created = selection && "created" in selection ? new Set(selection.created) : null;
+  const done = selection && "done" in selection ? new Set(selection.done) : null;
+  const skippedLabel = selection?.skippedLabel ?? null;
   return (
     <ol className="overflow-hidden rounded-[10px] border border-ops-border text-[13px] tabular-nums">
       {items.map((item, index) => {
@@ -37,7 +40,7 @@ export function AgentProposalItems({ items, selection }: { items: Items; selecti
         if (!editable) {
           return (
             <li key={key} className={ROW}>
-              <ItemText item={item} skipped={created ? !created.has(index) : false} />
+              <ItemText item={item} skipped={done && !done.has(index) ? skippedLabel : null} />
             </li>
           );
         }
@@ -54,9 +57,9 @@ export function AgentProposalItems({ items, selection }: { items: Items; selecti
                 checked={checked}
                 disabled={editable.disabled}
                 onCheckedChange={() => editable.onToggle(index)}
-                aria-label={`Agendar ${item.label}`}
+                aria-label={`Incluir ${item.label}`}
               />
-              <ItemText item={item} skipped={!checked} />
+              <ItemText item={item} skipped={checked ? null : skippedLabel} />
             </label>
           </li>
         );
