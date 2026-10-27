@@ -33,3 +33,12 @@ export const CreateJobOccurrencesSchema = z.object({
 });
 
 export type CreateJobOccurrencesInput = z.infer<typeof CreateJobOccurrencesSchema>;
+
+// Cambios parciales de varias visitas: cada values se valida con
+// UpdateJobOccurrenceSchema contra su visita. Todos o ninguno
+// (updateJobOccurrences).
+export const UpdateJobOccurrencesSchema = z
+  .array(z.object({ occurrenceId: cuidSchema, values: z.record(z.string(), z.unknown()) }))
+  .min(1)
+  .max(MAX_BATCH_OCCURRENCES)
+  .refine((items) => new Set(items.map((item) => item.occurrenceId)).size === items.length, "Una visita repetida");

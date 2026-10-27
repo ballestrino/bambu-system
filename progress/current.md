@@ -14,6 +14,13 @@ Status: idle
 
 ## Last Closed Work
 
+- 2026-10-27: tarjetas de lotes de visitas con casillas (29): en agendar
+  y en el nuevo `proposeUpdateVisits` (`UPDATE_VISITS`, el mismo cambio en
+  2 a 20 visitas con una tarjeta) se desmarcan las visitas que no van; solo
+  las marcadas se re-validan y se escriben, todas o ninguna. Migración
+  aditiva aplicada en Neon. Smoke con Haiku 5.5, datos archivados. Mergeada
+  y pusheada a `main` con autorización del 2026-10-27. Queda: los avisos
+  de sueldos cuentan también las visitas desmarcadas.
 - 2026-10-21: el agente agenda lotes de visitas (27b): `proposeCreateVisits`
   con hasta 20 visitas de un trabajo, días sueltos o repetición expandida en
   el servidor, tarjeta con cada visita y `createJobOccurrences` que escribe

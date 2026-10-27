@@ -1046,3 +1046,35 @@
   archivado no se puede desarchivar desde la app. Pusheada junto con la 28
   con autorización del 2026-10-21. Detalle en
   `progress/impl_agent_visit_batch_create.md`.
+
+## 2026-10-27 - Feature 29 tarjetas de lotes de visitas con casillas
+
+- La tarjeta de `CREATE_VISITS` lista cada visita con una casilla, todas
+  marcadas. Confirmar manda los índices marcados (`visitIndexes`); el
+  servidor se queda con esas visitas del payload guardado, re-valida y las
+  crea con `createJobOccurrences`. El resultado guarda qué índices se
+  escribieron: la tarjeta tacha las desmarcadas y el modelo sabe cuáles.
+- Segundo pedido: el agente mandaba una tarjeta por visita para marcar
+  realizadas las de Ana Leticia. `proposeUpdateVisits` (`UPDATE_VISITS`)
+  aplica el mismo cambio (estado, equipo, notas, nombre del cronograma) a 2
+  a 20 visitas con una tarjeta y casillas; las que ya estaban así quedan
+  fuera y los avisos de sueldos van en una línea por tipo. Confirmar
+  re-valida cada visita marcada como `UPDATE_VISIT` y escribe con
+  `updateJobOccurrences` (todas o ninguna), que comparte
+  `prepareOccurrenceUpdate` con `updateJobOccurrence`. El prompt prohíbe
+  una tarjeta por visita.
+- Migración aditiva `20261027120000_agent_visit_batch_update`, aplicada en
+  Neon con permiso del usuario. El primer intento del usuario falló porque
+  `pnpm dev` tenía el cliente de Prisma de antes; reiniciado, anduvo.
+- PASS:
+  - `init.ps1`, `tsc`, lint, `next build`, `check:agent-visits` (con
+    `agent-visit-batch-update-checks`), agent-sheet, agent-proposals,
+    agent-page, agent-tools, occurrence-generation, visit-payroll-impact,
+    occurrence-dialog, schedule-move y visits-view
+  - smoke con Haiku 5.5 en el Chrome del usuario: marcar realizadas 3 visitas
+    de enero de 2027 desmarcando una (2 DONE con el horario programado, 1
+    SCHEDULED), el modelo dijo cuál quedó; agendar los martes de febrero
+    desmarcando uno (se crearon 3). Datos archivados.
+- Queda: los avisos de horas y transporte cuentan también las visitas
+  desmarcadas. Mergeada y pusheada a `main` con autorización del
+  2026-10-27.

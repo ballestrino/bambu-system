@@ -6,7 +6,7 @@ import {
   type AgentProposalKind,
   type ProposalChange,
 } from "@/lib/agent/proposals";
-import { isVisitProposalKind } from "@/lib/agent/visit-proposals";
+import { isVisitBatchKind, isVisitProposalKind } from "@/lib/agent/visit-proposals";
 
 // Lo que el modelo ve de las propuestas. La salida guardada de una tool
 // propose* dice PENDING para siempre: en la prueba real el modelo dio por
@@ -35,6 +35,17 @@ const formatValue = (value: ProposalChange["before"]) => {
   return `"${value}"`;
 };
 
+// Las visitas de un lote que el usuario desmarcó antes de confirmar: no se
+// agendaron (o no cambiaron) y el modelo no las da por hechas.
+const describeSkipped = ({ kind, summary, result }: ProposalPromptItem) => {
+  const done = result?.visitIndexes;
+  const items = summary.items ?? [];
+  if (!done || done.length >= items.length) return "";
+  const skipped = items.filter((_, index) => !done.includes(index)).map((item) => item.label);
+  const [did, didNot] = kind === "UPDATE_VISITS" ? ["Se cambiaron", "quedaron como estaban"] : ["Se agendaron", "no se agendaron"];
+  return ` ${did} ${done.length} de ${items.length}: el usuario sacó ${skipped.join(", ")}, que ${didNot}.`;
+};
+
 const MAX_CHANGES = 3;
 
 // "(Margen del servicio 45 → 40)": dos propuestas sobre el mismo presupuesto
@@ -53,17 +64,20 @@ const describeChanges = (changes: ProposalChange[] = []) => {
 // escribir dos veces.
 export const formatProposalsForPrompt = (proposals: ProposalPromptItem[]) =>
   proposals
-    .map(({ kind, status, summary, result, error, unknownOutcome }) => {
+    .map((proposal) => {
+      const { kind, status, summary, result, error, unknownOutcome } = proposal;
       const label = unknownOutcome ? "resultado desconocido" : PROPOSAL_STATUS_LABELS[status];
       const line = `- ${summary.title}${describeChanges(summary.changes)}: ${label}`;
       const target =
-        kind === "CREATE_VISITS"
+        kind && isVisitBatchKind(kind)
           ? "las visitas con queryOperations"
           : kind && isVisitProposalKind(kind)
             ? "la visita con queryOperations"
             : "el presupuesto";
       if (unknownOutcome) return `${line} (se cortó mientras se ejecutaba: revisá ${target} antes de proponerla de nuevo).`;
-      if (status === "CONFIRMED" && result) return `${line}. Quedó en ${result.url}${describeSaved(summary.after)}.`;
+      if (status === "CONFIRMED" && result) {
+        return `${line}. Quedó en ${result.url}${describeSaved(summary.after)}.${describeSkipped(proposal)}`;
+      }
       if ((status === "FAILED" || status === "EXPIRED") && error) return `${line} (${error}).`;
       return `${line}.`;
     })

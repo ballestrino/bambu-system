@@ -13,6 +13,7 @@ export const AGENT_PROPOSAL_KINDS = [
   "UPDATE_VISIT",
   "ARCHIVE_VISIT",
   "CREATE_VISITS",
+  "UPDATE_VISITS",
 ] as const;
 
 export type AgentProposalKind = (typeof AGENT_PROPOSAL_KINDS)[number];
@@ -88,6 +89,9 @@ export type ProposalResult = {
   officialVersion: number | null;
   // Las visitas que escribió una propuesta de visitas.
   occurrenceIds?: string[];
+  // Las visitas de un lote que se crearon, por su posición en summary.items:
+  // el usuario puede desmarcar algunas. Sin esto (filas viejas), todas.
+  visitIndexes?: number[];
 };
 
 export const proposalSelect = {

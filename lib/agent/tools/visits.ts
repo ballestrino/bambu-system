@@ -55,7 +55,7 @@ const paidFor = async (impact: VisitPayrollImpact | null) => {
 export const createVisitTools = (ctx: AgentToolContext) => ({
   proposeCreateVisits: tool({
     description:
-      "Prepara agendar visitas nuevas de un trabajo (hasta 20, con el mismo horario y equipo) para que el usuario las confirme en una tarjeta: no guarda nada. Los días van en dates (sueltos) o en repeatFrom, repeatTo y repeatWeekdays (por ejemplo los martes de un mes): el servidor calcula las fechas. Antes buscá el trabajo con queryOperations (kind jobs). Horarios en hora de Montevideo.",
+      "Prepara agendar visitas nuevas de un trabajo (hasta 20, con el mismo horario y equipo) para que el usuario las confirme en una tarjeta, donde puede desmarcar las que no quiere: no guarda nada. Los días van en dates (sueltos) o en repeatFrom, repeatTo y repeatWeekdays (por ejemplo los martes de un mes): el servidor calcula las fechas. Antes buscá el trabajo con queryOperations (kind jobs). Horarios en hora de Montevideo.",
     inputSchema: proposeCreateVisitsInputSchema,
     execute: (input, { toolCallId }) =>
       runTool("proposeCreateVisits", async () => {
@@ -87,7 +87,7 @@ export const createVisitTools = (ctx: AgentToolContext) => ({
 
   proposeUpdateVisit: tool({
     description:
-      "Prepara cambiar una visita para que el usuario lo confirme en una tarjeta: no guarda nada. Sirve para moverla de horario, cambiar el equipo, el estado (cancelarla es CANCELED, no se hizo es SKIPPED), registrar el horario real, las notas o el nombre del cronograma. Antes buscá la visita con queryOperations. Horarios en hora de Montevideo; null en todo lo que no cambia.",
+      "Prepara cambiar una visita para que el usuario lo confirme en una tarjeta: no guarda nada. El mismo cambio en varias visitas va con proposeUpdateVisits, no con una llamada por visita. Sirve para moverla de horario, cambiar el equipo, el estado (cancelarla es CANCELED, no se hizo es SKIPPED), registrar el horario real, las notas o el nombre del cronograma. Antes buscá la visita con queryOperations. Horarios en hora de Montevideo; null en todo lo que no cambia.",
     inputSchema: proposeUpdateVisitInputSchema,
     execute: (input, { toolCallId }) =>
       runTool("proposeUpdateVisit", async () => {

@@ -42,13 +42,38 @@ export const createVisitsPayloadSchema = z.object({
 
 export type CreateVisitsPayload = z.infer<typeof createVisitsPayloadSchema>;
 
+// Las visitas del lote que quedaron marcadas en la tarjeta, por su posición
+// en visits: al menos una y sin repetir. Sin selección se crean todas.
+export const visitSelectionSchema = z
+  .array(z.number().int().min(0).max(MAX_PROPOSED_VISITS - 1))
+  .min(1)
+  .max(MAX_PROPOSED_VISITS)
+  .refine((indexes) => new Set(indexes).size === indexes.length, "Una visita repetida en la selección");
+
+const updateVisitPayloadSchema = z.object({
+  occurrenceId: cuidSchema,
+  baseUpdatedAt: isoSchema,
+  baseEmployeeIds: z.array(cuidSchema),
+  patch: visitPatchSchema,
+});
+
+export type UpdateVisitPayload = z.infer<typeof updateVisitPayloadSchema>;
+
+// Varias visitas con el mismo cambio, cada una con su base y su patch: pasan
+// juntas a updateJobOccurrences.
+export const updateVisitsPayloadSchema = z.object({
+  visits: z
+    .array(updateVisitPayloadSchema)
+    .min(1)
+    .max(MAX_PROPOSED_VISITS)
+    .refine((visits) => new Set(visits.map((visit) => visit.occurrenceId)).size === visits.length, "Una visita repetida"),
+});
+
+export type UpdateVisitsPayload = z.infer<typeof updateVisitsPayloadSchema>;
+
 export const visitProposalPayloadSchemas = {
   CREATE_VISITS: createVisitsPayloadSchema,
-  UPDATE_VISIT: z.object({
-    occurrenceId: cuidSchema,
-    baseUpdatedAt: isoSchema,
-    baseEmployeeIds: z.array(cuidSchema),
-    patch: visitPatchSchema,
-  }),
+  UPDATE_VISIT: updateVisitPayloadSchema,
+  UPDATE_VISITS: updateVisitsPayloadSchema,
   ARCHIVE_VISIT: z.object({ occurrenceId: cuidSchema, baseUpdatedAt: isoSchema }),
 };

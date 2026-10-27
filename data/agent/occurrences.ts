@@ -49,18 +49,40 @@ export const getAgentOccurrence = async (id: string) => {
   return db.jobOccurrence.findUnique({ where: { id }, include: opsOccurrenceInclude });
 };
 
+// Las visitas de un lote para cambiarlas, archivadas o no.
+export const getAgentOccurrencesByIds = async (ids: string[]) => {
+  await requireAdminSession();
+
+  return db.jobOccurrence.findMany({ where: { id: { in: ids } }, include: opsOccurrenceInclude });
+};
+
+const visitStateSelect = {
+  id: true,
+  archivedAt: true,
+  updatedAt: true,
+  employees: { select: { employeeId: true } },
+} as const;
+
+const toVisitState = <V extends { employees: { employeeId: string }[] }>(visit: V) => ({
+  ...visit,
+  employeeIds: visit.employees.map((assignment) => assignment.employeeId),
+});
+
 // Lo que miran las precondiciones al confirmar: si sigue viva, su updatedAt y
 // su equipo guardado.
 export const getAgentVisitState = async (id: string) => {
   await requireAdminSession();
 
-  const visit = await db.jobOccurrence.findUnique({
-    where: { id },
-    select: { archivedAt: true, updatedAt: true, employees: { select: { employeeId: true } } },
-  });
-  return visit
-    ? { ...visit, employeeIds: visit.employees.map((assignment) => assignment.employeeId) }
-    : null;
+  const visit = await db.jobOccurrence.findUnique({ where: { id }, select: visitStateSelect });
+  return visit ? toVisitState(visit) : null;
+};
+
+// Lo mismo para un lote, por id (una que no existe no aparece).
+export const getAgentVisitStates = async (ids: string[]) => {
+  await requireAdminSession();
+
+  const visits = await db.jobOccurrence.findMany({ where: { id: { in: ids } }, select: visitStateSelect });
+  return new Map(visits.map((visit) => [visit.id, toVisitState(visit)]));
 };
 
 type TeamRange = { employeeIds: string[]; start: Date; end: Date };

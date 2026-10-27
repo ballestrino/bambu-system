@@ -1,5 +1,5 @@
 import { BudgetPriceTable } from "@/components/agent/cards/agent-budget-totals-card";
-import { AgentProposalItems } from "@/components/agent/cards/agent-proposal-items";
+import { AgentProposalItems, type ProposalItemsSelection } from "@/components/agent/cards/agent-proposal-items";
 import { formatChangeValue, formatMoney } from "@/components/agent/format";
 import type { BudgetCalculation } from "@/lib/agent/budget-calculation";
 import type { ProposalSummary } from "@/lib/agent/proposals";
@@ -71,14 +71,20 @@ function StoredPrices({ stored }: { stored: ProposalSummary["stored"] }) {
   );
 }
 
-export function AgentProposalDetails({ summary }: { summary: ProposalSummary }) {
+export function AgentProposalDetails({
+  summary,
+  selection,
+}: {
+  summary: ProposalSummary;
+  selection?: ProposalItemsSelection;
+}) {
   const rows = [
     ...changeRows(summary.changes),
     ...(summary.before && summary.after ? priceRows(summary.before, summary.after) : []),
   ];
   return (
     <>
-      {summary.items && summary.items.length > 0 && <AgentProposalItems items={summary.items} />}
+      {summary.items && summary.items.length > 0 && <AgentProposalItems items={summary.items} selection={selection} />}
       {rows.length > 0 && <DiffRows rows={rows} />}
       {!summary.before && summary.after && <BudgetPriceTable calculation={summary.after} />}
       {!summary.after && summary.stored.length > 0 && <StoredPrices stored={summary.stored} />}

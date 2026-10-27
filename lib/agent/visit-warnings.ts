@@ -59,7 +59,35 @@ export const payrollChangeWarnings = (
   return [change, ...new Set(notices.filter((notice): notice is string => Boolean(notice)))];
 };
 
-export const overlapWarnings = (overlaps: VisitOverlap[]) =>
+const visitsCount = (count: number) => (count === 1 ? "1 visita" : `${count} visitas`);
+const uniqueJoin = (values: string[]) => [...new Set(values)].join(" y ");
+const namesOf = (impacts: VisitPayrollImpact[]) =>
+  joinEmployeeNames([...new Map(impacts.flatMap((impact) => impact.employees).map((employee) => [employee.id, employee])).values()]);
+const hoursOf = (impacts: VisitPayrollImpact[]) => formatHours(impacts.reduce((total, impact) => total + impact.hours, 0));
+
+// Lo que cambia en sueldos un lote, en una línea por tipo de cambio y no una
+// por visita. paid: las empleadas con pagos cargados, por paymentMonthKey.
+export const batchPayrollWarnings = (pairs: { before: VisitState; after: VisitState }[], paid: Map<string, string[]>) => {
+  const impacts = pairs.map(({ before, after }) => ({ from: visitPayrollImpact(before), to: visitPayrollImpact(after) }));
+  const entering = impacts.flatMap(({ from, to }) => (!from && to ? [to] : []));
+  const leaving = impacts.flatMap(({ from, to }) => (from && !to ? [from] : []));
+  const changed = impacts.filter(({ from, to }) => from && to && !sameImpact(from, to)).length;
+  const lines = [
+    entering.length
+      ? `${visitsCount(entering.length)} pasa${entering.length > 1 ? "n" : ""} a contar para los sueldos de ${uniqueJoin(entering.map((impact) => impact.workMonthName))}: suma${entering.length > 1 ? "n" : ""} ${hoursOf(entering)} hs y el transporte de cada una a ${namesOf(entering)}.`
+      : null,
+    leaving.length
+      ? `${visitsCount(leaving.length)} sale${leaving.length > 1 ? "n" : ""} de los sueldos de ${uniqueJoin(leaving.map((impact) => impact.workMonthName))}: se restan ${hoursOf(leaving)} hs y el transporte de cada una a ${namesOf(leaving)}.`
+      : null,
+    changed ? `${visitsCount(changed)} cambia${changed > 1 ? "n" : ""} sus horas en los sueldos.` : null,
+    ...impacts
+      .flatMap(({ from, to }) => [from, to])
+      .map((impact) => impact && formatPaidNotice(impact, paid.get(impact.paymentMonthKey) ?? [])),
+  ];
+  return [...new Set(lines.filter((line): line is string => Boolean(line)))];
+};
+
+export const overlapWarnings =(overlaps: VisitOverlap[]) =>
   overlaps.map(
     (overlap) =>
       `Se cruza con ${overlap.job} (${formatVisitRange(overlap.start, overlap.end)}) de ${overlap.employees.join(", ")}.`

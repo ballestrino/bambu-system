@@ -53,6 +53,27 @@ export const createOccurrencesWithEmployees = async (
     )
   );
 
+// Varios cambios de visitas: una transacción en forma de arreglo, como el
+// lote de crear; el equipo se reemplaza entero, como syncOccurrenceEmployees.
+export const updateOccurrencesWithEmployees = async (
+  rows: { occurrenceId: string; data: Prisma.JobOccurrenceUncheckedUpdateInput; employeeIds: string[] }[]
+) =>
+  db.$transaction(
+    rows.map(({ occurrenceId, data, employeeIds }) =>
+      db.jobOccurrence.update({
+        where: { id: occurrenceId },
+        data: {
+          ...data,
+          employees: {
+            deleteMany: {},
+            createMany: { data: [...new Set(employeeIds)].map((employeeId) => ({ employeeId })) },
+          },
+        },
+        select: { id: true },
+      })
+    )
+  );
+
 export const updateOccurrenceWithEmployees = async ({
   data,
   employeeIds,

@@ -1164,6 +1164,7 @@ enum AgentProposalKind {
   UPDATE_VISIT
   ARCHIVE_VISIT
   CREATE_VISITS
+  UPDATE_VISITS
 }
 
 enum AgentProposalStatus {

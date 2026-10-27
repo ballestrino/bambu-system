@@ -112,7 +112,7 @@ const prompt = (skill: keyof typeof AGENT_SKILLS) =>
 assert.ok(prompt("general").includes(VISIT_RULE));
 assert.match(prompt("general"), /Lo único que podés eliminar es una visita/);
 (["presupuestos", "emails", "consejos"] as const).forEach((skill) => assert.ok(!prompt(skill).includes(VISIT_RULE), skill));
-(["proposeCreateVisits", "proposeUpdateVisit", "proposeArchiveVisit"] as const).forEach((name) => {
+(["proposeCreateVisits", "proposeUpdateVisit", "proposeUpdateVisits", "proposeArchiveVisit"] as const).forEach((name) => {
   assert.ok(resolveSkillToolNames(AGENT_SKILLS.general).includes(name), name);
   (["presupuestos", "emails", "consejos"] as const).forEach((skill) =>
     assert.ok(!resolveSkillToolNames(AGENT_SKILLS[skill]).includes(name), `${skill}: ${name}`)

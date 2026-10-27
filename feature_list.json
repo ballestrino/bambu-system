@@ -510,6 +510,24 @@
         "init.ps1 with HARNESS_FULL=1 is green and a local smoke of register, verification, login, 2FA and password change is recorded"
       ],
       "status": "done"
+    },
+    {
+      "id": 29,
+      "name": "agent_visit_batch_selection",
+      "title": "Batch visit cards: uncheck visits before confirming, and change several visits with one card",
+      "area": "agent",
+      "description": "The CREATE_VISITS card lists every proposed visit with a checkbox, all checked by default. Confirming sends the checked indexes; the server keeps only those visits of the stored payload, re-checks the preconditions on them and creates them with createJobOccurrences (all or none). The result records which visits were created so the card shows the skipped ones and the model does not claim them. Depends on 27b. Also adds proposeUpdateVisits (UPDATE_VISITS): the same change (status, team, notes, schedule label) on 2 to 20 visits with one card instead of one card per visit, written by a new updateJobOccurrences action that validates each change like updateJobOccurrence and writes all or none. Additive migration UPDATE_VISITS.",
+      "acceptance": [
+        "confirmAgentProposal takes an optional visitIndexes selection, only for CREATE_VISITS, with valid, distinct indexes and at least one",
+        "Only the checked visits are re-validated and created, in one transaction",
+        "The card shows a checkbox per visit, all checked, disables Confirm with none checked and shows skipped visits after confirming",
+        "The prompt line of a partially confirmed batch says which visits were not scheduled",
+        "proposeUpdateVisits resolves each visit like proposeUpdateVisit, leaves out the ones already like that, summarizes payroll changes in one line per kind and the prompt forbids one card per visit",
+        "Confirming UPDATE_VISITS re-checks each checked visit like UPDATE_VISIT and writes them with updateJobOccurrences in one transaction",
+        "The additive migration UPDATE_VISITS is applied on Neon before any push",
+        "init.ps1, tsc, check:agent-visits, check:agent-sheet and check:agent-proposals are green"
+      ],
+      "status": "done"
     }
   ]
 }

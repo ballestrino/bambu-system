@@ -62,8 +62,12 @@ export function AgentChat({
     <AgentChatProvider
       value={{
         proposals: proposals.data ? new Map(proposals.data.map((item) => [item.id, item])) : null,
-        busyProposalId: confirm.isPending ? confirm.variables : reject.isPending ? reject.variables : null,
-        confirmProposal: (proposalId) => confirm.mutate(proposalId),
+        busyProposalId: confirm.isPending
+          ? confirm.variables.proposalId
+          : reject.isPending
+            ? reject.variables
+            : null,
+        confirmProposal: (proposalId, visitIndexes) => confirm.mutate({ proposalId, visitIndexes }),
         rejectProposal: (proposalId) => reject.mutate(proposalId),
         proposalForCall: (toolCallId) => byCall.get(toolCallId),
         openBudget: editor.openBudget,

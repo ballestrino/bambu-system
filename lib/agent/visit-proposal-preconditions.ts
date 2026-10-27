@@ -16,7 +16,7 @@ export type VisitProposalEmployee = { id: string; name: string; archivedAt: Date
 
 const sameIds = (left: string[], right: string[]) => [...left].sort().join() === [...right].sort().join();
 
-export type ParsedVisitEdit = Exclude<ParsedVisitProposal, { kind: "CREATE_VISITS" }>;
+export type ParsedVisitEdit = Exclude<ParsedVisitProposal, { kind: "CREATE_VISITS" | "UPDATE_VISITS" }>;
 
 export const checkVisitProposalPreconditions = (
   proposal: ParsedVisitEdit,
@@ -47,7 +47,19 @@ export type CreateVisitsState = {
   takenStarts: Date[];
 };
 
-export const checkCreateVisitsPreconditions = (payload: CreateVisitsPayload, state: CreateVisitsState) => {
+// Las visitas marcadas en la tarjeta de un lote, en su orden (sin selección,
+// todas). Una posición fuera del lote es una selección armada a mano: null.
+export const selectProposedVisits = <V>(visits: V[], visitIndexes?: number[]) => {
+  const indexes = visitIndexes ?? visits.map((_, index) => index);
+  if (indexes.some((index) => index >= visits.length)) return null;
+  const chosen = new Set(indexes);
+  return {
+    indexes: [...chosen].sort((left, right) => left - right),
+    visits: visits.filter((_, index) => chosen.has(index)),
+  };
+};
+
+export const checkCreateVisitsPreconditions =(payload: CreateVisitsPayload, state: CreateVisitsState) => {
   const { job } = state;
   if (!job) return "El trabajo ya no existe: pedile al asistente una nueva.";
   if (job.archivedAt || job.status === "ARCHIVED") return `${job.name} fue archivado: no se le pueden agendar visitas.`;

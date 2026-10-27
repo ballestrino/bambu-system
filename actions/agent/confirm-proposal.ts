@@ -20,18 +20,17 @@ import {
   type ProposalSummary,
 } from "@/lib/agent/proposals";
 import { executeVisitProposal } from "@/lib/agent/visit-proposal-execute";
+import { isVisitBatchKind } from "@/lib/agent/visit-proposals";
 import { BUDGET_CHANGED_MESSAGE } from "@/lib/budget-errors";
 import { db } from "@/lib/db";
-import {
-  AdminAuthorizationError,
-  requireAdminSession,
-} from "@/lib/require-admin-session";
+import { AdminAuthorizationError, requireAdminSession } from "@/lib/require-admin-session";
 import {
   agentProposalIdSchema,
   isVisitProposal,
   parseProposalPayload,
   type ParsedBudgetProposal,
 } from "@/schemas/agent-proposals";
+import { visitSelectionSchema } from "@/schemas/agent-visit-proposals";
 
 type Outcome = { ok: true; result: ProposalResult } | { ok: false; error: string };
 
@@ -109,14 +108,15 @@ const execute = async (proposal: ParsedBudgetProposal, summary: ProposalSummary)
 // Re-valida el payload guardado y las precondiciones contra una lectura
 // fresca antes de ejecutar. Un error inesperado deja la propuesta FAILED.
 const runClaimed = async (
-  stored: { kind: AgentProposalKind; payload: unknown; summary: unknown }
+  stored: { kind: AgentProposalKind; payload: unknown; summary: unknown },
+  visitIndexes?: number[]
 ): Promise<Outcome> => {
   try {
     const proposal = parseProposalPayload(stored.kind, stored.payload);
     if (!proposal) {
       return { ok: false, error: "La propuesta guardada no es válida: pedile al asistente una nueva." };
     }
-    if (isVisitProposal(proposal)) return await executeVisitProposal(proposal);
+    if (isVisitProposal(proposal)) return await executeVisitProposal(proposal, visitIndexes);
     const budgetId = getProposalBudgetId(proposal);
     const state = budgetId ? await getAgentBudgetState(budgetId) : null;
     const blocked = checkProposalPreconditions(proposal, state);
@@ -132,18 +132,18 @@ const runClaimed = async (
 };
 
 const loadProposal = async (id: string) =>
-  serializeProposal(
-    await db.agentProposal.findUniqueOrThrow({ where: { id }, select: proposalSelect })
-  );
+  serializeProposal(await db.agentProposal.findUniqueOrThrow({ where: { id }, select: proposalSelect }));
 
 // Confirmar ejecuta la escritura propuesta una sola vez. El claim atómico
 // (PENDING y sin vencer → EXECUTING) hace que un doble click o un reintento
-// devuelvan el estado guardado en vez de escribir dos veces.
-export const confirmAgentProposal = async (proposalId: unknown) => {
+// devuelvan el estado guardado en vez de escribir dos veces. visitIndexes:
+// las visitas que quedaron marcadas en la tarjeta de un lote.
+export const confirmAgentProposal = async (proposalId: unknown, visitIndexes?: unknown) => {
   try {
     const session = await requireAdminSession();
     const parsedId = agentProposalIdSchema.safeParse(proposalId);
-    if (!parsedId.success) return { error: "Propuesta inválida" };
+    const selection = visitSelectionSchema.optional().safeParse(visitIndexes);
+    if (!parsedId.success || !selection.success) return { error: "Propuesta inválida" };
     const id = parsedId.data;
     const actorId = session.user.id;
 
@@ -152,6 +152,7 @@ export const confirmAgentProposal = async (proposalId: unknown) => {
       select: { kind: true, payload: true, summary: true },
     });
     if (!stored) return { error: "Propuesta no encontrada" };
+    if (selection.data && !isVisitBatchKind(stored.kind)) return { error: "Propuesta inválida" };
 
     const now = new Date();
     const claimed = await db.agentProposal.updateMany({
@@ -163,7 +164,7 @@ export const confirmAgentProposal = async (proposalId: unknown) => {
       return describeConfirmOutcome(await loadProposal(id));
     }
 
-    const outcome = await runClaimed(stored);
+    const outcome = await runClaimed(stored, selection.data);
     // La auditoría va primero: la escritura ya pasó (o falló) y queda
     // registrada aunque el cierre de abajo no llegue.
     await auditProposal({

@@ -9,6 +9,7 @@ import { AgentProposalDetails } from "@/components/agent/cards/agent-proposal-de
 import { ProposalOutcome, ProposalStatusBadge } from "@/components/agent/cards/agent-proposal-status";
 import { formatDateTime } from "@/components/agent/format";
 import type { BudgetEditorTarget } from "@/components/agent/hooks/use-budget-editor";
+import { useVisitSelection } from "@/components/agent/hooks/use-visit-selection";
 import type { ProposalCardData } from "@/components/agent/types";
 import { Button } from "@/components/ui/button";
 import { valuesFromInputs } from "@/lib/agent/budget-draft";
@@ -22,8 +23,9 @@ const CONFIRM_TEXT: Record<AgentProposalKind, string> = {
   UPDATE_BUDGET: "Confirmar guarda estos cambios en el presupuesto.",
   DUPLICATE_BUDGET: "Confirmar crea la copia.",
   PUBLISH_OFFICIAL_BUDGET: "Confirmar publica el precio de lista oficial.",
-  CREATE_VISITS: "Confirmar agenda todas las visitas juntas.",
+  CREATE_VISITS: "Confirmar agenda las visitas marcadas juntas.",
   UPDATE_VISIT: "Confirmar guarda el cambio en la visita.",
+  UPDATE_VISITS: "Confirmar cambia las visitas marcadas juntas.",
   ARCHIVE_VISIT: "Confirmar saca la visita de la agenda.",
 };
 
@@ -54,12 +56,13 @@ export function AgentProposalCard({ data, toolCallId }: { data: ProposalCardData
   const target = createTarget(data, live, toolCallId);
   const busy = busyProposalId === data.proposalId;
   const canAct = canActOnProposal(status, live, busyProposalId);
+  const visits = useVisitSelection({ kind: data.kind, items: summary.items, status, result: live?.result, canAct });
 
   const footer =
     status === "PENDING" ? (
       <>
         <p className="min-w-0 flex-[1_1_220px] text-xs leading-snug text-ops-text-muted">
-          {CONFIRM_TEXT[data.kind]} Vence el {formatDateTime(live?.expiresAt ?? data.expiresAt)}.
+          {visits.confirmText ?? CONFIRM_TEXT[data.kind]} Vence el {formatDateTime(live?.expiresAt ?? data.expiresAt)}.
         </p>
         <div className="flex w-full gap-2 sm:w-auto">
           <Button
@@ -72,8 +75,8 @@ export function AgentProposalCard({ data, toolCallId }: { data: ProposalCardData
           </Button>
           <Button
             className="h-11 flex-1 rounded-[10px] bg-ops-bamboo-strong font-semibold text-ops-surface hover:bg-ops-bamboo-strong/90 sm:h-[34px]"
-            disabled={!canAct}
-            onClick={() => confirmProposal(data.proposalId)}
+            disabled={!canAct || !visits.canConfirm}
+            onClick={() => confirmProposal(data.proposalId, visits.visitIndexes)}
           >
             <Check aria-hidden />
             {busy ? "Guardando…" : "Confirmar"}
@@ -92,7 +95,7 @@ export function AgentProposalCard({ data, toolCallId }: { data: ProposalCardData
       aside={<ProposalStatusBadge status={busy ? "EXECUTING" : status} />}
       footer={footer}
     >
-      <AgentProposalDetails summary={summary} />
+      <AgentProposalDetails summary={summary} selection={visits.selection} />
 
       {summary.warnings.length > 0 && (
         <ul className="space-y-1.5 rounded-[10px] bg-amber-50 px-3 py-2 text-xs leading-snug text-amber-800 dark:bg-amber-500/15 dark:text-amber-200">
