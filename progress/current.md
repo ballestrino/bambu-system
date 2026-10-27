@@ -10,9 +10,20 @@ Status: active
 - 2026-10-27: hecho y verde: tsc, init.ps1 (harness, prisma, lint),
   check:agent-visits, check:agent-sheet, check:agent-proposals,
   check:agent-page y check:agent-tools. Sin migraciones. Commit `7984fd0`.
-- Falta: smoke en la app (pide una propuesta CREATE_VISITS real en la base de
-  producción; se pregunta antes de crear datos) y el visto bueno para
-  mergear.
+- 2026-10-27, segundo pedido: el agente mandó una tarjeta por visita para
+  marcar realizadas las de Ana Leticia. Se suma `proposeUpdateVisits`
+  (`UPDATE_VISITS`): el mismo cambio en 2 a 20 visitas con una tarjeta y
+  casillas, `updateJobOccurrences` (todas o ninguna) y
+  `prepareOccurrenceUpdate` compartido con `updateJobOccurrence`. Verde:
+  tsc, init.ps1, check:agent-visits (con `agent-visit-batch-update-checks`),
+  agent-sheet, agent-proposals, agent-page, agent-tools,
+  occurrence-generation, visit-payroll-impact, occurrence-dialog,
+  schedule-move y visits-view. Sin `pnpm build`: el dev server del usuario
+  tiene tomado el DLL de Prisma (`prisma generate` da EPERM al copiarlo; los
+  tipos sí se generaron).
+- Falta: aplicar la migración `20261027120000_agent_visit_batch_update` en
+  Neon (pedir permiso), smoke en la app con datos de prueba (pedir permiso) y
+  el visto bueno para mergear.
 
 ## Queue
 
