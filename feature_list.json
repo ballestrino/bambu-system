@@ -527,7 +527,7 @@
         "The additive migration UPDATE_VISITS is applied on Neon before any push",
         "init.ps1, tsc, check:agent-visits, check:agent-sheet and check:agent-proposals are green"
       ],
-      "status": "in_progress"
+      "status": "done"
     }
   ]
 }

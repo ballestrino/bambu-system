@@ -1,46 +1,10 @@
 # Current Harness Session
 
-Status: active
+Status: idle
 
 ## Active Feature
 
-- 29 `agent_visit_batch_selection` (rama `feature/agent-visit-selection`): la
-  tarjeta de un lote de visitas tiene una casilla por visita, todas marcadas;
-  confirmar manda las marcadas y solo esas se re-validan y se crean.
-- 2026-10-27: hecho y verde: tsc, init.ps1 (harness, prisma, lint),
-  check:agent-visits, check:agent-sheet, check:agent-proposals,
-  check:agent-page y check:agent-tools. Sin migraciones. Commit `7984fd0`.
-- 2026-10-27, segundo pedido: el agente mandó una tarjeta por visita para
-  marcar realizadas las de Ana Leticia. Se suma `proposeUpdateVisits`
-  (`UPDATE_VISITS`): el mismo cambio en 2 a 20 visitas con una tarjeta y
-  casillas, `updateJobOccurrences` (todas o ninguna) y
-  `prepareOccurrenceUpdate` compartido con `updateJobOccurrence`. Verde:
-  tsc, init.ps1, check:agent-visits (con `agent-visit-batch-update-checks`),
-  agent-sheet, agent-proposals, agent-page, agent-tools,
-  occurrence-generation, visit-payroll-impact, occurrence-dialog,
-  schedule-move y visits-view. Sin `pnpm build`: el dev server del usuario
-  tiene tomado el DLL de Prisma (`prisma generate` da EPERM al copiarlo; los
-  tipos sí se generaron).
-- 2026-10-27: migración `20261027120000_agent_visit_batch_update` aplicada
-  en Neon con autorización del usuario. Datos de prueba para el smoke: trabajo
-  "PRUEBA agente visitas 29" (`cmvqvvnov00010hygspu6367i`, activo) con 3
-  visitas sueltas de Nadia, 4, 6 y 8 de enero de 2027 de 9 a 13.
-- 2026-10-27, primer intento del usuario con Ana Leticia: la tarjeta de 14
-  visitas se armó, pero guardarla falló (`Expected AgentProposalKind`)
-  porque `pnpm dev` seguía con el cliente de Prisma de antes de la migración.
-  Reiniciado, anduvo.
-- Smoke con Haiku 5.5 Alto en el Chrome del usuario: "marcá como realizadas
-  las visitas de enero de 2027" dio una tarjeta con 3 casillas y un solo
-  aviso de sueldos; se desmarcó el 6/1 ("Sin cambios", pie "cambia 2 de 3")
-  y en la base quedaron 4 y 8 DONE con el horario programado como real, 6
-  SCHEDULED, `visitIndexes [0, 2]`. El modelo respondió bien cuál quedó sin
-  marcar. Los martes de febrero dieron 4; se desmarcó el 16/2 y se crearon
-  2, 9 y 23 (`visitIndexes [0, 1, 3]`). Costo menor a US$ 0,01. Limpieza:
-  6 visitas y el trabajo archivados; 0 visitas vivas en enero o febrero de
-  2027 y 0 trabajos PRUEBA vivos.
-- Queda: los avisos de la tarjeta (horas y transporte) cuentan todas las
-  visitas propuestas, también las desmarcadas.
-- Falta: el visto bueno para mergear.
+- None.
 
 ## Queue
 
@@ -50,6 +14,13 @@ Status: active
 
 ## Last Closed Work
 
+- 2026-10-27: tarjetas de lotes de visitas con casillas (29): en agendar
+  y en el nuevo `proposeUpdateVisits` (`UPDATE_VISITS`, el mismo cambio en
+  2 a 20 visitas con una tarjeta) se desmarcan las visitas que no van; solo
+  las marcadas se re-validan y se escriben, todas o ninguna. Migración
+  aditiva aplicada en Neon. Smoke con Haiku 5.5, datos archivados. Mergeada
+  y pusheada a `main` con autorización del 2026-10-27. Queda: los avisos
+  de sueldos cuentan también las visitas desmarcadas.
 - 2026-10-21: el agente agenda lotes de visitas (27b): `proposeCreateVisits`
   con hasta 20 visitas de un trabajo, días sueltos o repetición expandida en
   el servidor, tarjeta con cada visita y `createJobOccurrences` que escribe
