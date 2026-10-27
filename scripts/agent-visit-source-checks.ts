@@ -48,7 +48,7 @@ assert.deepEqual(["actions", "app", "components", "data", "lib"].flatMap(importe
 // --- Confirm keeps its claim and audit, and sends visit proposals to the
 // executor before the budget preconditions.
 const confirm = read("actions/agent/confirm-proposal.ts");
-const dispatchAt = confirm.indexOf("if (isVisitProposal(proposal)) return await executeVisitProposal(proposal);");
+const dispatchAt = confirm.indexOf("if (isVisitProposal(proposal)) return await executeVisitProposal(proposal, visitIndexes);");
 assert.ok(dispatchAt > confirm.indexOf("parseProposalPayload(stored.kind, stored.payload)"));
 assert.ok(dispatchAt < confirm.indexOf("checkProposalPreconditions(proposal, state)"));
 

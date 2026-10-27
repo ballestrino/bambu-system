@@ -101,7 +101,7 @@ assert.match(card, /getDisplayStatus\(live, data\.status\)/);
 assert.match(card, /const canAct = canActOnProposal\(status, live, busyProposalId\);/);
 assert.match(read("components/agent/hooks/use-agent-queries.ts"), /hasRunningProposal\(query\.state\.data\) \? PROPOSAL_POLL_MS : false/);
 assert.match(sheetHost, /const slug = savedSlugRedirect\(result, \{ budgetId: budgetId \?\? null, budgetSlug: budgetSlug \?\? null \}\);/);
-assert.match(read("components/agent/actions/agent-writes.action.ts"), /readConfirmResponse\(await confirmAgentProposal\(proposalId\)\)/);
+assert.match(read("components/agent/actions/agent-writes.action.ts"), /readConfirmResponse\(await confirmAgentProposal\(proposalId, visitIndexes\)\)/);
 const mutations = read("components/agent/hooks/use-agent-proposal-mutations.ts");
 ["invalidateBudgetScopes(queryClient)", "queryKey: officialBudgetKeys.all", "agentKeys.proposals(conversationId)"].forEach(
   (text) => assert.ok(mutations.includes(text), `use-agent-proposal-mutations.ts: ${text}`)

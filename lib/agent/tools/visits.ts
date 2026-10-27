@@ -55,7 +55,7 @@ const paidFor = async (impact: VisitPayrollImpact | null) => {
 export const createVisitTools = (ctx: AgentToolContext) => ({
   proposeCreateVisits: tool({
     description:
-      "Prepara agendar visitas nuevas de un trabajo (hasta 20, con el mismo horario y equipo) para que el usuario las confirme en una tarjeta: no guarda nada. Los días van en dates (sueltos) o en repeatFrom, repeatTo y repeatWeekdays (por ejemplo los martes de un mes): el servidor calcula las fechas. Antes buscá el trabajo con queryOperations (kind jobs). Horarios en hora de Montevideo.",
+      "Prepara agendar visitas nuevas de un trabajo (hasta 20, con el mismo horario y equipo) para que el usuario las confirme en una tarjeta, donde puede desmarcar las que no quiere: no guarda nada. Los días van en dates (sueltos) o en repeatFrom, repeatTo y repeatWeekdays (por ejemplo los martes de un mes): el servidor calcula las fechas. Antes buscá el trabajo con queryOperations (kind jobs). Horarios en hora de Montevideo.",
     inputSchema: proposeCreateVisitsInputSchema,
     execute: (input, { toolCallId }) =>
       runTool("proposeCreateVisits", async () => {

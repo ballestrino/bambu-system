@@ -88,6 +88,9 @@ export type ProposalResult = {
   officialVersion: number | null;
   // Las visitas que escribió una propuesta de visitas.
   occurrenceIds?: string[];
+  // Las visitas de un lote que se crearon, por su posición en summary.items:
+  // el usuario puede desmarcar algunas. Sin esto (filas viejas), todas.
+  visitIndexes?: number[];
 };
 
 export const proposalSelect = {

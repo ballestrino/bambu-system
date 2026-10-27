@@ -35,6 +35,16 @@ const formatValue = (value: ProposalChange["before"]) => {
   return `"${value}"`;
 };
 
+// Las visitas de un lote que el usuario desmarcó antes de confirmar: no se
+// agendaron y el modelo no las da por hechas.
+const describeSkipped = (summary: ProposalPromptItem["summary"], result: ProposalPromptItem["result"]) => {
+  const created = result?.visitIndexes;
+  const items = summary.items ?? [];
+  if (!created || created.length >= items.length) return "";
+  const skipped = items.filter((_, index) => !created.includes(index)).map((item) => item.label);
+  return ` Se agendaron ${created.length} de ${items.length}: el usuario sacó ${skipped.join(", ")}, que no se agendaron.`;
+};
+
 const MAX_CHANGES = 3;
 
 // "(Margen del servicio 45 → 40)": dos propuestas sobre el mismo presupuesto
@@ -63,7 +73,9 @@ export const formatProposalsForPrompt = (proposals: ProposalPromptItem[]) =>
             ? "la visita con queryOperations"
             : "el presupuesto";
       if (unknownOutcome) return `${line} (se cortó mientras se ejecutaba: revisá ${target} antes de proponerla de nuevo).`;
-      if (status === "CONFIRMED" && result) return `${line}. Quedó en ${result.url}${describeSaved(summary.after)}.`;
+      if (status === "CONFIRMED" && result) {
+        return `${line}. Quedó en ${result.url}${describeSaved(summary.after)}.${describeSkipped(summary, result)}`;
+      }
       if ((status === "FAILED" || status === "EXPIRED") && error) return `${line} (${error}).`;
       return `${line}.`;
     })

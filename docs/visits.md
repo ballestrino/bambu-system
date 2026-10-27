@@ -47,7 +47,8 @@ modales del escritorio no se abren de más (`visits-page.tsx`).
   real (solo si la visita fue realizada) y las notas. Para asignar se envía
   `employeeIds: [id]`. Crear y editar siguen en `JobOccurrenceDialog`.
 - El agente también agenda lotes de visitas sueltas de un trabajo (hasta 20,
-  con `createJobOccurrences`, todas o ninguna) y cambia y elimina visitas
+  con `createJobOccurrences`, todas o ninguna; en la tarjeta se desmarcan
+  las que no van) y cambia y elimina visitas
   con propuestas que se confirman en el chat (`docs/agent.md`, "Propuestas
   de visitas"), con las mismas acciones.
 

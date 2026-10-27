@@ -8,6 +8,7 @@ import type { ProposalResult } from "@/lib/agent/proposals";
 import {
   checkCreateVisitsPreconditions,
   checkVisitProposalPreconditions,
+  selectProposedVisits,
 } from "@/lib/agent/visit-proposal-preconditions";
 import { visitResult } from "@/lib/agent/visit-proposals";
 import type { ParsedVisitProposal } from "@/schemas/agent-proposals";
@@ -17,9 +18,13 @@ type Outcome = { ok: true; result: ProposalResult } | { ok: false; error: string
 
 const failure = (error: string | undefined, fallback: string): Outcome => ({ ok: false, error: error || fallback });
 
-// Un lote se escribe entero o nada (createJobOccurrences): si falla, el
-// modelo puede proponerlo de nuevo sin duplicar visitas.
-const executeCreateVisits = async (payload: CreateVisitsPayload): Promise<Outcome> => {
+// Solo las visitas marcadas en la tarjeta. Se escriben enteras o ninguna
+// (createJobOccurrences): si falla, el modelo puede proponerlas de nuevo sin
+// duplicar visitas.
+const executeCreateVisits = async (stored: CreateVisitsPayload, visitIndexes?: number[]): Promise<Outcome> => {
+  const selection = selectProposedVisits(stored, visitIndexes);
+  if (!selection) return { ok: false, error: "Las visitas marcadas no coinciden con la propuesta: pedile al asistente una nueva." };
+  const { payload, indexes } = selection;
   const starts = payload.visits.map((visit) => new Date(visit.scheduledStartAt));
   const [job, employees, takenStarts] = await Promise.all([
     getAgentVisitJob(payload.jobId),
@@ -31,16 +36,16 @@ const executeCreateVisits = async (payload: CreateVisitsPayload): Promise<Outcom
 
   const result = await createJobOccurrences(payload);
   return result.occurrences
-    ? { ok: true, result: visitResult(result.occurrences.map((occurrence) => occurrence.id)) }
+    ? { ok: true, result: visitResult(result.occurrences.map((occurrence) => occurrence.id), indexes) }
     : failure(result.error, "No se pudieron crear las visitas.");
 };
 
 // Ejecuta una propuesta de visitas ya reclamada (solo lo llama confirmar):
 // re-valida contra una lectura fresca y usa las acciones de la pantalla, con
 // sus propios chequeos de sesión y validación. No es "use server": no es un
-// endpoint.
-export const executeVisitProposal = async (proposal: ParsedVisitProposal): Promise<Outcome> => {
-  if (proposal.kind === "CREATE_VISITS") return executeCreateVisits(proposal.payload);
+// endpoint. visitIndexes solo llega con un lote (lo filtra confirmar).
+export const executeVisitProposal = async (proposal: ParsedVisitProposal, visitIndexes?: number[]): Promise<Outcome> => {
+  if (proposal.kind === "CREATE_VISITS") return executeCreateVisits(proposal.payload, visitIndexes);
 
   const { occurrenceId } = proposal.payload;
   const [state, employees] = await Promise.all([

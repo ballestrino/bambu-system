@@ -12,7 +12,8 @@ export type AgentChatContextValue = {
   // null mientras se lee: la tarjeta no ofrece confirmar sin el estado vivo.
   proposals: Map<string, AgentProposalDto> | null;
   busyProposalId: string | null;
-  confirmProposal: (proposalId: string) => void;
+  // visitIndexes: las visitas marcadas en la tarjeta de un lote.
+  confirmProposal: (proposalId: string, visitIndexes?: number[]) => void;
   rejectProposal: (proposalId: string) => void;
   // La propuesta de una llamada a tool: la del agente, o la que dejó guardar
   // un cálculo desde el editor.

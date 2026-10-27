@@ -41,9 +41,12 @@ export const setConversationModeAction = async (input: { id: string; mode: Agent
 };
 
 // Acepta las dos formas de la respuesta: con la propuesta, o solo con el
-// resultado si borraron la conversación mientras se ejecutaba.
-export const confirmProposalAction = async (proposalId: string) => {
-  const outcome = readConfirmResponse(await confirmAgentProposal(proposalId));
+// resultado si borraron la conversación mientras se ejecutaba. visitIndexes:
+// las visitas marcadas de un lote (sin esto, todas).
+export type ConfirmProposalInput = { proposalId: string; visitIndexes?: number[] };
+
+export const confirmProposalAction = async ({ proposalId, visitIndexes }: ConfirmProposalInput) => {
+  const outcome = readConfirmResponse(await confirmAgentProposal(proposalId, visitIndexes));
   if (!outcome.ok) throw new ValidationError(outcome.error);
   return outcome;
 };

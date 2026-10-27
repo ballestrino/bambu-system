@@ -4,9 +4,10 @@ import { formatProposalsForPrompt } from "../lib/agent/proposal-context";
 import { AGENT_SKILLS, resolveSkillToolNames } from "../lib/agent/skills";
 import { buildAgentInstructions } from "../lib/agent/system-prompt";
 import { buildCreateVisitsProposal, resolveCreateVisits, type VisitJob } from "../lib/agent/visit-create-builder";
-import { checkCreateVisitsPreconditions } from "../lib/agent/visit-proposal-preconditions";
+import { checkCreateVisitsPreconditions, selectProposedVisits } from "../lib/agent/visit-proposal-preconditions";
 import { expandVisitDates, formatLocalDate } from "../lib/agent/visit-time";
 import { isVisitProposal, parseProposalPayload } from "../schemas/agent-proposals";
+import { visitSelectionSchema } from "../schemas/agent-visit-proposals";
 import type { ProposeCreateVisitsInput } from "../schemas/agent-visit-tools";
 import { CreateJobOccurrencesSchema } from "../schemas/ops/job-occurrence-batch";
 import { ANA, BEA, DORA, employees, roundTrip } from "./agent-visit-fixture";
@@ -146,6 +147,24 @@ assert.equal(
   "Oficina Centro ya tiene una visita el mar 13/10 09:00: no se creó ninguna. Pedile al asistente una nueva."
 );
 
+// --- The user unchecks visits on the card: only the checked ones are checked
+// and created, and the model is told which were left out.
+assert.deepEqual(selectProposedVisits(built.payload)?.indexes, [0, 1, 2, 3]);
+const picked = selectProposedVisits(built.payload, [3, 0]);
+assert.deepEqual(picked?.indexes, [0, 3]);
+assert.deepEqual(picked?.payload.visits.map((visit) => visit.scheduledStartAt), ["2026-10-06T12:00:00.000Z", "2026-10-27T12:00:00.000Z"]);
+assert.equal(selectProposedVisits(built.payload, [4]), null);
+assert.equal(checkCreateVisitsPreconditions(picked!.payload, { ...live, takenStarts: [new Date("2026-10-13T12:00:00.000Z")] }), null);
+assert.ok(visitSelectionSchema.safeParse([0, 2]).success);
+[[], [1, 1], [-1], [0.5], [20]].forEach((indexes) => assert.ok(!visitSelectionSchema.safeParse(indexes).success, JSON.stringify(indexes)));
+const confirmedBatch = (visitIndexes?: number[]) => ({
+  kind: "CREATE_VISITS" as const, status: "CONFIRMED" as const, summary: built.summary, error: null,
+  result: { label: "Visitas", url: "/dashboard/calendar", budgetId: null, slug: null, officialBudgetId: null, officialVersion: null, visitIndexes },
+});
+assert.match(formatProposalsForPrompt([confirmedBatch([0, 3])]), /Se agendaron 2 de 4: el usuario sacó mar 13\/10 09:00–13:00, mar 20\/10 09:00–13:00, que no se agendaron\.$/);
+assert.doesNotMatch(formatProposalsForPrompt([confirmedBatch([0, 1, 2, 3])]), /Se agendaron/);
+assert.doesNotMatch(formatProposalsForPrompt([confirmedBatch()]), /Se agendaron/);
+
 // --- General has the tool and the rule tells how to send the days.
 assert.ok(resolveSkillToolNames(AGENT_SKILLS.general).includes("proposeCreateVisits"));
 (["presupuestos", "emails", "consejos"] as const).forEach((skill) =>
@@ -154,5 +173,6 @@ assert.ok(resolveSkillToolNames(AGENT_SKILLS.general).includes("proposeCreateVis
 const prompt = buildAgentInstructions({ today: "miércoles 21 de octubre de 2026", actorName: null, skill: AGENT_SKILLS.general, approvedKnowledge: [] });
 assert.match(prompt, /proposeCreateVisits un lote de hasta 20 visitas/);
 assert.match(prompt, /repeatFrom, repeatTo y repeatWeekdays \(1 lunes … 7 domingo\): no calcules las fechas/);
+assert.match(prompt, /el usuario puede desmarcar visitas antes de confirmar: las desmarcadas no se agendan/);
 const interrupted = { kind: "CREATE_VISITS" as const, status: "EXECUTING" as const, summary: built.summary, result: null, error: null, unknownOutcome: true };
 assert.match(formatProposalsForPrompt([interrupted]), /revisá las visitas con queryOperations/);

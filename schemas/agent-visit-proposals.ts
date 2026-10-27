@@ -42,6 +42,14 @@ export const createVisitsPayloadSchema = z.object({
 
 export type CreateVisitsPayload = z.infer<typeof createVisitsPayloadSchema>;
 
+// Las visitas del lote que quedaron marcadas en la tarjeta, por su posición
+// en visits: al menos una y sin repetir. Sin selección se crean todas.
+export const visitSelectionSchema = z
+  .array(z.number().int().min(0).max(MAX_PROPOSED_VISITS - 1))
+  .min(1)
+  .max(MAX_PROPOSED_VISITS)
+  .refine((indexes) => new Set(indexes).size === indexes.length, "Una visita repetida en la selección");
+
 export const visitProposalPayloadSchemas = {
   CREATE_VISITS: createVisitsPayloadSchema,
   UPDATE_VISIT: z.object({

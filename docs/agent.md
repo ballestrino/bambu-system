@@ -271,6 +271,26 @@ visitas solo se escriben al confirmar.
   (`createOccurrencesWithEmployees`): visitas SCHEDULED sueltas, sin regla
   ni `generatedStartAt`. Un fallo no deja visitas a medias.
 
+### Elegir las visitas del lote (29)
+
+- Con dos o más visitas, la tarjeta pone una casilla en cada fila de
+  `summary.items`, todas marcadas (`useVisitSelection`,
+  `components/agent/hooks/`). El usuario desmarca las que no quiere; sin
+  ninguna marcada, Confirmar se apaga y el pie pide marcar una o rechazar.
+- Confirmar manda las posiciones marcadas:
+  `confirmAgentProposal(proposalId, visitIndexes?)`. Sin `visitIndexes`
+  (todas marcadas, o un cliente viejo) se crean todas, como en la 27b.
+  `visitSelectionSchema` exige al menos una, enteras y sin repetir; con otro
+  tipo de propuesta se responde "Propuesta inválida" antes del claim.
+- `selectProposedVisits` (`lib/agent/visit-proposal-preconditions.ts`, puro)
+  filtra `payload.visits`; una posición fuera del lote deja la propuesta
+  FAILED. Las precondiciones y `createJobOccurrences` corren solo sobre las
+  marcadas: una visita ya tomada que se desmarcó no frena el lote.
+- `result.visitIndexes` guarda las que se crearon. La tarjeta confirmada
+  tacha las otras ("No se agendó") y la línea de "Propuestas de esta
+  conversación" le dice al modelo cuáles sacó el usuario. Las filas de la
+  27b no lo tienen: se crearon todas.
+
 ## Sheet
 
 `AgentSheetHost` (`components/agent/**`) no sabe en qué pantalla está: recibe

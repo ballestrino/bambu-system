@@ -47,7 +47,19 @@ export type CreateVisitsState = {
   takenStarts: Date[];
 };
 
-export const checkCreateVisitsPreconditions = (payload: CreateVisitsPayload, state: CreateVisitsState) => {
+// Las visitas marcadas en la tarjeta, en el orden del lote (sin selección,
+// todas). Una posición fuera del lote es una selección armada a mano: null.
+export const selectProposedVisits = (payload: CreateVisitsPayload, visitIndexes?: number[]) => {
+  const indexes = visitIndexes ?? payload.visits.map((_, index) => index);
+  if (indexes.some((index) => index >= payload.visits.length)) return null;
+  const chosen = new Set(indexes);
+  return {
+    indexes: [...chosen].sort((left, right) => left - right),
+    payload: { ...payload, visits: payload.visits.filter((_, index) => chosen.has(index)) },
+  };
+};
+
+export const checkCreateVisitsPreconditions =(payload: CreateVisitsPayload, state: CreateVisitsState) => {
   const { job } = state;
   if (!job) return "El trabajo ya no existe: pedile al asistente una nueva.";
   if (job.archivedAt || job.status === "ARCHIVED") return `${job.name} fue archivado: no se le pueden agendar visitas.`;

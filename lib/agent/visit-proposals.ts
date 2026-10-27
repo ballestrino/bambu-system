@@ -24,7 +24,7 @@ export const VISIT_STALE_MESSAGE = "La visita cambió desde la propuesta: pedile
 
 export const VISIT_GONE_MESSAGE = "La visita ya no existe o fue eliminada.";
 
-export const visitResult = (occurrenceIds: string[]): ProposalResult => ({
+export const visitResult = (occurrenceIds: string[], visitIndexes?: number[]): ProposalResult => ({
   label: "Visitas",
   url: VISITS_URL,
   budgetId: null,
@@ -32,4 +32,5 @@ export const visitResult = (occurrenceIds: string[]): ProposalResult => ({
   officialBudgetId: null,
   officialVersion: null,
   occurrenceIds,
+  ...(visitIndexes ? { visitIndexes } : {}),
 });
