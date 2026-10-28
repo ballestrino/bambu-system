@@ -27,13 +27,27 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Textarea } from "@/components/ui/textarea";
 import { jobStatusValues } from "@/schemas/ops";
 
+// Con `open` y `onOpenChange` el diálogo es controlado y no dibuja su botón
+// (la tabla de Trabajos lo abre desde el menú de cada fila, con `key` por
+// trabajo para que el formulario arranque con sus datos).
 export const JobFormDialog = ({
   job,
+  onOpenChange,
+  open: controlledOpen,
   triggerClassName,
   triggerLabel,
   triggerVariant,
-}: JobFormTriggerProps & { job?: JobFormJob }) => {
-  const [open, setOpen] = useState(false);
+}: JobFormTriggerProps & {
+  job?: JobFormJob;
+  onOpenChange?: (open: boolean) => void;
+  open?: boolean;
+}) => {
+  const [uncontrolledOpen, setUncontrolledOpen] = useState(false);
+  const open = controlledOpen ?? uncontrolledOpen;
+  const setOpen = (nextOpen: boolean) => {
+    setUncontrolledOpen(nextOpen);
+    onOpenChange?.(nextOpen);
+  };
   const [formState, setFormState] = useState(getInitialJobFormState(job));
   const { createJobAsync, updateJobAsync, isCreating, isUpdating } = useJobMutations();
 
@@ -89,14 +103,16 @@ export const JobFormDialog = ({
         setOpen(nextOpen);
       }}
     >
-      <DialogTrigger asChild>
-        <JobFormTrigger
-          isEditing={Boolean(job)}
-          triggerClassName={triggerClassName}
-          triggerLabel={triggerLabel}
-          triggerVariant={triggerVariant}
-        />
-      </DialogTrigger>
+      {controlledOpen === undefined ? (
+        <DialogTrigger asChild>
+          <JobFormTrigger
+            isEditing={Boolean(job)}
+            triggerClassName={triggerClassName}
+            triggerLabel={triggerLabel}
+            triggerVariant={triggerVariant}
+          />
+        </DialogTrigger>
+      ) : null}
       <OpsFormDialogContent size="lg">
         <OpsFormHeader>
           <DialogTitle>{job ? "Editar trabajo" : "Crear trabajo"}</DialogTitle>

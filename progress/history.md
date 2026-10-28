@@ -1078,3 +1078,27 @@
 - Queda: los avisos de horas y transporte cuentan también las visitas
   desmarcadas. Mergeada y pusheada a `main` con autorización del
   2026-10-27.
+
+## 2026-10-27 - Feature 31 Trabajos como tabla
+
+- Diseño de claude-design "Trabajos Bambu 1a" (escritorio). La lista de
+  tarjetas pasa a una tabla en `components/ops/jobs/`: pestañas de estado con
+  conteo, "Requiere atención" (ganancia baja, pérdida, pérdida crítica o
+  datos incompletos), buscador a 350 ms, Actuales/Puntuales/Todos, Incluir
+  archivados y refrescar en la barra de la tabla. Columnas Trabajo,
+  Tipo (regla activa o período), Presupuesto, Opción con IVA, Rentabilidad
+  del mes y Estado; orden por nombre y opción.
+- Acciones en lote: Reactivar, Pausar, Exportar Excel y Archivar (con
+  confirmación). `setJobsStatus` (`actions/ops/jobs-status.ts`) cambia de 1 a
+  200 trabajos en una transacción, todos o ninguno; reactivar o pausar un
+  archivado lo saca del archivo. Menú por fila con Editar (`JobFormDialog`
+  ahora acepta `open`/`onOpenChange`), Ver visitas, Pausar/Reactivar y
+  Archivar. Se quitaron `job-card.tsx` y `job-filters.tsx`.
+- Panel angosto: caen Tipo y Presupuesto; celular: filas apiladas.
+- El selector de mes global se queda, como en Visitas; el botón de mes del
+  encabezado del diseño no se agregó para no duplicarlo.
+- Iba a ser la 30, pero otra sesión ya usaba ese id para la tabla de
+  Empleados.
+- PASS: `init.ps1`, `tsc`, eslint. El usuario probó la página en su Brave
+  sobre `localhost:3001` y dijo que anda bien. Sin migraciones.
+- Mergeada en `main` sin push (2026-10-27).

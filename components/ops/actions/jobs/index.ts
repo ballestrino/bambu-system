@@ -17,3 +17,4 @@ export * from "@/components/ops/actions/jobs/update-job-employee-assignment.acti
 export * from "@/components/ops/actions/jobs/update-job-occurrence.action";
 export * from "@/components/ops/actions/jobs/update-job-schedule-rule.action";
 export * from "@/components/ops/actions/jobs/update-job.action";
+export * from "@/components/ops/actions/jobs/set-jobs-status.action";

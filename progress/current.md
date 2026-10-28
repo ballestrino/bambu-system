@@ -14,6 +14,11 @@ Status: idle
 
 ## Last Closed Work
 
+- 2026-10-27: Trabajos como tabla (31), diseño "Trabajos Bambu 1a": pestañas
+  de estado con conteo, "Requiere atención", rentabilidad del mes como
+  columna y acciones en lote (reactivar, pausar, exportar, archivar) con
+  `setJobsStatus` en una transacción. Sin migraciones. Probada por el
+  usuario en su Brave. Mergeada en `main` sin push.
 - 2026-10-27: tarjetas de lotes de visitas con casillas (29): en agendar
   y en el nuevo `proposeUpdateVisits` (`UPDATE_VISITS`, el mismo cambio en
   2 a 20 visitas con una tarjeta) se desmarcan las visitas que no van; solo
