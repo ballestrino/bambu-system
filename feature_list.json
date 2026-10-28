@@ -528,6 +528,23 @@
         "init.ps1, tsc, check:agent-visits, check:agent-sheet and check:agent-proposals are green"
       ],
       "status": "done"
+    },
+    {
+      "id": 30,
+      "name": "jobs_table_redesign",
+      "title": "Redesign the Jobs list as a table with bulk actions from the claude-design mock (1a desktop)",
+      "area": "operations",
+      "description": "Apply the design \"Trabajos Bambu 1a\": the Jobs list becomes a table like Finance, with status tabs with counts, a Requiere atención pill, search, Actuales/Puntuales/Todos segments, Incluir archivados and refresh in the table bar, and the month profitability as a column. Selecting rows shows a floating bar with Reactivar, Pausar, Exportar Excel and Archivar (with confirmation). A new setJobsStatus action changes the status of several jobs in one transaction. The global month selector stays. Narrower panels drop columns and the phone shows compact rows.",
+      "acceptance": [
+        "The table shows Trabajo with location, Tipo with the rule or period, Presupuesto, Opción with IVA mode, Rentabilidad of the selected month and Estado, sortable by name and option",
+        "Status tabs show counts over the current search, view and archive filters; Requiere atención filters LOW_PROFIT, LOSS, CRITICAL_LOSS and INCOMPLETE",
+        "Selecting rows (or all visible rows) shows the bulk bar; Reactivar and Pausar change every selected job or none, Archivar asks for confirmation and Exportar Excel downloads the selected jobs",
+        "setJobsStatus validates 1 to 200 job ids, requires an admin session, clears archivedAt when reactivating or pausing and sets it when archiving",
+        "Each row keeps Detalle and a menu with Editar, Ver visitas, Pausar or Reactivar and Archivar",
+        "Loading, error with retry, empty and filtered-empty states are shown inside the table",
+        "init.ps1, tsc and a browser smoke at 1440, 1024 and 390 px with light and dark mode are recorded"
+      ],
+      "status": "in_progress"
     }
   ]
 }

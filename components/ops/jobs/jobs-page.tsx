@@ -1,139 +1,99 @@
 "use client";
 
-import { BriefcaseBusiness } from "lucide-react";
+import { useState } from "react";
+import { toast } from "sonner";
 
-import { JobCard } from "@/components/ops/jobs/job-card";
-import { JobFilters } from "@/components/ops/jobs/job-filters";
+import { useJobBulkMutations } from "@/components/ops/hooks/useJobBulkMutations";
+import { JobFormDialog } from "@/components/ops/jobs/job-form-dialog";
+import { downloadJobsWorkbook } from "@/components/ops/jobs/job-excel-export";
+import { JobsArchiveDialog, JobsBulkBar } from "@/components/ops/jobs/jobs-bulk-bar";
 import { JobsHeader } from "@/components/ops/jobs/jobs-header";
-import { useJobMutations } from "@/components/ops/hooks/useJobMutations";
-import { useJobs } from "@/components/ops/hooks/useJobs";
-import { useJobProfitability } from "@/components/ops/hooks/useJobProfitability";
-import { profitabilityNeedsAttention } from "@/components/ops/profitability/profitability-status";
-import {
-  OpsEmptyState,
-  OpsPageShell,
-  OpsRecordList,
-  OpsRecordSkeleton,
-  useOpsFlushableDebouncedValue,
-  useOpsPersistedState,
-  useOpsSelectedMonth,
-} from "@/components/ops/shared";
-import { jobStatusValues, type JobFilters as JobFiltersInput } from "@/schemas/ops";
+import { JobsTable } from "@/components/ops/jobs/jobs-table";
+import { JobsTableBar } from "@/components/ops/jobs/jobs-table-bar";
+import { pluralJobs, type JobRow } from "@/components/ops/jobs/jobs-table-model";
+import type { JobRowHandlers } from "@/components/ops/jobs/jobs-table-row";
+import { useJobsTable } from "@/components/ops/jobs/use-jobs-table";
+import { OpsPageShell } from "@/components/ops/shared";
+import type { OpsJobListItem } from "@/components/ops/types";
+import type { SetJobsStatusInput } from "@/schemas/ops";
 
-type JobStatusFilter = (typeof jobStatusValues)[number] | "all";
-type JobVisibilityFilter = "DEFAULT" | "PUNCTUAL" | "ALL";
-
-type JobFilterState = {
-  query: string;
-  status: JobStatusFilter;
-  visibility: JobVisibilityFilter;
-  includeArchived: boolean;
-  profitability: "all" | "attention";
-};
-
-const defaultJobFilters: JobFilterState = {
-  query: "",
-  status: "all",
-  visibility: "DEFAULT",
-  includeArchived: false,
-  profitability: "all",
-};
-
+// Trabajos como tabla (diseño "Trabajos Bambu 1a"): pestañas de estado,
+// filtros en la barra de la tabla, rentabilidad del mes como columna y
+// acciones en lote sobre las filas marcadas.
 export const JobsPage = () => {
-  const { month } = useOpsSelectedMonth();
-  const [filterState, setFilterState] = useOpsPersistedState(
-    "bambu:ops:jobs:filters",
-    defaultJobFilters
-  );
-  const [debouncedQuery, flushQuery] = useOpsFlushableDebouncedValue(
-    filterState.query,
-    // Vaciar el buscador vuelve al listado completo, que ya está en caché: no
-    // tiene sentido esperar el debounce.
-    filterState.query.trim() ? 500 : 0
-  );
+  const table = useJobsTable();
+  const { isSettingStatus, setJobsStatusAsync } = useJobBulkMutations();
+  const [archiveRows, setArchiveRows] = useState<JobRow[] | null>(null);
+  const [editing, setEditing] = useState<{ job: OpsJobListItem; nonce: number; open: boolean } | null>(null);
+  const { filters, selection, visibleRows } = table;
 
-  const filters: JobFiltersInput = {
-    query: debouncedQuery || undefined,
-    statuses:
-      filterState.status !== "all" ? [filterState.status] : undefined,
-    visibility: filterState.visibility,
-    includeArchived: filterState.includeArchived,
-  };
-  const exportFilters: JobFiltersInput = {
-    ...filters,
-    query: filterState.query.trim() || undefined,
+  const setStatus = async (jobIds: string[], status: SetJobsStatusInput["status"]) => {
+    try {
+      await setJobsStatusAsync({ jobIds, status });
+      selection.clear();
+    } catch {
+      // El toast de error ya lo muestra la mutación.
+    }
   };
 
-  const { jobs, isFetching, isLoading, refetch } = useJobs(filters);
-  const profitabilityQuery = useJobProfitability({ mode: "MONTH", month });
-  const profitabilityByJob = new Map(
-    profitabilityQuery.profitability.map((result) => [result.jobId, result])
-  );
-  const visibleJobs = filterState.profitability === "attention"
-    ? jobs.filter((job) => {
-        const result = profitabilityByJob.get(job.id);
-        return result ? profitabilityNeedsAttention(result.severity) : false;
-      })
-    : jobs;
-  const { archiveJobAsync } = useJobMutations();
-  const updateFilters = (values: Partial<JobFilterState>) => {
-    setFilterState((current) => ({ ...current, ...values }));
+  const exportRows = async (rows: JobRow[]) => {
+    try {
+      await downloadJobsWorkbook(rows.map((row) => row.job));
+      toast.success(`Excel con ${pluralJobs(rows.length)} descargado`);
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "No pudimos exportar los trabajos");
+    }
   };
+
+  const handlers: JobRowHandlers = {
+    onArchive: (jobIds) => setArchiveRows(visibleRows.filter((row) => jobIds.includes(row.job.id))),
+    onEdit: (job) => setEditing({ job, nonce: Date.now(), open: true }),
+    onSetStatus: (jobIds, status) => void setStatus(jobIds, status),
+  };
+  const selectedIds = selection.rows.map((row) => row.job.id);
+  const clientFiltered = filters.status !== "all" || filters.attentionOnly;
 
   return (
-    <OpsPageShell>
+    <OpsPageShell className="gap-4">
       <JobsHeader
-        count={visibleJobs.length}
-        filters={exportFilters}
-        jobIds={filterState.profitability === "attention" ? visibleJobs.map(({ id }) => id) : undefined}
+        count={visibleRows.length}
+        filters={{
+          includeArchived: filters.includeArchived,
+          query: filters.query.trim() || undefined,
+          visibility: filters.visibility,
+        }}
+        jobIds={clientFiltered ? visibleRows.map((row) => row.job.id) : undefined}
       />
-      <JobFilters
-        query={filterState.query}
-        status={filterState.status}
-        profitability={filterState.profitability}
-        visibility={filterState.visibility}
-        includeArchived={filterState.includeArchived}
-        isRefreshing={isFetching || profitabilityQuery.isFetching}
-        isSearching={isFetching}
-        onQueryChange={(query) => updateFilters({ query })}
-        onQuerySubmit={flushQuery}
-        onRefresh={async () => { await Promise.all([refetch(), profitabilityQuery.refetch()]); }}
-        onProfitabilityChange={(profitability) =>
-          updateFilters({ profitability: profitability as JobFilterState["profitability"] })
-        }
-        onStatusChange={(status) =>
-          updateFilters({ status: status as JobStatusFilter })
-        }
-        onVisibilityChange={(visibility) =>
-          updateFilters({ visibility: visibility as JobVisibilityFilter })
-        }
-        onIncludeArchivedChange={(includeArchived) =>
-          updateFilters({ includeArchived })
-        }
-        onClear={() => setFilterState(defaultJobFilters)}
-      />
-      {isLoading || profitabilityQuery.isLoading ? (
-        <OpsRecordSkeleton count={6} />
-      ) : visibleJobs.length ? (
-        <OpsRecordList>
-          {visibleJobs.map((job) => (
-            <JobCard
-              key={job.id}
-              job={job}
-              profitability={profitabilityByJob.get(job.id)}
-              onArchive={async (nextJobId) => {
-                await archiveJobAsync(nextJobId);
-              }}
-            />
-          ))}
-        </OpsRecordList>
-      ) : (
-        <OpsEmptyState
-          icon={BriefcaseBusiness}
-          title="Todavía no hay trabajos en este filtro"
-          description="Crea un trabajo nuevo o limpia los filtros para volver a ver la operación completa."
+      <section className="@container/jobs relative flex flex-col overflow-clip rounded-[14px] border border-ops-border bg-ops-surface">
+        <JobsTableBar table={table} />
+        <JobsTable handlers={handlers} table={table} />
+        <JobsBulkBar
+          count={selection.rows.length}
+          isPending={isSettingStatus}
+          onActivate={() => void setStatus(selectedIds, "ACTIVE")}
+          onArchive={() => setArchiveRows(selection.rows)}
+          onClear={selection.clear}
+          onExport={() => void exportRows(selection.rows)}
+          onPause={() => void setStatus(selectedIds, "PAUSED")}
         />
-      )}
+      </section>
+      <JobsArchiveDialog
+        onCancel={() => setArchiveRows(null)}
+        onConfirm={() => {
+          const jobIds = archiveRows?.map((row) => row.job.id) ?? [];
+          setArchiveRows(null);
+          if (jobIds.length) void setStatus(jobIds, "ARCHIVED");
+        }}
+        rows={archiveRows}
+      />
+      {editing ? (
+        <JobFormDialog
+          job={editing.job}
+          key={`${editing.job.id}-${editing.nonce}`}
+          onOpenChange={(open) => setEditing((current) => (current ? { ...current, open } : current))}
+          open={editing.open}
+        />
+      ) : null}
     </OpsPageShell>
   );
 };

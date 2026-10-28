@@ -123,6 +123,15 @@ export const JobFiltersSchema = dateRangeFiltersSchema.extend({
   ),
 });
 
+// Cambios en lote desde la tabla de Trabajos: reactivar, pausar o archivar.
+export const bulkJobStatusValues = ["ACTIVE", "PAUSED", "ARCHIVED"] as const;
+
+export const SetJobsStatusSchema = z.object({
+  jobIds: z.array(cuidSchema).min(1).max(200),
+  status: z.enum(bulkJobStatusValues),
+});
+
 export type CreateJobInput = z.infer<typeof CreateJobSchema>;
+export type SetJobsStatusInput = z.infer<typeof SetJobsStatusSchema>;
 export type UpdateJobInput = z.infer<typeof UpdateJobSchema>;
 export type JobFilters = z.infer<typeof JobFiltersSchema>;

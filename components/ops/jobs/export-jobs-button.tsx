@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Download, LoaderCircle } from "lucide-react";
+import { FileSpreadsheet, LoaderCircle } from "lucide-react";
 import { toast } from "sonner";
 
 import { getJobsAction } from "@/components/ops/actions/jobs/get-jobs.action";
@@ -9,7 +9,15 @@ import { downloadJobsWorkbook } from "@/components/ops/jobs/job-excel-export";
 import { Button } from "@/components/ui/button";
 import type { JobFilters } from "@/schemas/ops";
 
-export const ExportJobsButton = ({ filters, jobIds }: { filters: JobFilters; jobIds?: string[] }) => {
+export const ExportJobsButton = ({
+  className,
+  filters,
+  jobIds,
+}: {
+  className?: string;
+  filters: JobFilters;
+  jobIds?: string[];
+}) => {
   const [isExporting, setIsExporting] = useState(false);
 
   const exportJobs = async () => {
@@ -35,6 +43,7 @@ export const ExportJobsButton = ({ filters, jobIds }: { filters: JobFilters; job
 
   return (
     <Button
+      className={className}
       disabled={isExporting}
       size="sm"
       type="button"
@@ -44,7 +53,7 @@ export const ExportJobsButton = ({ filters, jobIds }: { filters: JobFilters; job
       {isExporting ? (
         <LoaderCircle className="animate-spin" />
       ) : (
-        <Download />
+        <FileSpreadsheet />
       )}
       {isExporting ? "Exportando..." : "Exportar Excel"}
     </Button>
