@@ -1,12 +1,10 @@
 "use client";
 
-import Link from "next/link";
 import { AlertCircle } from "lucide-react";
 
 import { EmployeeVisitsPanel } from "@/components/ops/employees/employee-visits-panel";
 import { useEmployee } from "@/components/ops/hooks/useEmployee";
-import { OpsPageHeader, OpsPageShell } from "@/components/ops/shared";
-import { Button } from "@/components/ui/button";
+import { OpsBackButton, OpsPageHeader, OpsPageShell } from "@/components/ops/shared";
 import { Card, CardContent } from "@/components/ui/card";
 
 export const EmployeeVisitsPage = ({ employeeId }: { employeeId: string }) => {
@@ -29,15 +27,11 @@ export const EmployeeVisitsPage = ({ employeeId }: { employeeId: string }) => {
 
   return (
     <OpsPageShell>
+      <OpsBackButton fallbackHref={`/dashboard/employees/${employeeId}`} />
       <OpsPageHeader
         eyebrow="Operaciones"
         title={`Visitas de ${employee.name}`}
         description="Revisa el historial de servicios, horas reales y pago estimado por periodo."
-        actions={
-          <Button asChild size="sm" variant="outline">
-            <Link href={`/dashboard/employees/${employeeId}`}>Volver al empleado</Link>
-          </Button>
-        }
       />
 
       <EmployeeVisitsPanel employeeId={employeeId} hourlyRate={employee.hourlyRate} />

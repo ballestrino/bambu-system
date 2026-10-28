@@ -25,9 +25,10 @@ import {
   OpsSection, getOpsStatusConfig,
   opsFilterControlClass,
   opsOccurrenceStatus,
+  useOpsMonthDateRange,
 } from "@/components/ops/shared";
 import type { OpsOccurrence } from "@/components/ops/types";
-import { formatDate, formatTime, getMonthRange, toDateInputValue } from "@/components/ops/utils";
+import { formatDate, formatTime } from "@/components/ops/utils";
 import { Button } from "@/components/ui/button";
 import { SearchableSelect } from "@/components/ui/searchable-select";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -40,9 +41,7 @@ export const EmployeeVisitsPanel = ({
   employeeId: string;
   hourlyRate?: unknown;
 }) => {
-  const currentMonth = getMonthRange(new Date());
-  const [startDate, setStartDate] = useState(toDateInputValue(currentMonth.start));
-  const [endDate, setEndDate] = useState(toDateInputValue(currentMonth.end));
+  const { endDate, setRange, startDate } = useOpsMonthDateRange();
   const [status, setStatus] = useState("ALL");
   const [jobId, setJobId] = useState("ALL");
   const [realTiming, setRealTiming] = useState("ALL");
@@ -80,8 +79,8 @@ export const EmployeeVisitsPanel = ({
     >
       <div className="space-y-5">
         <OpsDetailInset className="grid gap-3 xl:grid-cols-5">
-          <OpsFilterField label="Desde"><OpsDateFilterInput value={startDate} onChange={(event) => setStartDate(event.target.value)} /></OpsFilterField>
-          <OpsFilterField label="Hasta"><OpsDateFilterInput value={endDate} onChange={(event) => setEndDate(event.target.value)} /></OpsFilterField>
+          <OpsFilterField label="Desde"><OpsDateFilterInput value={startDate} onChange={(event) => setRange(event.target.value, endDate)} /></OpsFilterField>
+          <OpsFilterField label="Hasta"><OpsDateFilterInput value={endDate} onChange={(event) => setRange(startDate, event.target.value)} /></OpsFilterField>
           <OpsFilterField label="Estado">
             <Select value={status} onValueChange={setStatus}>
               <SelectTrigger className={opsFilterControlClass}>

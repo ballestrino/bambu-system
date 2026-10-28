@@ -23,7 +23,7 @@ import { useJobEmployeeAssignments } from "@/components/ops/hooks/useJobEmployee
 import { useJobOccurrences } from "@/components/ops/hooks/useJobOccurrences";
 import { cn } from "@/lib/utils";
 import { dashboardSecondaryActionClass } from "@/components/dashboard/dashboard-styles";
-import { OpsDetailHero, OpsDetailStat, OpsNextAction, OpsPageShell } from "@/components/ops/shared";
+import { OpsBackButton, OpsDetailHero, OpsDetailStat, OpsNextAction, OpsPageShell } from "@/components/ops/shared";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -114,6 +114,7 @@ export const EmployeeDetailPage = ({ employeeId }: { employeeId: string }) => {
 
   return (
     <OpsPageShell>
+      <OpsBackButton fallbackHref="/dashboard/employees" />
       <div ref={heroRef}>
         <OpsDetailHero
           actions={
@@ -131,8 +132,6 @@ export const EmployeeDetailPage = ({ employeeId }: { employeeId: string }) => {
               <EmployeeFormDialog employee={employee} />
             </>
           }
-          backHref="/dashboard/employees"
-          backLabel="Empleados"
           description="Ficha operativa para revisar contacto, visitas, pagos y trabajos vinculados."
           icon={UserRound}
           meta={<Badge variant={employee.isActive ? "default" : "secondary"}>{employee.isActive ? "Activo" : "Inactivo"}</Badge>}
