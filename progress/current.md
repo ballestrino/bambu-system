@@ -1,28 +1,10 @@
 # Current Harness Session
 
-Status: in_progress
+Status: idle
 
 ## Active Feature
 
-- 30 `jobs_table_redesign` (rama `claude/diseno-trabajos-beaa85`): Trabajos
-  como tabla según el diseño de claude-design "Trabajos Bambu 1a" (solo
-  escritorio).
-  - Hecho: `setJobsStatus` (`actions/ops/jobs-status.ts`, 1 a 200 ids, todos
-    o ninguno; reactivar o pausar limpia `archivedAt`, archivar lo pone),
-    wrapper y `useJobBulkMutations` optimista. Tabla en
-    `components/ops/jobs/`: pestañas con conteo, "Requiere atención",
-    buscador (350 ms), Actuales/Puntuales/Todos, archivados, refrescar,
-    columnas Trabajo/Tipo/Presupuesto/Opción/Rentabilidad del mes/Estado,
-    orden por nombre y opción, barra en lote (Reactivar, Pausar, Exportar
-    Excel, Archivar con confirmación) y menú por fila (Editar con
-    `JobFormDialog` controlado, Ver visitas, Pausar/Reactivar, Archivar).
-    Panel angosto: caen Tipo y Presupuesto; celular: filas apiladas. Se
-    quitaron `job-card.tsx` y `job-filters.tsx`. Sin migraciones.
-  - El selector de mes global se queda (como en Visitas); el botón de mes
-    del encabezado del diseño no se agregó para no duplicarlo.
-  - Verificado: tsc y eslint de los archivos tocados verdes.
-  - Falta: smoke autenticado a 1440, 1024 y 390 px, claro y oscuro (la
-    página pide sesión y el `.env` es la base de producción) e `init.ps1`.
+- None.
 
 ## Queue
 
@@ -32,6 +14,11 @@ Status: in_progress
 
 ## Last Closed Work
 
+- 2026-10-27: Trabajos como tabla (31), diseño "Trabajos Bambu 1a": pestañas
+  de estado con conteo, "Requiere atención", rentabilidad del mes como
+  columna y acciones en lote (reactivar, pausar, exportar, archivar) con
+  `setJobsStatus` en una transacción. Sin migraciones. Probada por el
+  usuario en su Brave. Mergeada en `main` sin push.
 - 2026-10-27: tarjetas de lotes de visitas con casillas (29): en agendar
   y en el nuevo `proposeUpdateVisits` (`UPDATE_VISITS`, el mismo cambio en
   2 a 20 visitas con una tarjeta) se desmarcan las visitas que no van; solo

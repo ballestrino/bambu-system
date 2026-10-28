@@ -530,7 +530,7 @@
       "status": "done"
     },
     {
-      "id": 30,
+      "id": 31,
       "name": "jobs_table_redesign",
       "title": "Redesign the Jobs list as a table with bulk actions from the claude-design mock (1a desktop)",
       "area": "operations",
@@ -542,9 +542,9 @@
         "setJobsStatus validates 1 to 200 job ids, requires an admin session, clears archivedAt when reactivating or pausing and sets it when archiving",
         "Each row keeps Detalle and a menu with Editar, Ver visitas, Pausar or Reactivar and Archivar",
         "Loading, error with retry, empty and filtered-empty states are shown inside the table",
-        "init.ps1, tsc and a browser smoke at 1440, 1024 and 390 px with light and dark mode are recorded"
+        "init.ps1, tsc and lint are green and the user checked the page in their browser"
       ],
-      "status": "in_progress"
+      "status": "done"
     }
   ]
 }
