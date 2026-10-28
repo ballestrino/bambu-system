@@ -1078,3 +1078,61 @@
 - Queda: los avisos de horas y transporte cuentan también las visitas
   desmarcadas. Mergeada y pusheada a `main` con autorización del
   2026-10-27.
+
+## 2026-10-27 - Feature 31 Trabajos como tabla
+
+- Diseño de claude-design "Trabajos Bambu 1a" (escritorio). La lista de
+  tarjetas pasa a una tabla en `components/ops/jobs/`: pestañas de estado con
+  conteo, "Requiere atención" (ganancia baja, pérdida, pérdida crítica o
+  datos incompletos), buscador a 350 ms, Actuales/Puntuales/Todos, Incluir
+  archivados y refrescar en la barra de la tabla. Columnas Trabajo,
+  Tipo (regla activa o período), Presupuesto, Opción con IVA, Rentabilidad
+  del mes y Estado; orden por nombre y opción.
+- Acciones en lote: Reactivar, Pausar, Exportar Excel y Archivar (con
+  confirmación). `setJobsStatus` (`actions/ops/jobs-status.ts`) cambia de 1 a
+  200 trabajos en una transacción, todos o ninguno; reactivar o pausar un
+  archivado lo saca del archivo. Menú por fila con Editar (`JobFormDialog`
+  ahora acepta `open`/`onOpenChange`), Ver visitas, Pausar/Reactivar y
+  Archivar. Se quitaron `job-card.tsx` y `job-filters.tsx`.
+- Panel angosto: caen Tipo y Presupuesto; celular: filas apiladas.
+- El selector de mes global se queda, como en Visitas; el botón de mes del
+  encabezado del diseño no se agregó para no duplicarlo.
+- Iba a ser la 30, pero otra sesión ya usaba ese id para la tabla de
+  Empleados.
+- PASS: `init.ps1`, `tsc`, eslint. El usuario probó la página en su Brave
+  sobre `localhost:3001` y dijo que anda bien. Sin migraciones.
+- Mergeada en `main` sin push (2026-10-27).
+
+## 2026-10-27 - Feature 30 Empleados como tabla
+
+- Diseño de claude-design "Empleados Bambu 1a" en escritorio: tabla con
+  casilla, nombre con iniciales y notas, teléfono, email, tarifa ("$ 420/h",
+  centavos solo si hay), estado y acciones (Detalle, lápiz, menú "…").
+  Barra con buscador, Activos/Inactivos/Todos con conteo, "Incluir
+  archivados" y refrescar. La página trae activas e inactivas juntas y
+  filtra el estado en el cliente para contar las pestañas; el encabezado
+  cuenta las activas.
+- Acciones en lote `setEmployeesActive` y `archiveEmployees`
+  (`actions/ops/employee-bulk.ts`): sesión de admin, ids con Zod (1 a 200),
+  `updateMany` en una transacción que saltea archivadas. Hook
+  `useEmployeeBulkMutations` con caché optimista. CSV con BOM en el
+  navegador. El celular (container query `@4xl`) conserva tarjetas y hoja
+  de filtros.
+- Sumado a pedido del usuario: selector global de mes nuevo
+  (`ops-month-picker.tsx`) con flechas y grilla de meses en popover,
+  "Octubre 2026" en vez de "Octubre De 2026". El resumen y el panel de
+  visitas de la empleada toman desde/hasta del mes global
+  (`useOpsMonthDateRange`); un rango editado a mano vale para ese mes y un
+  link de sueldos con `start`/`end` lleva el mes global al suyo. Detalle,
+  resumen y visitas de la empleada cambian sus botones de texto por
+  `OpsBackButton`, una flecha a la izquierda del selector de mes
+  (`OPS_MONTH_BAR_START_ID`); `OpsDetailHero` deja el link de volver
+  opcional.
+- PASS: `tsc`, `eslint components app actions schemas lib`, harness y
+  Prisma. Smoke visual con datos de ejemplo en rutas temporales ya borradas
+  (tabla a 1440 px claro y oscuro; selector y flecha a 800 y 375 px).
+  Archivar sin sesión devuelve el error y vuelve atrás la caché.
+- `init.ps1` falla en ESLint por los `.next` de
+  `.claude/worktrees/diseno-trabajos-beaa85`, otra sesión.
+- Queda: el usuario prueba con sesión las acciones en lote reales, el CSV
+  en Excel y el celular. Mergeada en `main` sin push el 2026-10-27.
