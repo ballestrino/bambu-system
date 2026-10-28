@@ -5,7 +5,6 @@ import {
   OpsFilterSheet,
   OpsRefreshButton,
   OpsSearchInput,
-  OpsToolbar,
   opsFilterControlClass,
   opsFilterToggleClass,
   opsSwitchClass,
@@ -98,40 +97,26 @@ export const EmployeeFilters = ({
     </label>
   );
 
+  // Solo el celular: en escritorio los filtros van en la barra de la tabla.
   return (
     <div className="space-y-3">
-      <div className="space-y-3 md:hidden">
-        <div className="flex gap-2">
-          {searchField}
-          <OpsFilterSheet
-            activeCount={chips.length}
-            description="Filtra por estado, archivo o contacto."
-            onClear={onClear}
-          >
-            {activeField}
-            {archivedField}
-          </OpsFilterSheet>
-          <OpsRefreshButton
-            className="px-3"
-            isRefreshing={isRefreshing}
-            onRefresh={onRefresh}
-          />
-        </div>
-        <OpsFilterChips chips={chips} onClear={onClear} />
-      </div>
-
-      <div className="hidden space-y-3 md:block">
-        <OpsToolbar summary={`${chips.length} filtro(s) activo(s)`}>
-          {searchField}
+      <div className="flex gap-2">
+        {searchField}
+        <OpsFilterSheet
+          activeCount={chips.length}
+          description="Filtra por estado, archivo o contacto."
+          onClear={onClear}
+        >
           {activeField}
           {archivedField}
-          <OpsRefreshButton
-            isRefreshing={isRefreshing}
-            onRefresh={onRefresh}
-          />
-        </OpsToolbar>
-        <OpsFilterChips chips={chips} onClear={onClear} />
+        </OpsFilterSheet>
+        <OpsRefreshButton
+          className="px-3"
+          isRefreshing={isRefreshing}
+          onRefresh={onRefresh}
+        />
       </div>
+      <OpsFilterChips chips={chips} onClear={onClear} />
     </div>
   );
 };

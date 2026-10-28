@@ -1,4 +1,5 @@
 export * from "@/components/ops/shared/ops-action-menu";
+export * from "@/components/ops/shared/ops-back-button";
 export * from "@/components/ops/shared/ops-data-table";
 export * from "@/components/ops/shared/ops-detail-hero";
 export * from "@/components/ops/shared/ops-detail-list";
@@ -17,5 +18,6 @@ export * from "@/components/ops/shared/ops-table-states";
 export * from "@/components/ops/shared/ops-theme";
 export * from "@/components/ops/shared/ops-view-tabs";
 export * from "@/components/ops/shared/use-ops-debounced-value";
+export * from "@/components/ops/shared/use-ops-month-date-range";
 export * from "@/components/ops/shared/use-ops-persisted-state";
 export * from "@/components/ops/shared/use-ops-table-state";

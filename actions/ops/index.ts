@@ -1,4 +1,5 @@
 export * from "@/actions/ops/employee-availability";
+export * from "@/actions/ops/employee-bulk";
 export * from "@/actions/ops/employee-payments";
 export * from "@/actions/ops/employees";
 export * from "@/actions/ops/job-client-payments";

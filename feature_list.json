@@ -530,6 +530,21 @@
       "status": "done"
     },
     {
+      "id": 30,
+      "name": "employees_table",
+      "title": "Employees as a table with multi-select and bulk actions from the claude-design mock (1a desktop)",
+      "area": "operations",
+      "description": "Apply the design \"Empleados Bambu 1a\": on desktop the card list becomes a table (checkbox, Nombre with initials and notes, Teléfono, Email, Tarifa, Estado, Detalle/Editar/Más acciones) inside a panel whose toolbar has the search, an Activos/Inactivos/Todos segmented control with counts, Incluir archivados and Refrescar. Name and rate columns sort. Selecting rows shows a floating bar with Activar, Desactivar, Exportar CSV and Archivar (with a confirmation that lists the names). Bulk changes go through new setEmployeesActive and archiveEmployees server actions that write in one statement. The phone keeps the card list with its filter sheet. No migrations.",
+      "acceptance": [
+        "Desktop shows the 1a table with header, toolbar, segmented state filter with counts, archived toggle, refresh, sortable Nombre and Tarifa, row selection with a select-all checkbox and the empty state with Limpiar filtros",
+        "The floating bar appears with one or more selected rows and offers Activar, Desactivar, Exportar CSV and Archivar; Archivar asks for confirmation listing the names",
+        "setEmployeesActive and archiveEmployees require an admin session, validate ids with Zod, skip archived employees and update the list cache optimistically",
+        "The phone keeps the card list and the filter sheet; dark mode keeps working with ops tokens",
+        "init.ps1, tsc and a browser smoke at 1440 and 390 px are recorded"
+      ],
+      "status": "done"
+    },
+    {
       "id": 31,
       "name": "jobs_table_redesign",
       "title": "Redesign the Jobs list as a table with bulk actions from the claude-design mock (1a desktop)",

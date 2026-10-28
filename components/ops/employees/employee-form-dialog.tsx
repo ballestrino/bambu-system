@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, type ComponentProps } from "react";
+import { useState, type ComponentProps, type ReactNode } from "react";
 import { LoaderCircle, Pencil, Plus } from "lucide-react";
 
 import {
@@ -48,11 +48,14 @@ const getInitialState = (employee?: EditableEmployee) => ({
 
 export const EmployeeFormDialog = ({
   employee,
+  trigger,
   triggerClassName,
   triggerLabel,
   triggerVariant,
 }: {
   employee?: EditableEmployee;
+  // Reemplaza el botón por defecto, como el lápiz de la tabla de empleados.
+  trigger?: ReactNode;
   triggerClassName?: string;
   triggerLabel?: string;
   triggerVariant?: ComponentProps<typeof Button>["variant"];
@@ -108,7 +111,9 @@ export const EmployeeFormDialog = ({
       }}
     >
       <DialogTrigger asChild>
-        {employee ? (
+        {trigger ? (
+          trigger
+        ) : employee ? (
           <Button
             variant={triggerVariant ?? "outline"}
             size="sm"

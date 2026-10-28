@@ -7,7 +7,7 @@ import {
 } from "@/components/ops/compensation-utils";
 import { toPayrollNumber } from "@/components/ops/payroll/payroll-utils";
 import type { OpsEmployee, OpsEmployeePayment, OpsOccurrence } from "@/components/ops/types";
-import { getMonthRange, toDateInputValue } from "@/components/ops/utils";
+import { toDateInputValue } from "@/components/ops/utils";
 
 export type EmployeeSummaryJobRow = {
   hours: number;
@@ -46,15 +46,6 @@ export type EmployeeMonthlySummary = {
 
 export const isValidDateInput = (value?: string) =>
   Boolean(value && /^\d{4}-\d{2}-\d{2}$/.test(value) && !Number.isNaN(new Date(`${value}T00:00:00`).getTime()));
-
-export const getInitialEmployeeSummaryRange = (start?: string, end?: string) => {
-  const currentMonth = getMonthRange(new Date());
-
-  return {
-    endDate: isValidDateInput(end) ? end ?? "" : toDateInputValue(currentMonth.end),
-    startDate: isValidDateInput(start) ? start ?? "" : toDateInputValue(currentMonth.start),
-  };
-};
 
 export const getSummaryPeriodHref = (
   employeeId: string,

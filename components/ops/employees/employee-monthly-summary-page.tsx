@@ -1,8 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
-import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useEffect, useMemo } from "react";
 import {
   AlertCircle,
   BadgeDollarSign,
@@ -13,7 +11,6 @@ import {
   WalletCards,
 } from "lucide-react";
 
-import { dashboardSecondaryActionClass } from "@/components/dashboard/dashboard-styles";
 import {
   downloadEmployeeSummaryCsv,
   downloadEmployeeSummaryPdf,
@@ -22,19 +19,21 @@ import { EmployeeSummaryChart } from "@/components/ops/employees/employee-summar
 import { EmployeeSummaryTable } from "@/components/ops/employees/employee-summary-table";
 import {
   buildEmployeeMonthlySummary,
-  getInitialEmployeeSummaryRange,
+  getSummaryPeriodHref,
 } from "@/components/ops/employees/employee-summary-utils";
 import { formatHours, formatMoney } from "@/components/ops/employees/employee-payroll";
 import { useEmployee } from "@/components/ops/hooks/useEmployee";
 import { useEmployeePayments } from "@/components/ops/hooks/useEmployeePayments";
 import { useJobOccurrences } from "@/components/ops/hooks/useJobOccurrences";
 import {
+  OpsBackButton,
   OpsDateFilterInput,
   OpsFilterField,
   OpsMetricsGrid,
   OpsPageHeader,
   OpsPageShell,
   OpsToolbar,
+  useOpsMonthDateRange,
 } from "@/components/ops/shared";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -51,10 +50,11 @@ export const EmployeeMonthlySummaryPage = ({
   initialEndDate?: string;
   initialStartDate?: string;
 }) => {
-  const router = useRouter();
-  const initialRange = getInitialEmployeeSummaryRange(initialStartDate, initialEndDate);
-  const [startDate, setStartDate] = useState(initialRange.startDate);
-  const [endDate, setEndDate] = useState(initialRange.endDate);
+  // El período sigue al selector global de mes; un link de sueldos trae el suyo.
+  const { endDate, setRange, startDate } = useOpsMonthDateRange({
+    end: initialEndDate,
+    start: initialStartDate,
+  });
   const rangeFilters = {
     endDate: toRangeFilter(endDate, "end"),
     startDate: toRangeFilter(startDate, "start"),
@@ -76,14 +76,11 @@ export const EmployeeMonthlySummaryPage = ({
   );
   const isRefreshing = areOccurrencesFetching || arePaymentsFetching;
 
-  const updateRange = (nextStart: string, nextEnd: string) => {
-    setStartDate(nextStart);
-    setEndDate(nextEnd);
-    const params = new URLSearchParams();
-    if (nextStart) params.set("start", nextStart);
-    if (nextEnd) params.set("end", nextEnd);
-    router.replace(`/dashboard/employees/${employeeId}/summary?${params.toString()}`);
-  };
+  // replaceState deja el período en la URL sin volver a pedir la página al servidor.
+  useEffect(() => {
+    window.history.replaceState(null, "", getSummaryPeriodHref(employeeId, startDate, endDate));
+  }, [employeeId, endDate, startDate]);
+  const updateRange = (nextStart: string, nextEnd: string) => setRange(nextStart, nextEnd);
 
   const exportCsv = () => {
     if (!employee || !summary) return;
@@ -114,12 +111,10 @@ export const EmployeeMonthlySummaryPage = ({
 
   return (
     <OpsPageShell className="print:container print:max-w-none print:bg-white">
+      <OpsBackButton fallbackHref={`/dashboard/employees/${employeeId}`} />
       <OpsPageHeader
         actions={
           <div className="flex flex-wrap gap-2 print:hidden">
-            <Button asChild size="sm" variant="outline" className={dashboardSecondaryActionClass}>
-              <Link href={`/dashboard/employees/${employeeId}`}>Empleado</Link>
-            </Button>
             <Button size="sm" variant="outline" onClick={exportCsv}>
               <Download className="h-4 w-4" />
               CSV

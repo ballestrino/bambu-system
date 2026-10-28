@@ -14,6 +14,15 @@ Status: idle
 
 ## Last Closed Work
 
+- 2026-10-27: Empleados como tabla (30), diseño "Empleados Bambu 1a":
+  casillas, orden por nombre o tarifa, pestañas con conteo y barra en lote
+  (activar, desactivar, CSV, archivar) con `setEmployeesActive` y
+  `archiveEmployees`; el celular sigue con tarjetas. Sumó el selector de
+  mes con grilla ("Octubre 2026"), desde/hasta de la empleada atados al mes
+  global y la flecha de volver en detalle, resumen y visitas. Sin
+  migraciones. Smoke con datos de ejemplo; falta el del usuario con sesión
+  (lotes reales, CSV, celular). Mergeada en `main` sin push.
+
 - 2026-10-27: Trabajos como tabla (31), diseño "Trabajos Bambu 1a": pestañas
   de estado con conteo, "Requiere atención", rentabilidad del mes como
   columna y acciones en lote (reactivar, pausar, exportar, archivar) con

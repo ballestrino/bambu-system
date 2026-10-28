@@ -8,14 +8,14 @@ import {
   useSyncExternalStore,
   type ReactNode,
 } from "react";
-import { CalendarDays, ChevronLeft, ChevronRight, RotateCcw } from "lucide-react";
 
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { formatMonth, getMonthKey, getMonthRange } from "@/components/ops/utils";
+import { OpsMonthPicker } from "@/components/ops/shared/ops-month-picker";
+import { getMonthKey, getMonthRange } from "@/components/ops/utils";
 
 const STORAGE_KEY = "bambu.ops.selectedMonth";
 const STORAGE_EVENT = "bambu-ops-selected-month-change";
+// Lugar a la izquierda del selector de mes, para `OpsBackButton`.
+export const OPS_MONTH_BAR_START_ID = "ops-month-bar-start";
 
 type OpsSelectedMonthContextValue = {
   goToNextMonth: () => void;
@@ -117,8 +117,11 @@ export const OpsSelectedMonthProvider = ({
 
   return (
     <OpsSelectedMonthContext.Provider value={value}>
-      <div className="container mb-5 flex w-full md:justify-end">
-        <OpsSelectedMonthSelector />
+      <div className="container mb-5 flex w-full items-center gap-2 print:hidden">
+        <div className="flex empty:hidden" id={OPS_MONTH_BAR_START_ID} />
+        <div className="flex min-w-0 flex-1 sm:flex-none md:ml-auto">
+          <OpsSelectedMonthSelector />
+        </div>
       </div>
       {children}
     </OpsSelectedMonthContext.Provider>
@@ -136,61 +139,16 @@ export const useOpsSelectedMonth = () => {
 };
 
 export const OpsSelectedMonthSelector = () => {
-  const {
-    goToNextMonth,
-    goToPreviousMonth,
-    month,
-    monthKey,
-    resetToCurrentMonth,
-    setMonth,
-  } = useOpsSelectedMonth();
+  const { goToNextMonth, goToPreviousMonth, month, resetToCurrentMonth, setMonth } =
+    useOpsSelectedMonth();
 
   return (
-    <div className="flex w-full min-w-0 flex-nowrap items-center gap-1 rounded-[var(--ops-radius-row)] bg-ops-surface-muted px-2 py-2 sm:w-auto sm:gap-2 sm:px-3">
-      <CalendarDays className="hidden h-4 w-4 text-ops-bamboo sm:block" />
-      <span className="hidden min-w-32 text-sm font-medium capitalize sm:inline">
-        {formatMonth(month)}
-      </span>
-      <Button
-        aria-label="Mes anterior"
-        className="size-11 sm:size-10"
-        onClick={goToPreviousMonth}
-        size="icon-lg"
-        type="button"
-        variant="ghost"
-      >
-        <ChevronLeft className="h-4 w-4" />
-      </Button>
-      <Input
-        aria-label="Mes operativo"
-        className="h-11 min-w-0 flex-1 rounded-[var(--ops-radius-control)] border-ops-border bg-ops-surface shadow-none sm:w-36 sm:flex-none"
-        onChange={(event) => {
-          const nextMonth = parseMonthKey(event.target.value);
-          if (nextMonth) setMonth(nextMonth);
-        }}
-        type="month"
-        value={monthKey}
-      />
-      <Button
-        aria-label="Mes siguiente"
-        className="size-11 sm:size-10"
-        onClick={goToNextMonth}
-        size="icon-lg"
-        type="button"
-        variant="ghost"
-      >
-        <ChevronRight className="h-4 w-4" />
-      </Button>
-      <Button
-        aria-label="Volver al mes actual"
-        className="size-11 sm:size-10"
-        onClick={resetToCurrentMonth}
-        size="icon-lg"
-        type="button"
-        variant="ghost"
-      >
-        <RotateCcw className="h-4 w-4" />
-      </Button>
-    </div>
+    <OpsMonthPicker
+      month={month}
+      onChange={setMonth}
+      onNext={goToNextMonth}
+      onPrevious={goToPreviousMonth}
+      onReset={resetToCurrentMonth}
+    />
   );
 };

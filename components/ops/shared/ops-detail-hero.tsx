@@ -8,8 +8,9 @@ import { Button } from "@/components/ui/button";
 
 type OpsDetailHeroProps = {
   actions?: ReactNode;
-  backHref: string;
-  backLabel: string;
+  // Sin estos, la página usa `OpsBackButton` junto al selector de mes.
+  backHref?: string;
+  backLabel?: string;
   children?: ReactNode;
   description?: string;
   icon: LucideIcon;
@@ -55,17 +56,19 @@ export const OpsDetailHero = ({
   <section className="relative overflow-hidden rounded-[var(--ops-radius-panel)] border border-ops-border bg-ops-surface p-4 md:p-5">
     <div className="flex flex-col gap-5 lg:flex-row lg:items-start lg:justify-between">
       <div className="min-w-0 space-y-4">
-        <Button
-          asChild
-          size="sm"
-          variant="ghost"
-          className="-ml-2 min-h-11 w-fit rounded-[var(--ops-radius-control)] px-3 text-ops-bamboo-strong hover:bg-ops-bamboo-soft hover:text-ops-bamboo-strong"
-        >
-          <Link href={backHref}>
-            <ArrowLeft className="h-4 w-4" />
-            {backLabel}
-          </Link>
-        </Button>
+        {backHref && backLabel ? (
+          <Button
+            asChild
+            size="sm"
+            variant="ghost"
+            className="-ml-2 min-h-11 w-fit rounded-[var(--ops-radius-control)] px-3 text-ops-bamboo-strong hover:bg-ops-bamboo-soft hover:text-ops-bamboo-strong"
+          >
+            <Link href={backHref}>
+              <ArrowLeft className="h-4 w-4" />
+              {backLabel}
+            </Link>
+          </Button>
+        ) : null}
         <div className="flex min-w-0 items-start gap-3">
           <span className="grid h-11 w-11 shrink-0 place-items-center rounded-[var(--ops-radius-control)] bg-ops-bamboo-soft text-ops-bamboo-strong">
             <Icon className="h-5 w-5" />
