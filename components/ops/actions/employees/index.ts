@@ -1,4 +1,5 @@
 export * from "@/components/ops/actions/employees/archive-employee.action";
+export * from "@/components/ops/actions/employees/archive-employees.action";
 export * from "@/components/ops/actions/employees/create-employee-availability-rule.action";
 export * from "@/components/ops/actions/employees/create-employee-payment.action";
 export * from "@/components/ops/actions/employees/create-employee.action";
@@ -8,6 +9,7 @@ export * from "@/components/ops/actions/employees/get-employee-payments.action";
 export * from "@/components/ops/actions/employees/get-employee.action";
 export * from "@/components/ops/actions/employees/get-employees.action";
 export * from "@/components/ops/actions/employees/get-paid-employee-ids.action";
+export * from "@/components/ops/actions/employees/set-employees-active.action";
 export * from "@/components/ops/actions/employees/update-employee-payment.action";
 export * from "@/components/ops/actions/employees/update-employee.action";
 export * from "@/components/ops/actions/employees/void-employee-payment.action";

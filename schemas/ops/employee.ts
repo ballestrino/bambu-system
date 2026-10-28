@@ -81,6 +81,9 @@ export const EmployeeFiltersSchema = dateRangeFiltersSchema.extend({
   includeArchived: optionalBooleanSchema,
 });
 
+// Selección de la tabla de empleados para activar, desactivar o archivar en lote.
+export const EmployeeIdsSchema = z.array(z.string().trim().min(1)).min(1).max(200);
+
 export type CreateEmployeeInput = z.infer<typeof CreateEmployeeSchema>;
 export type UpdateEmployeeInput = z.infer<typeof UpdateEmployeeSchema>;
 export type EmployeeFilters = z.infer<typeof EmployeeFiltersSchema>;
