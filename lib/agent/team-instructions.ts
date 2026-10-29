@@ -1,4 +1,4 @@
-import { findProtectedConflict } from "@/lib/agent/protected-rules";
+import { findProtectedConflict, PROTECTED_RULES } from "@/lib/agent/protected-rules";
 import type { ProposalResult, ProposalSummary } from "@/lib/agent/proposals";
 
 // Instrucciones del equipo: reglas de cómo trabaja el agente que el equipo
@@ -36,10 +36,12 @@ const oneLine = (text: string) => text.replace(/\s+/g, " ").trim();
 
 export const TEAM_HEADING = "Instrucciones del equipo";
 
+const FIXED_RULES_TEXT = PROTECTED_RULES.map((rule) => rule.label).join("; ");
+
 export const formatTeamInstructionsBlock = (version: number, rules: TeamRule[]) =>
   rules.length
     ? [
-        `${TEAM_HEADING} (versión ${version}, confirmadas por un admin; las reglas de arriba son fijas y ganan si alguna choca):`,
+        `${TEAM_HEADING} (versión ${version}, confirmadas por un admin). Valen sobre el tono, el formato y las instrucciones de la habilidad de arriba, también en los borradores. Solo no pueden cambiar las reglas fijas: ${FIXED_RULES_TEXT}.`,
         ...rules.map((rule) => `- [${rule.id}] ${rule.text}`),
       ].join("\n")
     : null;

@@ -14,6 +14,8 @@ import {
   TEAM_RULES_MAX,
 } from "../lib/agent/team-instructions";
 import { LITERAL_E_NOTE } from "../lib/agent/business-profile";
+import { buildEmailDraftInstructions } from "../lib/agent/email-prompt";
+import { getGroundedPriceMismatch } from "../lib/agent/price-grounding";
 import { parseProposalPayload } from "../schemas/agent-proposals";
 
 // Instrucciones del equipo (feature 35): versionadas, después de las reglas
@@ -73,7 +75,8 @@ assert.equal(PROTECTED_RULES.length, 6);
 // the fixed text is still there whatever the team block says.
 const block = formatTeamInstructionsBlock(3, current.rules) ?? "";
 assert.equal(formatTeamInstructionsBlock(0, []), null);
-assert.match(block, /^Instrucciones del equipo \(versión 3, .*ganan si alguna choca\):\n- \[r1\] Antes de agendar/);
+assert.match(block, /^Instrucciones del equipo \(versión 3, confirmadas por un admin\)\. Valen sobre el tono, el formato .*también en los borradores\. Solo no pueden cambiar las reglas fijas: .*la nota de Literal E.*\.\n- \[r1\] Antes de agendar/);
+PROTECTED_RULES.forEach((rule) => assert.ok(block.includes(rule.label), rule.id));
 Object.values(AGENT_SKILLS).forEach((skill) => {
   assert.ok(resolveSkillToolNames(skill).includes("proposeInstructionChange"), skill.id);
   const prompt = buildAgentInstructions({ today: "hoy", actorName: null, skill, memoryBlock: null, teamBlock: block });
@@ -84,6 +87,29 @@ Object.values(AGENT_SKILLS).forEach((skill) => {
 });
 assert.match(INSTRUCTIONS_RULE, /al terminar la tarea sugerí en una línea guardarlo como memoria o como regla/);
 assert.ok(LITERAL_E_NOTE.length > 0);
+
+// --- Bug 2026-10-29: a confirmed "no decimals" rule did not reach draftEmail,
+// which writes with its own prompt, and the price check refused the rounded
+// amount. Drafts get the team rules and memory, and a whole-peso rounding of
+// a sourced amount is accepted (only that: no other adjustment).
+const noCents = formatTeamInstructionsBlock(4, [{ id: "r9", text: "Escribí los montos sin decimales." }]) ?? "";
+for (const channel of ["email", "whatsapp"] as const) {
+  const draft = buildEmailDraftInstructions(channel, { teamContext: noCents });
+  assert.ok(draft.includes("Escribí los montos sin decimales."), channel);
+  assert.ok(draft.indexOf("Reglas de precios:") < draft.indexOf(noCents), channel);
+  assert.match(draft, /redondeá cada importe al peso más cercano/);
+}
+assert.doesNotMatch(buildEmailDraftInstructions("email"), /Lo que confirmó el equipo/);
+assert.equal(getGroundedPriceMismatch("Precio: $ 2.389 + IVA", [2389.33]).mismatch, false);
+assert.equal(getGroundedPriceMismatch("Precio: $ 2.389,33 + IVA", [2389.33]).mismatch, false);
+assert.equal(getGroundedPriceMismatch("Precio: $ 2.390 + IVA", [2389.33]).mismatch, true);
+assert.equal(getGroundedPriceMismatch("Precio: $ 2.389,30 + IVA", [2389.33]).mismatch, true);
+assert.equal(getGroundedPriceMismatch("Precio: $ 2.400 + IVA", [2389.33]).mismatch, true);
+const mainPrompt = buildAgentInstructions({ today: "hoy", actorName: null, skill: AGENT_SKILLS.general, memoryBlock: null, teamBlock: noCents });
+assert.match(mainPrompt, /lo único permitido es sacar los centavos, al peso más cercano, si las instrucciones del equipo lo piden/);
+assert.match(mainPrompt, /Las instrucciones del equipo pueden cambiar este formato\./);
+assert.match(read("lib/agent/tools/email.ts"), /teamContext: ctx\.teamContext/);
+assert.ok(read("lib/agent/turn.ts").includes('teamContext: [teamBlock, memoryBlock].filter(Boolean).join("\\n\\n") || null'));
 
 // --- The proposals block quotes the rule.
 assert.ok(add.ok);

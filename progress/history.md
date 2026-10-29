@@ -1193,3 +1193,17 @@
   `check:agent-instructions`. El usuario pidió mergear y pushear; no confirmó
   aparte el smoke en la app.
 - Mergeada y pusheada a `main` el 2026-10-29.
+
+## 2026-10-29 - Arreglo: reglas del equipo en los borradores
+
+- Reporte del usuario: una regla del equipo pedía montos sin decimales y otro
+  agente generó un mensaje con decimales.
+- Causas: `draftEmail` redacta con su propio prompt y no recibía las reglas
+  del equipo ni la memoria; el bloque del equipo decía que "las reglas de
+  arriba" ganaban, y el formato de montos y "no redondees a mano" estaban
+  arriba; y el control de importes rechazaba un importe redondeado al peso.
+- Arreglo: `teamContext` (reglas del equipo y memoria) llega a `draftEmail`;
+  el bloque nombra las fijas como lo único que no cambia; sacar los centavos
+  al peso más cercano es el único ajuste permitido y el control lo acepta.
+- PASS: tsc, ESLint, `pnpm build`, todos los `check:agent-*` (casos nuevos en
+  `check:agent-instructions`). Sin smoke con el modelo real.

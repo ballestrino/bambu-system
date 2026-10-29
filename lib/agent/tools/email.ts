@@ -79,7 +79,10 @@ export const createEmailTools = (ctx: AgentToolContext) => ({
         const sources = [...ctx.grounding.evidence.values()];
         const result = await generateText({
           ...buildAgentCallSettings(spec, { actorId: ctx.actorId }),
-          instructions: buildEmailDraftInstructions(input.channel, { replying: Boolean(reply) }),
+          instructions: buildEmailDraftInstructions(input.channel, {
+            replying: Boolean(reply),
+            teamContext: ctx.teamContext,
+          }),
           prompt: buildEmailDraftPrompt({
             brief: input.brief,
             to: to ?? undefined,

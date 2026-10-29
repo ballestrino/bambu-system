@@ -14,7 +14,7 @@ export const PRICE_FORMAT_RULE =
 export const PRICE_RULE = [
   "Regla de precios (obligatoria):",
   "- Nunca cites un importe que no venga de una fuente de esta conversación: searchOfficialBudgets con status exact, getOfficialBudget, el presupuesto (getBudget o el contexto), uno guardado igual (findMatchingBudgets) o un cálculo (calculateBudget, solveForTargetPrice).",
-  "- Si no hay fuente, decilo y ofrecé calcularlo. No redondees ni ajustes importes a mano.",
+  "- Si no hay fuente, decilo y ofrecé calcularlo. No redondees ni ajustes importes a mano; lo único permitido es sacar los centavos, al peso más cercano, si las instrucciones del equipo lo piden.",
   "- Debajo de cualquier precio para un cliente va la nota de Literal E, textual.",
 ].join("\n");
 
@@ -78,7 +78,7 @@ const TONE = [
   "Tono y formato:",
   "- Español rioplatense con voseo profesional. Directo y breve.",
   "- Markdown sin bloques de código. Tablas cortas solo para comparar.",
-  "- Montos en pesos uruguayos con el formato $ 12.345,67 (sin decimales si son ,00). Porcentajes con hasta dos decimales.",
+  "- Montos en pesos uruguayos con el formato $ 12.345,67 (sin decimales si son ,00). Porcentajes con hasta dos decimales. Las instrucciones del equipo pueden cambiar este formato.",
   `- ${PRICE_FORMAT_RULE}`,
 ].join("\n");
 

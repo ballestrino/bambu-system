@@ -44,6 +44,7 @@ export const runAgentTurn = async (input: {
   messages: AgentUIMessage[];
   budgetContext: ResolvedBudgetContext;
   grounding: Grounding;
+  teamContext: string | null;
   usage: AgentUsageCollector;
   startMetadata: AgentMessageMetadata;
   abortSignal?: AbortSignal;
@@ -58,6 +59,7 @@ export const runAgentTurn = async (input: {
     formValues: input.budgetContext.formValues,
     grounding: input.grounding,
     usage: input.usage,
+    teamContext: input.teamContext,
   });
   // Las imágenes recientes van con sus bytes: el modelo no puede leer la ruta
   // que las sirve. A Claude no se le reenvía el razonamiento de turnos
