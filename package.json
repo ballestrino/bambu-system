@@ -18,6 +18,7 @@
     "check:agent-cost-estimate": "tsx scripts/check-agent-cost-estimate.ts",
     "check:agent-attachments": "tsx scripts/check-agent-attachments.ts",
     "check:agent-memory": "tsx scripts/check-agent-memory.ts",
+    "check:agent-instructions": "tsx scripts/check-agent-instructions.ts",
     "check:budget-auth": "tsx scripts/check-budget-auth.ts",
     "check:budget-cache": "tsx scripts/check-budget-cache.ts",
     "check:employee-accruals": "tsx scripts/check-employee-accruals.ts",

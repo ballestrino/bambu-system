@@ -5,7 +5,6 @@ import { duplicateBudget } from "@/actions/budgets/duplicate-budget";
 import { updateBudget } from "@/actions/budgets/update-budget";
 import { publishOfficialBudget } from "@/actions/official-budgets/official-budget-actions";
 import { getAgentBudgetState } from "@/data/agent/budgets";
-import { executeMemoryProposal } from "@/lib/agent/memory-proposal-execute";
 import { auditProposal, markProposalExpired } from "@/lib/agent/proposal-store";
 import {
   checkProposalPreconditions,
@@ -20,6 +19,7 @@ import {
   type ProposalResult,
   type ProposalSummary,
 } from "@/lib/agent/proposals";
+import { executeTeamProposal } from "@/lib/agent/team-proposal-execute";
 import { executeVisitProposal } from "@/lib/agent/visit-proposal-execute";
 import { isVisitBatchKind } from "@/lib/agent/visit-proposals";
 import { BUDGET_CHANGED_MESSAGE } from "@/lib/budget-errors";
@@ -27,7 +27,7 @@ import { db } from "@/lib/db";
 import { AdminAuthorizationError, requireAdminSession } from "@/lib/require-admin-session";
 import {
   agentProposalIdSchema,
-  isMemoryProposal,
+  isTeamProposal,
   isVisitProposal,
   parseProposalPayload,
   type ParsedBudgetProposal,
@@ -115,7 +115,7 @@ const runClaimed = async (
       return { ok: false, error: "La propuesta guardada no es válida: pedile al asistente una nueva." };
     }
     if (isVisitProposal(proposal)) return await executeVisitProposal(proposal, visitIndexes);
-    if (isMemoryProposal(proposal)) return await executeMemoryProposal(proposal, { actorId, ...stored });
+    if (isTeamProposal(proposal)) return await executeTeamProposal(proposal, { actorId, conversationId: stored.conversationId });
     const budgetId = getProposalBudgetId(proposal);
     const state = budgetId ? await getAgentBudgetState(budgetId) : null;
     const blocked = checkProposalPreconditions(proposal, state);

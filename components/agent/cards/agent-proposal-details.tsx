@@ -1,4 +1,5 @@
 import { BudgetPriceTable } from "@/components/agent/cards/agent-budget-totals-card";
+import { AgentInstructionDetails } from "@/components/agent/cards/agent-instruction-details";
 import { AgentMemoryDetails } from "@/components/agent/cards/agent-memory-details";
 import { AgentProposalItems, type ProposalItemsSelection } from "@/components/agent/cards/agent-proposal-items";
 import { formatChangeValue, formatMoney } from "@/components/agent/format";
@@ -98,6 +99,7 @@ export function AgentProposalDetails({
   return (
     <>
       {summary.memory && <AgentMemoryDetails memory={summary.memory} />}
+      {summary.instruction && <AgentInstructionDetails instruction={summary.instruction} />}
       {summary.items && summary.items.length > 0 && <AgentProposalItems items={summary.items} selection={selection} />}
       {rows.length > 0 && <DiffRows rows={rows} />}
       {!summary.before && summary.after && <BudgetPriceTable calculation={summary.after} />}

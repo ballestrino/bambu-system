@@ -1,6 +1,6 @@
 "use client";
 
-import { AlertTriangle, Brain, Check, FileCheck2 } from "lucide-react";
+import { AlertTriangle, Brain, Check, FileCheck2, ScrollText } from "lucide-react";
 
 import { useAgentChatContext } from "@/components/agent/agent-chat-context";
 import { AgentBudgetActions } from "@/components/agent/cards/agent-budget-actions";
@@ -28,7 +28,10 @@ const CONFIRM_TEXT: Record<AgentProposalKind, string> = {
   UPDATE_VISITS: "Confirmar cambia las visitas marcadas juntas.",
   ARCHIVE_VISIT: "Confirmar saca la visita de la agenda.",
   SAVE_MEMORY: "Confirmar lo suma a la memoria del equipo: el agente lo va a usar en todas las conversaciones.",
+  CHANGE_INSTRUCTIONS: "Confirmar guarda una versión nueva de las instrucciones del equipo; las anteriores se pueden restaurar.",
 };
+
+const ICONS: Partial<Record<AgentProposalKind, typeof FileCheck2>> = { SAVE_MEMORY: Brain, CHANGE_INSTRUCTIONS: ScrollText };
 
 // Una propuesta de crear se puede ver y editar antes de guardarla: los
 // valores vivos (quizás ya editados), o los de la tarjeta, o sus insumos.
@@ -90,7 +93,7 @@ export function AgentProposalCard({ data, toolCallId }: { data: ProposalCardData
 
   return (
     <AgentCard
-      icon={data.kind === "SAVE_MEMORY" ? Brain : FileCheck2}
+      icon={ICONS[data.kind] ?? FileCheck2}
       title={summary.title}
       subtitle={summary.slug && data.kind !== "DUPLICATE_BUDGET" ? `/${summary.slug}` : null}
       aside={<ProposalStatusBadge status={busy ? "EXECUTING" : status} />}

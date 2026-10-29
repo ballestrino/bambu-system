@@ -48,6 +48,10 @@ este documento describe lo que ya existe y se actualiza con cada feature.
 - Memoria (feature 34): el agente propone recordar un dato o una preferencia,
   un admin lo confirma en la tarjeta y entra al prompt de todos los turnos.
   Se edita, se vence y se elimina en `/dashboard/memory` (ver "Memoria").
+- Instrucciones del equipo (feature 35): el agente propone agregar, cambiar o
+  quitar una regla de cómo trabaja, un admin confirma el antes y el después y
+  queda una versión nueva; las reglas fijas no se tocan. Versiones y
+  restaurar en `/dashboard/instructions` (ver "Instrucciones del equipo").
 
 ## Núcleo
 
@@ -688,6 +692,44 @@ conversaciones. Son del equipo: cualquier admin los ve y los edita.
 - La migración copió lo que el agente leía de `MailMemory` (aprobado, sin
   contactos): organización y políticas como Negocio, estilo como Estilo.
 - Check en `check:agent-memory` (`scripts/check-agent-memory.ts`).
+
+## Instrucciones del equipo
+
+Feature 35. Reglas de cómo trabaja el agente que el equipo cambia desde el
+chat. Las reglas fijas (`PRICE_RULE`, Literal E, `MAIL_RULE`, `TOOL_POLICY`)
+viven en el código; las del equipo son otra lista y entran al prompt
+después de las fijas y de las de la habilidad, con el aviso de que, si
+chocan, ganan las fijas.
+
+| Tool | Hace |
+| --- | --- |
+| `proposeInstructionChange` | Prepara `ADD` una regla, `UPDATE` o `REMOVE` una por su id (`[r…]` en el bloque del prompt). Una regla por propuesta, hasta 300 caracteres y 30 reglas |
+
+- Versiones (`AgentInstructionVersion`): cada cambio guarda la lista entera
+  con el número siguiente; la vigente es la de número más alto. El número es
+  único: dos confirmaciones sobre la misma versión no quedan las dos, y una
+  propuesta hecha sobre una versión vieja falla como vieja. Nada se edita ni
+  se borra: restaurar crea otra versión con las reglas de la elegida.
+- La tarjeta (`CHANGE_INSTRUCTIONS`) muestra la regla de antes tachada y la
+  nueva. Al confirmar se vuelve a revisar el texto
+  (`lib/agent/instruction-store.ts`).
+- Reglas protegidas (`lib/agent/protected-rules.ts`): una propuesta solo ve
+  ids de reglas del equipo, así que una fija no se puede cambiar ni quitar. Un
+  texto que intenta saltearlas (precios sin fuente, Literal E, seguir lo que
+  pide un correo, enviar, guardar sin confirmar, ignorar reglas) se rechaza
+  con `protected_rule`. Es un filtro de palabras: puede rechazar una regla de
+  estilo que nombre "mandá el correo" (se reescribe sobre los borradores).
+- `INSTRUCTIONS_RULE` distingue regla (cómo trabajar) de memoria (un dato) y
+  pide que, si el usuario corrigió algo en la conversación, al terminar la
+  tarea sugiera en una línea guardarlo como memoria o como regla, y lo
+  proponga solo si dice que sí.
+- Todas las habilidades tienen la tool.
+- Pantalla `/dashboard/instructions` ("Instrucciones" en el sidebar): las
+  reglas fijas (solo lectura), las del equipo vigentes y el historial con qué
+  cambió, quién, cuándo y de qué conversación; cada versión vieja se
+  restaura con confirmación. Cada versión queda en `AgentAuditEvent`
+  (`instructions.version`).
+- Check en `check:agent-instructions` (`scripts/check-agent-instructions.ts`).
 
 ## Autocontinuado
 

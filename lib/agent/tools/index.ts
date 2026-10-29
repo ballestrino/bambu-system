@@ -7,6 +7,7 @@ import { createCalculationTools } from "@/lib/agent/tools/calculations";
 import type { AgentToolContext } from "@/lib/agent/tools/context";
 import { createEmailTools } from "@/lib/agent/tools/email";
 import { createFinanceTools } from "@/lib/agent/tools/finance";
+import { createInstructionTools } from "@/lib/agent/tools/instructions";
 import { createMailboxTools } from "@/lib/agent/tools/mailbox";
 import { createMemoryTools } from "@/lib/agent/tools/memory";
 import { createOfficialBudgetTools } from "@/lib/agent/tools/official-budgets";
@@ -36,6 +37,7 @@ export const createAgentTools = (ctx: AgentToolContext) => ({
   ...createVisitTools(ctx),
   ...createVisitBatchTools(ctx),
   ...createMemoryTools(ctx),
+  ...createInstructionTools(ctx),
 });
 
 export type AgentTools = ReturnType<typeof createAgentTools>;

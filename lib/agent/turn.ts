@@ -1,5 +1,6 @@
 import "server-only";
 
+import { getCurrentInstructions } from "@/data/agent/instructions";
 import { getPromptMemories } from "@/data/agent/memories";
 import { getAttachmentIds } from "@/lib/agent/attachment-rules";
 import { checkMessageAttachments, linkMessageAttachments } from "@/lib/agent/attachment-store";
@@ -19,6 +20,7 @@ import {
 } from "@/lib/agent/conversation-title-rules";
 import { addGroundedAmounts, collectGroundingFromMessages } from "@/lib/agent/grounding";
 import { formatMemoryBlock } from "@/lib/agent/memory";
+import { formatTeamInstructionsBlock } from "@/lib/agent/team-instructions";
 import { getMessageText, type AgentUIMessage } from "@/lib/agent/messages";
 import { formatToday } from "@/lib/agent/month";
 import { getConfirmedAmounts, withLiveProposals } from "@/lib/agent/proposal-context";
@@ -80,9 +82,10 @@ export const prepareAgentTurn = async (actor: AgentActor, request: AgentChatRequ
   await discardMessagesAfter(request.id, saved.createdAt);
   await expireDiscardedProposals(request.id, saved.createdAt);
 
-  const [history, memory, rows] = await Promise.all([
+  const [history, memory, team, rows] = await Promise.all([
     loadConversationMessages(request.id),
     getPromptMemories(),
+    getCurrentInstructions(),
     listConversationProposals(request.id),
   ]);
   // El modelo ve el estado actual de cada propuesta, no el de cuando se hizo.
@@ -107,6 +110,7 @@ export const prepareAgentTurn = async (actor: AgentActor, request: AgentChatRequ
       skill: getAgentSkill(request.skill),
       budgetContextText: budgetContext.text,
       memoryBlock: formatMemoryBlock(memory.memories, memory.total),
+      teamBlock: formatTeamInstructionsBlock(team.version, team.rules),
       proposals,
     }),
   };

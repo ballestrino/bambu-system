@@ -35,13 +35,16 @@ export const useAgentProposalMutations = ({
       // Primero el host (puede redirigir si cambió la dirección del
       // presupuesto abierto), después las listas y el detalle.
       onConfirmed?.(outcome.result);
-      // Una de visitas trae occurrenceIds y una de memoria, memoryId. Sin
+      // Una de visitas trae occurrenceIds, una de memoria memoryId y una de
+      // reglas instructionVersion. Sin
       // resultado (borraron la conversación) no se sabe cuál fue: se releen todas.
       const visits = Boolean(outcome.result?.occurrenceIds);
       const memory = Boolean(outcome.result?.memoryId);
-      const budgets = !visits && !memory;
+      const instructions = Boolean(outcome.result?.instructionVersion);
+      const budgets = !visits && !memory && !instructions;
       await Promise.all([
         memory || !outcome.result ? queryClient.invalidateQueries({ queryKey: agentKeys.memories() }) : null,
+        instructions || !outcome.result ? queryClient.invalidateQueries({ queryKey: agentKeys.instructions() }) : null,
         budgets ? invalidateBudgetScopes(queryClient) : null,
         budgets ? queryClient.invalidateQueries({ queryKey: officialBudgetKeys.all }) : null,
         visits || !outcome.result ? invalidateOccurrenceScopes(queryClient) : null,

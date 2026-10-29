@@ -166,10 +166,11 @@ assert.doesNotMatch(AGENT_SKILLS.presupuestos.instructions, /Todavía no podés 
 // (check:agent-visits).
 const PROPOSE_TOOLS = ["proposeCreateBudget", "proposeUpdateBudget", "proposeDuplicateBudget", "proposePublishOfficialBudget"] as const;
 const VISIT_PROPOSE_TOOLS = ["proposeCreateVisits", "proposeUpdateVisit", "proposeUpdateVisits", "proposeArchiveVisit"] as const;
-// proposeMemory is in every skill (check:agent-memory).
+// proposeMemory and proposeInstructionChange are in every skill
+// (check:agent-memory, check:agent-instructions).
 assert.deepEqual(
   AGENT_TOOL_NAMES.filter((name) => AGENT_TOOL_CATALOG[name].kind === "proposal").sort(),
-  [...PROPOSE_TOOLS, ...VISIT_PROPOSE_TOOLS, "proposeMemory"].sort()
+  [...PROPOSE_TOOLS, ...VISIT_PROPOSE_TOOLS, "proposeMemory", "proposeInstructionChange"].sort()
 );
 PROPOSE_TOOLS.forEach((name) => {
   assert.ok(resolveSkillToolNames(AGENT_SKILLS.presupuestos).includes(name), name);

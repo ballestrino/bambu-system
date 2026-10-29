@@ -1,5 +1,6 @@
 import type { BudgetCalculation, describeBudgetInputs } from "@/lib/agent/budget-calculation";
 import type { MemorySummary } from "@/lib/agent/memory";
+import type { InstructionSummary } from "@/lib/agent/team-instructions";
 import { hasUnknownOutcome } from "@/lib/agent/proposal-outcome";
 import type { BudgetFormValues } from "@/schemas/BudgetSchema";
 
@@ -16,6 +17,7 @@ export const AGENT_PROPOSAL_KINDS = [
   "CREATE_VISITS",
   "UPDATE_VISITS",
   "SAVE_MEMORY",
+  "CHANGE_INSTRUCTIONS",
 ] as const;
 
 export type AgentProposalKind = (typeof AGENT_PROPOSAL_KINDS)[number];
@@ -83,6 +85,8 @@ export type ProposalSummary = {
   items?: { label: string; detail: string | null }[];
   // Lo que se va a recordar (SAVE_MEMORY), con el texto que reemplaza.
   memory?: MemorySummary;
+  // La regla antes y después (CHANGE_INSTRUCTIONS).
+  instruction?: InstructionSummary;
 };
 
 export type ProposalResult = {
@@ -99,6 +103,8 @@ export type ProposalResult = {
   visitIndexes?: number[];
   // La memoria que guardó una propuesta de recordar.
   memoryId?: string;
+  // La versión de las instrucciones que dejó un cambio confirmado.
+  instructionVersion?: number;
 };
 
 export const proposalSelect = {
