@@ -25,6 +25,30 @@ assert.equal(
     defaultBudgetValues.products_price * 0.15
 );
 
+// Los extras suman al costo del servicio y llevan su ganancia; un JSON roto no rompe nada.
+const withExtras = calculateBudgetTotals({
+    ...defaultBudgetValues,
+    extras: [{ name: "Camión cisterna", amount: 2_500 }, { name: "Permiso", amount: 500 }],
+});
+assert.equal(withExtras.extrasCost, 3_000);
+assert.equal(
+    withExtras.costBasisNoProducts - noProductMargin.costBasisNoProducts,
+    3_000
+);
+assert.ok(
+    Math.abs(
+        withExtras.revenueAmountService -
+            noProductMargin.revenueAmountService -
+            3_000 * (defaultBudgetValues.revenue_percent / 100)
+    ) < 1e-6
+);
+const storedExtras = calculateBudgetTotals({
+    ...defaultBudgetValues,
+    extras: [{ name: "Ok", amount: 100 }, { name: "", amount: 50 }, "roto", null],
+});
+assert.equal(storedExtras.extrasCost, 150);
+assert.equal(calculateBudgetTotals({ ...defaultBudgetValues, extras: null }).extrasCost, 0);
+
 const target = calculateRevenuePercentForHourlyTarget(100, 10, 500);
 assert.equal(target.revenuePercent, 100);
 assert.equal(target.normalizedHourlyPrice, 100);

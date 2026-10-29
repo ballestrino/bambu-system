@@ -23,7 +23,7 @@ export function DashboardSidebar() {
 
   return (
     <Sidebar className="z-20 border-r border-[#53985E]/15 bg-[#F7FBF7]/90 backdrop-blur-xl dark:bg-[#121811]/90">
-      <SidebarContent className={isMobile ? "" : "pt-16"}>
+      <SidebarContent className={isMobile ? "pb-[100px]" : "pt-16 pb-[100px]"}>
         <SidebarGroup>
           <div className="mb-3 flex items-center justify-between px-2 py-4">
             <div className="min-w-0">

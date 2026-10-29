@@ -7,13 +7,14 @@ import {
 import { roundProductsPrice } from "@/lib/agent/price-rounding";
 import { roundMoney } from "@/lib/agent/tool-result";
 import { defaultBudgetValues, type BudgetFormValues } from "@/schemas/BudgetSchema";
+import { readBudgetExtras } from "@/lib/budget-extras";
 import type { AgentBudgetChanges } from "@/schemas/agent-tools";
 
 // Cálculos del agente sobre las funciones del formulario. Puro: nunca
 // persiste, así "¿y si…?" no toca ningún presupuesto.
 export type BudgetOptionRow = Omit<BudgetFormValues,
-  "name" | "description" | "categoryIds" | "incidence_enabled" | "company_enabled" | "personal_enabled"
-> & { has_products: boolean };
+  "name" | "description" | "categoryIds" | "incidence_enabled" | "company_enabled" | "personal_enabled" | "extras"
+> & { has_products: boolean; extras?: unknown };
 
 type BudgetRow = {
   name: string;
@@ -36,11 +37,9 @@ export const budgetOptionToFormValues = (budget: BudgetRow): BudgetFormValues =>
   const base = option ?? defaultBudgetValues;
   return withEffectiveIva({
     ...defaultBudgetValues,
-    visits: base.visits,
-    visit_type: base.visit_type,
+    visits: base.visits, visit_type: base.visit_type,
     hours_per_visit: base.hours_per_visit,
-    nominal_hour: base.nominal_hour,
-    nominal_salary: base.nominal_salary,
+    nominal_hour: base.nominal_hour, nominal_salary: base.nominal_salary,
     employees: base.employees,
     incidence_contribution: base.incidence_contribution,
     company_contribution: base.company_contribution,
@@ -49,6 +48,7 @@ export const budgetOptionToFormValues = (budget: BudgetRow): BudgetFormValues =>
     products_price: base.products_price,
     products_iva: base.products_iva,
     products_revenue_percent: base.products_revenue_percent,
+    extras: readBudgetExtras(base.extras), // el JSON guardado, leído sin confiar en su forma
     revenue_percent: base.revenue_percent,
     price: base.price,
     iva: base.iva,
@@ -135,6 +135,7 @@ export const describeBudgetInputs = (values: BudgetFormValues) => ({
   productsPrice: values.products_price,
   productsRevenuePercent: values.products_revenue_percent,
   transportationCost: values.transportation_cost,
+  extras: values.extras,
   ivaPercent: values.iva,
   contributions: {
     incidence: values.incidence_enabled ? values.incidence_contribution : 0,

@@ -1207,3 +1207,33 @@
   al peso más cercano es el único ajuste permitido y el control lo acepta.
 - PASS: tsc, ESLint, `pnpm build`, todos los `check:agent-*` (casos nuevos en
   `check:agent-instructions`). Sin smoke con el modelo real.
+
+## 2026-10-29 - Creador de presupuestos rediseñado con extras (36)
+
+- Diseño del canvas "Presupuestos rediseño" (Design artifact) en
+  `/dashboard/budgets/create`: Detalle, Equipo y horas, Costos directos,
+  Precio y Aportes y cargas siempre abiertas con los tokens ops; resumen fijo
+  con precio sin IVA, precio hora, horas, barra de composición y desglose con
+  y sin productos; "Definir el precio por" ganancia, precio total o precio
+  hora (`useBudgetHourlyPricing`).
+- Celular (opción A del canvas): un paso por pantalla con barra de progreso,
+  lista de pasos y Anterior/Siguiente; hoja fija con precio, precio hora y
+  ganancia siempre visibles, desglose al expandir con fondo que cierra, y el
+  asistente como botón flotante arriba de la hoja.
+- Extras: `BudgetOption.extras` (JSONB, default `[]`), migración
+  `20261029200000_budget_option_extras` aplicada en Neon con autorización del
+  usuario. `calculateBudgetTotals` los suma al costo del servicio (llevan su
+  ganancia) y devuelve `extrasCost`; `lib/budget-extras.ts` lee el JSON sin
+  confiar en su forma. Se guardan en crear, editar y duplicar; el detalle y el
+  resumen de edición muestran la línea; los snapshots oficiales y de trabajos
+  los registran; el agente los ve y los conserva, pero no los crea.
+- La barra lateral del dashboard tiene 100 px de espacio abajo.
+- PASS: tsc, ESLint sin `.claude/worktrees`, `verify-budget-calculations` (con
+  extras y JSON roto), `check:official-budgets`, `check:agent-budget-editor`,
+  `check:agent-pricing`, `check:agent-tools`, `check:agent-proposals`,
+  `check:budget-cache`, `check:budget-auth`. Smoke en el Chrome del usuario:
+  extra de $ 2.500, precio objetivo $ 12.000 → 59,66 %, guardado con el extra
+  en las dos opciones y borrado del presupuesto de prueba; celular a 390 px en
+  un iframe. Sin `next build` (el dev server estaba corriendo).
+- Mergeada en `main` sin push el 2026-10-29.
+

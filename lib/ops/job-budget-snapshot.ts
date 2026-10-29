@@ -1,6 +1,7 @@
 import "server-only";
 
 import { db } from "@/lib/db";
+import { readBudgetExtras } from "@/lib/budget-extras";
 import type { Budget, BudgetOption, Prisma } from "@prisma/client";
 
 type JobBudgetSourceInput = {
@@ -46,6 +47,7 @@ export const buildJobBudgetSnapshot = (
     companyContribution: budgetOption.company_contribution,
     personalContribution: budgetOption.personal_contribution,
     transportationCost: budgetOption.transportation_cost,
+    extras: readBudgetExtras(budgetOption.extras),
     productsPrice: budgetOption.products_price,
     productsIva: budgetOption.products_iva,
     productsRevenuePercent: budgetOption.products_revenue_percent,

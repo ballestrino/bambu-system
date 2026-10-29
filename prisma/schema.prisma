@@ -211,6 +211,8 @@ model BudgetOption {
   transportation_cost Float
   products_price      Float
   products_iva        Float
+  // Costos puntuales con nombre: [{ name, amount }]. Suman al costo del servicio.
+  extras              Json      @default("[]")
 
   // Revenues
   products_revenue_percent Float

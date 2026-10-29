@@ -5,6 +5,7 @@ import { calculateBudgetTotals } from "@/lib/budget-calculations";
 import { cn } from "@/lib/utils";
 import { defaultBudgetValues, type BudgetFormValues } from "@/schemas/BudgetSchema";
 import type { Prisma } from "@prisma/client";
+import { readBudgetExtras } from "@/lib/budget-extras";
 
 type BudgetWithOptions = Prisma.BudgetGetPayload<{
     include: {
@@ -22,6 +23,7 @@ export function BudgetDetail({ budget }: BudgetDetailProps) {
         ? {
             ...defaultBudgetValues,
             ...option,
+            extras: readBudgetExtras(option.extras),
             incidence_enabled: Number(option.incidence_contribution) > 0,
             company_enabled: Number(option.company_contribution) > 0,
             personal_enabled: Number(option.personal_contribution) > 0,

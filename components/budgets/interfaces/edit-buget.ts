@@ -12,6 +12,8 @@ export interface BudgetOption {
     transportation_cost: number;
     products_price: number;
     products_iva: number;
+    // JSON guardado: se lee con readBudgetExtras.
+    extras?: unknown;
     products_revenue_percent: number;
     revenue_percent: number;
     price: number;

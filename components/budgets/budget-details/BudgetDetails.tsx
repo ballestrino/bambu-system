@@ -6,8 +6,10 @@ import { cn } from "@/lib/utils";
 import { calculateBudgetTotals } from "@/lib/budget-calculations";
 import { BudgetFormValues, defaultBudgetValues } from "@/schemas/BudgetSchema";
 import { BudgetProductProfitRow } from "@/components/budgets/common/BudgetProductProfitRow";
+import { readBudgetExtras } from "@/lib/budget-extras";
 
-type BudgetDetailsOption = Partial<BudgetFormValues> & {
+type BudgetDetailsOption = Partial<Omit<BudgetFormValues, "extras">> & {
+    extras?: unknown;
     has_products?: boolean;
 };
 
@@ -20,6 +22,7 @@ export const BudgetDetails = ({ option, title }: BudgetDetailsProps) => {
     const values: BudgetFormValues = {
         ...defaultBudgetValues,
         ...option,
+        extras: readBudgetExtras(option.extras),
     };
 
     const totals = calculateBudgetTotals(values);
@@ -27,6 +30,7 @@ export const BudgetDetails = ({ option, title }: BudgetDetailsProps) => {
     const {
         totalHours,
         transport,
+        extrasCost,
         products,
         personalVal,
         incidenceVal,
@@ -90,6 +94,12 @@ export const BudgetDetails = ({ option, title }: BudgetDetailsProps) => {
                         <p className="text-muted-foreground">Transporte</p>
                         <p className="font-medium">${transport.toFixed(2)}</p>
                     </div>
+                    {extrasCost > 0 && (
+                        <div>
+                            <p className="text-muted-foreground">Extras</p>
+                            <p className="font-medium">${extrasCost.toFixed(2)}</p>
+                        </div>
+                    )}
                     <BudgetHourlyPrice
                         amount={finalHourlyPricePreTax}
                         tone={hasProducts ? "blue" : "gray"}

@@ -2,6 +2,17 @@ import * as z from "zod";
 
 export const VisitTypeEnum = z.enum(["days", "week", "month"]);
 
+// Un costo puntual del mes con nombre propio (un camión cisterna, un permiso).
+// Se suma al costo del servicio y lleva su misma ganancia.
+export const BudgetExtraSchema = z.object({
+  name: z.string().trim().min(1, "Poné un nombre al extra").max(80),
+  amount: z.coerce.number().min(0, "El monto no puede ser negativo"),
+});
+
+export type BudgetExtra = z.infer<typeof BudgetExtraSchema>;
+
+export const MAX_BUDGET_EXTRAS = 30;
+
 export const BudgetSchema = z.object({
   // Info
   name: z.string().min(1, "Name is required"),
@@ -26,6 +37,7 @@ export const BudgetSchema = z.object({
   transportation_cost: z.coerce.number().min(0),
   products_price: z.coerce.number().min(0),
   products_iva: z.coerce.number().min(0),
+  extras: z.array(BudgetExtraSchema).max(MAX_BUDGET_EXTRAS).default([]),
 
   // Revenues
   products_revenue_percent: z.coerce.number().min(0),
@@ -66,6 +78,7 @@ export const defaultBudgetValues: BudgetFormValues = {
   transportation_cost: 224.64,
   products_price: 756,
   products_iva: 0,
+  extras: [],
   products_revenue_percent: 0,
   revenue_percent: 45,
   price: 7273.46,

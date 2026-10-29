@@ -5,6 +5,7 @@ import { BudgetPreview } from "@/components/budgets/create-budget/BudgetPreview"
 import { BudgetFormValues, defaultBudgetValues } from "@/schemas/BudgetSchema";
 import { useEffect, useMemo, useState } from "react";
 import type { BudgetOption } from "@prisma/client";
+import { readBudgetExtras } from "@/lib/budget-extras";
 
 interface BudgetPreviewWrapperProps {
     budget: {
@@ -29,6 +30,7 @@ export const BudgetPreviewWrapper = ({ budget }: BudgetPreviewWrapperProps) => {
     const defaultValues: BudgetFormValues = {
         ...defaultBudgetValues,
         ...(activeOption || {}),
+        extras: readBudgetExtras(activeOption?.extras),
         // Ensure enums and types match exactly if needed
     };
 
@@ -42,7 +44,8 @@ export const BudgetPreviewWrapper = ({ budget }: BudgetPreviewWrapperProps) => {
         if (activeOption) {
             form.reset({
                 ...defaultBudgetValues,
-                ...activeOption
+                ...activeOption,
+                extras: readBudgetExtras(activeOption.extras),
             });
         }
     }, [activeOption, form]);

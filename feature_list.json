@@ -624,6 +624,22 @@
         "init.ps1, tsc and an agent check of the protected rules are green"
       ],
       "status": "done"
+    },
+    {
+      "id": 36,
+      "name": "budget_creator_redesign",
+      "title": "Redesign the budget creator in the Operations style, with named extras and a phone stepper",
+      "area": "budgets",
+      "description": "Apply the canvas design \"Presupuestos rediseño\" to /dashboard/budgets/create: five always-open sections (Detalle, Equipo y horas, Costos directos, Precio, Aportes y cargas) with the ops tokens, a sticky live summary (price without IVA, hourly price, hours, cost composition bar, breakdown with and without products) and a Definir el precio por control (profit, total or hourly target). On a phone the same fields go one step per screen with a progress bar, a step list, Anterior and Siguiente, and a bottom sheet with the price and the profit always visible plus the assistant as a floating button above it. Extras are a list of named monthly costs stored as JSON on BudgetOption; they add to the service cost and carry the service profit in every calculation (form, detail, edit, duplicate, official snapshots, job snapshots and the agent).",
+      "acceptance": [
+        "Additive migration adds BudgetOption.extras (JSONB, default []), applied on Neon before any push",
+        "calculateBudgetTotals adds the extras to the service cost basis and ignores malformed stored JSON; verify-budget-calculations covers it",
+        "Create, update and duplicate store the extras on every option; the edit form loads them; official and job snapshots record them",
+        "The create page shows the five sections and the live summary on desktop and the stepper with the bottom sheet on a phone",
+        "Empty extra rows are dropped on save and an extra with an amount but no name blocks saving and opens its step",
+        "tsc, lint without .claude/worktrees, the budget and agent checks are green, plus a browser smoke that saves and deletes a test budget"
+      ],
+      "status": "done"
     }
   ]
 }
