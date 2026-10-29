@@ -4,8 +4,10 @@ Status: active
 
 ## Active Feature
 
-- 33 `agent_compact_budget_cards`, en la misma rama que la 32 (las dos tocan
-  las tarjetas del agente), commit `9722d3c`. Hecho: listas plegadas,
+- 2026-10-29: la 32 y la 33 se mergearon en `main` (`cc975d0`) y se
+  pushearon con autorización del usuario, antes de su prueba en la app. Siguen
+  abiertas en el harness hasta esa prueba y las claves de comercial@.
+- 33 `agent_compact_budget_cards`, commit `9722d3c`. Hecho: listas plegadas,
   sin IVA primero con la ganancia exacta y el con IVA en gris, "Abrir" en un
   Sheet del chat, prompt sin repetir las tarjetas. Verde: tsc, ESLint,
   `next build` y los checks del agente. Ganancia real comparada: el guardado
@@ -15,7 +17,7 @@ Status: active
 
 ## Blocked Feature
 
-- 32 `agent_mailbox`, rama `feature/agent-mailbox`, commit `e180d99`.
+- 32 `agent_mailbox`, commit `e180d99`.
   Bloqueada por: las variables de comercial@ y el smoke del usuario.
 - Hecho: se quitaron la vista `/dashboard/email`, `components/mail`,
   `actions/mail`, `data/mail-workspace`, `/api/mail/*` (cron y adjuntos),
