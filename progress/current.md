@@ -4,19 +4,7 @@ Status: active
 
 ## Active Feature
 
-- 35 `agent_team_instructions`, en curso desde el 2026-10-29 en la rama
-  `feature/agent-team-instructions`.
-- Hecho: `AgentInstructionVersion` (lista entera por versión, número único
-  como compare-and-set) con migración aditiva
-  `20261029160000_agent_team_instructions`. `proposeInstructionChange` (ADD,
-  UPDATE, REMOVE) en todas las habilidades, tarjeta con antes y después,
-  filtro de reglas protegidas al proponer y al confirmar. El bloque del equipo
-  entra después de las reglas fijas. Pantalla `/dashboard/instructions` con
-  reglas fijas, vigentes, historial y restaurar.
-- Verde: tsc, ESLint, todos los `check:agent-*` y `check:agent-instructions`.
-- Migración aplicada en Neon el 2026-10-29 con autorización del usuario
-  (`prisma migrate deploy`; `migrate status` al día).
-- Falta: el smoke del usuario en la app y el merge.
+- Ninguna. La 32 sigue bloqueada (abajo).
 
 ## Blocked Feature
 
@@ -51,6 +39,12 @@ Status: active
   equivalencias con los ids viejos está en `progress/history.md`.
 
 ## Last Closed Work
+
+- 2026-10-29: instrucciones del equipo (35): versiones de reglas con
+  `proposeInstructionChange`, reglas fijas protegidas y pantalla
+  `/dashboard/instructions` con restaurar. Migración aditiva aplicada en Neon.
+  Mergeada y pusheada a `main` con autorización del 2026-10-29, junto con la
+  33 y la 34.
 
 - 2026-10-29: memoria del agente (34): `AgentMemory`, `proposeMemory` y
   `searchMemory` en todas las habilidades, prompt con las vigentes y pantalla

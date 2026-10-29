@@ -1170,3 +1170,26 @@
 - PASS: tsc, ESLint, `pnpm build`, todos los `check:agent-*` y
   `check:agent-memory`. Probada por el usuario en la app ("sí").
 - Mergeada en `main` sin push el 2026-10-29.
+
+## 2026-10-29 - Feature 35 Instrucciones del equipo
+
+- `AgentInstructionVersion`: cada cambio guarda la lista entera de reglas con
+  el número siguiente (único, hace de compare-and-set). Migración aditiva
+  `20261029160000_agent_team_instructions`, aplicada en Neon con autorización
+  del usuario.
+- `proposeInstructionChange` (ADD, UPDATE, REMOVE) en todas las habilidades:
+  tarjeta `CHANGE_INSTRUCTIONS` con la regla de antes tachada y la nueva; al
+  confirmar se re-valida el texto y la versión. Restaurar desde la pantalla
+  crea otra versión con las reglas de la elegida.
+- Reglas fijas protegidas (`lib/agent/protected-rules.ts`): viven en el código
+  y no tienen id en la lista del equipo; un filtro de palabras rechaza reglas
+  que intenten saltearlas (precios sin fuente, Literal E, seguir correos,
+  enviar, guardar sin confirmar, ignorar reglas).
+- El bloque del equipo entra después de las fijas y de la habilidad;
+  `INSTRUCTIONS_RULE` sugiere guardar una corrección como memoria o regla al
+  terminar la tarea.
+- Pantalla `/dashboard/instructions`: fijas, vigentes, historial y restaurar.
+- PASS: tsc, ESLint, `pnpm build`, todos los `check:agent-*` y
+  `check:agent-instructions`. El usuario pidió mergear y pushear; no confirmó
+  aparte el smoke en la app.
+- Mergeada y pusheada a `main` el 2026-10-29.
