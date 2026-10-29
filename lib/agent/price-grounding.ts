@@ -31,8 +31,12 @@ export const getGroundedPriceMismatch = (
   allowedAmounts: number[]
 ) => {
   const allowed = allowedAmounts.map((amount) => Math.round(amount * 100) / 100);
+  // Un importe sin centavos vale si es la fuente redondeada al peso (una regla
+  // del equipo puede pedir montos sin decimales): $ 2.389 por $ 2.389,33.
+  const matches = (quoted: number, amount: number) =>
+    Math.abs(amount - quoted) < 0.01 || (Number.isInteger(quoted) && Math.round(amount) === quoted);
   const mismatches = extractQuotedMoneyAmounts(body).filter(
-    (quoted) => !allowed.some((amount) => Math.abs(amount - quoted) < 0.01)
+    (quoted) => !allowed.some((amount) => matches(quoted, amount))
   );
   return { mismatch: mismatches.length > 0, mismatches };
 };

@@ -17,6 +17,9 @@ export type AgentToolContext = {
   formValues: BudgetFormValues | null;
   grounding: Grounding;
   usage: AgentUsageCollector;
+  // Las instrucciones del equipo y la memoria del turno: draftEmail redacta
+  // con su propio prompt y también las tiene que seguir.
+  teamContext: string | null;
 };
 
 export type BudgetBase = {

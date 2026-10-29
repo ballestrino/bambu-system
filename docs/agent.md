@@ -724,6 +724,18 @@ chocan, ganan las fijas.
   tarea sugiera en una línea guardarlo como memoria o como regla, y lo
   proponga solo si dice que sí.
 - Todas las habilidades tienen la tool.
+- Precedencia: las reglas del equipo valen sobre el tono, el formato y las
+  instrucciones de la habilidad; el bloque nombra las fijas, que son lo único
+  que no cambian. Antes decía que "las reglas de arriba" ganaban, y el modelo
+  tomaba el formato de montos como fijo.
+- `draftEmail` redacta con su propio prompt: recibe las reglas del equipo y la
+  memoria del turno (`AgentToolContext.teamContext`) después de sus reglas de
+  precios. Sin esto (bug del 2026-10-29) una regla "montos sin decimales"
+  confirmada no llegaba a los borradores.
+- Montos sin centavos: si una regla del equipo lo pide, se redondea al peso
+  más cercano. Es el único ajuste permitido: el control de importes de
+  `draftEmail` acepta "$ 2.389" por $ 2.389,33 y sigue rechazando $ 2.390 o
+  $ 2.389,30 (`getGroundedPriceMismatch`).
 - Pantalla `/dashboard/instructions` ("Instrucciones" en el sidebar): las
   reglas fijas (solo lectura), las del equipo vigentes y el historial con qué
   cambió, quién, cuándo y de qué conversación; cada versión vieja se

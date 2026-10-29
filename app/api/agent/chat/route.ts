@@ -49,6 +49,7 @@ export async function POST(request: Request) {
       messages: turn.messages,
       budgetContext: turn.budgetContext,
       grounding: turn.grounding,
+      teamContext: turn.teamContext,
       usage,
       startMetadata: { mode: body.mode, skill: body.skill, createdAt: new Date().toISOString() },
       abortSignal: request.signal,

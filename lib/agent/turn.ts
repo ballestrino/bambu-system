@@ -95,6 +95,8 @@ export const prepareAgentTurn = async (actor: AgentActor, request: AgentChatRequ
   const grounding = collectGroundingFromMessages(messages);
   addGroundedAmounts(grounding, getConfirmedAmounts(proposals));
   addGroundedAmounts(grounding, budgetContext.amounts);
+  const teamBlock = formatTeamInstructionsBlock(team.version, team.rules);
+  const memoryBlock = formatMemoryBlock(memory.memories, memory.total);
 
   return {
     ok: true as const,
@@ -104,13 +106,14 @@ export const prepareAgentTurn = async (actor: AgentActor, request: AgentChatRequ
     messages,
     grounding,
     budgetContext,
+    teamContext: [teamBlock, memoryBlock].filter(Boolean).join("\n\n") || null,
     instructions: buildAgentInstructions({
       today: formatToday(),
       actorName: actor.name,
       skill: getAgentSkill(request.skill),
       budgetContextText: budgetContext.text,
-      memoryBlock: formatMemoryBlock(memory.memories, memory.total),
-      teamBlock: formatTeamInstructionsBlock(team.version, team.rules),
+      memoryBlock,
+      teamBlock,
       proposals,
     }),
   };

@@ -30,7 +30,7 @@ const PRICE_RULES = [
   "- Con dos opciones: 'Opción 1 (sin productos): $ X + IVA' y 'Opción 2 (con productos): $ Y + IVA'.",
   "- Con una sola opción: 'Precio: $ X + IVA'.",
   "- Si el cliente ya tiene productos o pidió sin productos, mostrá solo esa opción.",
-  "- Formato de montos: $ 12.345 (con centavos solo si el importe los tiene: $ 12.345,67).",
+  "- Formato de montos: $ 12.345 (con centavos solo si el importe los tiene: $ 12.345,67), salvo que las reglas del equipo pidan montos sin centavos: entonces redondeá cada importe al peso más cercano ($ 2.389,33 → $ 2.389).",
   `- Inmediatamente debajo de los precios va siempre, textual: "${LITERAL_E_NOTE}"`,
   "- Usá solo importes de la lista de importes permitidos. Si un importe no está, no lo escribas.",
 ].join("\n");
@@ -50,13 +50,24 @@ const REPLY_RULES = [
   "- Si no pide un presupuesto, no uses el esquema de alcance y condiciones: un correo corto con saludo, respuesta y firma.",
 ].join("\n");
 
-export const buildEmailDraftInstructions = (channel: "email" | "whatsapp", options: { replying?: boolean } = {}) =>
+// Las reglas del equipo y la memoria valen también para los mensajes: sin
+// esto, una regla de formato confirmada no llegaba al borrador.
+const teamSection = (teamContext: string | null | undefined) =>
+  teamContext
+    ? `Lo que confirmó el equipo (seguilo también en este mensaje; las reglas de precios de arriba, la nota de Literal E y los importes permitidos no cambian):\n${teamContext}`
+    : null;
+
+export const buildEmailDraftInstructions = (
+  channel: "email" | "whatsapp",
+  options: { replying?: boolean; teamContext?: string | null } = {}
+) =>
   [
     `Redactás mensajes para clientes de ${BUSINESS_PROFILE.name}, en español rioplatense con un tono profesional y cordial.`,
     "Respondé solo con el mensaje pedido: asunto (vacío en WhatsApp) y cuerpo.",
     channel === "email" ? `Esquema del correo:\n${EMAIL_SCHEME}` : WHATSAPP_RULES,
     options.replying ? REPLY_RULES : null,
     PRICE_RULES,
+    teamSection(options.teamContext),
   ]
     .filter(Boolean)
     .join("\n\n");
