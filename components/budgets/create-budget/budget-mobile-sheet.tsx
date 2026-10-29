@@ -13,11 +13,12 @@ type BudgetMobileSheetProps = {
   onOpenChange: (open: boolean) => void;
   onSave: () => void;
   open: boolean;
+  saveLabel?: string;
 };
 
 // Hoja fija del celular: precio y ganancia siempre a la vista, el desglose al
 // expandirla. El asistente flota arriba de la hoja, sin taparla.
-export const BudgetMobileSheet = ({ isPending, onOpenChange, onSave, open }: BudgetMobileSheetProps) => {
+export const BudgetMobileSheet = ({ isPending, onOpenChange, onSave, open, saveLabel = "Guardar presupuesto" }: BudgetMobileSheetProps) => {
   const form = useFormContext<BudgetFormValues>();
   const values = useWatch({ control: form.control });
   const summary = buildBudgetSummary(values, false);
@@ -90,7 +91,7 @@ export const BudgetMobileSheet = ({ isPending, onOpenChange, onSave, open }: Bud
           onClick={onSave}
           type="button"
         >
-          {isPending ? "Guardando..." : "Guardar presupuesto"}
+          {isPending ? "Guardando..." : saveLabel}
         </button>
       </div>
     </>

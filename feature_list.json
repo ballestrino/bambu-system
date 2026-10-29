@@ -655,6 +655,21 @@
         "tsc, lint without .claude/worktrees, check:budget-cache, check:budget-auth and a browser smoke on desktop and at 390 px"
       ],
       "status": "done"
+    },
+    {
+      "id": 38,
+      "name": "budget_edit_redesign",
+      "title": "Redesign the budget edit page with collapsible sections, unsaved changes and extras",
+      "area": "budgets",
+      "description": "Apply the canvas design \"Edición · escritorio\" to /dashboard/budgets/edit/[slug] with the creator's fields: five collapsible sections with a one-line summary and an amber mark when they hold changes, the URL field in Detalle, extras editable, a card with every unsaved change (before and after, Deshacer) and the price against the saved one, Descartar, and the official notice that saving publishes the next version. On a phone it reuses the creator's stepper with the edit heading, the notice and Guardar cambios. Replaces EditBudgetForm, its sections, EditBudgetHeader and useEditBudgetForm.",
+      "acceptance": [
+        "The editor loads the saved option (with products when it exists) with its extras and shows no change until something is edited",
+        "Each change lists before and after and Deshacer restores it, extras included; Descartar restores everything and disables Guardar",
+        "Saving keeps the extras, resets the changes against the saved values and follows a new URL",
+        "A linked official budget shows the notice with the next version",
+        "tsc, lint without .claude/worktrees and a browser smoke on desktop and at 390 px"
+      ],
+      "status": "in_progress"
     }
   ]
 }

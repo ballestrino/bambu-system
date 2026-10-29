@@ -4,7 +4,22 @@ Status: active
 
 ## Active Feature
 
-- Ninguna. La 32 sigue bloqueada (abajo).
+- 38 `budget_edit_redesign`, rama `feature/38-budget-edit-redesign` (sale de
+  la 37). Edición con los campos del creador: secciones que se abren y cierran
+  con resumen, punto ámbar en las que cambiaron, URL en Detalle, extras,
+  tarjeta de cambios sin guardar con antes → después y Deshacer, Descartar,
+  aviso de versión oficial. En el celular reusa los pasos del creador
+  (`BudgetCreatorMobile` acepta encabezado, aviso, URL y texto de guardar).
+  `useBudgetPriceSync` y `dropEmptyExtras` pasaron a
+  `create-budget/hooks/use-budget-form-helpers.ts`. Se quitaron
+  `EditBudgetForm`, sus secciones, `EditBudgetHeader` y `useEditBudgetForm`.
+- Verificado: tsc, ESLint. Smoke en el Chrome del usuario sin guardar: sin
+  cambios fantasma al abrir ($ 20.100), horas 4 → 5 y un extra de $ 1.200
+  (+ $ 6.403), Deshacer del extra, Descartar; oficial con el aviso de la
+  versión 2 y celular a 390 px.
+- Falta: probar Guardar (escribe datos reales), y luego merge de 37 y 38 a
+  `main` y push.
+- La 32 sigue bloqueada (abajo).
 
 ## Blocked Feature
 

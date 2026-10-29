@@ -1,5 +1,6 @@
 "use client";
 
+import type { ReactNode } from "react";
 import { Controller, useFormContext } from "react-hook-form";
 import { Plus, RefreshCw } from "lucide-react";
 
@@ -13,7 +14,7 @@ import type { BudgetFormValues } from "@/schemas/BudgetSchema";
 const smallButton =
   "inline-flex h-9 items-center gap-1.5 rounded-[9px] px-2.5 text-[13px] font-semibold text-ops-text-muted hover:bg-ops-surface-muted hover:text-ops-text";
 
-export const BudgetDetailsFields = () => {
+export const BudgetDetailsFields = ({ children }: { children?: ReactNode }) => {
   const { control, formState, getValues, register, setValue } = useFormContext<BudgetFormValues>();
   const { categories, isRefetching, refetch } = useBudgetCategories();
   const nameError = formState.errors.name ? "Poné un nombre al presupuesto." : undefined;
@@ -75,6 +76,7 @@ export const BudgetDetailsFields = () => {
           )}
         />
       </div>
+      {children}
     </div>
   );
 };

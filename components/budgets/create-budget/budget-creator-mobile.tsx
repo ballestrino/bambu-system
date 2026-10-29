@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, type ReactNode } from "react";
 import Link from "next/link";
 import { ArrowLeft, Check, ChevronDown } from "lucide-react";
 
@@ -10,15 +10,31 @@ import { CREATOR_STEPS, type CreatorStepId } from "@/components/budgets/create-b
 import { cn } from "@/lib/utils";
 
 type BudgetCreatorMobileProps = {
+  backHref?: string;
+  detailSlot?: ReactNode;
+  heading?: ReactNode;
   isPending: boolean;
   onSave: () => void;
   onStepChange: (step: CreatorStepId) => void;
+  saveLabel?: string;
   step: CreatorStepId;
+  top?: ReactNode;
 };
 
 // Celular (opción A): un paso por pantalla con barra de progreso y lista de
-// pasos. Siguiente marca el paso como listo; en el último abre el resumen.
-export const BudgetCreatorMobile = ({ isPending, onSave, onStepChange, step }: BudgetCreatorMobileProps) => {
+// pasos. Siguiente marca el paso como listo; en el último abre el resumen. La
+// edición lo reusa con su encabezado, su aviso arriba y la URL en el Detalle.
+export const BudgetCreatorMobile = ({
+  backHref = "/dashboard/budgets",
+  detailSlot,
+  heading = "Nuevo presupuesto",
+  isPending,
+  onSave,
+  onStepChange,
+  saveLabel,
+  step,
+  top,
+}: BudgetCreatorMobileProps) => {
   const [done, setDone] = useState<CreatorStepId[]>([]);
   const [listOpen, setListOpen] = useState(false);
   const [sheetOpen, setSheetOpen] = useState(false);
@@ -41,12 +57,12 @@ export const BudgetCreatorMobile = ({ isPending, onSave, onStepChange, step }: B
   return (
     <div className="flex w-full flex-col gap-3 pb-[260px]">
       <header className="flex items-center gap-1">
-        <Link aria-label="Volver a presupuestos" className="-ml-2 grid size-11 place-items-center rounded-xl text-ops-text" href="/dashboard/budgets">
+        <Link aria-label="Volver" className="-ml-2 grid size-11 place-items-center rounded-xl text-ops-text" href={backHref}>
           <ArrowLeft className="size-5" />
         </Link>
         <div className="flex min-w-0 flex-1 flex-col">
           <span className="text-xs font-semibold text-ops-bamboo-strong">
-            Nuevo presupuesto · paso {index + 1} de {CREATOR_STEPS.length}
+            {heading} · paso {index + 1} de {CREATOR_STEPS.length}
           </span>
           <h1 className="text-[21px] leading-tight font-semibold tracking-tight text-ops-text">{current.label}</h1>
         </div>
@@ -60,6 +76,7 @@ export const BudgetCreatorMobile = ({ isPending, onSave, onStepChange, step }: B
           <ChevronDown className={cn("size-4 transition-transform", listOpen && "rotate-180")} />
         </button>
       </header>
+      {top}
       <div aria-hidden className="flex gap-1">
         {CREATOR_STEPS.map((item, position) => (
           <span
@@ -105,7 +122,7 @@ export const BudgetCreatorMobile = ({ isPending, onSave, onStepChange, step }: B
       ) : null}
       <section className="rounded-2xl border border-ops-border bg-ops-surface p-4">
         <p className="mb-4 text-[13.5px] text-ops-text-muted">{current.description}</p>
-        <CreatorStepFields step={step} />
+        <CreatorStepFields detailSlot={detailSlot} step={step} />
       </section>
       <div className="flex gap-2">
         {previous ? (
@@ -125,7 +142,7 @@ export const BudgetCreatorMobile = ({ isPending, onSave, onStepChange, step }: B
           {following ? `Siguiente: ${following.label}` : "Listo, ver el resumen"}
         </button>
       </div>
-      <BudgetMobileSheet isPending={isPending} onOpenChange={setSheetOpen} onSave={onSave} open={sheetOpen} />
+      <BudgetMobileSheet isPending={isPending} onOpenChange={setSheetOpen} onSave={onSave} open={sheetOpen} saveLabel={saveLabel} />
     </div>
   );
 };
