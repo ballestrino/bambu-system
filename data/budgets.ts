@@ -3,13 +3,17 @@ import "server-only"
 import { db } from "@/lib/db"
 import { getBudgetAdminSession } from "@/lib/budget-admin"
 import { BudgetFilters } from "@/components/budgets/interfaces/budget-filters"
+import { budgetStatusWhere, buildBudgetListWhere } from "@/data/budget-list-where"
 
-import { Prisma, VisitType } from "@prisma/client"
-import type { GeneratorBudgetListItem } from "@/components/budgets/interfaces/generator-budget"
+import {
+    generatorBudgetListInclude,
+    type BudgetStatusCounts,
+    type GeneratorBudgetListItem,
+} from "@/components/budgets/interfaces/generator-budget"
 
 export const getBudgets = async (
-    query?: string, 
-    page: number = 1, 
+    query?: string,
+    page: number = 1,
     limit: number = 9,
     filters?: Omit<BudgetFilters, 'query' | 'limit' | 'page'>
 ): Promise<{
@@ -17,6 +21,7 @@ export const getBudgets = async (
     totalCount: number;
     totalPages: number;
     currentPage: number;
+    statusCounts: BudgetStatusCounts;
 } | {
     error: string;
 }> => {
@@ -27,171 +32,30 @@ export const getBudgets = async (
             return { error: admin.error };
         }
 
-        const terms = query?.split(" ").filter(Boolean) || [];
-        
-        // Construct filter conditions for Budget (top level)
-        const budgetConditions: Prisma.BudgetWhereInput[] = [];
-        
-        // Date Range
-        if (filters?.startDate || filters?.endDate) {
-            budgetConditions.push({
-                updatedAt: {
-                    gte: filters.startDate ? new Date(filters.startDate) : undefined,
-                    lte: filters.endDate ? new Date(filters.endDate) : undefined
-                }
-            });
-        }
+        const { status, ...listFilters } = filters ?? {};
+        const baseWhere = buildBudgetListWhere(query, listFilters);
+        const statusWhere = budgetStatusWhere(status);
+        const whereClause = statusWhere ? { AND: [baseWhere, statusWhere] } : baseWhere;
 
-        // Search Terms
-        if (terms.length > 0) {
-            budgetConditions.push({
-                AND: terms.map(term => ({
-                    OR: [
-                        { name: { contains: term, mode: "insensitive" as const } },
-                        { description: { contains: term, mode: "insensitive" as const } }
-                    ]
-                }))
-            });
-        }
-
-        // Construct filter conditions for BudgetOptions (nested)
-        const optionConditions: Prisma.BudgetOptionWhereInput[] = [];
-
-        if (filters?.hasProducts !== undefined) {
-             if (filters.hasProducts) {
-                 optionConditions.push({ has_products: true });
-             } else {
-                 // If hasProducts is false, we want budgets that DO NOT have a product option.
-                 // So we filter for matching the "service" option properties (has_products: false)
-                 optionConditions.push({ has_products: false });
-                 
-                 // AND we enforce that the budget has NO option with has_products: true
-                 budgetConditions.push({
-                     budgetOptions: {
-                         none: {
-                             has_products: true
-                         }
-                     }
-                 });
-             }
-        }
-        
-        // Profit
-        if (filters?.minProfit !== undefined || filters?.maxProfit !== undefined) {
-            optionConditions.push({
-                profit: {
-                    gte: filters.minProfit,
-                    lte: filters.maxProfit
-                }
-            });
-        }
-
-        // Price
-        if (filters?.minPrice !== undefined || filters?.maxPrice !== undefined) {
-            optionConditions.push({
-                price: {
-                    gte: filters.minPrice,
-                    lte: filters.maxPrice
-                }
-            });
-        }
-
-        // Nominal Hour
-        if (filters?.minNominalHour !== undefined || filters?.maxNominalHour !== undefined) {
-             optionConditions.push({
-                nominal_hour: {
-                    gte: filters.minNominalHour,
-                    lte: filters.maxNominalHour
-                }
-             });
-        }
-
-        // Visits
-        if (filters?.minVisits !== undefined || filters?.maxVisits !== undefined) {
-             optionConditions.push({
-                visits: {
-                    gte: filters.minVisits,
-                    lte: filters.maxVisits
-                }
-             });
-        }
-
-        // Hours per Visit
-        if (filters?.minHoursPerVisit !== undefined || filters?.maxHoursPerVisit !== undefined) {
-             optionConditions.push({
-                hours_per_visit: {
-                    gte: filters.minHoursPerVisit,
-                    lte: filters.maxHoursPerVisit
-                }
-             });
-        }
-
-        // Visit Types
-        if (filters?.visitTypes && filters.visitTypes.length > 0) {
-            const validVisitTypes = filters.visitTypes.filter(
-                (visitType): visitType is VisitType =>
-                    visitType === "days" || visitType === "week" || visitType === "month"
-            );
-
-            if (validVisitTypes.length > 0) {
-                optionConditions.push({
-                    visit_type: { in: validVisitTypes }
-                });
-            }
-        }
-
-        // Categories
-        if (filters?.catIds && filters.catIds.length > 0) {
-             budgetConditions.push({
-                budgetCategory: { 
-                        some: { 
-                            id: { 
-                                in: filters?.catIds
-                            }
-                        }
-                    }
-             });
-        }
-
-        const whereClause: Prisma.BudgetWhereInput = {};
-
-        if (budgetConditions.length > 0) {
-            whereClause.AND = budgetConditions; // Use AND for top level budget conditions
-        }
-
-        if (optionConditions.length > 0) {
-            whereClause.budgetOptions = {
-                some: {
-                    AND: optionConditions
-                }
-            };
-        }
-
-        const [budgets, totalCount] = await Promise.all([
+        const [budgets, totalCount, allCount, officialCount] = await Promise.all([
             db.budget.findMany({
                 where: whereClause,
-                orderBy: {
-                    updatedAt: 'desc'
-                },
-                include: {
-                    budgetCategory: true,
-                    officialBudget: {
-                        select: { id: true, status: true, currentVersion: true }
-                    }
-                },
+                orderBy: { updatedAt: 'desc' },
+                include: generatorBudgetListInclude,
                 skip: (page - 1) * limit,
                 take: limit,
             }),
-            db.budget.count({ where: whereClause })
+            db.budget.count({ where: whereClause }),
+            db.budget.count({ where: baseWhere }),
+            db.budget.count({ where: { AND: [baseWhere, budgetStatusWhere("official")!] } }),
         ]);
 
-        const totalPages = Math.ceil(totalCount / limit);
-
-        return { 
-            budgets, 
+        return {
+            budgets,
             totalCount,
-            totalPages,
-            currentPage: page
+            totalPages: Math.ceil(totalCount / limit),
+            currentPage: page,
+            statusCounts: { all: allCount, draft: allCount - officialCount, official: officialCount },
         };
     } catch (error) {
         console.error(error);

@@ -20,6 +20,7 @@ export default function useBudgets(filters: BudgetFilters) {
         budgets: budgetsQuery.data?.budgets || [],
         totalCount: budgetsQuery.data?.totalCount || 0,
         totalPages: budgetsQuery.data?.totalPages || 0,
+        statusCounts: budgetsQuery.data?.statusCounts,
         isLoading: budgetsQuery.isLoading,
         isFetching: budgetsQuery.isFetching,
         isRefetching: budgetsQuery.isRefetching,

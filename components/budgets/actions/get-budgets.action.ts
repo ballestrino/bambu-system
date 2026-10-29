@@ -3,13 +3,14 @@ import ValidationError from "@/instances/validation-error"
 import { BudgetFilters } from "../interfaces/budget-filters"
 
 
-import type { GeneratorBudgetListItem } from "@/components/budgets/interfaces/generator-budget"
+import type { BudgetStatusCounts, GeneratorBudgetListItem } from "@/components/budgets/interfaces/generator-budget"
 
 export const getBudgetsAction = async (filters: BudgetFilters): Promise<{
     budgets: GeneratorBudgetListItem[];
     totalCount: number;
     totalPages: number;
     currentPage: number;
+    statusCounts: BudgetStatusCounts;
 }> => {
   try {
     const result = await readBudgets(filters)

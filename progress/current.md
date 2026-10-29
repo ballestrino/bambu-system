@@ -40,12 +40,23 @@ Status: active
 
 ## Last Closed Work
 
+- 2026-10-29: edición de presupuestos rediseñada (38): secciones que se abren
+  y cierran con resumen, extras, tarjeta de cambios sin guardar con Deshacer,
+  Descartar y aviso de versión oficial; en el celular, los pasos del creador.
+  Guardar quedó sin probar por decisión del usuario. Mergeada y pusheada a
+  `main` junto con la 36 y la 37, con autorización del 2026-10-29.
+
+- 2026-10-29: lista de presupuestos como tabla ops (37): pestañas
+  Todos/Borradores/Oficiales con conteo, chips de un toque por grupo, filas con
+  precio neto, precio hora, ganancia y acciones Editar/Duplicar/Publicar;
+  tarjetas en el celular. Sin migraciones. Mergeada y pusheada con la 38.
+
 - 2026-10-29: creador de presupuestos rediseñado con extras (36): cinco
   secciones con resumen en vivo en escritorio, pasos con hoja de precio y
   ganancia en el celular, y extras con nombre (`BudgetOption.extras`) en todo
   el cálculo. Migración aditiva aplicada en Neon. Smoke en el Chrome del
   usuario con un presupuesto de prueba ya borrado. Sumó 100 px abajo en la
-  barra lateral. Mergeada en `main` sin push.
+  barra lateral. Pusheada con la 37 y la 38.
 
 - 2026-10-29: instrucciones del equipo (35): versiones de reglas con
   `proposeInstructionChange`, reglas fijas protegidas y pantalla

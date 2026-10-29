@@ -3,6 +3,8 @@ export interface BudgetFilters {
     query?: string
     limit: number
     page?: number
+    // Sin estado son todos; oficial es un generador con presupuesto oficial.
+    status?: "official" | "draft"
 
     // General
     startDate?: string

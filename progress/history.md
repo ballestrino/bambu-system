@@ -1237,3 +1237,47 @@
   un iframe. Sin `next build` (el dev server estaba corriendo).
 - Mergeada en `main` sin push el 2026-10-29.
 
+## 2026-10-29 - Lista de presupuestos como tabla ops (37)
+
+- Diseño del canvas "Presupuestos · /dashboard/budgets": tabla como Trabajos
+  con pestañas Todos/Borradores/Oficiales y su conteo bajo los mismos filtros
+  (`getBudgets` acepta `status` y devuelve `statusCounts`; el where se arma en
+  `data/budget-list-where.ts`), buscador con demora y el popover de Filtros.
+- Chips de un toque por grupo: productos, 1/2/3/5 por semana, por día,
+  mensual, 2/3/4/6 hs por visita, últimos 7 o 30 días y categorías. Los de un
+  grupo se reemplazan; dos toques seguidos se encadenan con la URL pendiente.
+  "N por semana" ahora filtra también el tipo semanal.
+- Filas con servicio, precio sin IVA (y con productos), precio hora, ganancia,
+  estado oficial o borrador y fecha; Editar, Duplicar y Publicar a un toque y
+  el menú para eliminar. En el celular, tarjetas con los números y los botones
+  abajo, y los chips en una sola fila deslizable.
+- Se quitaron `BudgetCard`, `NoBudgets`, `QuickFilters`, `CategoryFilter` y el
+  `Header` de la lista.
+- PASS: tsc, ESLint, `check:budget-cache`, `check:budget-auth`,
+  `check:official-budgets`. Smoke en el Chrome del usuario (escritorio y 390 px)
+  sin escribir datos: Duplicar y Publicar desde la fila quedaron sin probar.
+
+## 2026-10-29 - Edición de presupuestos rediseñada (38)
+
+- Diseño del canvas "Edición · escritorio" en `/dashboard/budgets/edit/[slug]`
+  con los campos del creador: cinco secciones que se abren y cierran, cada una
+  con un resumen de una línea y un punto ámbar si tiene cambios; la URL va en
+  el Detalle y los extras se editan.
+- Tarjeta de cambios sin guardar (`budget-edit-changes.ts`): cada campo con
+  antes → después comparado como se muestra (una ganancia que difiere en el
+  sexto decimal no cuenta), Deshacer por campo (también extras y URL), y el
+  precio sin productos contra el guardado. Descartar vuelve todo; Guardar se
+  apaga sin cambios. Un oficial vinculado muestra qué versión publica.
+- El editor parte de `budgetOptionToFormValues` (opción con productos, extras
+  leídos, IVA efectivo); al guardar resetea contra lo guardado y sigue la URL
+  nueva. En el celular reusa `BudgetCreatorMobile` con encabezado, aviso, URL y
+  "Guardar cambios".
+- Se quitaron `EditBudgetForm`, sus secciones, `EditBudgetHeader` y
+  `useEditBudgetForm`; `useBudgetPriceSync` y `dropEmptyExtras` quedaron
+  compartidos.
+- PASS: tsc, ESLint, `pnpm build`. Smoke en el Chrome del usuario sin guardar
+  (cambios, Deshacer, Descartar, aviso oficial, celular a 390 px). Guardar y las
+  acciones de fila de la lista quedaron sin probar por decisión del usuario.
+- La 36, la 37 y la 38 se pushearon a `main` el 2026-10-29 con autorización del
+  usuario.
+

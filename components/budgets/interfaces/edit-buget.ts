@@ -27,4 +27,6 @@ export interface ExistingBudget {
     description: string | null;
     budgetOptions: BudgetOption[];
     budgetCategory: { id: string; name: string }[];
+    officialBudget?: { id: string; status: string; currentVersion: number } | null;
+    updatedAt?: Date;
 }
