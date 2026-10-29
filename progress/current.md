@@ -4,22 +4,7 @@ Status: active
 
 ## Active Feature
 
-- 38 `budget_edit_redesign`, rama `feature/38-budget-edit-redesign` (sale de
-  la 37). Edición con los campos del creador: secciones que se abren y cierran
-  con resumen, punto ámbar en las que cambiaron, URL en Detalle, extras,
-  tarjeta de cambios sin guardar con antes → después y Deshacer, Descartar,
-  aviso de versión oficial. En el celular reusa los pasos del creador
-  (`BudgetCreatorMobile` acepta encabezado, aviso, URL y texto de guardar).
-  `useBudgetPriceSync` y `dropEmptyExtras` pasaron a
-  `create-budget/hooks/use-budget-form-helpers.ts`. Se quitaron
-  `EditBudgetForm`, sus secciones, `EditBudgetHeader` y `useEditBudgetForm`.
-- Verificado: tsc, ESLint. Smoke en el Chrome del usuario sin guardar: sin
-  cambios fantasma al abrir ($ 20.100), horas 4 → 5 y un extra de $ 1.200
-  (+ $ 6.403), Deshacer del extra, Descartar; oficial con el aviso de la
-  versión 2 y celular a 390 px.
-- Falta: probar Guardar (escribe datos reales), y luego merge de 37 y 38 a
-  `main` y push.
-- La 32 sigue bloqueada (abajo).
+- Ninguna. La 32 sigue bloqueada (abajo).
 
 ## Blocked Feature
 
@@ -55,18 +40,23 @@ Status: active
 
 ## Last Closed Work
 
+- 2026-10-29: edición de presupuestos rediseñada (38): secciones que se abren
+  y cierran con resumen, extras, tarjeta de cambios sin guardar con Deshacer,
+  Descartar y aviso de versión oficial; en el celular, los pasos del creador.
+  Guardar quedó sin probar por decisión del usuario. Mergeada y pusheada a
+  `main` junto con la 36 y la 37, con autorización del 2026-10-29.
+
 - 2026-10-29: lista de presupuestos como tabla ops (37): pestañas
   Todos/Borradores/Oficiales con conteo, chips de un toque por grupo, filas con
   precio neto, precio hora, ganancia y acciones Editar/Duplicar/Publicar;
-  tarjetas en el celular. Sin migraciones. En su rama, sin merge todavía: va a
-  `main` junto con la edición (38).
+  tarjetas en el celular. Sin migraciones. Mergeada y pusheada con la 38.
 
 - 2026-10-29: creador de presupuestos rediseñado con extras (36): cinco
   secciones con resumen en vivo en escritorio, pasos con hoja de precio y
   ganancia en el celular, y extras con nombre (`BudgetOption.extras`) en todo
   el cálculo. Migración aditiva aplicada en Neon. Smoke en el Chrome del
   usuario con un presupuesto de prueba ya borrado. Sumó 100 px abajo en la
-  barra lateral. Mergeada en `main` sin push.
+  barra lateral. Pusheada con la 37 y la 38.
 
 - 2026-10-29: instrucciones del equipo (35): versiones de reglas con
   `proposeInstructionChange`, reglas fijas protegidas y pantalla

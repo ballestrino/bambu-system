@@ -669,7 +669,7 @@
         "A linked official budget shows the notice with the next version",
         "tsc, lint without .claude/worktrees and a browser smoke on desktop and at 390 px"
       ],
-      "status": "in_progress"
+      "status": "done"
     }
   ]
 }

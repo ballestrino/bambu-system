@@ -1257,3 +1257,27 @@
   `check:official-budgets`. Smoke en el Chrome del usuario (escritorio y 390 px)
   sin escribir datos: Duplicar y Publicar desde la fila quedaron sin probar.
 
+## 2026-10-29 - Edición de presupuestos rediseñada (38)
+
+- Diseño del canvas "Edición · escritorio" en `/dashboard/budgets/edit/[slug]`
+  con los campos del creador: cinco secciones que se abren y cierran, cada una
+  con un resumen de una línea y un punto ámbar si tiene cambios; la URL va en
+  el Detalle y los extras se editan.
+- Tarjeta de cambios sin guardar (`budget-edit-changes.ts`): cada campo con
+  antes → después comparado como se muestra (una ganancia que difiere en el
+  sexto decimal no cuenta), Deshacer por campo (también extras y URL), y el
+  precio sin productos contra el guardado. Descartar vuelve todo; Guardar se
+  apaga sin cambios. Un oficial vinculado muestra qué versión publica.
+- El editor parte de `budgetOptionToFormValues` (opción con productos, extras
+  leídos, IVA efectivo); al guardar resetea contra lo guardado y sigue la URL
+  nueva. En el celular reusa `BudgetCreatorMobile` con encabezado, aviso, URL y
+  "Guardar cambios".
+- Se quitaron `EditBudgetForm`, sus secciones, `EditBudgetHeader` y
+  `useEditBudgetForm`; `useBudgetPriceSync` y `dropEmptyExtras` quedaron
+  compartidos.
+- PASS: tsc, ESLint, `pnpm build`. Smoke en el Chrome del usuario sin guardar
+  (cambios, Deshacer, Descartar, aviso oficial, celular a 390 px). Guardar y las
+  acciones de fila de la lista quedaron sin probar por decisión del usuario.
+- La 36, la 37 y la 38 se pushearon a `main` el 2026-10-29 con autorización del
+  usuario.
+
