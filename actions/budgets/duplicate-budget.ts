@@ -4,6 +4,7 @@ import { getBudgetAdminSession } from "@/lib/budget-admin";
 import { slugifyBudgetName } from "@/lib/budget-slug";
 import { db } from "@/lib/db";
 import { BudgetIdSchema } from "@/schemas/BudgetSchema";
+import { readBudgetExtras } from "@/lib/budget-extras";
 
 const findUniqueSlug = async (base: string) => {
     let candidate = base;
@@ -72,6 +73,7 @@ export const duplicateBudget = async (budgetId: string) => {
                         transportation_cost: option.transportation_cost,
                         products_price: option.products_price,
                         products_iva: option.products_iva,
+                        extras: readBudgetExtras(option.extras),
                         products_revenue_percent: option.products_revenue_percent,
                         revenue_percent: option.revenue_percent,
                         price: option.price,

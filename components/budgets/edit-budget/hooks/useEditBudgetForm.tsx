@@ -6,6 +6,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useRouter } from "next/navigation";
 import { calculateBudgetTotals, calculateEstimates } from "@/lib/budget-calculations";
 import { BudgetFormValues, BudgetSchema } from "@/schemas/BudgetSchema";
+import { readBudgetExtras } from "@/lib/budget-extras";
 import { useUpdateBudgetMutation } from "@/components/budgets/hooks/useUpdateBudgetMutation";
 import { ExistingBudget } from "../../interfaces/edit-buget";
 import type { Resolver } from "react-hook-form";
@@ -36,6 +37,7 @@ export const useEditBudgetForm = (budget: ExistingBudget) => {
             name: budget.name,
             description: budget.description || undefined,
             categoryIds: budget.budgetCategory?.map(c => c.id) || [],
+            extras: readBudgetExtras(primaryOption.extras),
             // Map booleans based on values
             incidence_enabled: Number(primaryOption.incidence_contribution) > 0,
             company_enabled: Number(primaryOption.company_contribution) > 0,

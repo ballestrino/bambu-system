@@ -2,6 +2,7 @@ import {
   calculateBudgetTotals,
   calculateEffectiveVisits,
 } from "@/lib/budget-calculations";
+import { readBudgetExtras } from "@/lib/budget-extras";
 
 type GeneratorOption = {
   visits: number;
@@ -16,6 +17,7 @@ type GeneratorOption = {
   transportation_cost: number;
   products_price: number;
   products_iva: number;
+  extras?: unknown;
   products_revenue_percent: number;
   revenue_percent: number;
   price: number;
@@ -80,6 +82,8 @@ const snapshotOption = (option: GeneratorOption, position: number) => {
     companyContributionPercent: precise(option.company_contribution),
     personalContributionPercent: precise(option.personal_contribution),
     transportationCost: money(option.transportation_cost),
+    extras: readBudgetExtras(option.extras).map((extra) => ({ name: extra.name, amount: money(extra.amount) })),
+    extrasCost: money(calculation.extrasCost),
     productsCost: money(option.products_price),
     productsIvaPercent: precise(option.products_iva),
     productsRevenuePercent: precise(option.products_revenue_percent),

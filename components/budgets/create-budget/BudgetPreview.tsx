@@ -22,6 +22,7 @@ export const BudgetPreview = () => {
     const {
         totalHours,
         transport,
+        extrasCost,
         products,
         personalVal,
         incidenceVal,
@@ -80,6 +81,12 @@ export const BudgetPreview = () => {
                         <p className="text-muted-foreground">Transporte</p>
                         <p className="font-medium">${transport.toFixed(2)}</p>
                     </div>
+                    {extrasCost > 0 && (
+                        <div>
+                            <p className="text-muted-foreground">Extras</p>
+                            <p className="font-medium">${extrasCost.toFixed(2)}</p>
+                        </div>
+                    )}
                     <BudgetHourlyPriceComparison
                         hourlyPriceWithoutProducts={hourlyPriceNoTaxService}
                         hourlyPriceWithProducts={hourlyPriceNoTaxWithProducts}

@@ -37,6 +37,7 @@ export const createBudget = async (values: BudgetFormValues) => {
         transportation_cost,
         products_price,
         products_iva,
+        extras,
         products_revenue_percent,
         revenue_percent,
         price,
@@ -85,6 +86,7 @@ export const createBudget = async (values: BudgetFormValues) => {
                             transportation_cost,
                             products_price,
                             products_iva,
+                            extras,
                             products_revenue_percent,
                             revenue_percent,
                             price,
@@ -106,6 +108,7 @@ export const createBudget = async (values: BudgetFormValues) => {
                             transportation_cost,
                             products_price: 0,
                             products_iva: 0,
+                            extras,
                             products_revenue_percent: 0,
                             revenue_percent,
                             price: priceNoTaxService + (priceNoTaxService * (iva / 100)), // Calculated price without products

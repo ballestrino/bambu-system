@@ -1,4 +1,5 @@
 import { BudgetFormValues } from "@/schemas/BudgetSchema";
+import { sumBudgetExtras } from "@/lib/budget-extras";
 
 export const PRODUCT_MARGIN_PCT = 15;
 const REVENUE_PERCENT_PRECISION = 6;
@@ -71,7 +72,13 @@ export const calculateEffectiveVisits = (visits: number, type: string) => {
     return visits;
 };
 
-export const calculateEstimates = (values: Partial<BudgetFormValues>) => {
+// Los extras llegan como el formulario los tiene o como el JSON guardado en la
+// opción: se leen sin confiar en su forma.
+export type BudgetCalculationValues = Partial<Omit<BudgetFormValues, "extras">> & {
+    extras?: unknown;
+};
+
+export const calculateEstimates = (values: BudgetCalculationValues) => {
     const visits = Number(values.visits) || 0;
     const hours = Number(values.hours_per_visit) || 0;
     const employees = Number(values.employees) || 1;
@@ -92,7 +99,7 @@ export const calculateEstimates = (values: Partial<BudgetFormValues>) => {
     };
 };
 
-export const calculateBudgetTotals = (values: Partial<BudgetFormValues>) => {
+export const calculateBudgetTotals = (values: BudgetCalculationValues) => {
     // 1. Safe Defaults
     const visits = Number(values.visits) || 0;
     const visitType = values.visit_type || "days";
@@ -101,6 +108,7 @@ export const calculateBudgetTotals = (values: Partial<BudgetFormValues>) => {
     const employees = Number(values.employees) || 1;
     const transport = Number(values.transportation_cost) || 0;
     const products = Number(values.products_price) || 0;
+    const extrasCost = sumBudgetExtras(values.extras);
     const revenuePct = Number(values.revenue_percent) || 0;
     const productRevenuePct = Number(values.products_revenue_percent) || 0;
     const ivaPct = Number(values.iva) || 22; // Default to 22 if not set
@@ -135,7 +143,7 @@ export const calculateBudgetTotals = (values: Partial<BudgetFormValues>) => {
     const totalContribsExtra = incidenceVal + companyVal;
 
     // 4. Service Cost Basis
-    const costBasisNoProducts = laborCost + totalContribsExtra + transport;
+    const costBasisNoProducts = laborCost + totalContribsExtra + transport + extrasCost;
 
     // 5. Service Revenue & Price
     const revenueAmountService = costBasisNoProducts * (revenuePct / 100);
@@ -158,6 +166,7 @@ export const calculateBudgetTotals = (values: Partial<BudgetFormValues>) => {
         totalHours,
         laborCost,
         transport,
+        extrasCost,
         products,
         personalVal,
         incidenceVal,
