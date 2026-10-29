@@ -3,6 +3,7 @@ import { z } from "zod";
 import type { AgentProposalKind } from "@/lib/agent/proposals";
 import { isVisitProposalKind, type VisitProposalKind } from "@/lib/agent/visit-proposals";
 import { agentClientIdSchema } from "@/schemas/agent";
+import { changeInstructionsPayloadSchema } from "@/schemas/agent-instructions";
 import { saveMemoryPayloadSchema } from "@/schemas/agent-memory";
 import { visitProposalPayloadSchemas } from "@/schemas/agent-visit-proposals";
 import { BudgetSchema } from "@/schemas/BudgetSchema";
@@ -40,6 +41,7 @@ export const proposalPayloadSchemas = {
   }),
   ...visitProposalPayloadSchemas,
   SAVE_MEMORY: saveMemoryPayloadSchema,
+  CHANGE_INSTRUCTIONS: changeInstructionsPayloadSchema,
 } satisfies Record<AgentProposalKind, z.ZodType>;
 
 export type ProposalPayloads = {
@@ -54,13 +56,27 @@ export type ParsedVisitProposal = Extract<ParsedProposal, { kind: VisitProposalK
 
 export type ParsedMemoryProposal = Extract<ParsedProposal, { kind: "SAVE_MEMORY" }>;
 
-export type ParsedBudgetProposal = Exclude<ParsedProposal, { kind: VisitProposalKind | "SAVE_MEMORY" }>;
+export type ParsedInstructionsProposal = Extract<ParsedProposal, { kind: "CHANGE_INSTRUCTIONS" }>;
+
+export type ParsedBudgetProposal = Exclude<
+  ParsedProposal,
+  { kind: VisitProposalKind | "SAVE_MEMORY" | "CHANGE_INSTRUCTIONS" }
+>;
 
 export const isVisitProposal = (proposal: ParsedProposal): proposal is ParsedVisitProposal =>
   isVisitProposalKind(proposal.kind);
 
 export const isMemoryProposal = (proposal: ParsedProposal): proposal is ParsedMemoryProposal =>
   proposal.kind === "SAVE_MEMORY";
+
+export const isInstructionsProposal = (proposal: ParsedProposal): proposal is ParsedInstructionsProposal =>
+  proposal.kind === "CHANGE_INSTRUCTIONS";
+
+// Las que cambian al agente mismo: su memoria y las reglas del equipo.
+export type ParsedTeamProposal = ParsedMemoryProposal | ParsedInstructionsProposal;
+
+export const isTeamProposal = (proposal: ParsedProposal): proposal is ParsedTeamProposal =>
+  isMemoryProposal(proposal) || isInstructionsProposal(proposal);
 
 export const parseProposalPayload = (
   kind: AgentProposalKind,

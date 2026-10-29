@@ -88,7 +88,8 @@ assert.match(
 // additive and the turn no longer reads MailMemory.
 assert.doesNotMatch(read("lib/agent/tools/memory.ts"), /\bdb\./);
 assert.doesNotMatch(read("data/agent/memories.ts"), /\.(create|update|updateMany|delete|deleteMany|upsert)\(/);
-assert.match(read("actions/agent/confirm-proposal.ts"), /isMemoryProposal\(proposal\)\) return await executeMemoryProposal/);
+assert.match(read("lib/agent/team-proposal-execute.ts"), /isMemoryProposal\(proposal\)\) return executeMemoryProposal/);
+assert.match(read("actions/agent/confirm-proposal.ts"), /executeTeamProposal\(proposal, \{ actorId, conversationId: stored\.conversationId \}\)/);
 const screen = read("actions/agent/memories.ts");
 assert.equal(screen.match(/await requireAdminSession\(\)/g)?.length, 3);
 assert.equal(screen.match(/recordAgentAudit\(/g)?.length, 3);

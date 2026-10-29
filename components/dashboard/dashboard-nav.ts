@@ -5,6 +5,7 @@ import {
   CalendarDays,
   LayoutDashboard,
   List,
+  ScrollText,
   Sparkles,
   type LucideIcon,
 } from "lucide-react";
@@ -12,6 +13,7 @@ import {
 import { isOpsNavItemActive, opsNavItems } from "@/components/ops/nav-items";
 import { MEMORY_URL } from "@/lib/agent/memory";
 import { AGENT_PAGE_PATH } from "@/lib/agent/page-url";
+import { INSTRUCTIONS_URL } from "@/lib/agent/team-instructions";
 
 export type DashboardNavItem = {
   title: string;
@@ -73,6 +75,12 @@ export const dashboardNavGroups: { label: string; items: DashboardNavItem[] }[] 
         url: MEMORY_URL,
         icon: Brain,
         match: (pathname: string) => pathname.startsWith(MEMORY_URL),
+      },
+      {
+        title: "Instrucciones",
+        url: INSTRUCTIONS_URL,
+        icon: ScrollText,
+        match: (pathname: string) => pathname.startsWith(INSTRUCTIONS_URL),
       },
     ],
   },

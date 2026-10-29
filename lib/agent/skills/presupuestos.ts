@@ -33,6 +33,7 @@ export const presupuestosSkill: AgentSkill = {
     "proposePublishOfficialBudget",
     "searchMemory",
     "proposeMemory",
+    "proposeInstructionChange",
   ],
   suggestions: [
     "Armá un presupuesto de limpieza de oficina, 2 veces por semana, 4 horas por visita",

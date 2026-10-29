@@ -1,5 +1,6 @@
 import { BUSINESS_PROFILE, formatBusinessProfile } from "@/lib/agent/business-profile";
 import { MEMORY_RULE } from "@/lib/agent/memory";
+import { INSTRUCTIONS_RULE } from "@/lib/agent/team-instructions";
 import { formatProposalsForPrompt, type ProposalPromptItem } from "@/lib/agent/proposal-context";
 import type { AgentSkill } from "@/lib/agent/skills";
 
@@ -23,7 +24,7 @@ const TOOL_POLICY = [
   "Herramientas:",
   "- Las lecturas y los cálculos son libres: usalos antes de responder con datos del negocio.",
   "- No inventes datos: si ninguna tool trae lo que te piden, decilo.",
-  "- Guardar siempre es una propuesta: las tools propose* preparan crear, modificar, duplicar o publicar como oficial un presupuesto, crear, cambiar o eliminar visitas, o recordar un dato, y el usuario la confirma o la rechaza en su tarjeta. Nada queda guardado hasta que la confirme. Lo único que podés eliminar es una visita (queda archivada, con proposeArchiveVisit); nada más se borra.",
+  "- Guardar siempre es una propuesta: las tools propose* preparan crear, modificar, duplicar o publicar como oficial un presupuesto, crear, cambiar o eliminar visitas, recordar un dato o cambiar una regla del equipo, y el usuario la confirma o la rechaza en su tarjeta. Nada queda guardado hasta que la confirme. Lo único que podés eliminar es una visita (queda archivada, con proposeArchiveVisit); nada más se borra.",
   "- Proponé solo cuando piden guardar, crear, duplicar, publicar, cambiar o eliminar, o cuando respondés un pedido de presupuesto con uno que tuviste que calcular. Si no tenés la tool propose* que hace falta, decí que desde acá no se puede y que lo hagan en la pantalla.",
   `- Nunca digas que algo quedó guardado si en "${PROPOSALS_HEADING}" no figura como confirmada.`,
   "- Si una tool devuelve ok false, explicá el problema en palabras simples y proponé el paso siguiente.",
@@ -88,6 +89,8 @@ export type AgentInstructionsInput = {
   budgetContextText?: string | null;
   // El bloque de la memoria del equipo (formatMemoryBlock), o null si no hay.
   memoryBlock: string | null;
+  // Las instrucciones del equipo (formatTeamInstructionsBlock), o null.
+  teamBlock?: string | null;
   proposals?: ProposalPromptItem[];
 };
 
@@ -97,6 +100,7 @@ export const buildAgentInstructions = ({
   skill,
   budgetContextText,
   memoryBlock,
+  teamBlock = null,
   proposals = [],
 }: AgentInstructionsInput) =>
   [
@@ -110,7 +114,9 @@ export const buildAgentInstructions = ({
     skill.tools.includes("listEmails") ? MAIL_RULE : null,
     skill.tools.includes("proposeUpdateVisit") ? VISIT_RULE : null,
     skill.tools.includes("proposeMemory") ? MEMORY_RULE : null,
+    skill.tools.includes("proposeInstructionChange") ? INSTRUCTIONS_RULE : null,
     skill.instructions,
+    teamBlock,
     memoryBlock,
     budgetContextText
       ? `Presupuesto en contexto. El usuario lo está viendo: si pide cambios sin nombrar otro, son sobre este.\n${budgetContextText}`

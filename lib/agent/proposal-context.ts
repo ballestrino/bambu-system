@@ -67,7 +67,8 @@ export const formatProposalsForPrompt = (proposals: ProposalPromptItem[]) =>
     .map((proposal) => {
       const { kind, status, summary, result, error, unknownOutcome } = proposal;
       const label = unknownOutcome ? "resultado desconocido" : PROPOSAL_STATUS_LABELS[status];
-      const memory = summary.memory ? ` "${summary.memory.text}"` : "";
+      const quoted = summary.memory?.text ?? summary.instruction?.after ?? summary.instruction?.before;
+      const memory = quoted ? ` "${quoted}"` : "";
       const line = `- ${summary.title}${memory}${describeChanges(summary.changes)}: ${label}`;
       const target =
         kind && isVisitBatchKind(kind)
@@ -76,7 +77,9 @@ export const formatProposalsForPrompt = (proposals: ProposalPromptItem[]) =>
             ? "la visita con queryOperations"
             : kind === "SAVE_MEMORY"
               ? "la memoria con searchMemory"
-              : "el presupuesto";
+              : kind === "CHANGE_INSTRUCTIONS"
+                ? `"Instrucciones del equipo"`
+                : "el presupuesto";
       if (unknownOutcome) return `${line} (se cortó mientras se ejecutaba: revisá ${target} antes de proponerla de nuevo).`;
       if (status === "CONFIRMED" && result) {
         return `${line}. Quedó en ${result.url}${describeSaved(summary.after)}.${describeSkipped(proposal)}`;

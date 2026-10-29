@@ -74,6 +74,7 @@ model User {
   agentAttachments                 AgentAttachment[]
   createdAgentMemories             AgentMemory[]              @relation("AgentMemoryCreatedBy")
   approvedAgentMemories            AgentMemory[]              @relation("AgentMemoryApprovedBy")
+  agentInstructionVersions         AgentInstructionVersion[]
 }
 
 model Account {
@@ -491,26 +492,26 @@ model JobOccurrence {
 }
 
 model Employee {
-  id                    String                  @id @default(cuid())
+  id                    String                     @id @default(cuid())
   name                  String
   email                 String?
   phone                 String?
-  hourlyRate            Decimal?                @db.Decimal(10, 2)
-  notes                 String?                 @db.Text
-  isActive              Boolean                 @default(true)
+  hourlyRate            Decimal?                   @db.Decimal(10, 2)
+  notes                 String?                    @db.Text
+  isActive              Boolean                    @default(true)
   archivedAt            DateTime?
   createdById           String
-  createdBy             User                    @relation("EmployeeCreatedBy", fields: [createdById], references: [id], onDelete: Restrict)
+  createdBy             User                       @relation("EmployeeCreatedBy", fields: [createdById], references: [id], onDelete: Restrict)
   updatedById           String?
-  updatedBy             User?                   @relation("EmployeeUpdatedBy", fields: [updatedById], references: [id], onDelete: Restrict)
+  updatedBy             User?                      @relation("EmployeeUpdatedBy", fields: [updatedById], references: [id], onDelete: Restrict)
   assignments           JobEmployeeAssignment[]
   occurrenceAssignments JobOccurrenceEmployee[]
   availabilityRules     EmployeeAvailabilityRule[]
   timeEntries           TimeEntry[]
   payments              EmployeePayment[]
   operationalCosts      OperationalCost[]
-  createdAt             DateTime                @default(now())
-  updatedAt             DateTime                @updatedAt
+  createdAt             DateTime                   @default(now())
+  updatedAt             DateTime                   @updatedAt
 
   @@index([isActive, archivedAt])
   @@index([email])
@@ -1168,6 +1169,7 @@ enum AgentProposalKind {
   CREATE_VISITS
   UPDATE_VISITS
   SAVE_MEMORY
+  CHANGE_INSTRUCTIONS
 }
 
 enum AgentProposalStatus {
@@ -1182,23 +1184,24 @@ enum AgentProposalStatus {
 // Conversación del agente de Bambú. El id lo genera el cliente para que el
 // chat tenga identidad desde el primer envío.
 model AgentConversation {
-  id            String            @id @default(cuid())
-  title         String
-  userId        String
-  user          User              @relation(fields: [userId], references: [id], onDelete: Cascade)
-  budgetId      String?
-  budget        Budget?           @relation(fields: [budgetId], references: [id], onDelete: SetNull)
-  contextKind   String?
-  mode          AgentMode         @default(MEDIO)
-  lastMessageAt DateTime?
+  id                  String                    @id @default(cuid())
+  title               String
+  userId              String
+  user                User                      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  budgetId            String?
+  budget              Budget?                   @relation(fields: [budgetId], references: [id], onDelete: SetNull)
+  contextKind         String?
+  mode                AgentMode                 @default(MEDIO)
+  lastMessageAt       DateTime?
   // Fijada arriba del historial; null = sin fijar.
-  pinnedAt      DateTime?
-  messages      AgentMessage[]
-  usageEvents   AgentUsageEvent[]
-  proposals     AgentProposal[]
-  memories      AgentMemory[]
-  createdAt     DateTime          @default(now())
-  updatedAt     DateTime          @updatedAt
+  pinnedAt            DateTime?
+  messages            AgentMessage[]
+  usageEvents         AgentUsageEvent[]
+  proposals           AgentProposal[]
+  memories            AgentMemory[]
+  instructionVersions AgentInstructionVersion[]
+  createdAt           DateTime                  @default(now())
+  updatedAt           DateTime                  @updatedAt
 
   @@index([userId, updatedAt])
   @@index([budgetId])
@@ -1343,4 +1346,26 @@ model AgentMemory {
   @@index([sourceConversationId])
   @@index([createdById])
   @@index([approvedById])
+}
+
+// Instrucciones del equipo para el agente: cada cambio guarda la lista entera
+// de reglas como una versión nueva (1, 2, 3…). La vigente es la de número más
+// alto; restaurar una vieja crea otra con sus reglas. El número único hace de
+// compare-and-set: dos cambios sobre la misma versión no pueden quedar los dos.
+// Las reglas fijas viven en el código y no están acá.
+model AgentInstructionVersion {
+  id                   String             @id @default(cuid())
+  version              Int                @unique
+  // [{ id, text }]
+  rules                Json
+  // { action: ADD | UPDATE | REMOVE | RESTORE, ruleId, before, after, restoredFrom }
+  change               Json
+  createdById          String?
+  createdBy            User?              @relation(fields: [createdById], references: [id], onDelete: SetNull)
+  sourceConversationId String?
+  sourceConversation   AgentConversation? @relation(fields: [sourceConversationId], references: [id], onDelete: SetNull)
+  createdAt            DateTime           @default(now())
+
+  @@index([createdById])
+  @@index([sourceConversationId])
 }

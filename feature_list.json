@@ -623,7 +623,7 @@
         "Any version can be restored from the screen",
         "init.ps1, tsc and an agent check of the protected rules are green"
       ],
-      "status": "in_progress"
+      "status": "done"
     }
   ]
 }

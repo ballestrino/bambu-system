@@ -4,8 +4,7 @@ Status: active
 
 ## Active Feature
 
-- 35 `agent_team_instructions`, en curso desde el 2026-10-29 en la rama
-  `feature/agent-team-instructions`.
+- Ninguna. La 32 sigue bloqueada (abajo).
 
 ## Blocked Feature
 
@@ -40,6 +39,12 @@ Status: active
   equivalencias con los ids viejos está en `progress/history.md`.
 
 ## Last Closed Work
+
+- 2026-10-29: instrucciones del equipo (35): versiones de reglas con
+  `proposeInstructionChange`, reglas fijas protegidas y pantalla
+  `/dashboard/instructions` con restaurar. Migración aditiva aplicada en Neon.
+  Mergeada y pusheada a `main` con autorización del 2026-10-29, junto con la
+  33 y la 34.
 
 - 2026-10-29: memoria del agente (34): `AgentMemory`, `proposeMemory` y
   `searchMemory` en todas las habilidades, prompt con las vigentes y pantalla

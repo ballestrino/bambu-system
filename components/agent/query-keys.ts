@@ -11,6 +11,7 @@ export const agentKeys = {
   usage: (conversationId: string) => [...agentKeys.all, "usage", conversationId] as const,
   savedBudget: (slug: string) => [...agentKeys.all, "saved-budget", slug] as const,
   memories: () => [...agentKeys.all, "memories"] as const,
+  instructions: () => [...agentKeys.all, "instructions"] as const,
   monthlyUsages: () => [...agentKeys.all, "monthly-usage"] as const,
   monthlyUsage: (month: string | null) => [...agentKeys.monthlyUsages(), month ?? "actual"] as const,
 };
