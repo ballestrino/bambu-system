@@ -40,6 +40,12 @@ Status: active
 
 ## Last Closed Work
 
+- 2026-10-29: lista de presupuestos como tabla ops (37): pestañas
+  Todos/Borradores/Oficiales con conteo, chips de un toque por grupo, filas con
+  precio neto, precio hora, ganancia y acciones Editar/Duplicar/Publicar;
+  tarjetas en el celular. Sin migraciones. En su rama, sin merge todavía: va a
+  `main` junto con la edición (38).
+
 - 2026-10-29: creador de presupuestos rediseñado con extras (36): cinco
   secciones con resumen en vivo en escritorio, pasos con hoja de precio y
   ganancia en el celular, y extras con nombre (`BudgetOption.extras`) en todo

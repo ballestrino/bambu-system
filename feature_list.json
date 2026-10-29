@@ -640,6 +640,21 @@
         "tsc, lint without .claude/worktrees, the budget and agent checks are green, plus a browser smoke that saves and deletes a test budget"
       ],
       "status": "done"
+    },
+    {
+      "id": 37,
+      "name": "budgets_list_redesign",
+      "title": "Redesign the budgets list as an ops table with status tabs, one-tap filters and row actions",
+      "area": "budgets",
+      "description": "Apply the canvas design \"Presupuestos · /dashboard/budgets\": the generator list becomes a table like Trabajos with Todos, Borradores and Oficiales tabs with counts, a debounced search, the existing Filtros popover, and one-tap chip groups (products, weekly frequency 1/2/3/5, per day, monthly, hours per visit 2/3/4/6, updated in the last 7 or 30 days, categories). Rows show the service, the price without IVA (and with products), the hourly price, the profit percent, the official version or Borrador and the update date, with Editar, Duplicar and Publicar as one-tap actions and the existing menu for deleting. On a phone the chips go in one swipeable row and each budget is a card with the numbers and thumb-sized actions.",
+      "acceptance": [
+        "getBudgets accepts status official or draft, returns the counts of each tab under the same filters and includes the option fields the row needs",
+        "Chips toggle URL params, chips of one group replace each other, and two quick taps both apply",
+        "Rows show net price, price with products, hourly price and profit computed from the stored options; a budget without options still renders",
+        "Loading, error with retry, filtered-empty with Limpiar filtros and empty with Nuevo presupuesto states",
+        "tsc, lint without .claude/worktrees, check:budget-cache, check:budget-auth and a browser smoke on desktop and at 390 px"
+      ],
+      "status": "done"
     }
   ]
 }

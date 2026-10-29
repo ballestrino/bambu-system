@@ -1237,3 +1237,23 @@
   un iframe. Sin `next build` (el dev server estaba corriendo).
 - Mergeada en `main` sin push el 2026-10-29.
 
+## 2026-10-29 - Lista de presupuestos como tabla ops (37)
+
+- Diseño del canvas "Presupuestos · /dashboard/budgets": tabla como Trabajos
+  con pestañas Todos/Borradores/Oficiales y su conteo bajo los mismos filtros
+  (`getBudgets` acepta `status` y devuelve `statusCounts`; el where se arma en
+  `data/budget-list-where.ts`), buscador con demora y el popover de Filtros.
+- Chips de un toque por grupo: productos, 1/2/3/5 por semana, por día,
+  mensual, 2/3/4/6 hs por visita, últimos 7 o 30 días y categorías. Los de un
+  grupo se reemplazan; dos toques seguidos se encadenan con la URL pendiente.
+  "N por semana" ahora filtra también el tipo semanal.
+- Filas con servicio, precio sin IVA (y con productos), precio hora, ganancia,
+  estado oficial o borrador y fecha; Editar, Duplicar y Publicar a un toque y
+  el menú para eliminar. En el celular, tarjetas con los números y los botones
+  abajo, y los chips en una sola fila deslizable.
+- Se quitaron `BudgetCard`, `NoBudgets`, `QuickFilters`, `CategoryFilter` y el
+  `Header` de la lista.
+- PASS: tsc, ESLint, `check:budget-cache`, `check:budget-auth`,
+  `check:official-budgets`. Smoke en el Chrome del usuario (escritorio y 390 px)
+  sin escribir datos: Duplicar y Publicar desde la fila quedaron sin probar.
+
