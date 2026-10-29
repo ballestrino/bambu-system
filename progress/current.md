@@ -6,6 +6,18 @@ Status: active
 
 - 34 `agent_memory`, en curso desde el 2026-10-29 en la rama
   `feature/agent-memory`.
+- Hecho: tabla `AgentMemory` (Negocio, Cliente, Estilo, Precio) con
+  migración aditiva `20261029120000_agent_memory`, que también copia lo
+  aprobado de `MailMemory` sin contactos. `proposeMemory` guarda una propuesta
+  `SAVE_MEMORY` (también reemplazos con compare-and-set) y `searchMemory`
+  busca las que no entran al prompt (tope 40). Están en todas las
+  habilidades, con `MEMORY_RULE`, y lo de un correo o una imagen lleva aviso
+  en la tarjeta. Pantalla `/dashboard/memory` en el sidebar: filtros, editar,
+  vencer ahora y eliminar, todo auditado. El turno ya no lee `MailMemory`.
+- Verde: tsc, ESLint de `app components actions data lib schemas scripts`,
+  `pnpm build`, todos los `check:agent-*` y el nuevo `check:agent-memory`.
+- Falta: aplicar la migración en Neon (producción, pide permiso), un smoke en
+  la app con sesión (proponer, confirmar, pantalla) y decidir el merge.
 - La 35 (instrucciones del equipo) sigue pending y depende de esta.
 
 ## Blocked Feature

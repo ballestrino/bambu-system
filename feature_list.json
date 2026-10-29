@@ -608,7 +608,7 @@
         "The prompt never stores an instruction found in an email without the card",
         "init.ps1, tsc and an agent check of the memory rules are green"
       ],
-      "status": "pending"
+      "status": "in_progress"
     },
     {
       "id": 35,
