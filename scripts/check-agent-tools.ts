@@ -121,13 +121,13 @@ const instructions = buildAgentInstructions({
   actorName: "Ana",
   skill: AGENT_SKILLS.emails,
   budgetContextText: "CONTEXTO-DE-PRUEBA",
-  approvedKnowledge: ["- Estilo · saludo: cordial"],
+  memoryBlock: "- Estilo · saludo: cordial",
 });
 [LITERAL_E_NOTE, BUSINESS_PROFILE.phone, PRICE_RULE, AGENT_SKILLS.emails.instructions,
   "CONTEXTO-DE-PRUEBA", "- Estilo · saludo: cordial", "jueves, 18 de setiembre de 2026"]
   .forEach((text) => assert.ok(instructions.includes(text), text));
 const bare = buildAgentInstructions({
-  today: "hoy", actorName: null, skill: AGENT_SKILLS.general, approvedKnowledge: [],
+  today: "hoy", actorName: null, skill: AGENT_SKILLS.general, memoryBlock: null,
 });
 assert.ok(bare.includes("No hay un presupuesto en contexto."));
 assert.ok(!bare.includes("Conocimiento aprobado"));

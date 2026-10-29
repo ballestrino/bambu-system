@@ -1,4 +1,5 @@
 import { BUSINESS_PROFILE, formatBusinessProfile } from "@/lib/agent/business-profile";
+import { MEMORY_RULE } from "@/lib/agent/memory";
 import { formatProposalsForPrompt, type ProposalPromptItem } from "@/lib/agent/proposal-context";
 import type { AgentSkill } from "@/lib/agent/skills";
 
@@ -22,7 +23,7 @@ const TOOL_POLICY = [
   "Herramientas:",
   "- Las lecturas y los cálculos son libres: usalos antes de responder con datos del negocio.",
   "- No inventes datos: si ninguna tool trae lo que te piden, decilo.",
-  "- Guardar siempre es una propuesta: las tools propose* preparan crear, modificar, duplicar o publicar como oficial un presupuesto, o crear, cambiar o eliminar visitas, y el usuario la confirma o la rechaza en su tarjeta. Nada queda guardado hasta que la confirme. Lo único que podés eliminar es una visita (queda archivada, con proposeArchiveVisit); nada más se borra.",
+  "- Guardar siempre es una propuesta: las tools propose* preparan crear, modificar, duplicar o publicar como oficial un presupuesto, crear, cambiar o eliminar visitas, o recordar un dato, y el usuario la confirma o la rechaza en su tarjeta. Nada queda guardado hasta que la confirme. Lo único que podés eliminar es una visita (queda archivada, con proposeArchiveVisit); nada más se borra.",
   "- Proponé solo cuando piden guardar, crear, duplicar, publicar, cambiar o eliminar, o cuando respondés un pedido de presupuesto con uno que tuviste que calcular. Si no tenés la tool propose* que hace falta, decí que desde acá no se puede y que lo hagan en la pantalla.",
   `- Nunca digas que algo quedó guardado si en "${PROPOSALS_HEADING}" no figura como confirmada.`,
   "- Si una tool devuelve ok false, explicá el problema en palabras simples y proponé el paso siguiente.",
@@ -85,7 +86,8 @@ export type AgentInstructionsInput = {
   actorName: string | null;
   skill: AgentSkill;
   budgetContextText?: string | null;
-  approvedKnowledge: string[];
+  // El bloque de la memoria del equipo (formatMemoryBlock), o null si no hay.
+  memoryBlock: string | null;
   proposals?: ProposalPromptItem[];
 };
 
@@ -94,7 +96,7 @@ export const buildAgentInstructions = ({
   actorName,
   skill,
   budgetContextText,
-  approvedKnowledge,
+  memoryBlock,
   proposals = [],
 }: AgentInstructionsInput) =>
   [
@@ -102,15 +104,14 @@ export const buildAgentInstructions = ({
     `Hoy es ${today}.`,
     TONE,
     `Negocio:\n${formatBusinessProfile()}`,
-    approvedKnowledge.length
-      ? `Conocimiento aprobado por el equipo (solo lectura):\n${approvedKnowledge.join("\n")}`
-      : null,
     TOOL_POLICY,
     PRICE_RULE,
     skill.tools.includes("calculateBudget") ? NEW_BUDGET_RULE : null,
     skill.tools.includes("listEmails") ? MAIL_RULE : null,
     skill.tools.includes("proposeUpdateVisit") ? VISIT_RULE : null,
+    skill.tools.includes("proposeMemory") ? MEMORY_RULE : null,
     skill.instructions,
+    memoryBlock,
     budgetContextText
       ? `Presupuesto en contexto. El usuario lo está viendo: si pide cambios sin nombrar otro, son sobre este.\n${budgetContextText}`
       : "No hay un presupuesto en contexto.",

@@ -1,4 +1,5 @@
 import type { BudgetCalculation, describeBudgetInputs } from "@/lib/agent/budget-calculation";
+import type { MemorySummary } from "@/lib/agent/memory";
 import { hasUnknownOutcome } from "@/lib/agent/proposal-outcome";
 import type { BudgetFormValues } from "@/schemas/BudgetSchema";
 
@@ -14,6 +15,7 @@ export const AGENT_PROPOSAL_KINDS = [
   "ARCHIVE_VISIT",
   "CREATE_VISITS",
   "UPDATE_VISITS",
+  "SAVE_MEMORY",
 ] as const;
 
 export type AgentProposalKind = (typeof AGENT_PROPOSAL_KINDS)[number];
@@ -79,6 +81,8 @@ export type ProposalSummary = {
   warnings: string[];
   // Las visitas de un lote (CREATE_VISITS). Las filas viejas no lo tienen.
   items?: { label: string; detail: string | null }[];
+  // Lo que se va a recordar (SAVE_MEMORY), con el texto que reemplaza.
+  memory?: MemorySummary;
 };
 
 export type ProposalResult = {
@@ -93,22 +97,13 @@ export type ProposalResult = {
   // Las visitas de un lote que se crearon, por su posición en summary.items:
   // el usuario puede desmarcar algunas. Sin esto (filas viejas), todas.
   visitIndexes?: number[];
+  // La memoria que guardó una propuesta de recordar.
+  memoryId?: string;
 };
 
 export const proposalSelect = {
-  id: true,
-  kind: true,
-  status: true,
-  payload: true,
-  summary: true,
-  result: true,
-  error: true,
-  toolCallId: true,
-  conversationId: true,
-  expiresAt: true,
-  resolvedAt: true,
-  createdAt: true,
-  updatedAt: true,
+  id: true, kind: true, status: true, payload: true, summary: true, result: true, error: true,
+  toolCallId: true, conversationId: true, expiresAt: true, resolvedAt: true, createdAt: true, updatedAt: true,
 } as const;
 
 export type ProposalRow = {

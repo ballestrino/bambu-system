@@ -26,6 +26,8 @@ export const emailsSkill: AgentSkill = {
     "calculateBudget",
     "draftEmail",
     "proposeCreateBudget",
+    "searchMemory",
+    "proposeMemory",
   ],
   suggestions: [
     "¿Qué correos sin responder hay?",

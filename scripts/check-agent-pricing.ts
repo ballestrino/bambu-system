@@ -158,7 +158,7 @@ assert.equal(findMatchingBudgetsInputSchema.safeParse({ frequency: "week", visit
 // --- The prompt: the new-budget steps go with the skills that calculate;
 // Emails can look for an equal one and propose saving what it calculated.
 const prompt = (skill: keyof typeof AGENT_SKILLS) =>
-  buildAgentInstructions({ today: "hoy", actorName: null, skill: AGENT_SKILLS[skill], approvedKnowledge: [] });
+  buildAgentInstructions({ today: "hoy", actorName: null, skill: AGENT_SKILLS[skill], memoryBlock: null });
 (["general", "presupuestos", "emails"] as const).forEach((skill) => assert.ok(prompt(skill).includes(NEW_BUDGET_RULE), skill));
 assert.ok(!prompt("consejos").includes(NEW_BUDGET_RULE));
 assert.match(NEW_BUDGET_RULE, /searchOfficialBudgets \(un precio oficial vigente gana\) y findMatchingBudgets/);

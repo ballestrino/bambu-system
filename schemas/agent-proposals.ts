@@ -3,6 +3,7 @@ import { z } from "zod";
 import type { AgentProposalKind } from "@/lib/agent/proposals";
 import { isVisitProposalKind, type VisitProposalKind } from "@/lib/agent/visit-proposals";
 import { agentClientIdSchema } from "@/schemas/agent";
+import { saveMemoryPayloadSchema } from "@/schemas/agent-memory";
 import { visitProposalPayloadSchemas } from "@/schemas/agent-visit-proposals";
 import { BudgetSchema } from "@/schemas/BudgetSchema";
 
@@ -38,6 +39,7 @@ export const proposalPayloadSchemas = {
     baseUpdatedAt: baseUpdatedAtSchema,
   }),
   ...visitProposalPayloadSchemas,
+  SAVE_MEMORY: saveMemoryPayloadSchema,
 } satisfies Record<AgentProposalKind, z.ZodType>;
 
 export type ProposalPayloads = {
@@ -50,10 +52,15 @@ export type ParsedProposal = {
 
 export type ParsedVisitProposal = Extract<ParsedProposal, { kind: VisitProposalKind }>;
 
-export type ParsedBudgetProposal = Exclude<ParsedProposal, { kind: VisitProposalKind }>;
+export type ParsedMemoryProposal = Extract<ParsedProposal, { kind: "SAVE_MEMORY" }>;
+
+export type ParsedBudgetProposal = Exclude<ParsedProposal, { kind: VisitProposalKind | "SAVE_MEMORY" }>;
 
 export const isVisitProposal = (proposal: ParsedProposal): proposal is ParsedVisitProposal =>
   isVisitProposalKind(proposal.kind);
+
+export const isMemoryProposal = (proposal: ParsedProposal): proposal is ParsedMemoryProposal =>
+  proposal.kind === "SAVE_MEMORY";
 
 export const parseProposalPayload = (
   kind: AgentProposalKind,

@@ -18,7 +18,7 @@ import { searchOfficialBudgetsInputSchema } from "../schemas/agent-tools";
 assert.match(PRICE_FORMAT_RULE, /\$ 54\.100 \+ IVA/);
 Object.values(AGENT_SKILLS).forEach((skill) =>
   assert.ok(
-    buildAgentInstructions({ today: "hoy", actorName: null, skill, approvedKnowledge: [] }).includes(PRICE_FORMAT_RULE),
+    buildAgentInstructions({ today: "hoy", actorName: null, skill, memoryBlock: null }).includes(PRICE_FORMAT_RULE),
     skill.id
   )
 );

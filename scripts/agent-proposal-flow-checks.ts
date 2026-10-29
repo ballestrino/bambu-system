@@ -151,7 +151,7 @@ assert.ok(savedLine.endsWith(`Quedó en ${confirmedResult.url}, con $ ${finalOf(
 const confirmedItem = { status: "CONFIRMED" as const, summary: edited.summary };
 assert.deepEqual(getConfirmedAmounts([confirmedItem, { ...confirmedItem, status: "PENDING" }]), getCalculationAmounts(edited.summary.after));
 const prompt = (proposals: ProposalPromptItem[]) =>
-  buildAgentInstructions({ today: "hoy", actorName: null, skill: AGENT_SKILLS.presupuestos, approvedKnowledge: [], proposals });
+  buildAgentInstructions({ today: "hoy", actorName: null, skill: AGENT_SKILLS.presupuestos, memoryBlock: null, proposals });
 assert.ok(prompt(items).includes(`${PROPOSALS_HEADING} (`));
 assert.ok(prompt(items).includes(formatProposalsForPrompt(items)));
 const bare = prompt([]);
@@ -166,9 +166,10 @@ assert.doesNotMatch(AGENT_SKILLS.presupuestos.instructions, /Todavía no podés 
 // (check:agent-visits).
 const PROPOSE_TOOLS = ["proposeCreateBudget", "proposeUpdateBudget", "proposeDuplicateBudget", "proposePublishOfficialBudget"] as const;
 const VISIT_PROPOSE_TOOLS = ["proposeCreateVisits", "proposeUpdateVisit", "proposeUpdateVisits", "proposeArchiveVisit"] as const;
+// proposeMemory is in every skill (check:agent-memory).
 assert.deepEqual(
   AGENT_TOOL_NAMES.filter((name) => AGENT_TOOL_CATALOG[name].kind === "proposal").sort(),
-  [...PROPOSE_TOOLS, ...VISIT_PROPOSE_TOOLS].sort()
+  [...PROPOSE_TOOLS, ...VISIT_PROPOSE_TOOLS, "proposeMemory"].sort()
 );
 PROPOSE_TOOLS.forEach((name) => {
   assert.ok(resolveSkillToolNames(AGENT_SKILLS.presupuestos).includes(name), name);

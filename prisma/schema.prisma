@@ -72,6 +72,8 @@ model User {
   agentAuditEvents                 AgentAuditEvent[]
   agentProposals                   AgentProposal[]
   agentAttachments                 AgentAttachment[]
+  createdAgentMemories             AgentMemory[]              @relation("AgentMemoryCreatedBy")
+  approvedAgentMemories            AgentMemory[]              @relation("AgentMemoryApprovedBy")
 }
 
 model Account {
@@ -1165,6 +1167,7 @@ enum AgentProposalKind {
   ARCHIVE_VISIT
   CREATE_VISITS
   UPDATE_VISITS
+  SAVE_MEMORY
 }
 
 enum AgentProposalStatus {
@@ -1193,6 +1196,7 @@ model AgentConversation {
   messages      AgentMessage[]
   usageEvents   AgentUsageEvent[]
   proposals     AgentProposal[]
+  memories      AgentMemory[]
   createdAt     DateTime          @default(now())
   updatedAt     DateTime          @updatedAt
 
@@ -1307,4 +1311,36 @@ model AgentProposal {
   @@unique([conversationId, toolCallId])
   @@index([conversationId, createdAt])
   @@index([actorId, createdAt])
+}
+
+enum AgentMemoryKind {
+  BUSINESS
+  CLIENT
+  STYLE
+  PRICE
+}
+
+// Un dato o una preferencia que el agente recuerda en todos los turnos. Solo
+// existe confirmada: el agente la propone (SAVE_MEMORY) y un admin la
+// confirma en la tarjeta. Es del equipo, no de quien conversa.
+model AgentMemory {
+  id                   String             @id @default(cuid())
+  kind                 AgentMemoryKind
+  text                 String             @db.Text
+  sourceConversationId String?
+  sourceConversation   AgentConversation? @relation(fields: [sourceConversationId], references: [id], onDelete: SetNull)
+  createdById          String?
+  createdBy            User?              @relation("AgentMemoryCreatedBy", fields: [createdById], references: [id], onDelete: SetNull)
+  approvedById         String?
+  approvedBy           User?              @relation("AgentMemoryApprovedBy", fields: [approvedById], references: [id], onDelete: SetNull)
+  approvedAt           DateTime           @default(now())
+  expiresAt            DateTime?
+  createdAt            DateTime           @default(now())
+  updatedAt            DateTime           @updatedAt
+
+  @@index([expiresAt])
+  @@index([kind, updatedAt])
+  @@index([sourceConversationId])
+  @@index([createdById])
+  @@index([approvedById])
 }

@@ -108,7 +108,7 @@ assert.ok(DORA.id);
 // --- Prompt and tools: General has the visit tools and their rule; the
 // other skills don't. An interrupted visit proposal says where to look.
 const prompt = (skill: keyof typeof AGENT_SKILLS) =>
-  buildAgentInstructions({ today: "miércoles 21 de octubre de 2026", actorName: null, skill: AGENT_SKILLS[skill], approvedKnowledge: [] });
+  buildAgentInstructions({ today: "miércoles 21 de octubre de 2026", actorName: null, skill: AGENT_SKILLS[skill], memoryBlock: null });
 assert.ok(prompt("general").includes(VISIT_RULE));
 assert.match(prompt("general"), /Lo único que podés eliminar es una visita/);
 (["presupuestos", "emails", "consejos"] as const).forEach((skill) => assert.ok(!prompt(skill).includes(VISIT_RULE), skill));

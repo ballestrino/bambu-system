@@ -5,6 +5,7 @@ import { AgentCard, CardNote } from "@/components/agent/cards/agent-card";
 import { AgentOpenBudgetButton } from "@/components/agent/cards/agent-open-budget-button";
 import { formatMoney } from "@/components/agent/format";
 import type { ListCardData } from "@/components/agent/types";
+import { MEMORY_URL } from "@/lib/agent/memory";
 import { getOfficialBudgetUrl } from "@/lib/agent/proposals";
 
 type Row = Record<string, unknown>;
@@ -101,6 +102,12 @@ const KINDS: Record<
     primary: (row) => text(row.category),
     detail: (row) => joined(row.costDate, row.job, row.employee, row.status),
     amount: (row) => row.amount,
+  },
+  memories: {
+    title: "Memoria",
+    primary: (row) => text(row.text),
+    href: () => MEMORY_URL,
+    detail: (row) => joined(row.kindLabel, text(row.expiresAt) ? `Vence ${String(row.expiresAt).slice(0, 10)}` : null),
   },
   employeePayments: {
     title: "Pagos a empleadas",

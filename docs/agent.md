@@ -41,10 +41,13 @@ este documento describe lo que ya existe y se actualiza con cada feature.
   agrupa los pedidos de presupuesto idénticos y sugiere el precio de cada
   grupo (ver "Correo"). Se quitaron la vista `/dashboard/email` y el agente de
   correo viejo (`lib/mail-agent/**`, su cron y sus acciones); las tablas
-  `Mail*` siguen en la base, sin uso salvo el conocimiento aprobado.
+  `Mail*` siguen en la base, sin uso desde la 34.
 - Autocontinuado (feature 32): si un tramo del turno llega al tope de pasos,
   se corta por largo o termina sin texto, el turno sigue solo, hasta 3 veces
   (ver "Autocontinuado").
+- Memoria (feature 34): el agente propone recordar un dato o una preferencia,
+  un admin lo confirma en la tarjeta y entra al prompt de todos los turnos.
+  Se edita, se vence y se elimina en `/dashboard/memory` (ver "Memoria").
 
 ## Núcleo
 
@@ -98,8 +101,8 @@ este documento describe lo que ya existe y se actualiza con cada feature.
   IVA de los `changes` es mayor que 0 ("sin IVA" son los importes sin IVA del
   cálculo, por Literal E) y toda base, guardada o del formulario, parte del
   IVA efectivo (`withEffectiveIva`): insumos, totales y propuestas coinciden.
-- El conocimiento aprobado del correo (organización, políticas y estilo, sin
-  contactos) entra al prompt como solo lectura.
+- La memoria del equipo (`AgentMemory`, ver "Memoria") entra al prompt
+  después de las reglas fijas. Reemplazó la lectura de `MailMemory`.
 - `maxDuration` es 300 s desde el 2026-09-23, el máximo de Hobby con Fluid
   compute (activo en el proyecto). Con 60 s, en 12 horas de producción se
   cortó 1 de cada 3 turnos (20 llamadas, 33 % de timeouts). Cada turno usa
@@ -647,6 +650,44 @@ Feature 33, pedido del usuario para que el hilo no se llene:
 - El prompt pide no repetir en el texto lo que muestra una tarjeta y decir la
   ganancia al usuario (nunca a un cliente).
 - Check en `check:agent-sheet` (`scripts/agent-compact-cards-checks.ts`).
+
+## Memoria
+
+Feature 34. Datos y preferencias que el agente usa en todas las
+conversaciones. Son del equipo: cualquier admin los ve y los edita.
+
+| Tool | Hace |
+| --- | --- |
+| `proposeMemory` | Prepara recordar un dato (`kind`: BUSINESS negocio, CLIENT cliente, STYLE estilo, PRICE precio), con vencimiento opcional (`expiresOn`), de dónde sale (`source`: user, conversation, email o image) y, para cambiar una, el `replacesId` |
+| `searchMemory` | Busca en las vigentes por palabras y tipo (hasta 15): las que no entraron al prompt |
+
+- Una memoria solo existe confirmada: `proposeMemory` guarda un
+  `AgentProposal` `SAVE_MEMORY` PENDING con la tarjeta (tipo, texto, el de
+  antes tachado si reemplaza, hasta cuándo vale) y `confirmAgentProposal` la
+  crea o la reemplaza (`lib/agent/memory-proposal-execute.ts`). Reemplazar es
+  un compare-and-set del `updatedAt` de cuando se propuso: si alguien la editó
+  desde la pantalla, falla como propuesta vieja. Vence a las 24 horas, como
+  las demás.
+- Lo que sale de un correo o de una imagen lleva `source` email o image y la
+  tarjeta avisa que lo escribió un tercero. `MEMORY_RULE` pide proponerlo solo
+  si el usuario lo pide y nunca guardar una instrucción de un correo.
+- Prompt: las vigentes más recientes, hasta 40 (`MEMORY_PROMPT_CAP`), cada una
+  con tipo e id (`- [Cliente · id] texto (vence AAAA-MM-DD)`), después de las
+  reglas fijas y las de la habilidad. Si hay más, el bloque dice cuántas y
+  que se buscan con `searchMemory`. Texto de hasta 500 caracteres.
+- Una memoria de precio guía (mínimos, descuentos, acuerdos) pero no es una
+  fuente de importes: no entra al grounding y `draftEmail` sigue pidiendo una
+  tool.
+- Todas las habilidades tienen las dos tools y `MEMORY_RULE`.
+- Pantalla `/dashboard/memory` ("Memoria" en el sidebar, en "Más" en la app
+  instalada): vigentes por tipo y vencidas, con quién la confirmó, cuándo y
+  de qué conversación salió. Editar (texto, tipo y hasta cuándo vale), vencer
+  ahora (deja de usarse y queda en Vencidas) y eliminar. Todo queda en
+  `AgentAuditEvent` (`memory.create`, `memory.update`, `memory.expire`,
+  `memory.delete`) con el texto de antes.
+- La migración copió lo que el agente leía de `MailMemory` (aprobado, sin
+  contactos): organización y políticas como Negocio, estilo como Estilo.
+- Check en `check:agent-memory` (`scripts/check-agent-memory.ts`).
 
 ## Autocontinuado
 

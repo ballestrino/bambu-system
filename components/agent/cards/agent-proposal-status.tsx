@@ -4,6 +4,7 @@ import Link from "next/link";
 import type { ProposalDisplayStatus } from "@/lib/agent/proposal-outcome";
 import type { AgentProposalDto, AgentProposalKind, ProposalResult } from "@/lib/agent/proposals";
 import { getBudgetUrl, getOfficialBudgetUrl } from "@/lib/agent/proposals";
+import { MEMORY_URL } from "@/lib/agent/memory";
 import { isVisitProposalKind, VISITS_URL } from "@/lib/agent/visit-proposals";
 import { cn } from "@/lib/utils";
 
@@ -90,6 +91,10 @@ export function ProposalOutcome({
         {isVisitProposalKind(kind) ? (
           <Link href={VISITS_URL} className="underline underline-offset-4">
             Revisá Visitas
+          </Link>
+        ) : kind === "SAVE_MEMORY" ? (
+          <Link href={MEMORY_URL} className="underline underline-offset-4">
+            Revisá la memoria
           </Link>
         ) : slug ? (
           <Link href={getBudgetUrl(slug)} className="underline underline-offset-4">
