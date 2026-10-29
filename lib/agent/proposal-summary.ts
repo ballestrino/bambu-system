@@ -5,6 +5,7 @@ import {
   type BudgetCalculation,
   type BudgetOptionRow,
 } from "@/lib/agent/budget-calculation";
+import { storedOptionProfit } from "@/lib/agent/budget-profit";
 import type { ProposalChange, ProposalSummary, StoredOptionPrice } from "@/lib/agent/proposals";
 import type { BudgetFormValues } from "@/schemas/BudgetSchema";
 
@@ -56,15 +57,20 @@ export const describeChanges = (before: BudgetFormValues, after: BudgetFormValue
     return from === to ? [] : [{ field, label: FIELD_LABELS[field], before: from, after: to }];
   });
 
+type StoredOption = { has_products: boolean; price: number; iva: number };
+
+// Con los insumos de la opción se puede calcular su ganancia; una lectura que
+// trae solo los precios la deja en null.
+const hasInputs = (option: StoredOption): option is BudgetOptionRow => "hours_per_visit" in option;
+
 // Las opciones guardadas, sin productos primero: son los precios vigentes.
-export const getStoredPrices = (budget: {
-  budgetOptions: { has_products: boolean; price: number; iva: number }[];
-}): StoredOptionPrice[] =>
+export const getStoredPrices = (budget: { budgetOptions: StoredOption[] }): StoredOptionPrice[] =>
   [...budget.budgetOptions]
     .sort((a, b) => Number(a.has_products) - Number(b.has_products))
     .map((option) => {
       const [net, iva, final] = getStoredOptionAmounts([option]);
-      return { hasProducts: option.has_products, net, iva, final };
+      const profit = hasInputs(option) ? storedOptionProfit(option, net) : null;
+      return { hasProducts: option.has_products, net, iva, final, profit };
     });
 
 // Los importes que una propuesta deja citar: exactamente los de su tarjeta

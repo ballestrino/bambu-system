@@ -3,7 +3,7 @@ import { roundMoney } from "@/lib/agent/tool-result";
 import {
   extractQuotedMoneyAmounts,
   getGroundedPriceMismatch,
-} from "@/lib/mail-agent/price-grounding";
+} from "@/lib/agent/price-grounding";
 
 // Qué importes puede citar el agente: los que devolvió una tool en esta
 // conversación. Las tools que dan importes los declaran en `grounding`, así

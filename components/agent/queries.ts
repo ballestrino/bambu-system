@@ -5,6 +5,7 @@ import {
   getConversationAction,
   getConversationCostAction,
   getMonthlyCostAction,
+  getSavedBudgetAction,
   listConversationsAction,
   listProposalsAction,
 } from "@/components/agent/actions/agent-reads.action";
@@ -53,6 +54,15 @@ export const monthlyCostQuery = (month: string | null) =>
   queryOptions({
     queryKey: agentKeys.monthlyUsage(month),
     queryFn: () => getMonthlyCostAction(month),
+  });
+
+// Un presupuesto guardado que se abre en el Sheet del chat. Fresco cada vez
+// que se abre: lo pueden haber cambiado en otra pestaña.
+export const savedBudgetQuery = (slug: string) =>
+  queryOptions({
+    queryKey: agentKeys.savedBudget(slug),
+    queryFn: () => getSavedBudgetAction(slug),
+    staleTime: 0,
   });
 
 const REFRESH_AGAIN_MS = 4000;

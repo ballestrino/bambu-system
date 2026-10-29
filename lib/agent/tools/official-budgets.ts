@@ -6,6 +6,7 @@ import {
   getOfficialBudgetAction,
   getOfficialBudgetsAction,
 } from "@/components/official-budgets/actions/official-budget-reads";
+import { officialOptionProfit } from "@/lib/agent/budget-profit";
 import { addToolGrounding, type OfficialSource } from "@/lib/agent/grounding";
 import type { AgentToolContext } from "@/lib/agent/tools/context";
 import { runTool, toolError, toolOk } from "@/lib/agent/tool-result";
@@ -21,7 +22,7 @@ import {
 
 type SearchMatch = OfficialBudgetSearchResult["matches"][number];
 
-const matchToSource = (match: SearchMatch): OfficialSource => ({
+export const matchToSource = (match: SearchMatch): OfficialSource => ({
   sourceOptionId: match.sourceOptionId,
   officialBudgetId: match.officialBudget.id,
   name: match.officialBudget.name,
@@ -59,6 +60,7 @@ export const createOfficialBudgetTools = (ctx: AgentToolContext) => ({
           matches: result.matches.map((match) => ({
             ...matchToSource(match),
             serviceName: match.service.name,
+            profit: match.profit,
             conditions: match.conditions,
             monthlyHours: match.workload.monthlyHours,
           })),
@@ -115,6 +117,7 @@ export const createOfficialBudgetTools = (ctx: AgentToolContext) => ({
           hoursPerVisit: option.hoursPerVisit,
           employees: option.employees,
           monthlyHours: option.monthlyWorkload,
+          profit: officialOptionProfit(option),
           prices: {
             net: option.netPrice,
             ivaAmount: option.ivaAmount,

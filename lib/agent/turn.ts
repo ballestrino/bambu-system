@@ -119,6 +119,7 @@ export const finishAgentTurn = async (input: {
   mode: AgentMode;
   skill: AgentSkillId;
   entries: UsageEntry[];
+  autoContinues: number;
   stopped: boolean;
 }) => {
   try {
@@ -140,6 +141,7 @@ export const finishAgentTurn = async (input: {
     metadata: {
       ...metadata,
       ...(!metadata?.usage && input.entries.length ? { usage: summarizeUsage(input.entries) } : {}),
+      ...(input.autoContinues ? { autoContinues: input.autoContinues } : {}),
       ...(input.stopped ? { stopped: true } : {}),
     },
   };

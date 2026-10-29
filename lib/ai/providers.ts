@@ -6,7 +6,7 @@ import { hasGatewayCredentials, type ModelSpec } from "@/lib/ai/model-spec";
 
 export { hasGatewayCredentials };
 
-// Factories perezosas, como lib/mail-agent/openai-client.ts: importar este
+// Factories perezosas: importar este
 // módulo no crea proveedores ni lee claves, así el build y las rutas que no
 // usan IA no dependen de que el entorno esté configurado.
 let openAIProvider: OpenAIProvider | undefined;

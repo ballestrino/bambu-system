@@ -62,7 +62,8 @@ export type ProposalChange = {
   after: ProposalValue;
 };
 
-export type StoredOptionPrice = { hasProducts: boolean; net: number; iva: number; final: number };
+// profit: la ganancia mensual (budget-profit.ts); las de antes de la 33 no la traen.
+export type StoredOptionPrice = { hasProducts: boolean; net: number; iva: number; final: number; profit?: number | null };
 
 // Lo que muestra la tarjeta. Se guarda con la propuesta: nada se recalcula
 // al mostrarla.

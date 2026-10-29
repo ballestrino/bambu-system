@@ -1,5 +1,6 @@
 import "server-only";
 
+import { officialOptionProfit } from "@/lib/agent/budget-profit";
 import { db } from "@/lib/db";
 import {
   classifyOfficialBudgetSearch,
@@ -88,6 +89,14 @@ const serializeMatch = (
     final: Number(item.option.finalPrice),
     hourlyNet: Number(item.option.hourlyPrice),
   },
+  // La ganancia mensual: el precio sin IVA publicado menos el costo guardado
+  // al publicarlo. No se cita a clientes.
+  profit: officialOptionProfit({
+    hasProducts: item.option.hasProducts,
+    netPrice: Number(item.option.netPrice),
+    calculatedServiceCostBasis: Number(item.option.calculatedServiceCostBasis),
+    productsCost: Number(item.option.productsCost),
+  }),
   workload: {
     effectiveMonthlyVisits: Number(item.option.effectiveMonthlyVisits),
     monthlyHours: Number(item.option.monthlyWorkload),

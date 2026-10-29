@@ -9,7 +9,8 @@ import type { EmailCardData } from "@/components/agent/types";
 import { getOfficialBudgetUrl } from "@/lib/agent/proposals";
 
 // Borrador de correo o WhatsApp ya validado: cada importe tiene fuente en la
-// conversación y la nota de Literal E está. No se envía nada desde acá.
+// conversación y la nota de Literal E está. Si responde un correo de la
+// casilla, dice cuál y desde qué dirección. No se envía nada desde acá.
 export function AgentEmailCard({ data }: { data: EmailCardData }) {
   const whatsapp = data.channel === "whatsapp";
   return (
@@ -19,6 +20,13 @@ export function AgentEmailCard({ data }: { data: EmailCardData }) {
       subtitle={data.to ? `Para: ${data.to}` : whatsapp ? null : "Correo sin destinatario"}
       aside={<AgentCopyMenu content={data.body} subject={whatsapp ? null : data.subject} />}
     >
+      {data.replyTo && (
+        <p className="text-xs break-words">
+          <span className="text-muted-foreground">Responde a: </span>
+          {data.replyTo.subject} · {data.replyTo.from}
+          {data.replyTo.when ? ` · ${data.replyTo.when}` : ""} · desde {data.replyTo.mailboxAddress}
+        </p>
+      )}
       {!whatsapp && data.subject && (
         <p className="text-xs">
           <span className="text-muted-foreground">Asunto: </span>

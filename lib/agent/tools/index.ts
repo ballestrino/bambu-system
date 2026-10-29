@@ -1,11 +1,13 @@
 import "server-only";
 
+import { createBudgetRequestTools } from "@/lib/agent/tools/budget-requests";
 import { createBudgetTools } from "@/lib/agent/tools/budgets";
 import { createBusinessTools } from "@/lib/agent/tools/business";
 import { createCalculationTools } from "@/lib/agent/tools/calculations";
 import type { AgentToolContext } from "@/lib/agent/tools/context";
 import { createEmailTools } from "@/lib/agent/tools/email";
 import { createFinanceTools } from "@/lib/agent/tools/finance";
+import { createMailboxTools } from "@/lib/agent/tools/mailbox";
 import { createOfficialBudgetTools } from "@/lib/agent/tools/official-budgets";
 import { createOperationsTools } from "@/lib/agent/tools/operations";
 import { createPayrollTools } from "@/lib/agent/tools/payroll";
@@ -26,6 +28,8 @@ export const createAgentTools = (ctx: AgentToolContext) => ({
   ...createFinanceTools(),
   ...createPayrollTools(),
   ...createOperationsTools(),
+  ...createMailboxTools(),
+  ...createBudgetRequestTools(ctx),
   ...createEmailTools(ctx),
   ...createProposalTools(ctx),
   ...createVisitTools(ctx),

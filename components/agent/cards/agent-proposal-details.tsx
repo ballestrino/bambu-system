@@ -2,6 +2,7 @@ import { BudgetPriceTable } from "@/components/agent/cards/agent-budget-totals-c
 import { AgentProposalItems, type ProposalItemsSelection } from "@/components/agent/cards/agent-proposal-items";
 import { formatChangeValue, formatMoney } from "@/components/agent/format";
 import type { BudgetCalculation } from "@/lib/agent/budget-calculation";
+import { calculationProfit } from "@/lib/agent/budget-profit";
 import type { ProposalSummary } from "@/lib/agent/proposals";
 
 type DiffRow = { key: string; label: string; before: React.ReactNode; after: React.ReactNode };
@@ -28,13 +29,20 @@ function DiffRows({ rows }: { rows: DiffRow[] }) {
   );
 }
 
-const optionRows = (calculation: BudgetCalculation) => [
-  { label: "Final sin productos", value: calculation.withoutProducts.final },
-  { label: "Hora sin IVA", value: calculation.withoutProducts.hourlyNet },
-  ...(calculation.withProducts
-    ? [{ label: "Final con productos", value: calculation.withProducts.final }]
-    : []),
-];
+const optionRows = (calculation: BudgetCalculation) => {
+  const profit = calculationProfit(calculation);
+  return [
+    { label: "Sin IVA sin productos", value: calculation.withoutProducts.net },
+    { label: "Ganancia sin productos", value: profit.withoutProducts },
+    { label: "Hora sin IVA", value: calculation.withoutProducts.hourlyNet },
+    ...(calculation.withProducts
+      ? [
+          { label: "Sin IVA con productos", value: calculation.withProducts.net },
+          { label: "Ganancia con productos", value: profit.withProducts },
+        ]
+      : []),
+  ];
+};
 
 const changeRows = (changes: ProposalSummary["changes"]): DiffRow[] =>
   changes.map((change) => ({
@@ -63,7 +71,11 @@ function StoredPrices({ stored }: { stored: ProposalSummary["stored"] }) {
         <div key={String(option.hasProducts)} className="flex items-baseline justify-between gap-3">
           <span className="text-ops-text-muted">{option.hasProducts ? "Con productos" : "Sin productos"}</span>
           <span className="text-right">
-            {formatMoney(option.net)} + IVA = <span className="font-semibold">{formatMoney(option.final)}</span>
+            <span className="font-semibold">{formatMoney(option.net)} + IVA</span>
+            {typeof option.profit === "number" && (
+              <span className="text-ops-bamboo-strong"> · ganancia {formatMoney(option.profit)}</span>
+            )}
+            <span className="block text-[11px] text-ops-text-muted">con IVA {formatMoney(option.final)}</span>
           </span>
         </div>
       ))}

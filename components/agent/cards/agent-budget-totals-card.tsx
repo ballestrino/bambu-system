@@ -2,13 +2,14 @@ import { Calculator, FileText } from "lucide-react";
 
 import type { BudgetEditorTarget } from "@/components/agent/hooks/use-budget-editor";
 import { AgentBudgetActions } from "@/components/agent/cards/agent-budget-actions";
-import { AgentCard, CardNote, CardOpenLink, CardRow } from "@/components/agent/cards/agent-card";
+import { AgentCard, CardNote, CardRow } from "@/components/agent/cards/agent-card";
+import { AgentOpenBudgetButton } from "@/components/agent/cards/agent-open-budget-button";
 import { formatHours, formatMoney, formatPercent, formatVisits } from "@/components/agent/format";
 import type { BudgetTotalsCardData } from "@/components/agent/types";
 import type { BudgetCalculation } from "@/lib/agent/budget-calculation";
 import { valuesFromInputs } from "@/lib/agent/budget-draft";
+import { calculationProfit } from "@/lib/agent/budget-profit";
 import { FIELD_LABELS } from "@/lib/agent/proposal-summary";
-import { getBudgetUrl } from "@/lib/agent/proposals";
 
 const BASE_LABELS = {
   context: "Presupuesto en contexto",
@@ -45,17 +46,22 @@ const describeInputs = (inputs: Inputs) =>
     `margen ${formatPercent(inputs.revenuePercent)}`,
   ].join(" · ");
 
-// Sin y con productos lado a lado: es lo primero que se compara.
+// Sin y con productos lado a lado: es lo primero que se compara. Manda el
+// precio sin IVA, con la ganancia debajo; el precio con IVA queda en gris.
 export function BudgetPriceTable({ calculation }: { calculation: BudgetCalculation }) {
+  const profit = calculationProfit(calculation);
   const options = [
-    { label: "Sin productos", prices: calculation.withoutProducts },
-    ...(calculation.withProducts ? [{ label: "Con productos", prices: calculation.withProducts }] : []),
+    { label: "Sin productos", prices: { ...calculation.withoutProducts, profit: profit.withoutProducts } },
+    ...(calculation.withProducts
+      ? [{ label: "Con productos", prices: { ...calculation.withProducts, profit: profit.withProducts ?? 0 } }]
+      : []),
   ];
   const rows = [
-    { label: "Sin IVA", key: "net" },
-    { label: `IVA ${formatPercent(calculation.ivaPercent)}`, key: "iva" },
-    { label: "Final", key: "final" },
-    { label: "Hora sin IVA", key: "hourlyNet" },
+    { label: "Sin IVA", key: "net", className: "font-semibold" },
+    { label: "Ganancia", key: "profit", className: "font-semibold text-ops-bamboo-strong" },
+    { label: `IVA ${formatPercent(calculation.ivaPercent)}`, key: "iva", className: "text-ops-text-muted" },
+    { label: "Con IVA", key: "final", className: "text-ops-text-muted" },
+    { label: "Hora sin IVA", key: "hourlyNet", className: undefined },
   ] as const;
   return (
     <table className="w-full text-sm tabular-nums">
@@ -69,7 +75,7 @@ export function BudgetPriceTable({ calculation }: { calculation: BudgetCalculati
       </thead>
       <tbody>
         {rows.map((row) => (
-          <tr key={row.key} className={row.key === "final" ? "font-semibold" : undefined}>
+          <tr key={row.key} className={row.className}>
             <td className="py-0.5 text-ops-text-muted">{row.label}</td>
             {options.map((option) => (
               <td key={option.label} className="py-0.5 text-right">{formatMoney(option.prices[row.key])}</td>
@@ -81,22 +87,27 @@ export function BudgetPriceTable({ calculation }: { calculation: BudgetCalculati
   );
 }
 
-// El precio mensual final grande, con su base sin IVA y el IVA debajo; con
-// productos, también esa opción. A la derecha, qué cambió respecto de la base.
+// El precio mensual sin IVA grande, la ganancia exacta al lado y el precio
+// con IVA en gris debajo (pedido del usuario, feature 33); con productos,
+// también esa opción. A la derecha, qué cambió respecto de la base.
 function FinalPrice({ calculation, changed }: { calculation: BudgetCalculation; changed: string[] }) {
   const { withoutProducts, withProducts } = calculation;
+  const profit = calculationProfit(calculation);
   return (
     <div className="flex flex-wrap items-end justify-between gap-3">
       <div className="flex flex-col gap-0.5 tabular-nums">
-        <span className="text-xs text-ops-text-muted">Precio mensual final{withProducts ? " sin productos" : ""}</span>
-        <span className="text-2xl leading-tight font-semibold tracking-tight">{formatMoney(withoutProducts.final)}</span>
-        <span className="text-xs text-ops-text-muted">
-          {formatMoney(withoutProducts.net)} sin IVA · IVA {formatPercent(calculation.ivaPercent)} {formatMoney(withoutProducts.iva)}
+        <span className="text-xs text-ops-text-muted">Precio mensual{withProducts ? " sin productos" : ""}</span>
+        <span className="text-2xl leading-tight font-semibold tracking-tight">
+          {formatMoney(withoutProducts.net)} <span className="text-sm font-medium text-ops-text-muted">+ IVA</span>
+        </span>
+        <span className="text-xs">
+          <span className="font-semibold text-ops-bamboo-strong">Ganancia {formatMoney(profit.withoutProducts)}</span>
+          <span className="text-ops-text-muted"> · con IVA {formatMoney(withoutProducts.final)}</span>
         </span>
         {withProducts && (
           <span className="text-xs text-ops-text-muted">
-            Con productos: <span className="font-semibold text-ops-text">{formatMoney(withProducts.final)}</span> ·{" "}
-            {formatMoney(withProducts.net)} sin IVA
+            Con productos: <span className="font-semibold text-ops-text">{formatMoney(withProducts.net)} + IVA</span> ·
+            ganancia {formatMoney(profit.withProducts)} · con IVA {formatMoney(withProducts.final)}
           </span>
         )}
       </div>
@@ -138,7 +149,7 @@ export function AgentBudgetTotalsCard({ data, toolCallId }: { data: BudgetTotals
       icon={saved ? FileText : Calculator}
       title={saved ? name : `Cálculo · ${name}`}
       subtitle={saved ? describeInputs(data.inputs) : `${BASE_LABELS[data.base.source]} · ${describeInputs(data.inputs)}`}
-      aside={slug ? <CardOpenLink href={getBudgetUrl(slug)} /> : null}
+      aside={slug ? <AgentOpenBudgetButton slug={slug} /> : null}
     >
       <FinalPrice calculation={data.calculation} changed={changed} />
       {rounding && (

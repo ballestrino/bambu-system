@@ -19,6 +19,9 @@ export type AgentChatContextValue = {
   // un cálculo desde el editor.
   proposalForCall: (toolCallId: string) => AgentProposalDto | undefined;
   openBudget: (target: BudgetEditorTarget, tab: BudgetEditorTab) => void;
+  // Un presupuesto guardado que encontró el agente, en un Sheet encima del
+  // hilo: Abrir no saca de la conversación.
+  openSavedBudget: (slug: string) => void;
   hasBudgetDraft: (toolCallId: string) => boolean;
 };
 

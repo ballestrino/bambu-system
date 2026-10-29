@@ -3,6 +3,7 @@ import {
   listAgentConversations,
 } from "@/actions/agent/conversations";
 import { listAgentProposals } from "@/actions/agent/proposals";
+import { getAgentSavedBudget } from "@/actions/agent/saved-budget";
 import { getAgentSettings } from "@/actions/agent/settings";
 import { getAgentConversationCost, getAgentMonthlyCost } from "@/actions/agent/usage";
 import ValidationError from "@/instances/validation-error";
@@ -48,4 +49,10 @@ export const getMonthlyCostAction = async (month: string | null) => {
   const result = await getAgentMonthlyCost(month);
   if (!result.cost) throw new ValidationError(result.error ?? READ_ERROR);
   return result.cost;
+};
+
+export const getSavedBudgetAction = async (slug: string) => {
+  const result = await getAgentSavedBudget(slug);
+  if (!result.budget) throw new ValidationError(result.error ?? READ_ERROR);
+  return result.budget;
 };
