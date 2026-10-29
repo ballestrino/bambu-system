@@ -14,8 +14,9 @@ Status: active
   entra después de las reglas fijas. Pantalla `/dashboard/instructions` con
   reglas fijas, vigentes, historial y restaurar.
 - Verde: tsc, ESLint, todos los `check:agent-*` y `check:agent-instructions`.
-- Falta: aplicar la migración en Neon (pide permiso), el smoke del usuario y
-  el merge.
+- Migración aplicada en Neon el 2026-10-29 con autorización del usuario
+  (`prisma migrate deploy`; `migrate status` al día).
+- Falta: el smoke del usuario en la app y el merge.
 
 ## Blocked Feature
 
