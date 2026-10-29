@@ -1,4 +1,4 @@
-import { createIdGenerator, createUIMessageStreamResponse, toUIMessageStream } from "ai";
+import { createIdGenerator, createUIMessageStream, createUIMessageStreamResponse } from "ai";
 import { after } from "next/server";
 
 import { generateConversationTitle } from "@/lib/agent/conversation-title";
@@ -40,7 +40,7 @@ export async function POST(request: Request) {
     if (!turn.ok) return jsonError(turn.error, turn.status);
 
     const usage = createUsageCollector();
-    const { result, tools } = await runAgentTurn({
+    const { execute } = await runAgentTurn({
       actorId: actor.id,
       conversationId: body.id,
       mode: body.mode,
@@ -50,6 +50,7 @@ export async function POST(request: Request) {
       budgetContext: turn.budgetContext,
       grounding: turn.grounding,
       usage,
+      startMetadata: { mode: body.mode, skill: body.skill, createdAt: new Date().toISOString() },
       abortSignal: request.signal,
     });
 
@@ -65,17 +66,23 @@ export async function POST(request: Request) {
       );
     }
 
-    const stream = toUIMessageStream<typeof tools, AgentUIMessage>({
-      stream: result.stream,
-      tools,
+    // Un turno puede tener varios tramos si sigue solo (lib/agent/run.ts):
+    // todos van en un mismo mensaje, y el finish con el consumo sale al final.
+    let autoContinues = 0;
+    const stream = createUIMessageStream<AgentUIMessage>({
       originalMessages: turn.messages,
-      generateMessageId,
-      messageMetadata: ({ part }) => {
-        if (part.type === "start") {
-          return { mode: body.mode, skill: body.skill, createdAt: new Date().toISOString() };
-        }
-        if (part.type === "finish") return { usage: summarizeUsage(usage.entries()) };
-        return undefined;
+      generateId: generateMessageId,
+      execute: async ({ writer }) => {
+        const outcome = await execute(writer);
+        autoContinues = outcome.autoContinues;
+        if (!outcome.completed) return;
+        writer.write({
+          type: "finish",
+          messageMetadata: {
+            usage: summarizeUsage(usage.entries()),
+            ...(autoContinues ? { autoContinues } : {}),
+          },
+        });
       },
       onEnd: ({ responseMessage, isAborted }) =>
         finishAgentTurn({
@@ -84,6 +91,7 @@ export async function POST(request: Request) {
           mode: body.mode,
           skill: body.skill,
           entries: usage.entries(),
+          autoContinues,
           // Si el cliente cortó, el stream puede cerrarse antes de ver el abort.
           stopped: isAborted || request.signal.aborted,
         }),

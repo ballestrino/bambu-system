@@ -50,6 +50,11 @@ const KINDS: Record<
     },
     amount: (row) => storedNet(row, false),
   },
+  emails: {
+    title: "Correos",
+    primary: (row) => `${row.unread ? "● " : ""}${text(row.subject) ?? "(Sin asunto)"}`,
+    detail: (row) => joined(row.from, row.when, `${row.mailbox}@`, row.answered ? "Respondido" : null),
+  },
   officialBudgets: {
     title: "Presupuestos oficiales",
     primary: (row) => text(row.name),
@@ -132,6 +137,11 @@ export function AgentListCard({ data }: { data: ListCardData }) {
           })}
         </ul>
       )}
+      {data.warnings?.map((warning) => (
+        <CardNote key={warning} tone="warning">
+          {warning}
+        </CardNote>
+      ))}
       {typeof data.recordedTotal === "number" && (
         <CardNote>Total registrado: {formatMoney(data.recordedTotal)}</CardNote>
       )}

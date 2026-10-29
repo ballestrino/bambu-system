@@ -4,7 +4,6 @@ import {
   CalendarDays,
   LayoutDashboard,
   List,
-  Mail,
   Sparkles,
   type LucideIcon,
 } from "lucide-react";
@@ -57,17 +56,6 @@ export const dashboardNavGroups: { label: string; items: DashboardNavItem[] }[] 
       ...item,
       match: (pathname: string) => isOpsNavItemActive(pathname, item.url),
     })),
-  },
-  {
-    label: "Comunicaciones",
-    items: [
-      {
-        title: "Correo",
-        url: "/dashboard/email",
-        icon: Mail,
-        match: (pathname: string) => pathname.startsWith("/dashboard/email"),
-      },
-    ],
   },
   {
     label: "Asistente",

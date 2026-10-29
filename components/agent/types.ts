@@ -37,7 +37,7 @@ export type OfficialSearchCardData = AgentToolData<"searchOfficialBudgets">;
 
 export type OfficialBudgetCardData = AgentToolData<"getOfficialBudget">;
 
-// Las tres tools de listas (presupuestos, oficiales y operaciones) comparten
+// Las tools de listas (presupuestos, oficiales, operaciones y correos) comparten
 // la tarjeta; cada tipo trae columnas distintas.
 export type ListCardData = {
   kind: string;
@@ -47,7 +47,12 @@ export type ListCardData = {
   month?: string;
   day?: string;
   recordedTotal?: number;
+  warnings?: string[];
 };
+
+export type EmailMessageCardData = AgentToolData<"readEmail">;
+
+export type BudgetRequestsCardData = AgentToolData<"groupBudgetRequests">;
 
 export type AgentConversationItem = Success<
   ReturnType<typeof listAgentConversations>

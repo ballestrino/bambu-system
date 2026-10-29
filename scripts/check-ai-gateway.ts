@@ -10,7 +10,6 @@ import { MODEL_PRICES, estimateUsageCost, formatUsd, getPriceEnvKey } from "../l
 import { getGatewayProvider, getOpenAIProvider, hasGatewayCredentials, resolveLanguageModel } from "../lib/ai/providers";
 import { getAiSafetyIdentifier } from "../lib/ai/safety-identifier";
 import { EMPTY_USAGE, normalizeUsage, readGatewayCost, sumUsage } from "../lib/ai/usage";
-import { getMailSafetyIdentifier } from "../lib/mail-agent/openai-client";
 
 import "./ai-mode-checks";
 import "./ai-claude-checks";
@@ -39,12 +38,9 @@ assert.match(
   /TITLE_MAX_OUTPUT_TOKENS = 8_000;/
 );
 
-// --- Safety identifier: the mail namespace stays byte-identical to the mail
-// agent's, and the agent namespace never collides with it.
-["user-1", "shared-mail-sync"].forEach((actorId) =>
-  assert.equal(getAiSafetyIdentifier("mail", actorId), getMailSafetyIdentifier(actorId))
-);
-assert.notEqual(getAiSafetyIdentifier("agent", "user-1"), getAiSafetyIdentifier("mail", "user-1"));
+// --- Safety identifier: stable, pseudonymous and different per user.
+assert.equal(getAiSafetyIdentifier("agent", "user-1"), getAiSafetyIdentifier("agent", "user-1"));
+assert.notEqual(getAiSafetyIdentifier("agent", "user-1"), getAiSafetyIdentifier("agent", "user-2"));
 assert.match(getAiSafetyIdentifier("agent", "user-1"), /^[0-9a-f]{64}$/);
 
 // --- Providers: importing them above read no keys; the first use fails in

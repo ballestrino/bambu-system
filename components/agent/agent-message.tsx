@@ -8,6 +8,7 @@ import { AgentToolRun, type AgentToolUIPart } from "@/components/agent/agent-too
 import type { TurnNotice } from "@/components/agent/hooks/use-agent-session";
 import type { AgentUIMessage } from "@/components/agent/types";
 import { Button } from "@/components/ui/button";
+import { formatAutoContinues } from "@/lib/agent/auto-continue";
 import { getMessageImages, getMessageText } from "@/lib/agent/messages";
 import { AGENT_SKILLS } from "@/lib/agent/skills";
 import { formatUsageDetail, formatUsageLine } from "@/lib/agent/usage-format";
@@ -40,6 +41,7 @@ function UsageLine({
     );
   }
   const stopped = notice === "stopped" || message.metadata?.stopped;
+  const continued = formatAutoContinues(message.metadata?.autoContinues);
   if (!usage) {
     return stopped ? (
       <p className="text-[11px] text-ops-text-muted">Respuesta detenida · sin consumo medido</p>
@@ -49,6 +51,7 @@ function UsageLine({
     <p className="text-[11px] tabular-nums text-ops-text-muted" title={formatUsageDetail(usage)}>
       {stopped ? "Respuesta detenida · " : ""}
       {formatUsageLine(usage, message.metadata?.mode)}
+      {continued ? ` · ${continued}` : ""}
     </p>
   );
 }

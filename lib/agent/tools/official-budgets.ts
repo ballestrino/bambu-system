@@ -21,7 +21,7 @@ import {
 
 type SearchMatch = OfficialBudgetSearchResult["matches"][number];
 
-const matchToSource = (match: SearchMatch): OfficialSource => ({
+export const matchToSource = (match: SearchMatch): OfficialSource => ({
   sourceOptionId: match.sourceOptionId,
   officialBudgetId: match.officialBudget.id,
   name: match.officialBudget.name,

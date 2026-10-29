@@ -15,6 +15,8 @@ export type AgentMessageMetadata = {
   usage?: TurnUsageSummary;
   // La respuesta se detuvo antes de terminar (Stop o pedido cortado).
   stopped?: boolean;
+  // Cuántas veces el turno siguió solo (lib/agent/auto-continue.ts).
+  autoContinues?: number;
 };
 
 export type AgentUITools = InferUITools<AgentTools>;

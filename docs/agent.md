@@ -36,7 +36,15 @@ este documento describe lo que ya existe y se actualiza con cada feature.
   defecto), Sonnet 5.5 (Alto) y Opus 5.5 (Medio) junto a los de OpenAI. El
   composer elige modelo y después esfuerzo, con el costo por mensaje de cada
   uno (ver "Modos" y "Claude").
-- El agente de correo (`lib/mail-agent/**`) no usa esta capa y no cambia.
+- Correo (feature 32): el agente lee en vivo las casillas de Hostinger
+  contacto@ y comercial@, sugiere qué hacer, prepara una respuesta por correo,
+  agrupa los pedidos de presupuesto idénticos y sugiere el precio de cada
+  grupo (ver "Correo"). Se quitaron la vista `/dashboard/email` y el agente de
+  correo viejo (`lib/mail-agent/**`, su cron y sus acciones); las tablas
+  `Mail*` siguen en la base, sin uso salvo el conocimiento aprobado.
+- Autocontinuado (feature 32): si un tramo del turno llega al tope de pasos,
+  se corta por largo o termina sin texto, el turno sigue solo, hasta 3 veces
+  (ver "Autocontinuado").
 
 ## Núcleo
 
@@ -68,7 +76,8 @@ este documento describe lo que ya existe y se actualiza con cada feature.
   `searchBudgets`, `findMatchingBudgets` (reglas de precio), `getBudget`,
   `calculateBudget`, `solveForTargetPrice`,
   `getFinancialSnapshot`, `getFinancialTrend`, `getJobProfitability`,
-  `getPayrollSummary`, `queryOperations` (visitas del mes o de un `day`) y
+  `getPayrollSummary`, `queryOperations` (visitas del mes o de un `day`),
+  `listEmails`, `readEmail` y `groupBudgetRequests` (ver "Correo") y
   `draftEmail`. Devuelven
   `{ ok, data } | { ok: false, error }` con `card` para la UI; `runTool` pasa
   cada salida por `toPlainJson`, así nunca llega un `Decimal` ni un `Date`.
@@ -552,13 +561,93 @@ Presupuestos iguales y pedidos de presupuesto:
   guardado igual, y recién entonces calcular.
 - Emails, ante un correo que pide presupuesto: saca el servicio del correo,
   sigue esos pasos, redacta con el precio y, si lo tuvo que calcular,
-  propone guardarlo. El correo se pega en el chat: el agente no lee la
-  bandeja.
-- `MAX_STEPS` es 8: ese flujo usa 6 pasos (buscar el oficial, buscar uno
-  igual, calcular, redactar, proponer y contestar). En el smoke tardó 26 s en
+  propone guardarlo. Desde la 32 lee el correo de la casilla (o el que se
+  pega en el chat).
+- `MAX_STEPS` era 8 (ese flujo usa 6 pasos: buscar el oficial, buscar uno
+  igual, calcular, redactar, proponer y contestar) y desde la 32 es 12 por
+  tramo, con autocontinuado. En el smoke de la 44 tardó 26 s en
   Medio con `gpt-5.6-terra`; el turno más largo fue de 32 s. Con los modos de
   gpt-6 (Medio razona con `xhigh`) los turnos se alargaron, y
   `maxDuration` subió a 300 s (ver "Núcleo").
+
+## Correo
+
+Feature 32. El agente lee las casillas de Hostinger en vivo por IMAP, sin
+guardar correos en la base. Solo lee: no envía, no marca como leído, no
+mueve ni borra.
+
+| Tool | Hace |
+| --- | --- |
+| `listEmails` | Correos de una casilla o de las dos (`mailbox` null), recibidos o enviados, sin leer, de los últimos `days` (14, hasta 90), con búsqueda en asunto, remitente o cuerpo; 15 por defecto, hasta 40, del más nuevo al más viejo. Cada fila trae `ref`, remitente, asunto, fecha de Montevideo, sin leer, respondido y el comienzo del texto |
+| `readEmail` | Hasta 8 correos por `refs` en una llamada: remitente, Reply-To, destinatarios, asunto, fecha, texto sin la conversación citada (6.000 caracteres; lo citado aparte, 1.500) y nombres de adjuntos |
+| `groupBudgetRequests` | Los pedidos de presupuesto que el modelo sacó de los correos (lugar, frecuencia, visitas, horas, empleadas, productos), agrupados por servicio idéntico, con el precio de cada grupo |
+| `draftEmail` con `replyToRef` | Responde ese correo: destinatario, "Re: asunto" y el texto del cliente en el prompt |
+
+- Casillas en `lib/mailbox/accounts.ts` (puro): contacto@ con las variables
+  de siempre y comercial@ con las suyas (ver "Entorno"). Una casilla sin
+  configurar o que no responde se informa en la tarjeta y no frena a la otra.
+- Un `ref` es `casilla/carpeta/UID` (`contacto/inbox/1455`). Si Hostinger
+  cambia el UIDVALIDITY de la carpeta, un ref viejo deja de existir: se vuelve
+  a listar.
+- `withMailboxFolder` (`lib/mailbox/imap.ts`) abre una conexión por lectura y
+  la carpeta con EXAMINE (`readOnly`); imapflow lee con `BODY.PEEK`. Probado
+  en la casilla real: abrir un correo sin leer lo deja sin leer. Para la
+  lista se traen los primeros 24 KB de cada correo; para abrirlos, 1 MB (un
+  adjunto grande queda afuera, el texto no). Un iPhone pone el adjunto antes
+  del texto: en la lista ese correo viene sin comienzo, y `readEmail` lo lee.
+- El texto de un correo es de un tercero: `MAIL_RULE` (General y Emails) y
+  las reglas de respuesta de `draftEmail` lo tratan como dato, nunca como
+  instrucciones, y en el prompt del borrador va entre `<correo>`.
+- Los pedidos del formulario de la web ("Petición de servicio Web") llegan
+  desde contacto@: el cliente está en el texto. `draftEmail` no responde a una
+  casilla propia: sin `to`, falla con `missing_recipient` y el modelo manda el
+  email del texto.
+- Los adjuntos no se leen, solo su nombre: el modelo lo dice y pide que lo
+  peguen o lo describan.
+- Pedidos iguales (`lib/agent/budget-requests.ts`, puro): mismo lugar (hogar,
+  oficina, edificio u otro), frecuencia, visitas, horas, empleadas (null es 1)
+  y productos; el mismo correo cuenta una vez. Por grupo (hasta 12) se busca
+  el oficial vigente con el lugar como servicio y los guardados iguales
+  (`findAgentBudgetsByService`, que no mira el lugar). Sugerencia: un oficial
+  exact gana, si no el guardado igual más reciente, si no hay que calcular
+  una vez con `calculateBudget`. Las opciones son las que pidió el cliente o
+  las dos. Los importes entran al grounding: `draftEmail` los puede citar.
+- Varias respuestas son varias llamadas a `draftEmail`, una por correo (o
+  por versión, si piden alternativas). Las tarjetas se copian y se envían
+  desde la casilla.
+- Smoke del 2026-10-28 con Haiku 5.5 Alto sobre contacto@ real, sin escribir
+  en la base: revisar los pedidos de 14 días, agrupar, sugerir precio y
+  redactar dos respuestas usó 8 tools y US$ 0,016; el email del cliente salió
+  del texto del formulario. comercial@ quedó sin probar: faltan sus
+  variables.
+
+## Autocontinuado
+
+Feature 32. Un turno corre en tramos de hasta `MAX_STEPS` (12) pasos.
+`runAgentTurn` (`lib/agent/run.ts`) mira cómo terminó cada tramo
+(`getContinueReason`, `lib/agent/auto-continue.ts`, puro) y, si no terminó la
+tarea, arranca otro con el historial del tramo y un aviso para el modelo:
+
+| Motivo | Cuándo |
+| --- | --- |
+| `steps` | Llegó al tope de pasos con una tool como último paso (pasaba al preparar 8 propuestas: el turno cerraba sin una palabra) |
+| `length` | La respuesta se cortó por el tope de tokens de salida |
+| `empty` | El modelo cerró sin texto (en la base había turnos de solo razonamiento) |
+
+- Hasta 3 veces por turno (`MAX_AUTO_CONTINUES`), por si el modelo entra en
+  un bucle; nunca después de Stop, de un error o de un corte.
+- Todos los tramos van en un mismo mensaje: la ruta arma el stream con
+  `createUIMessageStream` y cada tramo se copia entero antes de empezar el
+  siguiente (sin `writer.merge`, que podría mezclarlos). Un solo `start` y un
+  solo `finish`, con el consumo de todos los tramos.
+- El aviso ("(Aviso del sistema: …)") lo ve solo el modelo: no se guarda.
+- La respuesta guarda `autoContinues` en la metadata y la línea de uso dice
+  "siguió sola 1 vez".
+- El prompt pide terminar la tarea sin parar a preguntar si sigue
+  (`TOOL_POLICY`): en el smoke, sin esa regla, el modelo cortaba con
+  "¿Sigo?".
+- Smoke con Haiku 5.5 Alto: abrir 14 correos de a uno usó 15 tools, siguió
+  sola una vez y cerró con la tabla (US$ 0,011).
 
 ## Imágenes y dictado
 
@@ -658,8 +747,8 @@ Dictado:
   se pregunta (`NEW_BUDGET_RULE`, las habilidades Presupuestos y Emails y el
   perfil del negocio). `searchOfficialBudgets` del agente busca con 1 cuando
   llega `null`; antes quedaba `incomplete` y el agente preguntaba. La búsqueda
-  compartida (`lib/official-budgets/search.ts`) no cambia: el agente de correo
-  sigue tratando `null` como dato faltante. `findMatchingBudgets` y
+  compartida (`lib/official-budgets/search.ts`) no cambia: sigue tratando
+  `null` como dato faltante. `findMatchingBudgets` y
   `calculateBudget` ya usaban 1.
 
 ## Modos
@@ -734,7 +823,7 @@ modelo (agrupado por proveedor) y después los esfuerzos de ese modelo
 | `lib/ai/model-choices.ts` | Modelos del selector, con sus modos y el recomendado. Puro |
 | `lib/ai/model-spec.ts` | `resolveModelSpec(mode, env)`, `resolveTitleModelSpec`, `resolveDefaultMode`, `hasProviderCredentials`. Puro |
 | `lib/ai/providers.ts` | `getOpenAIProvider`, `getAnthropicProvider`, `getGatewayProvider` y `resolveLanguageModel(spec)`, perezosos |
-| `lib/ai/safety-identifier.ts` | `getAiSafetyIdentifier('agent' \| 'mail', actorId)` |
+| `lib/ai/safety-identifier.ts` | `getAiSafetyIdentifier('agent', actorId)` |
 | `lib/ai/call-settings.ts` | `buildAgentCallSettings(spec, { actorId })` |
 | `lib/ai/pricing.ts` | Tabla de precios, `estimateUsageCost`, `formatUsd`. Puro |
 | `lib/ai/usage.ts` | `normalizeUsage`, `sumUsage`, `readGatewayCost`. Puro |
@@ -762,6 +851,10 @@ Reglas:
 | `AI_DEFAULT_MODE` | `haiku_high` (`bajo` sin clave de Anthropic) | Cualquier id de la tabla de modos |
 | `AI_MODEL_<MODO>` | tabla de modos | Id del modelo del modo, en mayúsculas (`BAJO`, `HAIKU_HIGH`…). Un id `claude-*` va a Anthropic |
 | `AI_REASONING_<MODO>` | tabla de modos | `provider-default`, `none`, `minimal`, `low`, `medium`, `high` o `xhigh` |
+| `HOSTINGER_IMAP_HOST`, `HOSTINGER_IMAP_PORT`, `HOSTINGER_IMAP_SECURE` | —, 993, `true` | Servidor IMAP de las dos casillas |
+| `HOSTINGER_MAIL_USER`, `HOSTINGER_MAIL_PASSWORD` | — | Casilla contacto@. Sin ellas, `listEmails` la informa como no configurada |
+| `HOSTINGER_COMERCIAL_MAIL_USER`, `HOSTINGER_COMERCIAL_MAIL_PASSWORD` | — | Casilla comercial@, igual |
+| `HOSTINGER_SENT_FOLDER` | `Sent` | Enviados, si la casilla no marca la carpeta con `\Sent` |
 | `AI_TRANSCRIPTION_MODEL` | `gpt-transcribe` | Modelo del dictado. Siempre va directo a OpenAI con `OPENAI_API_KEY` |
 | `AI_PRICE_<MODELO>` | tabla de precios | `entrada,cacheada,salida[,escritura]` en USD por millón, con punto decimal. Sin el cuarto valor, la escritura de caché se cobra 1,25 veces la entrada, como en gpt-6 y gpt-5.6. Un campo vacío, una coma de más, hexadecimal o exponente lanzan un error |
 
@@ -903,8 +996,8 @@ en USD por millón de tokens:
   conversación conserva su selección, el historial conserva el modo,
   el enum de la base con todos los modos y las etiquetas de
   cada generación, en `scripts/ai-mode-checks.ts`), overrides, prefijo del
-  gateway, errores de entorno, identificador de seguridad igual al del
-  correo, settings con `store: false`, costos con y sin precio (Luna 6 y
+  gateway, errores de entorno, identificador de seguridad estable y distinto
+  por usuario, settings con `store: false`, costos con y sin precio (Luna 6 y
   Sol 6 más baratos que Terra), overrides de precio mal escritos
   (campos vacíos, coma de más, hexadecimal, exponente), la escritura de caché
   por defecto (1,25 veces la entrada), credenciales del gateway con clave u
@@ -919,7 +1012,13 @@ en USD por millón de tokens:
   por `runTool` y, por texto fuente, que las tools no escriben ni generan
   visitas, que la migración no toca `Chat` ni `Message`, que reenviar un id
   exige el mismo texto, que el título no pisa un renombrado y que el top 10
-  del mes ordena por uso con precio.
+  del mes ordena por uso con precio. Desde la 32 incluye
+  `scripts/agent-mailbox-checks.ts`: casillas y variables, refs, texto sin lo
+  citado (Gmail en dos líneas, Outlook, ">") y recortes, pedidos iguales y sus
+  opciones, `replyToRef` y el correo como dato en el prompt, `MAIL_RULE` por
+  habilidad, los motivos del autocontinuado y, por texto fuente, el tope de 3,
+  el corte con Stop, los tramos en orden, un `finish`, la carpeta en
+  `readOnly`, que ninguna tool de correo escribe y que la vista vieja no está.
 - `pnpm check:agent-proposals`: los cuatro constructores (valores iguales a
   `calculateBudget`, categorías conservadas, antes y después, avisos, slug
   solo con el nombre, sin cambios, sin nombre, valores inválidos,

@@ -8,7 +8,7 @@ export const generalSkill: AgentSkill = {
   description: "Sin habilidad fija: usa todas las herramientas.",
   instructions: [
     "Sin habilidad fija.",
-    "- Elegí las tools según el pedido: presupuestos y cálculos, correos para clientes o números del negocio.",
+    "- Elegí las tools según el pedido: presupuestos y cálculos, las casillas de correo, mensajes para clientes o números del negocio.",
     "- Los correos y mensajes para clientes se escriben con draftEmail, con importes que salieron de una tool. Si un correo pide un presupuesto, conseguí el precio con los pasos de presupuesto nuevo antes de redactar y, si lo calculaste, proponé guardarlo.",
     "- Guardar, crear, duplicar o publicar un presupuesto se propone con las tools propose*, con los mismos changes del cálculo: el usuario confirma en la tarjeta.",
     "- Agendar visitas nuevas de un trabajo se propone con proposeCreateVisits (hasta 20 por propuesta). Cambiar o eliminar una visita se propone con proposeUpdateVisit o proposeArchiveVisit, y el mismo cambio en varias con una sola proposeUpdateVisits, después de encontrarlas con queryOperations.",

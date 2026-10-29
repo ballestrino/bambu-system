@@ -1,5 +1,6 @@
 import { z } from "zod";
 
+import { emailRefSchema } from "@/schemas/agent-mail-tools";
 import { officialBudgetSearchCriteriaSchema } from "@/schemas/official-budget-search";
 import { jobStatusSchema } from "@/schemas/ops/job";
 import { occurrenceStatusSchema } from "@/schemas/ops/job-occurrence";
@@ -189,6 +190,9 @@ export const draftEmailInputSchema = z.object({
     .max(4000)
     .describe("Qué dice el mensaje: cliente, servicio, alcance, opciones de precio con sus importes y tono"),
   channel: z.enum(["email", "whatsapp"]),
-  to: z.string().trim().max(200).nullable().describe("Nombre o correo del destinatario"),
-  subject: z.string().trim().max(200).nullable(),
+  to: z.string().trim().max(200).nullable().describe("Nombre o correo del destinatario; null al responder usa el remitente"),
+  subject: z.string().trim().max(200).nullable().describe("null al responder usa Re: y el asunto del correo"),
+  replyToRef: emailRefSchema
+    .nullable()
+    .describe("El ref del correo que respondés (de listEmails o readEmail); null si no responde a uno"),
 });

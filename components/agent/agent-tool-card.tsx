@@ -1,5 +1,7 @@
+import { AgentBudgetRequestsCard } from "@/components/agent/cards/agent-budget-requests-card";
 import { AgentBudgetTotalsCard } from "@/components/agent/cards/agent-budget-totals-card";
 import { AgentEmailCard } from "@/components/agent/cards/agent-email-card";
+import { AgentEmailMessageCard } from "@/components/agent/cards/agent-email-message-card";
 import { AgentFinanceCard, AgentFinanceTrendCard } from "@/components/agent/cards/agent-finance-card";
 import { AgentListCard } from "@/components/agent/cards/agent-list-card";
 import { AgentOfficialBudgetCard, AgentOfficialSearchCard } from "@/components/agent/cards/agent-official-card";
@@ -20,6 +22,10 @@ export function AgentToolCard({ data, toolCallId }: { data: AgentToolData<AgentT
       return <AgentProposalCard data={data} toolCallId={toolCallId} />;
     case "email":
       return <AgentEmailCard data={data} />;
+    case "email-messages":
+      return <AgentEmailMessageCard data={data} />;
+    case "budget-requests":
+      return <AgentBudgetRequestsCard data={data} />;
     case "finance":
       return <AgentFinanceCard data={data} />;
     case "finance-trend":

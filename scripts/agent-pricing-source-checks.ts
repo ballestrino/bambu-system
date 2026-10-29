@@ -63,7 +63,7 @@ assert.match(
 );
 
 // --- Room for the quote-request flow (6 steps) plus a retry.
-assert.match(read("lib/agent/run.ts"), /const MAX_STEPS = 8;/);
+assert.match(read("lib/agent/run.ts"), /const MAX_STEPS = 12;/);
 
 // --- Cards: the rounding note and the list of equal budgets.
 assert.match(read("components/agent/cards/agent-budget-totals-card.tsx"), /const rounding = "rounding" in data \? data\.rounding : null;/);
