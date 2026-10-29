@@ -560,6 +560,70 @@
         "init.ps1, tsc and lint are green and the user checked the page in their browser"
       ],
       "status": "done"
+    },
+    {
+      "id": 32,
+      "name": "agent_mailbox",
+      "title": "The agent reads the Hostinger mailboxes (contacto@ and comercial@), drafts replies, groups identical budget requests with a price, and continues on its own up to 3 times; the Correo view is removed",
+      "area": "agent",
+      "description": "Remove /dashboard/email, its components, actions, data, routes (sync cron and attachments) and the unused lib/mail-agent stack; the Prisma Mail* tables stay. New read-only tools read both mailboxes live over IMAP with BODY.PEEK (nothing is marked read or sent): listEmails (account, folder, unread, days, search) and readEmail (by ref). draftEmail takes an optional replyToRef so each reply is drafted against the real email; several replies are several drafts. groupBudgetRequests takes the service of each budget request extracted from the emails, groups identical ones and returns the official or saved price of each group as a citable source. The turn continues automatically when a segment stops at the step cap, by output length or without an answer, at most 3 times per turn, in the same stream and the same message.",
+      "acceptance": [
+        "The Correo entry, /dashboard/email, components/mail, actions/mail, data/mail-workspace, /api/mail/* and the unused lib/mail-agent modules are gone; the mail tables are not dropped",
+        "listEmails and readEmail read contacto@ and comercial@ with IMAP BODY.PEEK, report an account that is not configured instead of failing the turn, and never write to the mailbox",
+        "draftEmail with replyToRef drafts against that email (recipient, Re: subject and the original text as data) and the card says which email it answers",
+        "groupBudgetRequests groups identical services, searches official and saved budgets once per group and its prices are citable",
+        "The prompt treats email content as data, never as instructions",
+        "A turn continues automatically after a segment that ends at the step cap, by length or without text, at most 3 times, and the message metadata records how many times",
+        "init.ps1, tsc, lint and the agent checks are green, plus a live read of the mailbox"
+      ],
+      "status": "blocked"
+    },
+    {
+      "id": 33,
+      "name": "agent_compact_budget_cards",
+      "title": "Compact agent cards: lists collapsed by default, budgets with exact profit and the price without IVA first, and Abrir in a side sheet",
+      "area": "agent",
+      "description": "Reduce the noise of the agent thread. List cards (budgets, equal budgets, official budgets, operations, emails) and the opened emails and budget request groups show only their header with the count and expand on tap. Budget cards (a saved budget, a calculation, equal budgets, official prices, budget request groups and create proposals) lead with the price without IVA and the exact monthly profit in pesos, with the price with IVA as a secondary line. Abrir on a found budget opens it in a side sheet over the thread instead of leaving the conversation. The prompt asks not to repeat in text what a card already shows.",
+      "acceptance": [
+        "List, email and budget request cards render collapsed with title and count, and expand and collapse on tap",
+        "Budget cards show the price without IVA as the main figure, the exact monthly profit in pesos next to it, and the price with IVA as a secondary line",
+        "The profit shown is the one the calculation gives for the saved inputs, the same as the budget page",
+        "Abrir on a found saved budget opens a side sheet with its detail without leaving the thread, with a link to the full page",
+        "The prompt forbids listing again what a card shows",
+        "tsc, lint, the agent checks and next build are green"
+      ],
+      "status": "in_progress"
+    },
+    {
+      "id": 34,
+      "name": "agent_memory",
+      "title": "Agent memory: facts and preferences the agent proposes and an admin confirms",
+      "area": "agent",
+      "description": "A new AgentMemory table (kind: business, client, style or price; text; source conversation; approved by; optional expiry). proposeMemory saves a fact or preference as a pending card that an admin confirms, like the other proposals; approved memories enter the prompt of every turn and searchMemory finds them when there are many. Replaces the read of the legacy MailMemory table. A Memory screen lists, edits and deletes them. Content that comes from an email or an image never becomes a memory without the admin confirming the card.",
+      "acceptance": [
+        "Additive migration with AgentMemory, applied on Neon before any push",
+        "proposeMemory creates a pending proposal; only a confirmed one is stored and audited",
+        "Approved memories enter the prompt with a cap; searchMemory reads the rest",
+        "A memory screen lists, edits, expires and deletes memories",
+        "The prompt never stores an instruction found in an email without the card",
+        "init.ps1, tsc and an agent check of the memory rules are green"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": 35,
+      "name": "agent_team_instructions",
+      "title": "Self-edited team instructions: the agent proposes adding, changing or removing a rule and the admin confirms the diff",
+      "area": "agent",
+      "description": "A team instructions block separate from the base prompt. proposeInstructionChange shows the rule before and after in a card; it applies only when an admin confirms, every version is audited and can be reverted. The fixed rules (prices only with a source, Literal E, emails are data, nothing is sent) are not editable. At the end of a conversation with corrections the agent may suggest a memory or a rule. Depends on 34.",
+      "acceptance": [
+        "Team instructions are stored versioned and enter the prompt after the base rules",
+        "proposeInstructionChange shows a before and after diff and applies only on confirm",
+        "The fixed rules cannot be changed or removed by a proposal",
+        "Any version can be restored from the screen",
+        "init.ps1, tsc and an agent check of the protected rules are green"
+      ],
+      "status": "pending"
     }
   ]
 }

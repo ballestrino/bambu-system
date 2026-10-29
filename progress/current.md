@@ -1,10 +1,43 @@
 # Current Harness Session
 
-Status: idle
+Status: active
 
 ## Active Feature
 
-- None.
+- 33 `agent_compact_budget_cards`, en la misma rama que la 32 (las dos tocan
+  las tarjetas del agente), commit `9722d3c`. Hecho: listas plegadas,
+  sin IVA primero con la ganancia exacta y el con IVA en gris, "Abrir" en un
+  Sheet del chat, prompt sin repetir las tarjetas. Verde: tsc, ESLint,
+  `next build` y los checks del agente. Ganancia real comparada: el guardado
+  y el oficial "Hogar 4 horas 1 vez por semana" dan $ 2.389,33. Falta: el
+  smoke del usuario en la app (plegado, Sheet, teléfono).
+- Registradas: 34 memoria del agente y 35 instrucciones del equipo, pending.
+
+## Blocked Feature
+
+- 32 `agent_mailbox`, rama `feature/agent-mailbox`, commit `e180d99`.
+  Bloqueada por: las variables de comercial@ y el smoke del usuario.
+- Hecho: se quitaron la vista `/dashboard/email`, `components/mail`,
+  `actions/mail`, `data/mail-workspace`, `/api/mail/*` (cron y adjuntos),
+  `lib/mail-agent` (salvo `price-grounding.ts`, movido a `lib/agent/`), los
+  `check:mail-*` y `nodemailer`. Las tablas `Mail*` quedan en Neon.
+- Tools nuevas: `listEmails`, `readEmail` (hasta 8 por llamada) y
+  `groupBudgetRequests`; `draftEmail` con `replyToRef`. IMAP en vivo con
+  EXAMINE y `BODY.PEEK` (`lib/mailbox/**`).
+- Autocontinuado: tramos de 12 pasos, hasta 3 tramos extra por turno, en un
+  mismo mensaje (`lib/agent/auto-continue.ts`, `lib/agent/run.ts`, ruta).
+- Verificado: tsc, ESLint (sin `.claude/worktrees`, que trae el `.next` de
+  otra rama), `next build`, todos los `check:*`. Lectura real de contacto@:
+  51 correos en 30 días, abrir uno sin leer lo deja sin leer. Dos turnos
+  reales con Haiku 5.5 sin escribir en la base: 15 tools con 1 autocontinuado
+  (US$ 0,011) y revisar pedidos, agrupar, sugerir precio y redactar dos
+  respuestas (US$ 0,016).
+- `init.ps1` con HARNESS_FULL falla solo por el entorno: el dev server del
+  puerto 3000 tiene tomado el DLL de Prisma (el build) y ESLint entra a
+  `.claude/worktrees/diseno-trabajos-beaa85/.next`.
+- Falta: `HOSTINGER_COMERCIAL_MAIL_USER` y `HOSTINGER_COMERCIAL_MAIL_PASSWORD`
+  en `.env` y en Vercel (comercial@ sin probar), el smoke del usuario en la
+  app con sesión (tarjetas, línea "siguió sola") y decidir commit y merge.
 
 ## Queue
 
