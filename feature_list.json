@@ -592,7 +592,7 @@
         "The prompt forbids listing again what a card shows",
         "tsc, lint, the agent checks and next build are green"
       ],
-      "status": "in_progress"
+      "status": "done"
     },
     {
       "id": 34,

@@ -1136,3 +1136,18 @@
   `.claude/worktrees/diseno-trabajos-beaa85`, otra sesión.
 - Queda: el usuario prueba con sesión las acciones en lote reales, el CSV
   en Excel y el celular. Mergeada en `main` sin push el 2026-10-27.
+
+## 2026-10-29 - Feature 33 Tarjetas compactas del agente
+
+- Commit `9722d3c`, mergeado en `main` con la 32 (`cc975d0`) y pusheado con
+  autorización del usuario.
+- Las listas (presupuestos, iguales, oficiales, operaciones, correos) y los
+  correos y grupos de pedidos arrancan plegados con título y conteo. Las
+  tarjetas de presupuesto muestran primero el precio sin IVA con la ganancia
+  mensual exacta y el con IVA en gris. "Abrir" abre el presupuesto en un
+  Sheet sobre el chat, con link a la página. El prompt pide no repetir lo que
+  ya muestra una tarjeta.
+- PASS: tsc, ESLint, `next build` y los checks del agente. La ganancia del
+  guardado y del oficial "Hogar 4 horas 1 vez por semana" coincide
+  ($ 2.389,33).
+- Cerrada por el usuario el 2026-10-29 ("ya está eso").

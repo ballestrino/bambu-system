@@ -4,16 +4,9 @@ Status: active
 
 ## Active Feature
 
-- 2026-10-29: la 32 y la 33 se mergearon en `main` (`cc975d0`) y se
-  pushearon con autorización del usuario, antes de su prueba en la app. Siguen
-  abiertas en el harness hasta esa prueba y las claves de comercial@.
-- 33 `agent_compact_budget_cards`, commit `9722d3c`. Hecho: listas plegadas,
-  sin IVA primero con la ganancia exacta y el con IVA en gris, "Abrir" en un
-  Sheet del chat, prompt sin repetir las tarjetas. Verde: tsc, ESLint,
-  `next build` y los checks del agente. Ganancia real comparada: el guardado
-  y el oficial "Hogar 4 horas 1 vez por semana" dan $ 2.389,33. Falta: el
-  smoke del usuario en la app (plegado, Sheet, teléfono).
-- Registradas: 34 memoria del agente y 35 instrucciones del equipo, pending.
+- 34 `agent_memory`, en curso desde el 2026-10-29 en la rama
+  `feature/agent-memory`.
+- La 35 (instrucciones del equipo) sigue pending y depende de esta.
 
 ## Blocked Feature
 
