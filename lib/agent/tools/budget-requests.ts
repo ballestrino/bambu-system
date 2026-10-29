@@ -16,7 +16,8 @@ import { groupBudgetRequestsInputSchema } from "@/schemas/agent-mail-tools";
 // los guardados iguales.
 const MAX_GROUPS = 12;
 
-type PriceOption = { hasProducts: boolean; net: number };
+// profit: la ganancia mensual de esa opción (lib/agent/budget-profit.ts).
+type PriceOption = { hasProducts: boolean; net: number; profit: number | null };
 
 // El precio de un grupo: un oficial vigente exact gana; si no, el guardado
 // igual más reciente; si no, hay que calcularlo. Las opciones son las que
@@ -34,20 +35,21 @@ const priceGroup = async (group: BudgetRequestGroup) => {
           employees: service.employees,
           hasProducts: service.hasProducts,
         });
-  const sources: OfficialSource[] = official?.status === "exact" ? official.matches.map(matchToSource) : [];
+  const exact = official?.status === "exact" ? official.matches : [];
+  const sources: OfficialSource[] = exact.map(matchToSource);
   const saved = toMatchingBudgets(
     await findAgentBudgetsByService(
       serviceFromInput({ ...service, hasProducts: service.hasProducts === true })
     )
   );
 
-  const officialOptions: PriceOption[] = sources
-    .filter((source) => wantsOption(service, source.hasProducts))
-    .map((source) => ({ hasProducts: source.hasProducts, net: source.prices.net }));
+  const officialOptions: PriceOption[] = exact
+    .filter((match) => wantsOption(service, match.conditions.hasProducts))
+    .map((match) => ({ hasProducts: match.conditions.hasProducts, net: match.prices.net, profit: match.profit }));
   const latest = saved.rows[0];
   const savedOptions: PriceOption[] = (latest?.prices ?? [])
     .filter((price) => wantsOption(service, price.hasProducts))
-    .map((price) => ({ hasProducts: price.hasProducts, net: price.net }));
+    .map((price) => ({ hasProducts: price.hasProducts, net: price.net, profit: price.profit ?? null }));
 
   const suggestion = officialOptions.length
     ? { source: "official" as const, name: sources[0].name, version: sources[0].version, options: officialOptions }

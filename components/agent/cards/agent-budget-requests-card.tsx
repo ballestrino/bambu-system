@@ -1,8 +1,7 @@
-import Link from "next/link";
-import { getBudgetUrl } from "@/lib/agent/proposals";
 import { Layers } from "lucide-react";
 
 import { AgentCard, CardNote } from "@/components/agent/cards/agent-card";
+import { AgentOpenBudgetButton } from "@/components/agent/cards/agent-open-budget-button";
 import { formatMoney } from "@/components/agent/format";
 import type { BudgetRequestsCardData } from "@/components/agent/types";
 
@@ -18,7 +17,12 @@ function GroupPrice({ group }: { group: Group }) {
       {suggestion.options.map((option) => (
         <p key={String(option.hasProducts)} className="flex items-baseline justify-between gap-3">
           <span className="text-ops-text-muted">{optionLabel(option.hasProducts)}</span>
-          <span className="font-semibold tabular-nums">{formatMoney(option.net)} + IVA</span>
+          <span className="text-right tabular-nums">
+            <span className="font-semibold">{formatMoney(option.net)} + IVA</span>
+            {"profit" in option && typeof option.profit === "number" && (
+              <span className="text-ops-bamboo-strong"> · ganancia {formatMoney(option.profit)}</span>
+            )}
+          </span>
         </p>
       ))}
       <p className="text-ops-text-muted">
@@ -27,9 +31,9 @@ function GroupPrice({ group }: { group: Group }) {
         ) : (
           <>
             Guardado igual:{" "}
-            <Link href={getBudgetUrl(suggestion.slug)} className="underline-offset-4 hover:underline">
+            <AgentOpenBudgetButton slug={suggestion.slug} variant="text" className="inline">
               {suggestion.name}
-            </Link>
+            </AgentOpenBudgetButton>
           </>
         )}
       </p>
@@ -42,6 +46,7 @@ function GroupPrice({ group }: { group: Group }) {
 export function AgentBudgetRequestsCard({ data }: { data: BudgetRequestsCardData }) {
   return (
     <AgentCard
+      collapsed={data.groups.length > 1}
       icon={Layers}
       title="Pedidos de presupuesto"
       subtitle={`${data.requests} ${data.requests === 1 ? "pedido" : "pedidos"} · ${

@@ -621,6 +621,33 @@ mueve ni borra.
   del texto del formulario. comercial@ quedó sin probar: faltan sus
   variables.
 
+## Tarjetas compactas
+
+Feature 33, pedido del usuario para que el hilo no se llene:
+
+- Las listas arrancan plegadas, con título y conteo, y se despliegan con un
+  toque (`AgentCard collapsed`, un `<details>`): presupuestos, iguales,
+  oficiales, operaciones, correos y correos abiertos; los precios oficiales y
+  los pedidos agrupados, cuando traen más de uno. Un presupuesto o un cálculo
+  sueltos van abiertos.
+- Precio: manda el sin IVA ("$ 7.950 + IVA"), al lado la ganancia mensual
+  exacta y el con IVA en gris. Vale para cálculos, presupuestos guardados,
+  iguales, oficiales, pedidos agrupados y propuestas.
+- Ganancia (`lib/agent/budget-profit.ts`, puro): en un cálculo,
+  `serviceRevenue` (+ `productsRevenue` con productos), lo mismo que la
+  página del presupuesto; en uno guardado, su precio sin IVA menos el costo
+  del cálculo con sus insumos (`findAgentBudgetsByService` trae las opciones
+  enteras); en un oficial, el sin IVA publicado menos el costo guardado al
+  publicarlo. No entra al grounding: no es un importe para clientes. Las
+  propuestas guardadas antes de la 33 no la traen.
+- "Abrir" de un presupuesto guardado lo muestra en un Sheet encima del hilo
+  (`AgentSavedBudgetSheet`, con `getAgentSavedBudget`, solo admin) con el
+  detalle de su página y un link "Página". Los oficiales siguen yendo a su
+  página.
+- El prompt pide no repetir en el texto lo que muestra una tarjeta y decir la
+  ganancia al usuario (nunca a un cliente).
+- Check en `check:agent-sheet` (`scripts/agent-compact-cards-checks.ts`).
+
 ## Autocontinuado
 
 Feature 32. Un turno corre en tramos de hasta `MAX_STEPS` (12) pasos.

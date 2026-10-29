@@ -2,9 +2,10 @@ import { List } from "lucide-react";
 import Link from "next/link";
 
 import { AgentCard, CardNote } from "@/components/agent/cards/agent-card";
+import { AgentOpenBudgetButton } from "@/components/agent/cards/agent-open-budget-button";
 import { formatMoney } from "@/components/agent/format";
 import type { ListCardData } from "@/components/agent/types";
-import { getBudgetUrl, getOfficialBudgetUrl } from "@/lib/agent/proposals";
+import { getOfficialBudgetUrl } from "@/lib/agent/proposals";
 
 type Row = Record<string, unknown>;
 
@@ -12,21 +13,29 @@ const text = (value: unknown) => (typeof value === "string" && value ? value : n
 
 const joined = (...parts: unknown[]) => parts.map(text).filter(Boolean).join(" · ");
 
-// El precio sin IVA guardado de una opción de findMatchingBudgets.
-const storedNet = (row: Row, hasProducts: boolean) =>
+type StoredPrice = { hasProducts: boolean; net: number; profit?: number | null };
+
+// Una opción guardada de findMatchingBudgets: su precio sin IVA y su ganancia.
+const storedOption = (row: Row, hasProducts: boolean) =>
   Array.isArray(row.prices)
-    ? (row.prices as { hasProducts: boolean; net: number }[]).find((price) => price.hasProducts === hasProducts)?.net
+    ? (row.prices as StoredPrice[]).find((price) => price.hasProducts === hasProducts)
     : undefined;
+
+const profitText = (option: StoredPrice | undefined) =>
+  typeof option?.profit === "number" ? `Ganancia ${formatMoney(option.profit)}` : null;
 
 const isActiveOfficial = (row: Row) => (row.official as { status?: string } | null)?.status === "ACTIVE";
 
 // Cómo se muestra cada tipo de lista: título, detalle, importe y a dónde lleva.
+// Un presupuesto guardado (budget) se abre en el Sheet del chat; el resto, con
+// un link (href).
 const KINDS: Record<
   string,
   {
     title: string;
     primary: (row: Row) => string | null;
     href?: (row: Row) => string | null;
+    budget?: (row: Row) => string | null;
     detail: (row: Row) => string;
     amount?: (row: Row) => unknown;
   }
@@ -34,21 +43,22 @@ const KINDS: Record<
   budgets: {
     title: "Presupuestos",
     primary: (row) => text(row.name),
-    href: (row) => (text(row.slug) ? getBudgetUrl(String(row.slug)) : null),
+    budget: (row) => text(row.slug),
     detail: (row) => joined(row.description, Array.isArray(row.categories) ? row.categories.join(", ") : null),
   },
   matchingBudgets: {
     title: "Presupuestos iguales · sin IVA",
     primary: (row) => text(row.name),
-    href: (row) => (text(row.slug) ? getBudgetUrl(String(row.slug)) : null),
+    budget: (row) => text(row.slug),
     detail: (row) => {
-      const withProducts = storedNet(row, true);
+      const withProducts = storedOption(row, true);
       return joined(
-        withProducts === undefined ? "Sin opción con productos" : `Con productos ${formatMoney(withProducts)}`,
+        profitText(storedOption(row, false)),
+        withProducts === undefined ? "Sin opción con productos" : `Con productos ${formatMoney(withProducts.net)} + IVA`,
         isActiveOfficial(row) ? "Precio oficial vigente" : null
       );
     },
-    amount: (row) => storedNet(row, false),
+    amount: (row) => storedOption(row, false)?.net,
   },
   emails: {
     title: "Correos",
@@ -108,6 +118,7 @@ export function AgentListCard({ data }: { data: ListCardData }) {
   const hidden = data.total - shown.length;
   return (
     <AgentCard
+      collapsed
       icon={List}
       title={kind.title}
       subtitle={`${data.total} ${data.total === 1 ? "resultado" : "resultados"}${data.day ?? data.month ? ` · ${data.day ?? data.month}` : ""}`}
@@ -119,10 +130,15 @@ export function AgentListCard({ data }: { data: ListCardData }) {
           {shown.map((row, index) => {
             const label = kind.primary(row) ?? "Sin nombre";
             const href = kind.href?.(row);
+            const budget = kind.budget?.(row);
             return (
               <li key={String(row.id ?? index)} className="flex items-baseline justify-between gap-3 py-1.5 text-xs">
                 <div className="min-w-0">
-                  {href ? (
+                  {budget ? (
+                    <AgentOpenBudgetButton slug={budget} variant="text" className="font-medium">
+                      {label}
+                    </AgentOpenBudgetButton>
+                  ) : href ? (
                     <Link href={href} className="block truncate font-medium underline-offset-4 hover:underline">
                       {label}
                     </Link>

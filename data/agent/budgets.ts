@@ -49,7 +49,8 @@ export const findAgentBudgetsByService = async (service: MatchingService) => {
       slug: true,
       name: true,
       updatedAt: true,
-      budgetOptions: { select: { has_products: true, price: true, iva: true } },
+      // Las opciones enteras: con sus insumos se calcula la ganancia.
+      budgetOptions: true,
       officialBudget: { select: { status: true, currentVersion: true } },
     },
   });

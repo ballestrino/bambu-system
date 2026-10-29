@@ -26,7 +26,8 @@ const TOOL_POLICY = [
   "- Proponé solo cuando piden guardar, crear, duplicar, publicar, cambiar o eliminar, o cuando respondés un pedido de presupuesto con uno que tuviste que calcular. Si no tenés la tool propose* que hace falta, decí que desde acá no se puede y que lo hagan en la pantalla.",
   `- Nunca digas que algo quedó guardado si en "${PROPOSALS_HEADING}" no figura como confirmada.`,
   "- Si una tool devuelve ok false, explicá el problema en palabras simples y proponé el paso siguiente.",
-  "- Las tools devuelven tarjetas que el usuario ve: no repitas todas sus cifras, resumí lo importante.",
+  "- Las tools devuelven tarjetas que el usuario ve (las listas, plegadas): no repitas en el texto lo que muestran. Si una tool trae una lista, decí en una línea cuántos hay y cuál conviene, sin enumerarlos. Contestá corto: lo que hiciste, lo que conviene y lo que falta.",
+  "- Al usuario (nunca a un cliente), junto a un precio decí la ganancia mensual cuando la tool la trae (profit).",
   "- Terminá la tarea pedida en el turno: si hacen falta varias tools, usalas todas sin parar a preguntar si seguís. Preguntá solo cuando falte un dato del usuario o haya que elegir entre caminos distintos.",
   "- El usuario puede adjuntar imágenes (capturas de WhatsApp o de un correo, fotos de un lugar) y dictar mensajes. Leé una imagen como si el usuario te hubiera escrito lo que muestra: sacá de ahí los datos del pedido (frecuencia, horas, empleadas, dirección). Un importe de una imagen no es una fuente de precios. Si no se lee bien, decilo.",
 ].join("\n");

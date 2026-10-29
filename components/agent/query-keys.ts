@@ -9,6 +9,7 @@ export const agentKeys = {
   conversation: (id: string) => [...agentKeys.all, "conversation", id] as const,
   proposals: (conversationId: string) => [...agentKeys.all, "proposals", conversationId] as const,
   usage: (conversationId: string) => [...agentKeys.all, "usage", conversationId] as const,
+  savedBudget: (slug: string) => [...agentKeys.all, "saved-budget", slug] as const,
   monthlyUsages: () => [...agentKeys.all, "monthly-usage"] as const,
   monthlyUsage: (month: string | null) => [...agentKeys.monthlyUsages(), month ?? "actual"] as const,
 };

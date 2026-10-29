@@ -47,9 +47,10 @@ export function AgentEmailMessageCard({ data }: { data: EmailMessageCardData }) 
   const count = data.emails.length;
   return (
     <AgentCard
+      collapsed
       icon={MailOpen}
       title={count === 1 ? data.emails[0].subject : `${count} correos abiertos`}
-      subtitle={count === 1 ? null : "Tocá uno para ver el texto"}
+      subtitle={count === 1 ? data.emails[0].from : "Tocá para verlos"}
     >
       <div className="divide-y">
         {data.emails.map((email) => (

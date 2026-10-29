@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 
 import "./agent-sheet-source-checks";
 import "./agent-usage-rows-checks";
+import "./agent-compact-cards-checks";
 import { capitalizeFirst } from "../components/agent/format";
 import { buildAgentChatBody, readAgentError, SESSION_EXPIRED_MESSAGE } from "../lib/agent/chat-request";
 import { sanitizeFormContextValues } from "../lib/agent/form-context";

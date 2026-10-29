@@ -1,10 +1,12 @@
 "use client";
 
 import type { Chat } from "@ai-sdk/react";
+import { useState } from "react";
 
 import { AgentChatProvider } from "@/components/agent/agent-chat-context";
 import { AgentComposer } from "@/components/agent/agent-composer";
 import { AgentBudgetSheet } from "@/components/agent/budget-editor/agent-budget-sheet";
+import { AgentSavedBudgetSheet } from "@/components/agent/budget-editor/agent-saved-budget-sheet";
 import { useBudgetEditor } from "@/components/agent/hooks/use-budget-editor";
 import { AgentEmptyState } from "@/components/agent/agent-empty-state";
 import { AgentErrorBanner } from "@/components/agent/agent-error-banner";
@@ -55,6 +57,7 @@ export function AgentChat({
   const proposals = useAgentProposals(conversationId, hasProposalParts(view.messages));
   const { confirm, reject } = useAgentProposalMutations({ conversationId, onConfirmed: onProposalConfirmed });
   const editor = useBudgetEditor();
+  const [savedBudgetSlug, setSavedBudgetSlug] = useState<string | null>(null);
   const errorMessage = readAgentError(view.error);
   const byCall = new Map((proposals.data ?? []).map((item) => [item.toolCallId, item]));
 
@@ -71,6 +74,7 @@ export function AgentChat({
         rejectProposal: (proposalId) => reject.mutate(proposalId),
         proposalForCall: (toolCallId) => byCall.get(toolCallId),
         openBudget: editor.openBudget,
+        openSavedBudget: setSavedBudgetSlug,
         hasBudgetDraft: editor.hasDraft,
       }}
     >
@@ -110,6 +114,7 @@ export function AgentChat({
         proposalFor={(toolCallId) => byCall.get(toolCallId)}
         waiting={view.busy}
       />
+      <AgentSavedBudgetSheet slug={savedBudgetSlug} onClose={() => setSavedBudgetSlug(null)} />
     </AgentChatProvider>
   );
 }
