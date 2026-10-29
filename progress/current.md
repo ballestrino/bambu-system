@@ -4,23 +4,8 @@ Status: active
 
 ## Active Feature
 
-- 34 `agent_memory`, en curso desde el 2026-10-29 en la rama
-  `feature/agent-memory`.
-- Hecho: tabla `AgentMemory` (Negocio, Cliente, Estilo, Precio) con
-  migración aditiva `20261029120000_agent_memory`, que también copia lo
-  aprobado de `MailMemory` sin contactos. `proposeMemory` guarda una propuesta
-  `SAVE_MEMORY` (también reemplazos con compare-and-set) y `searchMemory`
-  busca las que no entran al prompt (tope 40). Están en todas las
-  habilidades, con `MEMORY_RULE`, y lo de un correo o una imagen lleva aviso
-  en la tarjeta. Pantalla `/dashboard/memory` en el sidebar: filtros, editar,
-  vencer ahora y eliminar, todo auditado. El turno ya no lee `MailMemory`.
-- Verde: tsc, ESLint de `app components actions data lib schemas scripts`,
-  `pnpm build`, todos los `check:agent-*` y el nuevo `check:agent-memory`.
-- Migración aplicada en Neon el 2026-10-29 con autorización del usuario
-  (`prisma migrate deploy`; `migrate status` al día).
-- Falta: el smoke del usuario en la app con sesión (proponer, confirmar,
-  pantalla) y decidir el merge.
-- La 35 (instrucciones del equipo) sigue pending y depende de esta.
+- 35 `agent_team_instructions`, en curso desde el 2026-10-29 en la rama
+  `feature/agent-team-instructions`.
 
 ## Blocked Feature
 
@@ -55,6 +40,11 @@ Status: active
   equivalencias con los ids viejos está en `progress/history.md`.
 
 ## Last Closed Work
+
+- 2026-10-29: memoria del agente (34): `AgentMemory`, `proposeMemory` y
+  `searchMemory` en todas las habilidades, prompt con las vigentes y pantalla
+  `/dashboard/memory`. Migración aditiva aplicada en Neon. Probada por el
+  usuario. Mergeada en `main` sin push.
 
 - 2026-10-27: Empleados como tabla (30), diseño "Empleados Bambu 1a":
   casillas, orden por nombre o tarifa, pestañas con conteo y barra en lote
