@@ -1,4 +1,5 @@
 import type { getAgentConversationAction, listAgentConversations } from "@/actions/agent/conversations";
+import type { getAgentMemories } from "@/actions/agent/memories";
 import type { getAgentSettings } from "@/actions/agent/settings";
 import type { getAgentConversationCost, getAgentMonthlyCost } from "@/actions/agent/usage";
 import type { AgentUIMessage, AgentUITools } from "@/lib/agent/messages";
@@ -69,3 +70,5 @@ export type AgentSettings = Success<ReturnType<typeof getAgentSettings>>;
 export type AgentConversationCost = Success<ReturnType<typeof getAgentConversationCost>>["cost"];
 
 export type AgentMonthlyCost = Success<ReturnType<typeof getAgentMonthlyCost>>["cost"];
+
+export type AgentMemoryRow = Success<ReturnType<typeof getAgentMemories>>["memories"][number];

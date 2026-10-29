@@ -4,9 +4,8 @@ Status: active
 
 ## Active Feature
 
-- 34 `agent_memory`, en curso desde el 2026-10-29 en la rama
-  `feature/agent-memory`.
-- La 35 (instrucciones del equipo) sigue pending y depende de esta.
+- 35 `agent_team_instructions`, en curso desde el 2026-10-29 en la rama
+  `feature/agent-team-instructions`.
 
 ## Blocked Feature
 
@@ -41,6 +40,11 @@ Status: active
   equivalencias con los ids viejos está en `progress/history.md`.
 
 ## Last Closed Work
+
+- 2026-10-29: memoria del agente (34): `AgentMemory`, `proposeMemory` y
+  `searchMemory` en todas las habilidades, prompt con las vigentes y pantalla
+  `/dashboard/memory`. Migración aditiva aplicada en Neon. Probada por el
+  usuario. Mergeada en `main` sin push.
 
 - 2026-10-27: Empleados como tabla (30), diseño "Empleados Bambu 1a":
   casillas, orden por nombre o tarifa, pestañas con conteo y barra en lote

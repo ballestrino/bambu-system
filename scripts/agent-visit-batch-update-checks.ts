@@ -110,7 +110,7 @@ assert.doesNotMatch(formatProposalsForPrompt([confirmed([0, 1])]), /Se cambiaron
 
 // --- The prompt asks for one card, and the writes go through one transaction
 // after the preconditions.
-const prompt = buildAgentInstructions({ today: "martes 27 de octubre de 2026", actorName: null, skill: AGENT_SKILLS.general, approvedKnowledge: [] });
+const prompt = buildAgentInstructions({ today: "martes 27 de octubre de 2026", actorName: null, skill: AGENT_SKILLS.general, memoryBlock: null });
 assert.match(prompt, /una sola propuesta con proposeUpdateVisits y todos los ids \(hasta 20 por propuesta\): nunca una tarjeta por visita/);
 const executor = read("lib/agent/visit-proposal-execute.ts");
 const updateCheckAt = executor.indexOf("checkVisitProposalPreconditions({ kind: \"UPDATE_VISIT\", payload: visit }");

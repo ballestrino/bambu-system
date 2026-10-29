@@ -36,6 +36,8 @@ export const AGENT_TOOL_CATALOG = {
   proposeUpdateVisit: { label: "Propone cambiar una visita", kind: "proposal" },
   proposeUpdateVisits: { label: "Propone cambiar varias visitas", kind: "proposal" },
   proposeArchiveVisit: { label: "Propone eliminar una visita", kind: "proposal" },
+  searchMemory: { label: "Busca en la memoria", kind: "read" },
+  proposeMemory: { label: "Propone recordar", kind: "proposal" },
 } as const satisfies Record<string, { label: string; kind: AgentToolKind }>;
 
 export type AgentToolName = keyof typeof AGENT_TOOL_CATALOG;

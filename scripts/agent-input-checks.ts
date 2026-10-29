@@ -82,4 +82,4 @@ assert.match(read("lib/agent/tools/email.ts"), /sources: selectQuotedSources\(so
 const conversations = read("actions/agent/conversations.ts");
 ["listAgentConversations = async \\(values: unknown\\)", "getAgentConversationAction = async \\(conversationId: unknown\\)"]
   .forEach((head) => assert.match(conversations, new RegExp(`${head} => \\{\\s*try \\{\\s*await requireAdminSession\\(\\);`), head));
-assert.match(read("data/agent/knowledge.ts"), /getApprovedAgentKnowledge = async \(\) => \{\s*await requireAdminSession\(\);/);
+assert.match(read("data/agent/memories.ts"), /getPromptMemories = async \(\) => \{\s*await requireAdminSession\(\);/);

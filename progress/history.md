@@ -1151,3 +1151,22 @@
   guardado y del oficial "Hogar 4 horas 1 vez por semana" coincide
   ($ 2.389,33).
 - Cerrada por el usuario el 2026-10-29 ("ya está eso").
+
+## 2026-10-29 - Feature 34 Memoria del agente
+
+- Tabla `AgentMemory` (Negocio, Cliente, Estilo, Precio) con migración
+  aditiva `20261029120000_agent_memory`, que copió lo aprobado de
+  `MailMemory` sin contactos. Aplicada en Neon con autorización del usuario.
+- `proposeMemory` guarda una propuesta `SAVE_MEMORY` (también reemplazos de
+  una memoria, con compare-and-set del `updatedAt`) y `searchMemory` busca
+  las vigentes que no entran al prompt (tope 40). Las dos en todas las
+  habilidades, con `MEMORY_RULE`. Lo que sale de un correo o una imagen lleva
+  aviso en la tarjeta; una memoria de precio no es fuente de importes.
+- El prompt lleva las vigentes después de las reglas fijas. El turno ya no
+  lee `MailMemory`.
+- Pantalla `/dashboard/memory` ("Memoria" en el sidebar): vigentes por tipo y
+  vencidas, editar, vencer ahora y eliminar, todo en `AgentAuditEvent` con el
+  texto de antes.
+- PASS: tsc, ESLint, `pnpm build`, todos los `check:agent-*` y
+  `check:agent-memory`. Probada por el usuario en la app ("sí").
+- Mergeada en `main` sin push el 2026-10-29.

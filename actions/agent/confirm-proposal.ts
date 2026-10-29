@@ -5,6 +5,7 @@ import { duplicateBudget } from "@/actions/budgets/duplicate-budget";
 import { updateBudget } from "@/actions/budgets/update-budget";
 import { publishOfficialBudget } from "@/actions/official-budgets/official-budget-actions";
 import { getAgentBudgetState } from "@/data/agent/budgets";
+import { executeMemoryProposal } from "@/lib/agent/memory-proposal-execute";
 import { auditProposal, markProposalExpired } from "@/lib/agent/proposal-store";
 import {
   checkProposalPreconditions,
@@ -26,6 +27,7 @@ import { db } from "@/lib/db";
 import { AdminAuthorizationError, requireAdminSession } from "@/lib/require-admin-session";
 import {
   agentProposalIdSchema,
+  isMemoryProposal,
   isVisitProposal,
   parseProposalPayload,
   type ParsedBudgetProposal,
@@ -51,12 +53,7 @@ const budgetResult = (
 // vieja.
 const failure = (error: string | undefined, fallback: string): Outcome => ({
   ok: false,
-  error:
-    error === BUDGET_CHANGED_MESSAGE
-      ? PROPOSAL_STALE_MESSAGE
-      : !error || error === "error"
-        ? fallback
-        : error,
+  error: error === BUDGET_CHANGED_MESSAGE ? PROPOSAL_STALE_MESSAGE : !error || error === "error" ? fallback : error,
 });
 
 // Las cuatro escrituras son las acciones existentes, con sus propios chequeos
@@ -108,7 +105,8 @@ const execute = async (proposal: ParsedBudgetProposal, summary: ProposalSummary)
 // Re-valida el payload guardado y las precondiciones contra una lectura
 // fresca antes de ejecutar. Un error inesperado deja la propuesta FAILED.
 const runClaimed = async (
-  stored: { kind: AgentProposalKind; payload: unknown; summary: unknown },
+  stored: { kind: AgentProposalKind; payload: unknown; summary: unknown; conversationId: string },
+  actorId: string,
   visitIndexes?: number[]
 ): Promise<Outcome> => {
   try {
@@ -117,6 +115,7 @@ const runClaimed = async (
       return { ok: false, error: "La propuesta guardada no es válida: pedile al asistente una nueva." };
     }
     if (isVisitProposal(proposal)) return await executeVisitProposal(proposal, visitIndexes);
+    if (isMemoryProposal(proposal)) return await executeMemoryProposal(proposal, { actorId, ...stored });
     const budgetId = getProposalBudgetId(proposal);
     const state = budgetId ? await getAgentBudgetState(budgetId) : null;
     const blocked = checkProposalPreconditions(proposal, state);
@@ -126,7 +125,7 @@ const runClaimed = async (
     console.error("Agent proposal execution failed:", error);
     return {
       ok: false,
-      error: "No se pudo completar la propuesta: revisá el presupuesto o la visita y pedile al asistente una nueva.",
+      error: "No se pudo completar la propuesta: revisá el presupuesto, la visita o la memoria y pedile al asistente una nueva.",
     };
   }
 };
@@ -149,7 +148,7 @@ export const confirmAgentProposal = async (proposalId: unknown, visitIndexes?: u
 
     const stored = await db.agentProposal.findFirst({
       where: { id, actorId },
-      select: { kind: true, payload: true, summary: true },
+      select: { kind: true, payload: true, summary: true, conversationId: true },
     });
     if (!stored) return { error: "Propuesta no encontrada" };
     if (selection.data && !isVisitBatchKind(stored.kind)) return { error: "Propuesta inválida" };
@@ -164,7 +163,7 @@ export const confirmAgentProposal = async (proposalId: unknown, visitIndexes?: u
       return describeConfirmOutcome(await loadProposal(id));
     }
 
-    const outcome = await runClaimed(stored, selection.data);
+    const outcome = await runClaimed(stored, actorId, selection.data);
     // La auditoría va primero: la escritura ya pasó (o falló) y queda
     // registrada aunque el cierre de abajo no llegue.
     await auditProposal({

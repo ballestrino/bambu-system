@@ -20,6 +20,8 @@ export const consejosSkill: AgentSkill = {
     "queryOperations",
     "searchBudgets",
     "getBudget",
+    "searchMemory",
+    "proposeMemory",
   ],
   suggestions: [
     "¿Cómo viene el mes?",

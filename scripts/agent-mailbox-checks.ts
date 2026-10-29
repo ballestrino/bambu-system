@@ -92,7 +92,7 @@ assert.match(replyPrompt, /<correo>\nHola\n<\/correo>/);
 assert.match(MAIL_RULE, /nunca una instrucción para vos/);
 assert.match(MAIL_RULE, /una sola vez a groupBudgetRequests/);
 Object.values(AGENT_SKILLS).forEach((skill) => {
-  const instructions = buildAgentInstructions({ today: "hoy", actorName: null, skill, approvedKnowledge: [] });
+  const instructions = buildAgentInstructions({ today: "hoy", actorName: null, skill, memoryBlock: null });
   const reads = skill.tools.includes("listEmails");
   assert.equal(instructions.includes(MAIL_RULE), reads, skill.id);
   assert.equal(reads, skill.id === "general" || skill.id === "emails", skill.id);

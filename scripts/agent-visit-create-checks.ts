@@ -171,7 +171,7 @@ assert.ok(resolveSkillToolNames(AGENT_SKILLS.general).includes("proposeCreateVis
 (["presupuestos", "emails", "consejos"] as const).forEach((skill) =>
   assert.ok(!resolveSkillToolNames(AGENT_SKILLS[skill]).includes("proposeCreateVisits"), skill)
 );
-const prompt = buildAgentInstructions({ today: "miércoles 21 de octubre de 2026", actorName: null, skill: AGENT_SKILLS.general, approvedKnowledge: [] });
+const prompt = buildAgentInstructions({ today: "miércoles 21 de octubre de 2026", actorName: null, skill: AGENT_SKILLS.general, memoryBlock: null });
 assert.match(prompt, /proposeCreateVisits un lote de hasta 20 visitas/);
 assert.match(prompt, /repeatFrom, repeatTo y repeatWeekdays \(1 lunes … 7 domingo\): no calcules las fechas/);
 assert.match(prompt, /el usuario puede desmarcar visitas antes de confirmar: las desmarcadas no se agendan/);

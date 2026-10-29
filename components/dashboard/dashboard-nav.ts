@@ -1,5 +1,6 @@
 import {
   BadgeDollarSign,
+  Brain,
   Calculator,
   CalendarDays,
   LayoutDashboard,
@@ -9,6 +10,7 @@ import {
 } from "lucide-react";
 
 import { isOpsNavItemActive, opsNavItems } from "@/components/ops/nav-items";
+import { MEMORY_URL } from "@/lib/agent/memory";
 import { AGENT_PAGE_PATH } from "@/lib/agent/page-url";
 
 export type DashboardNavItem = {
@@ -65,6 +67,12 @@ export const dashboardNavGroups: { label: string; items: DashboardNavItem[] }[] 
         url: AGENT_PAGE_PATH,
         icon: Sparkles,
         match: (pathname: string) => pathname.startsWith(AGENT_PAGE_PATH),
+      },
+      {
+        title: "Memoria",
+        url: MEMORY_URL,
+        icon: Brain,
+        match: (pathname: string) => pathname.startsWith(MEMORY_URL),
       },
     ],
   },
