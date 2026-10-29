@@ -40,6 +40,13 @@ Status: active
 
 ## Last Closed Work
 
+- 2026-10-29: creador de presupuestos rediseñado con extras (36): cinco
+  secciones con resumen en vivo en escritorio, pasos con hoja de precio y
+  ganancia en el celular, y extras con nombre (`BudgetOption.extras`) en todo
+  el cálculo. Migración aditiva aplicada en Neon. Smoke en el Chrome del
+  usuario con un presupuesto de prueba ya borrado. Sumó 100 px abajo en la
+  barra lateral. Mergeada en `main` sin push.
+
 - 2026-10-29: instrucciones del equipo (35): versiones de reglas con
   `proposeInstructionChange`, reglas fijas protegidas y pantalla
   `/dashboard/instructions` con restaurar. Migración aditiva aplicada en Neon.
