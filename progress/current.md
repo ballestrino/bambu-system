@@ -16,8 +16,10 @@ Status: active
   vencer ahora y eliminar, todo auditado. El turno ya no lee `MailMemory`.
 - Verde: tsc, ESLint de `app components actions data lib schemas scripts`,
   `pnpm build`, todos los `check:agent-*` y el nuevo `check:agent-memory`.
-- Falta: aplicar la migración en Neon (producción, pide permiso), un smoke en
-  la app con sesión (proponer, confirmar, pantalla) y decidir el merge.
+- Migración aplicada en Neon el 2026-10-29 con autorización del usuario
+  (`prisma migrate deploy`; `migrate status` al día).
+- Falta: el smoke del usuario en la app con sesión (proponer, confirmar,
+  pantalla) y decidir el merge.
 - La 35 (instrucciones del equipo) sigue pending y depende de esta.
 
 ## Blocked Feature
