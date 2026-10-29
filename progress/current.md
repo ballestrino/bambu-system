@@ -6,6 +6,16 @@ Status: active
 
 - 35 `agent_team_instructions`, en curso desde el 2026-10-29 en la rama
   `feature/agent-team-instructions`.
+- Hecho: `AgentInstructionVersion` (lista entera por versión, número único
+  como compare-and-set) con migración aditiva
+  `20261029160000_agent_team_instructions`. `proposeInstructionChange` (ADD,
+  UPDATE, REMOVE) en todas las habilidades, tarjeta con antes y después,
+  filtro de reglas protegidas al proponer y al confirmar. El bloque del equipo
+  entra después de las reglas fijas. Pantalla `/dashboard/instructions` con
+  reglas fijas, vigentes, historial y restaurar.
+- Verde: tsc, ESLint, todos los `check:agent-*` y `check:agent-instructions`.
+- Falta: aplicar la migración en Neon (pide permiso), el smoke del usuario y
+  el merge.
 
 ## Blocked Feature
 
