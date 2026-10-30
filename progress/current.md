@@ -5,6 +5,9 @@ Status: active
 ## Active Feature
 
 - Ninguna. La 32 sigue bloqueada (abajo).
+- Entorno de facturación: `.env` apunta a la rama de Neon `feature-39-billing`
+  (copia de producción); la URL de producción quedó comentada en la línea 2.
+  Biller test: empresa PEPITO 12, sucursal 928, variables `BILLER_*` en `.env`.
 
 ## Blocked Feature
 
@@ -34,11 +37,21 @@ Status: active
 
 ## Queue
 
+- 2026-10-30: facturación con Biller en `docs/billing.md`, features 40 a 44
+  pendientes. Antes de la 40: el diseño en claude-design. El agente arma
+  borradores y nunca emite.
 - `feature_list.json` se renumeró el 2026-09-24: las ids 1–10 son contexto
   terminado y la cola va de la 11 a la 20, en orden de prioridad. La tabla de
   equivalencias con los ids viejos está en `progress/history.md`.
 
 ## Last Closed Work
+
+- 2026-10-30: facturación, lectura de Biller y resumen del mes (39): modelos
+  `InvoiceBatch` e `Invoice`, GET de solo lectura con guarda de producción,
+  copia local idempotente y resumen contra el mes anterior, sin pantalla.
+  Migración aplicada solo en la rama de Neon `feature-39-billing`; falta en
+  producción. Smoke real contra Biller test. Sin commitear, en la rama
+  `feature/39-billing-biller-history`.
 
 - 2026-10-29: edición de presupuestos rediseñada (38): secciones que se abren
   y cierran con resumen, extras, tarjeta de cambios sin guardar con Deshacer,

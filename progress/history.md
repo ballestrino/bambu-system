@@ -1281,3 +1281,27 @@
 - La 36, la 37 y la 38 se pushearon a `main` el 2026-10-29 con autorización del
   usuario.
 
+
+## 2026-10-30 - Facturación: lectura de Biller y resumen del mes (39)
+
+- Plan de facturación con Biller en `docs/billing.md` (features 39 a 44): repetir
+  el mes pasado como borrador, resumen mensual en el mismo panel y el agente
+  que arma borradores y nunca emite.
+- Modelos `InvoiceBatch` e `Invoice` (migración aditiva
+  `20261030150000_billing_invoices`), aplicada solo en la rama de Neon
+  `feature-39-billing`, copia de producción a la que apunta `.env`. Falta
+  aplicarla en producción antes de que una pantalla la use.
+- `lib/billing/`: configuración con guarda de producción, GET de solo lectura
+  con lista de rutas y reintento ante 429, esquemas del JSON de Biller, la
+  copia local, la sincronización idempotente y el resumen (neto, facturas por
+  tipo, notas de crédito, pendientes y rechazadas contra el mes anterior).
+  `syncBillingMonth` y `getBillingMonthSummary`, solo admin. Sin pantalla.
+- Probado en Biller test (empresa PEPITO 12): `numero_interno` repetido da 422,
+  fechas `dd/mm/aaaa` e ISO, `numero_compra` en v3, estados "Pendiente DGI",
+  "Aceptado DGI" y "Envío no corresponde", anular emite una NC 102 enlazada, el
+  indicador 16 depende del régimen. Detalle en `docs/billing.md`.
+- PASS: tsc, ESLint sin `.claude/worktrees`, `pnpm build`, `check:billing`
+  (con prueba de que detecta un import de la emisión desde el agente) y
+  `scripts/smoke-billing-sync.ts 2026-10`: dos sincronizaciones, 3 creadas y
+  después 3 actualizadas, sin duplicados, neto $ 14.640 como en el panel de
+  Biller. `init.ps1` falla solo en ESLint por `.claude/worktrees` (entorno).
