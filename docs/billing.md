@@ -16,8 +16,7 @@ página a medida que se implementa.
   todas juntas.
 - El agente arma y cambia borradores. **El agente no emite ni anula.** Emitir
   lo hace siempre una persona, desde la página, con confirmación.
-- El diseño de la página sale de claude-design (ver "Brief para
-  claude-design").
+- El diseño de la página sale de claude-design (ver "Diseño").
 
 ## Reglas fijas
 
@@ -188,11 +187,53 @@ En la empresa de prueba PEPITO 12, con emisiones por la API:
     a una y cada fila muestra su serie y número, después su estado y el PDF.
   - Los mails los manda Biller a los que tiene guardados para cada cliente,
     como hoy.
+- **Nueva factura** (`/dashboard/billing/new`): el formulario entero. Se
+  guarda en el borrador del mes o se emite sola en el momento.
+- **Editar una factura del borrador** (`/dashboard/billing/draft/[id]`): el
+  mismo formulario, con lo que cambió contra el mes pasado y quién lo cambió
+  (el agente o una persona). Guardar, emitir solo esa o quitarla del borrador.
+- **Nota de crédito** (`/dashboard/billing/[id]/credit-note`): sale de una
+  factura emitida. Por el total o parcial, con la razón; no supera el total
+  de la factura. Se emite al confirmar y no queda en borrador. Por el total
+  puede usar `anular`; parcial es `emitir` con tipo 102 o 112 y `referencias`.
+- Emitir una sola (nueva, del borrador o nota de crédito) sigue la regla 2:
+  manda `updatedAt` y el total que se vio.
+
+### Formulario de factura
+
+Los campos de `POST /v3/comprobantes/emitir` que usa Bambú, por sección:
+
+- **Comprobante:** tipo (e-Factura 111, e-Ticket 101, nota de crédito
+  112/102, nota de débito 113/103), fecha de emisión (hasta dos meses a
+  futuro), forma de pago y vencimiento si es crédito, moneda y tasa de cambio
+  (vacía: la del cierre anterior), orden de compra (`numero_compra`) y
+  `montos_brutos` (precios con IVA).
+- **Cliente:** buscar uno guardado o una factura anterior; tipo y número de
+  documento, consulta a DGI si es RUT, razón social (o nombre si no es RUT),
+  nombre de fantasía, dirección, ciudad, departamento, país, emails (con
+  `sustituir_emails`) e información adicional. Un e-Ticket admite consumidor
+  final sin datos.
+- **Ítems:** concepto, cantidad, unidad, precio e indicador de IVA; en "Más
+  campos", descripción, código, descuento, recargo, GTIN-13 e indicador de
+  agente responsable.
+- **Descuentos y recargos globales:** tipo, glosa, `$` o `%`, valor e
+  indicador.
+- **Referencias** (notas de crédito y débito): comprobantes puntuales o
+  `referencia_global`, con `razon_referencia`.
+- **Adenda y envío:** adenda, información adicional (150), lugar de entrega,
+  emails solo para esta vez (`emails_notificacion`) y pagos a terceros.
+- Quedan afuera los campos de exportación, CAE especial, complemento fiscal y
+  retenciones o percepciones.
+- La columna de resumen muestra el neto y el IVA por indicador, el total, lo
+  que falta para emitir (e-Factura solo con RUT de 12 dígitos, un ítem con
+  precio, la razón de una nota), el número interno y la sucursal.
 
 ## Agente
 
-- Una habilidad nueva, Facturación (`lib/agent/skills/facturacion.ts`), en
-  la página Facturación, con su propio historial de conversaciones.
+- Es el agente de siempre, con todas sus tools (visitas, trabajos, finanzas,
+  presupuestos), más la habilidad nueva Facturación
+  (`lib/agent/skills/facturacion.ts`), elegida por defecto en las páginas de
+  Facturación, con su propio historial de conversaciones.
 - Tools de lectura: `getBillingSummary` (el resumen de un mes),
   `listInvoices`, `getInvoice` y `lookupRut`.
 - `draftInvoices` crea o cambia el borrador del mes. Puede:
@@ -213,25 +254,43 @@ En la empresa de prueba PEPITO 12, con emisiones por la API:
   - una factura emitida se corrige con nota de crédito, y eso lo hace el
     usuario en la página.
 
-## Brief para claude-design
+## Diseño
 
-"Facturación Bambu", escritorio y teléfono, en el estilo de Operaciones.
+Lienzo de claude-design "Facturación Bambú"
+(<https://claude.ai/artifact/Q8dW34WPdvGgsCoxH1L9m7>, privado). Se eligió
+la alternativa B en escritorio y en teléfono (2026-10-30); las A quedan como
+referencia. Los colores, radios y la letra son los de Operaciones
+(`ops-theme.ts`, Geist).
 
-- **Cabecera:** el mes con flechas y el distintivo Test o Producción.
-- **Resumen:** facturado neto, facturas emitidas (e-Factura y e-Ticket),
-  notas de crédito y un aviso de pendientes o rechazadas ante DGI, cada uno
-  con la diferencia con el mes anterior.
-- **Borrador:**
-  - vacío: "Repetir octubre";
-  - con filas: casilla, receptor, tipo, detalle, monto anterior, monto nuevo
-    editable y un chip ("Precio cambiado", "Ya facturado", "Anulada");
-  - barra con "N marcadas · $ total" y "Emitir N";
-  - el diálogo de emitir y el progreso fila por fila.
-- **Facturas del mes:** filas con estado ante DGI y PDF.
-- **Agente:** una columna en el escritorio y una hoja en el teléfono; la
-  tarjeta de borrador del chat.
-- **Teléfono:** tarjetas con casilla y monto, y la barra de emitir fija
-  abajo.
+- **Escritorio, Facturación del mes:** barra lateral de íconos; cabecera con
+  el mes, el distintivo Test o Producción, "Nueva factura" y "Agente".
+  - Resumen en un panel: el neto grande con la diferencia contra el mes
+    anterior y una barra de lo emitido contra lo que está en el borrador; al
+    costado, facturas emitidas por tipo, notas de crédito y pendientes ante
+    DGI.
+  - Pestañas "Borrador N/M" y "Emitidas N".
+  - El borrador separa "Para emitir" y "No van este mes" (ya facturadas,
+    anuladas). Cada fila: casilla, receptor (abre la edición), tipo, detalle
+    editable, monto anterior → monto nuevo editable y un chip. Una factura de
+    varias líneas abre sus líneas.
+  - Barra flotante oscura con "N marcadas · $ total" y "Emitir N". El diálogo
+    lista las facturas y muestra el progreso de cada una adentro.
+  - Las emitidas tienen estado ante DGI, "Nota de crédito" y PDF.
+- **Teléfono, Facturación del mes:** resumen en una tarjeta verde oscura,
+  conmutador Borrador / Emitidas, lista densa con casilla y monto; tocar una
+  fila abre una hoja para el monto y el detalle, con "Editar todos los
+  campos". Botón "Emitir N · $ total" a todo el ancho, sobre las pestañas.
+- **Nueva factura, editar borrador y nota de crédito:** un mismo formulario
+  en escritorio (dos columnas, resumen fijo a la derecha) y en teléfono
+  (tarjetas, "Dirección y emails" y "Más campos" plegados, total y botón
+  fijos abajo). En teléfono las páginas del formulario ocultan las pestañas.
+- **Agente:** el mismo componente en todas las páginas, con la cabecera, los
+  chips de tools y el composer actuales.
+  - En escritorio es un panel flotante arriba a la derecha (400 px, alto
+    hasta 640 px), por encima del contenido y sin ocupar todo el alto.
+  - En teléfono es un FAB abajo a la derecha que abre una hoja casi a
+    pantalla completa.
+  - La tarjeta de borrador del chat no tiene botón de emitir.
 
 ## Entorno
 
@@ -255,6 +314,6 @@ En la empresa de prueba PEPITO 12, con emisiones por la API:
   prueba de DGI 207949890065, sucursal 928, ya habilitada. Las variables
   `BILLER_*` están en `.env`. Tiene comprobantes de prueba de octubre: una
   e-Factura, un e-Ticket y la NC que lo anula.
-- El diseño en claude-design antes de la 40.
+- Diseño: hecho el 2026-10-30 (B en escritorio y teléfono, ver "Diseño").
 - Permiso para leer el historial real en la 44: no escribe en Biller, pero
   guarda copias en la base de producción.
