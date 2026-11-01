@@ -113,8 +113,8 @@ export const getPaymentLabel = (paymentForm: number, dueDays: number | null) =>
 
 export const toDraftRow = (
   invoice: {
-    billerId: number | null; billerStatus: string | null; cfeType: number; currency: string; error: string | null; id: string;
-    items: unknown; number: number | null;
+    billerId: number | null; billerStatus: string | null; cfeType: number; currency: string; dueDays?: number | null;
+    error: string | null; id: string; items: unknown; number: number | null;
     paymentForm: number | null; receiver: unknown; selected: boolean; series: string | null; status: InvoiceStatus;
     total: Amount; updatedAt: Date;
   },
@@ -148,7 +148,7 @@ export const toDraftRow = (
     lines,
     name: getReceiverName(readStoredReceiver(invoice.receiver)),
     number: invoice.number,
-    paymentLabel: getPaymentLabel(paymentForm, source ? getDueDays(source) : null),
+    paymentLabel: getPaymentLabel(paymentForm, invoice.dueDays ?? (source ? getDueDays(source) : null)),
     prevSubtotal: prevItems ? getItemsSubtotal(prevItems) : null,
     priceChanged: lines.some((line) => line.prevPrecio !== null && line.prevPrecio !== line.precio),
     selected: invoice.selected,

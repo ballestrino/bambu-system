@@ -1,5 +1,7 @@
 "use client";
 
+import { Plus } from "lucide-react";
+import Link from "next/link";
 import { useState } from "react";
 
 import { BillingAgent } from "@/components/billing/billing-agent";
@@ -28,7 +30,23 @@ export const BillingPage = () => {
 
   return (
     <OpsPageShell className="gap-4 md:gap-5">
-      <BillingHeader actions={<BillingAgent monthKey={monthKey} />} biller={view?.biller} sync={sync} />
+      <BillingHeader
+        actions={
+          <>
+            <Link
+              aria-label="Nueva factura"
+              className="inline-flex h-10 items-center gap-2 rounded-[var(--ops-radius-control)] bg-ops-bamboo-strong px-3 text-sm font-semibold text-white transition-colors hover:bg-ops-bamboo-strong/90 focus-visible:ring-2 focus-visible:ring-ops-bamboo/40 focus-visible:outline-none sm:px-3.5"
+              href={`/dashboard/billing/new?month=${monthKey}`}
+            >
+              <Plus aria-hidden className="size-4" />
+              <span className="hidden sm:inline">Nueva factura</span>
+            </Link>
+            <BillingAgent monthKey={monthKey} />
+          </>
+        }
+        biller={view?.biller}
+        sync={sync}
+      />
       {!view ? (
         month.error ? (
           <div className="rounded-[var(--ops-radius-panel)] border border-ops-border bg-ops-surface p-6 text-sm text-ops-text-muted" role="alert">

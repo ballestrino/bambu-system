@@ -5,6 +5,7 @@ import { BillingDraftPhoneRow } from "@/components/billing/billing-draft-phone";
 import { BillingDraftRow } from "@/components/billing/billing-draft-row";
 import { getMonthName } from "@/components/billing/billing-format";
 import { BillingIssueBar, BillingIssueNotice } from "@/components/billing/billing-issue-bar";
+import { BillingRepeatNotice } from "@/components/billing/billing-repeat-notice";
 import { useDraftRowMutation } from "@/components/billing/hooks/use-billing-draft-mutations";
 import type { BillingMonthView } from "@/data/billing/month";
 import type { DraftRow } from "@/lib/billing/billing-month-view";
@@ -23,6 +24,7 @@ export const BillingDraft = ({ draft, view }: { draft: Draft; view: BillingMonth
   return (
     <div className="flex flex-col gap-3.5">
       <BillingIssueNotice draft={draft} periodKey={view.period} />
+      <BillingRepeatNotice draft={draft} view={view} />
       <div className="hidden flex-col gap-3.5 md:flex">
         <DraftSection count={goRows.length} title="Para emitir">
           {goRows.map((row) => <DraftRowContainer {...rowProps} key={row.id} row={row} variant="desktop" />)}

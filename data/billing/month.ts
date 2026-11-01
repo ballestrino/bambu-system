@@ -43,7 +43,7 @@ export const getBillingMonthView = async (periodKey: unknown) => {
       createdAt: true, id: true, origin: true, status: true, updatedAt: true,
       invoices: {
         select: {
-          billerId: true, billerStatus: true, cfeType: true, currency: true, error: true, id: true, items: true, number: true, paymentForm: true,
+          billerId: true, billerStatus: true, cfeType: true, currency: true, dueDays: true, error: true, id: true, items: true, number: true, paymentForm: true,
           receiver: true, selected: true, series: true, status: true, total: true, updatedAt: true,
           sourceInvoice: { select: sourceSelect },
         },
@@ -107,6 +107,8 @@ export const getBillingMonthView = async (periodKey: unknown) => {
           id: batch.id,
           jobChoices: jobs.choices,
           origin: batch.origin,
+          // Sin nada repetido (solo facturas nuevas): la página ofrece repetir el mes anterior.
+          repeated: batch.invoices.some((invoice) => invoice.sourceInvoice),
           rows: draftRows,
           status: batch.status,
           // Una emisión sin novedades hace rato se cortó: la página ofrece continuar.

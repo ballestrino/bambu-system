@@ -40,7 +40,8 @@ Status: active
 - 2026-10-30: facturación con Biller en `docs/billing.md`, feature 44
   pendiente (salida a producción). La migración de la 43 ya está en la rama
   de Neon `feature-39-billing` (aplicada por el usuario el 2026-11-01); en
-  producción faltan la de la 39 y la de la 43.
+  producción faltan la de la 39 y la de la 43. Falta aplicar en esa rama la
+  de la 45 (`20261101180000_billing_new_invoice`).
 - Encontrado en la 43 y fuera de alcance: en producción los envoltorios de
   Facturación que tiran `ValidationError` (sincronizar, repetir, editar el
   borrador, emitir el lote) muestran "Minified React error #441" en vez del
@@ -50,6 +51,14 @@ Status: active
   equivalencias con los ids viejos está en `progress/history.md`.
 
 ## Last Closed Work
+
+- 2026-11-01: facturación, Nueva factura (45), pedida antes de la 44:
+  `/dashboard/billing/new` con el diseño B, "Nueva factura" en la cabecera,
+  emitir en el momento (id por pedido: doble clic y reintento no duplican) o
+  guardar en el borrador del mes (lote `MANUAL` si no hay; "Repetir" lo
+  completa). Migración aditiva sin aplicar en Neon. Probada en Biller test por
+  script y en Chromium a 1440 y 390 px. Rama
+  `claude/feature-43-continuation-5ht481`, sin merge.
 
 - 2026-11-01: facturación, notas de crédito y receptores vinculados a
   trabajos (43): nota por el total o parcial desde

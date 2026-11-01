@@ -742,6 +742,20 @@
       "status": "done"
     },
     {
+      "id": 45,
+      "name": "billing_new_invoice",
+      "title": "Nueva factura: the full invoice form, issued on the spot or saved in the month's draft",
+      "area": "billing",
+      "description": "Plan in docs/billing.md (\"Nueva factura (feature 45)\"), design B of the canvas (Escritorio and Teléfono · Nueva factura). /dashboard/billing/new (admin) with a Nueva factura button in Facturación: e-Factura or e-Ticket, issue date, cash or credit with due date, UYU or USD, purchase order; client from a previous invoice, a RUT looked up at DGI or final consumer on an e-Ticket, with address and emails; items with concept, quantity, unit, price, VAT indicator (the last issued one by default, 16 for IVA mínimo) and description, code, discount and surcharge; adenda and additional information. The summary shows net, VAT per rate, total and what is missing. Emitir ahora confirms in a dialog and issues once (a request id makes the internal number, so a double click or a retry never duplicates; UNKNOWN can be retried). Guardar en el borrador adds it to the month's open draft, creating one if there is none. Left out: debit notes, global discounts, prices with VAT, exchange rate, delivery place and third-party payments.",
+      "acceptance": [
+        "Issuing a new e-Factura and a final-consumer e-Ticket in the Biller test account reaches a final DGI status and shows in Emitidas",
+        "Double clicking or retrying Emitir ahora never creates two invoices",
+        "Saving in the draft adds one checked row (also when the month had no draft) that issues with the batch, with its credit days",
+        "tsc, lint, check:billing, next build and a browser smoke on desktop and at 390 px"
+      ],
+      "status": "done"
+    },
+    {
       "id": 44,
       "name": "billing_production",
       "title": "Go live: production token, real history and the first real batch issued by the user",

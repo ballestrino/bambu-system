@@ -31,6 +31,7 @@ const storedReceiverSchema = z.object({
       ciudad: nullableText,
       departamento: nullableText,
       pais: z.string().catch("UY"),
+      emails: z.array(z.string()).optional().catch(undefined),
     })
     .catch({ direccion: null, ciudad: null, departamento: null, pais: "UY" }),
 });

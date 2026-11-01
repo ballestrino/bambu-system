@@ -57,9 +57,19 @@ const DOCUMENT_TYPES: Record<string, number> = {
 export const toDocumentTypeCode = (value: string): number | null =>
   /^\d+$/.test(value) ? Number(value) : DOCUMENT_TYPES[normalize(value).toUpperCase()] ?? null;
 
+// El receptor con la forma que pide emitir. `emails` (opcional) los suma
+// Biller a los que ya tiene del cliente: lo usa una factura nueva (45).
+export type InvoiceReceiverPayload = {
+  tipo_documento: number | null;
+  documento: string | null;
+  razon_social: string | null;
+  nombre_fantasia: string | null;
+  sucursal: { direccion: string | null; ciudad: string | null; departamento: string | null; pais: string; emails?: string[] };
+};
+
 // El receptor y los ítems se guardan con la forma que pide emitir, para que
 // repetir una factura sea mandar lo mismo con otro mes y otro precio.
-export const toReceiverPayload = (cliente: BillerReceiver) => ({
+export const toReceiverPayload = (cliente: BillerReceiver): InvoiceReceiverPayload => ({
   tipo_documento: toDocumentTypeCode(cliente.tipo_documento),
   documento: cliente.documento ?? null,
   razon_social: cliente.razon_social ?? null,
@@ -93,7 +103,6 @@ export const toItemPayload = (item: BillerItem) => {
   };
 };
 
-export type InvoiceReceiverPayload = ReturnType<typeof toReceiverPayload>;
 export type InvoiceItemPayload = ReturnType<typeof toItemPayload>;
 
 const toDetailFields = (detail: BillerInvoiceDetail) => {

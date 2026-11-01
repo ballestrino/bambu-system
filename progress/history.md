@@ -1435,3 +1435,32 @@
   e-Facturas MF 673310–673311 y notas MA 120677–120681 y A 208055–208056.
 - Migración aplicada por el usuario en la rama de Neon `feature-39-billing`
   el 2026-11-01 con `prisma migrate deploy`. Queda decidir el merge.
+
+## 2026-11-01 - Facturación: Nueva factura (45)
+
+- Pedida por el usuario antes de la 44. `/dashboard/billing/new?month=` con el
+  diseño B del lienzo (escritorio y teléfono) y "Nueva factura" en la
+  cabecera de Facturación. Comprobante (e-Factura o e-Ticket, fecha, contado
+  o crédito con vencimiento, UYU o USD, orden de compra), cliente (de una
+  factura anterior, RUT consultado a DGI, consumidor final; dirección y
+  emails), ítems con indicador de IVA (por defecto el de la última emitida),
+  descripción, código, descuento y recargo, y adenda.
+- Emitir ahora: la página genera un id por pedido; la factura se crea con ese
+  id y `BAMBU-<id>`, con lock por pedido. Doble clic, reintento y `UNKNOWN`
+  no duplican; un rechazo borra la fila y se puede corregir y reenviar.
+  Guardar en el borrador: lock del mes y del lote, lote `MANUAL` si no hay,
+  `Invoice.dueDays` y `numero_compra` que también usa el lote. "Repetir"
+  completa un borrador que solo tiene facturas nuevas.
+- Migración aditiva `20261101180000_billing_new_invoice`, sin aplicar en
+  Neon (desde la nube no se llega).
+- PASS: tsc, ESLint, `check:billing` (con `billing-new-invoice-checks`),
+  `check:agent-tools`, `check:agent-page`, `check:agent-proposals`,
+  `next build`. `scripts/smoke-billing-new-invoice.ts` contra Biller test con
+  un Postgres local: e-Factura a crédito con orden de compra y email (una
+  sola en Biller tras el doble clic), e-Tickets a consumidor final y con CI,
+  borrador `MANUAL`, "Repetir" sin duplicar y el lote con sus 15 días;
+  e-Facturas en "Aceptado DGI". Chromium con `next start`: emitir con
+  rechazo del indicador 16 (la empresa de test no es de IVA mínimo),
+  corregir y reemitir, PDF, guardar desde 390 px sin desborde, volver al mes
+  de la factura, sin errores de consola.
+- Comprobantes de prueba en Biller test: MF 673312–673314 y MT 964940–964942.

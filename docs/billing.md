@@ -377,6 +377,70 @@ En la empresa de prueba PEPITO 12, con emisiones por la API:
   una server action ("Minified React error #441"), como pasa hoy con
   sincronizar, repetir y emitir el lote.
 
+### Nueva factura (feature 45)
+
+- `/dashboard/billing/new?month=AAAA-MM` (solo admin), diseño B del lienzo
+  ("Escritorio B · Nueva factura" y "Teléfono B · Nueva factura", con el
+  "Formulario de factura" en modo nueva). Se llega con "Nueva factura" en la
+  cabecera de Facturación; el mes es el del selector.
+- Campos: los de "Formulario de factura" salvo lo que queda afuera abajo.
+  Comprobante (e-Factura o e-Ticket, fecha de emisión, contado o crédito con
+  vencimiento, UYU o USD, orden de compra), cliente (de una factura anterior,
+  RUT consultado a DGI o consumidor final en un e-Ticket; dirección, ciudad,
+  departamento, país y emails, que Biller suma a los del cliente), ítems
+  (concepto, cantidad, unidad, precio, indicador de IVA y en "Más campos"
+  descripción, código, descuento y recargo), adenda e información adicional.
+  El indicador por defecto es el de la última factura emitida (16 si Bambú
+  factura con IVA mínimo: no suma IVA).
+- **Emitir ahora:** diálogo con cliente, total y ambiente; se emite en el
+  momento con `emitir`. La página genera un `requestId` al abrir: la factura
+  se crea con ese id y `numero_interno` `BAMBU-<id>`, así un doble clic o un
+  reintento encuentran la misma (regla 3). Una respuesta dudosa busca por
+  `numero_interno`; si no aparece queda `UNKNOWN` y "Reintentar" la manda de
+  nuevo con el mismo número. Un rechazo de datos la borra y dice por qué.
+- **Guardar en el borrador de <mes>:** con el lock del mes, la suma marcada
+  al borrador abierto (`DRAFT`) o crea uno (origen `MANUAL`, migración
+  aditiva); uno que se está emitiendo la rechaza. Guarda los días de crédito
+  (`Invoice.dueDays`) para que el lote calcule el vencimiento. La fecha de
+  emisión no se guarda: el lote emite con la fecha del día.
+- Quedan afuera: notas de débito, descuentos y recargos globales, precios con
+  IVA incluido, tasa de cambio, lugar de entrega, pagos a terceros, GTIN,
+  agente responsable y emails solo para esta vez. Las notas de crédito salen
+  de "Emitidas" (43).
+
+- Lo hecho: `lib/billing/new-invoice.ts` (puro: valores del formulario, lo
+  que falta, totales por tasa, receptor e ítems; `parseDecimal` entiende
+  "10.000" y "1.234,50" como la página), `schemas/billing-new-invoice.ts`,
+  `lib/billing/new-invoice-store.ts` (claim con lock por pedido y guardar en
+  el borrador con el lock del mes y del lote), `new-invoice-run.ts` (manda
+  con `sendWithLookup`; un rechazo borra la fila y el mismo pedido se puede
+  corregir y volver a emitir), `actions/billing/new-invoice.ts`,
+  `actions/billing/billing-clients.ts` (buscar cliente en las facturas ya
+  copiadas, consultar RUT) y `components/billing/new-invoice/`. `numero_compra`
+  y `Invoice.dueDays` también los usa el lote. `getLastIndicator` pasó a
+  `lib/billing/invoice-defaults.ts` (lo usan el agente y la página).
+- Un borrador abierto sin nada repetido (creado al guardar una factura nueva)
+  se completa con "Repetir <mes>": `createRepeatDraft` suma las del mes
+  anterior a ese mismo borrador, con el lock del lote, y la página lo ofrece
+  arriba del borrador (`BillingRepeatNotice`, `draft.repeated`).
+- Después de emitir, "Volver a Facturación" abre el mes de la fecha de
+  emisión (puede no ser el del borrador).
+- `check:billing` suma `scripts/billing-new-invoice-checks.ts` y trata
+  `new-invoice-run`, `new-invoice-store` y la acción como código que emite:
+  el agente no llega a ellos.
+- Probado el 2026-11-01 con Biller test y un Postgres local
+  (`scripts/smoke-billing-new-invoice.ts`): e-Factura a crédito 30 días con
+  orden de compra y email (doble clic a la vez y un tercer intento: una sola
+  en Biller con ese número interno), e-Ticket a consumidor final y con CI,
+  factura guardada en un mes sin borrador (lote `MANUAL`, guardar dos veces no
+  duplica), "Repetir" dos veces que la completa sin duplicar (23 filas) y el
+  lote que la emite con sus 15 días. Las e-Facturas llegaron a "Aceptado
+  DGI". En Chromium con `next start`: buscar cliente, dos ítems, el indicador
+  16 rechazado por la empresa de test ("Indicador Facturación es inválido"),
+  corregir y emitir con el mismo pedido, PDF, e-Ticket guardado en el
+  borrador desde 390 px sin desborde y volver al mes de la factura. Sin
+  errores de consola.
+
 ### Formulario de factura
 
 Los campos de `POST /v3/comprobantes/emitir` que usa Bambú, por sección:
@@ -552,6 +616,9 @@ referencia. Los colores, radios y la letra son los de Operaciones
 - Feature 43: la migración `20261101120000_billing_corrections_jobs` está en
   la rama de Neon `feature-39-billing` (2026-11-01). En producción va con la
   de la 39 en la 44.
+- Feature 45: aplicar `20261101180000_billing_new_invoice` (aditiva: origen
+  `MANUAL` y `Invoice.dueDays`) en la rama de Neon `feature-39-billing` con
+  `prisma migrate deploy` desde la rama `claude/feature-43-continuation-5ht481`.
 - Confirmar que hoy facturan desde el panel de Biller y con qué plan.
 - Acceso a la API en producción: el panel de test dice que "fuera del ambiente
   de test, el uso de la API es exclusivo del plan Estándar". En la web el plan

@@ -1402,6 +1402,8 @@ enum InvoiceBatchStatus {
 enum InvoiceBatchOrigin {
   REPEAT
   AGENT
+  // Creado al guardar una factura nueva en un mes sin borrador (feature 45).
+  MANUAL
 }
 
 // El borrador de un mes: las facturas que se van a emitir juntas. El agente
@@ -1452,6 +1454,9 @@ model Invoice {
   // numero_interno: Biller lo rechaza repetido.
   internalNumber   String?       @unique
   paymentForm      Int?
+  // Días de crédito de una factura nueva del borrador (feature 45); las
+  // repetidas los toman de la factura de origen.
+  dueDays          Int?
   billerId         Int?          @unique
   billerSucursal   Int?
   series           String?

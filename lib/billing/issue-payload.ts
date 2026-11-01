@@ -14,6 +14,7 @@ export type IssuePayload = {
   items: Record<string, unknown>[];
   moneda: string;
   montos_brutos: 0;
+  numero_compra?: string;
   numero_interno: string;
   referencias?: (number | Record<string, unknown>)[];
   tipo_comprobante: number;
@@ -27,6 +28,8 @@ export type IssueInput = {
   internalNumber: string | null;
   items: InvoiceItemPayload[] | null;
   paymentForm: number | null;
+  // numero_compra: la orden de compra de una factura nueva (45).
+  purchaseOrder?: string | null;
   receiver: InvoiceReceiverPayload | null;
 };
 
@@ -54,7 +57,8 @@ export const compact = (value: Record<string, unknown>) =>
   Object.fromEntries(Object.entries(value).filter(([, field]) => field !== null && field !== undefined && field !== ""));
 
 export const toCliente = (receiver: InvoiceReceiverPayload) => {
-  const sucursal = compact(receiver.sucursal);
+  const { emails, ...branch } = receiver.sucursal;
+  const sucursal = compact({ ...branch, ...(emails?.length ? { emails } : {}) });
   return compact({
     tipo_documento: receiver.tipo_documento,
     documento: receiver.documento?.replace(/[\s.-]/g, ""),
@@ -104,6 +108,7 @@ export const buildIssuePlan = (input: IssueInput, issueDate: Date): IssuePlan =>
       items: items.map((item) => compact({ ...item })),
       moneda: input.currency,
       montos_brutos: 0,
+      ...(input.purchaseOrder ? { numero_compra: input.purchaseOrder } : {}),
       numero_interno: input.internalNumber,
       tipo_comprobante: input.cfeType,
     },

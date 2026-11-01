@@ -20,7 +20,7 @@ const listFiles = (dir: string): string[] => {
 };
 
 // --- Nada del agente importa la emisión de Biller.
-const ISSUE_IMPORT = /from\s+["'][^"']*(billing\/biller-issue|billing\/credit-note-(run|store)|actions\/billing\/(issue|credit-note))[^"']*["']/;
+const ISSUE_IMPORT = /from\s+["'][^"']*(billing\/biller-issue|billing\/(credit-note|new-invoice)-(run|store)|actions\/billing\/(issue|credit-note|new-invoice))[^"']*["']/;
 for (const file of [...listFiles("lib/agent"), ...listFiles("app/api/agent"), ...listFiles("components/agent")]) {
   assert.ok(!ISSUE_IMPORT.test(read(file)), `${file} imports the Biller issue code`);
 }
@@ -60,7 +60,8 @@ assert.match(read("data/billing/summary.ts"), /^import "server-only";[\s\S]*requ
 assert.match(read("data/billing/month.ts"), /^import "server-only";[\s\S]*requireAdminSession\(\)/);
 assert.match(read("data/billing/invoice.ts"), /^import "server-only";[\s\S]*requireAdminSession\(\)/);
 assert.match(read("data/billing/credit-note.ts"), /^import "server-only";[\s\S]*requireAdminSession\(\)/);
-for (const action of ["sync-month", "repeat-month", "update-draft-invoice", "issue-batch", "credit-note", "receiver-job"]) {
+assert.match(read("data/billing/new-invoice.ts"), /^import "server-only";[\s\S]*requireAdminSession\(\)/);
+for (const action of ["sync-month", "repeat-month", "update-draft-invoice", "issue-batch", "credit-note", "receiver-job", "new-invoice", "billing-clients"]) {
   assert.match(read(`actions/billing/${action}.ts`), /^"use server";[\s\S]*requireAdminSession\(\)/, `${action} requires admin`);
 }
 
@@ -82,6 +83,11 @@ assert.match(read("actions/billing/issue-batch.ts"), /requireAdminSession\(\)[\s
 // página (regla 2) antes de crear la nota en ISSUING con su numero_interno.
 assert.match(read("actions/billing/credit-note.ts"), /requireAdminSession\(\)[\s\S]*assertCanIssue\(\)[\s\S]*claimCreditNote\(/);
 assert.match(read("actions/billing/credit-note.ts"), /retryCreditNote[\s\S]*requireAdminSession\(\)[\s\S]*assertCanIssue\(\)[\s\S]*claimCreditNoteRetry\(/);
+// --- Nueva factura (45): admin, emitir prendido y el claim por pedido.
+assert.match(read("actions/billing/new-invoice.ts"), /requireAdminSession\(\)[\s\S]*assertCanIssue\(\)[\s\S]*claimNewInvoiceIssue\(/);
+assert.match(read("lib/billing/new-invoice-store.ts"), /internalNumber: `BAMBU-\$\{request\.requestId\}`/);
+assert.match(read("lib/billing/new-invoice-store.ts"), /lockRequest\(tx, request\.requestId\);\s+const existing = await tx\.invoice\.findUnique\(\{ where: \{ id: request\.requestId \}/);
+assert.match(read("lib/billing/new-invoice-store.ts"), /lockBillingPeriod\(tx, period\)[\s\S]*lockBatch\(tx, batch\.id\)[\s\S]*status: "DRAFT"/);
 assert.match(read("lib/billing/credit-note-store.ts"), /lockInvoiceCredit\(tx, found\.billerId\)[\s\S]*planCreditNote\([\s\S]*claim\.credited[\s\S]*claim\.total[\s\S]*status: "ISSUING"[\s\S]*internalNumber: `BAMBU-\$\{note\.id\}`/);
 // --- El vínculo receptor → trabajo lo confirma una persona: el agente no lo escribe.
 for (const file of [...listFiles("lib/agent"), "lib/billing/agent-corrections-read.ts"]) {

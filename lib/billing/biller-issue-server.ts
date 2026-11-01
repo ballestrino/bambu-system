@@ -7,6 +7,7 @@ import { runCreditNoteIssue } from "@/lib/billing/credit-note-run";
 import { createCreditNoteStore } from "@/lib/billing/credit-note-store";
 import { runBatchIssue } from "@/lib/billing/issue-run";
 import { createIssueRunStore } from "@/lib/billing/issue-store";
+import { createNewInvoiceRunStore, runNewInvoiceIssue } from "@/lib/billing/new-invoice-run";
 import { db } from "@/lib/db";
 
 // El cableado de la emisión con el entorno y la base. Aparte de
@@ -28,6 +29,9 @@ export const runBillingBatchIssue = (batchId: string) =>
 
 export const runBillingCreditNote = (noteId: string) =>
   runCreditNoteIssue(noteId, { ...getSendDeps(), store: createCreditNoteStore(db) });
+
+export const runBillingNewInvoice = (invoiceId: string) =>
+  runNewInvoiceIssue(invoiceId, { ...getSendDeps(), store: createNewInvoiceRunStore(db) });
 
 // Antes de tomar un lote o una nota: emitir prendido y Biller configurado
 // (getBillerConfig tira si falta algo o si producción no corre acá).
