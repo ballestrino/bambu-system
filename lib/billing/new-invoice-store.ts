@@ -3,6 +3,7 @@ import { Prisma, type PrismaClient } from "@prisma/client";
 import { getBillingMonthName } from "@/lib/billing/billing-month-text";
 import { getPeriodOfIssueDate, parseBillingPeriod } from "@/lib/billing/billing-month";
 import { lockBillingPeriod } from "@/lib/billing/draft-store";
+import { parseIsoDay, pickExplicitDates } from "@/lib/billing/invoice-dates";
 import { ISSUE_STALE_MS, lockBatch } from "@/lib/billing/issue-claim";
 import {
   getNewInvoiceDueDays,
@@ -91,7 +92,8 @@ export type NewInvoiceDraftResult =
 // "Guardar en el borrador de <mes>": con el lock del mes la suma marcada al
 // borrador abierto o crea uno (MANUAL). El mismo lock de lote que "Emitir N":
 // un borrador que se está emitiendo no se toca. Guardar dos veces el mismo
-// pedido no la duplica.
+// pedido no la duplica. Guarda la emisión y el vencimiento solo si se
+// eligieron distintos de los de por defecto (50).
 export const saveNewInvoiceDraft = async (db: PrismaClient, request: NewInvoiceRequest, userId: string, today: string) => {
   const period = parseBillingPeriod(request.month);
   if (!period) return { error: "Mes inválido", ok: false } satisfies NewInvoiceDraftResult;
@@ -125,8 +127,14 @@ export const saveNewInvoiceDraft = async (db: PrismaClient, request: NewInvoiceR
       if (current?.status !== "DRAFT") return { error: `El borrador de ${month} cambió de estado: volvé a intentar`, ok: false };
 
       const updatedAt = new Date();
+      // Las fechas solo si se eligieron distintas de las de por defecto (50):
+      // si no, el lote emite con la del día (o el 1 del mes) y vence el 10.
+      const dates = pickExplicitDates(request.form, { period, today: parseIsoDay(today) ?? updatedAt });
       await tx.invoice.create({
-        data: { ...toInvoiceData(request), batchId: batch.id, createdById: userId, id: request.requestId, period, status: "DRAFT" },
+        data: {
+          ...toInvoiceData(request), batchId: batch.id, createdById: userId, dueDate: dates.dueDate, dueDays: null, id: request.requestId,
+          issueDate: dates.issueDate, period, status: "DRAFT",
+        },
       });
       // Mueve el updatedAt del lote: un "Emitir N" abierto ve que cambió.
       await tx.invoiceBatch.update({ where: { id: batch.id }, data: { updatedAt } });

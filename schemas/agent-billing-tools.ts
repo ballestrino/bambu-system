@@ -70,7 +70,7 @@ export const draftInvoicesInputSchema = z.object({
     )
     .max(10)
     .nullable()
-    .describe("e-Facturas nuevas al contado para clientes que no están en el borrador; la razón social sale de DGI. null si no hay"),
+    .describe("e-Facturas nuevas a crédito (vencen el 10) para clientes que no están en el borrador; la razón social sale de DGI. null si no hay"),
 });
 
 export type DraftInvoicesInput = z.infer<typeof draftInvoicesInputSchema>;

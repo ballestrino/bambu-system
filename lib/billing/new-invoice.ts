@@ -1,4 +1,5 @@
 import { PAYMENT_FORM } from "@/lib/billing/draft-repeat";
+import { getDefaultDueDay } from "@/lib/billing/invoice-dates";
 import type { InvoiceItemPayload, InvoiceReceiverPayload } from "@/lib/billing/invoice-mapping";
 import { getItemsSubtotal, getItemsTotal, getLineSubtotal, getTaxRate } from "@/lib/billing/invoice-totals";
 
@@ -52,10 +53,13 @@ export const emptyNewInvoiceItem = (indicador: number): NewInvoiceItem => ({
   precio: "", recargo: "", recargoTipo: "%", unidad: "",
 });
 
+// A crédito, con vencimiento el 10 del mes de emisión o a 5 días si se emite
+// después del 10 (feature 50). `issueDay` es la emisión por defecto: hoy, o
+// el 1 del mes si se factura un mes que no empezó (getDefaultIssueDay).
 export const newInvoiceDefaults = (issueDay: string, indicator: number): NewInvoiceForm => ({
   address: "", cfeType: 111, city: "", consumer: false, country: "UY", currency: "UYU", department: "Montevideo",
-  document: "", documentType: RUT_DOCUMENT, dueDate: "", emails: [], issueDate: issueDay,
-  items: [emptyNewInvoiceItem(indicator)], name: "", paymentForm: PAYMENT_FORM.CASH, purchaseOrder: "", tradeName: "", adenda: "",
+  document: "", documentType: RUT_DOCUMENT, dueDate: getDefaultDueDay(issueDay), emails: [], issueDate: issueDay,
+  items: [emptyNewInvoiceItem(indicator)], name: "", paymentForm: PAYMENT_FORM.CREDIT, purchaseOrder: "", tradeName: "", adenda: "",
 });
 
 // "1.234,50", "1234.5", "10.000" o "$ 2.400" (como parseMoneyInput de la

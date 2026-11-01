@@ -4,10 +4,11 @@ import { AlertTriangle, Loader2 } from "lucide-react";
 import { useState } from "react";
 
 import { getDraftTotals } from "@/components/billing/billing-draft-model";
-import { formatMoney, pluralInvoices } from "@/components/billing/billing-format";
+import { formatMoney, formatShortDate, pluralInvoices } from "@/components/billing/billing-format";
 import { BillingIssueDialog } from "@/components/billing/billing-issue-dialog";
 import { useResumeBillingIssue } from "@/components/billing/hooks/use-billing-issue";
 import type { BillingMonthView } from "@/data/billing/month";
+import { getDefaultDueDay } from "@/lib/billing/invoice-dates";
 
 type Draft = NonNullable<BillingMonthView["draft"]>;
 
@@ -32,7 +33,8 @@ export const BillingIssueBar = ({ draft, view }: { draft: Draft; view: BillingMo
           {totals.count} {totals.count === 1 ? "marcada" : "marcadas"} · {formatMoney(totals.amount)}
         </span>
         <span className="hidden text-[13px] text-[#cfe3d2] md:inline">
-          {totals.eFactura} e-Factura · {totals.eTicket} e-Ticket · fecha de emisión el día que se emite
+          {totals.eFactura} e-Factura · {totals.eTicket} e-Ticket · emisión {formatShortDate(view.draftIssueDay)}, vencen el{" "}
+          {formatShortDate(getDefaultDueDay(view.draftIssueDay))}
         </span>
       </div>
       <button

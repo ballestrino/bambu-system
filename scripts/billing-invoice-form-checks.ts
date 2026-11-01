@@ -72,7 +72,7 @@ assert.deepEqual(getNewInvoiceTotals(filled.form), { subtotal: 13001, taxes: [{ 
 assert.deepEqual(getNewInvoiceProblems(filled.form, today), []);
 // El patch trae solo lo que cambió (la moneda y el tipo no) y lo cuenta en palabras.
 assert.ok(!("currency" in filled.patch) && !("cfeType" in filled.patch));
-assert.deepEqual(Object.keys(filled.patch).sort(), ["address", "adenda", "city", "document", "dueDate", "items", "name", "paymentForm", "tradeName"]);
+assert.deepEqual(Object.keys(filled.patch).sort(), ["address", "adenda", "city", "document", "dueDate", "items", "name", "tradeName"]);
 assert.equal(filled.changes[0], "Cliente Colegio Los Pinos S.A. (de su última factura)");
 assert.ok(filled.changes.includes("Crédito, vence 2026-12-20"));
 assert.ok(filled.changes.includes("Adenda: Servicio de noviembre"));
@@ -100,8 +100,15 @@ const dgi = planInvoiceFormFill(
 );
 assert.deepEqual([dgi.form.name, dgi.form.tradeName, dgi.form.emails], ["Nueva SA", "Nueva", ["pagos@nueva.uy"]]);
 assert.ok(dgi.changes.includes("Cliente: nombre de fantasía, emails"));
-// Crédito sin días: 10 días desde la emisión, como la página.
-assert.equal(planInvoiceFormFill(blank, { ...none, payment: "credito" }, null).form.dueDate, "2026-11-30");
+// El formulario arranca a crédito (50). Crédito sin días: el 10 del mes de
+// emisión, o a 5 días si se emite después del 10, como la página.
+assert.deepEqual([blank.paymentForm, blank.dueDate], [2, "2026-11-25"]);
+const cash = { ...blank, dueDate: "", paymentForm: 1 };
+assert.equal(planInvoiceFormFill(cash, { ...none, payment: "credito" }, null).form.dueDate, "2026-11-25");
+assert.equal(planInvoiceFormFill(cash, { ...none, payment: "credito", issueDate: "2026-12-01" }, null).form.dueDate, "2026-12-10");
+// Mover la emisión mueve un vencimiento de la regla; uno elegido se respeta.
+assert.equal(planInvoiceFormFill(blank, { ...none, issueDate: "2026-12-01" }, null).form.dueDate, "2026-12-10");
+assert.equal(planInvoiceFormFill({ ...blank, dueDate: "2026-12-31" }, { ...none, issueDate: "2026-12-01" }, null).form.dueDate, "2026-12-31");
 
 // --- La entrada: todo obligatorio y nullable; precio sin IVA no negativo.
 assert.ok(fillInvoiceFormInputSchema.safeParse(none).success);

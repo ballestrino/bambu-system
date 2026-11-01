@@ -1,5 +1,6 @@
 import type { InvoiceReceiverPayload } from "@/lib/billing/invoice-mapping";
 import { PAYMENT_FORM } from "@/lib/billing/draft-repeat";
+import { getDefaultDueDay } from "@/lib/billing/invoice-dates";
 import { CFE_LABELS, formatInvoiceMoney } from "@/lib/billing/new-invoice-agent-context";
 import { emptyNewInvoiceItem, RUT_DOCUMENT, type NewInvoiceForm, type NewInvoiceItem } from "@/lib/billing/new-invoice";
 import { INVOICE_FORM_DOCUMENT_TYPES, type FillInvoiceFormInput } from "@/schemas/agent-invoice-form-tools";
@@ -8,8 +9,6 @@ import { INVOICE_FORM_DOCUMENT_TYPES, type FillInvoiceFormInput } from "@/schema
 // cambian en el formulario de Nueva factura. Puro: no escribe nada; la página
 // aplica el `patch` y la persona revisa y emite.
 const DAY_MS = 24 * 60 * 60 * 1000;
-// Como la página: al pasar a crédito el vencimiento arranca a 10 días.
-const DEFAULT_CREDIT_DAYS = 10;
 
 export const addInvoiceDays = (day: string, days: number) =>
   new Date(new Date(`${day}T00:00:00Z`).getTime() + days * DAY_MS).toISOString().slice(0, 10);
@@ -88,9 +87,13 @@ export const planInvoiceFormFill = (
   }
   if (input.issueDate) set("issueDate", input.issueDate);
   if (input.payment) set("paymentForm", input.payment === "credito" ? PAYMENT_FORM.CREDIT : PAYMENT_FORM.CASH);
+  // Como la página (50): con los días que pidió el usuario o, si no, el 10
+  // del mes de emisión (a 5 días si se emite después del 10). Un vencimiento
+  // que seguía la regla se mueve con la emisión; uno elegido se respeta.
   if (next.paymentForm === PAYMENT_FORM.CREDIT && next.issueDate) {
-    const days = input.creditDays ?? (next.dueDate ? null : DEFAULT_CREDIT_DAYS);
-    if (days !== null) set("dueDate", addInvoiceDays(next.issueDate, days));
+    const followsRule = !next.dueDate || next.dueDate < next.issueDate || current.dueDate === getDefaultDueDay(current.issueDate);
+    if (input.creditDays !== null) set("dueDate", addInvoiceDays(next.issueDate, input.creditDays));
+    else if (followsRule) set("dueDate", getDefaultDueDay(next.issueDate));
   }
   if (input.currency) set("currency", input.currency);
   if (input.purchaseOrder !== null) set("purchaseOrder", input.purchaseOrder);

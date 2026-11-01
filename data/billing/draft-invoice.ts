@@ -29,7 +29,7 @@ export const getDraftInvoiceEditor = async (invoiceId: string) => {
   const row = await loadDraftEditorRow(db, invoiceId);
   if (!row?.batch) return { error: "La factura ya no está en el borrador" };
 
-  const state = toEditorState(row, today);
+  const state = toEditorState(row, row.batch.period, today);
   const events = await db.agentAuditEvent.findMany({
     where: { action: "invoice.edit", entityId: row.id, entityType: "Invoice" },
     orderBy: { createdAt: "desc" },

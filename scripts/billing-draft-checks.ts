@@ -76,9 +76,11 @@ assert.equal(draft[0].items[0].indicador_facturacion, 3);
 assert.equal(draft[0].adenda, "Servicio de noviembre 2026");
 assert.equal(draft[0].total, 14640);
 assert.equal(draft[0].paymentForm, 2);
-assert.equal(draft[1].paymentForm, 1);
+// La 50: también lo que fue de contado (s2 no tenía vencimiento) sale a crédito.
+assert.equal(draft[1].paymentForm, 2);
 assert.equal(getDueDays(sources[0]), 31);
-assert.equal(getPaymentLabel(2, 31), "Crédito 31 días");
+assert.equal(getPaymentLabel(2, new Date(Date.UTC(2026, 10, 10))), "Crédito · vence 10/11");
+assert.equal(getPaymentLabel(2, null), "Crédito");
 assert.equal(getPaymentLabel(1, null), "Contado");
 assert.equal(sources[0].items?.[0].concepto, "Limpieza de oficina - octubre 2026", "the source is not mutated");
 

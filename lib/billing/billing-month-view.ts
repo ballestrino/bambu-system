@@ -4,7 +4,8 @@ import type { InvoiceCredit } from "@/lib/billing/credit-note-links";
 import type { DraftJobInfo } from "@/lib/billing/receiver-job-store";
 import { CREDIT_NOTE_TYPE } from "@/lib/billing/credit-note-plan";
 import { canArchiveInvoice } from "@/lib/billing/invoice-remove";
-import { getDueDays, getPaymentForm, getRepeatSkip, PAYMENT_FORM, type RepeatContext, type RepeatSkip, type RepeatSource } from "@/lib/billing/draft-repeat";
+import { getPaymentForm, getRepeatSkip, PAYMENT_FORM, type RepeatContext, type RepeatSkip, type RepeatSource } from "@/lib/billing/draft-repeat";
+import { resolveDraftDates } from "@/lib/billing/invoice-dates";
 import { getReceiverName, readStoredItems, readStoredReceiver } from "@/lib/billing/invoice-json";
 import { classifyCfe, getCfeLabel } from "@/lib/billing/invoice-mapping";
 import { getItemsSubtotal, getLineSubtotal, hasTaxedItems } from "@/lib/billing/invoice-totals";
@@ -118,18 +119,23 @@ export type DraftRow = {
   updatedAt: string;
 };
 
-export const getPaymentLabel = (paymentForm: number, dueDays: number | null) =>
-  paymentForm === PAYMENT_FORM.CREDIT ? (dueDays ? `Crédito ${dueDays} días` : "Crédito") : "Contado";
+// "Crédito · vence 10/11" (la fecha con que sale o salió) o "Contado".
+export const getPaymentLabel = (paymentForm: number, dueDate: Date | null) =>
+  paymentForm === PAYMENT_FORM.CREDIT
+    ? dueDate ? `Crédito · vence ${dueDate.getUTCDate()}/${dueDate.getUTCMonth() + 1}` : "Crédito"
+    : "Contado";
 
 export const toDraftRow = (
   invoice: {
-    billerId: number | null; billerStatus: string | null; cfeType: number; currency: string; dueDays?: number | null;
-    error: string | null; id: string; items: unknown; number: number | null;
+    billerId: number | null; billerStatus: string | null; cfeType: number; currency: string; dueDate?: Date | null;
+    error: string | null; id: string; issueDate?: Date | null; items: unknown; number: number | null;
     paymentForm: number | null; receiver: unknown; selected: boolean; series: string | null; status: InvoiceStatus;
     total: Amount; updatedAt: Date;
   },
   source: RepeatSource | null,
-  context: RepeatContext
+  context: RepeatContext,
+  // Hoy en Montevideo: la fecha con que saldría una del borrador (50).
+  today: Date
 ): DraftRow => {
   const items = readStoredItems(invoice.items) ?? [];
   const prevItems = source?.items ?? null;
@@ -146,6 +152,10 @@ export const toDraftRow = (
     };
   });
   const paymentForm = invoice.paymentForm ?? (source ? getPaymentForm(source) : PAYMENT_FORM.CASH);
+  const dueDate =
+    invoice.status === "DRAFT"
+      ? resolveDraftDates({ explicitDue: invoice.dueDate ?? null, explicitIssue: invoice.issueDate ?? null, paymentForm, period: context.to, today }).dueDate
+      : invoice.dueDate ?? null;
   return {
     billerStatus: invoice.billerStatus,
     cfeLabel: getCfeLabel(invoice.cfeType),
@@ -159,7 +169,7 @@ export const toDraftRow = (
     lines,
     name: getReceiverName(readStoredReceiver(invoice.receiver)),
     number: invoice.number,
-    paymentLabel: getPaymentLabel(paymentForm, invoice.dueDays ?? (source ? getDueDays(source) : null)),
+    paymentLabel: getPaymentLabel(paymentForm, dueDate),
     prevSubtotal: prevItems ? getItemsSubtotal(prevItems) : null,
     priceChanged: lines.some((line) => line.prevPrecio !== null && line.prevPrecio !== line.precio),
     selected: invoice.selected,

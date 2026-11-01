@@ -2,7 +2,7 @@ import { Prisma, type PrismaClient } from "@prisma/client";
 
 import { getBillingPeriodKey } from "@/lib/billing/billing-month";
 import { describeFormChanges, draftToForm, formToDraftData, getDraftEditorBlock, type DraftEditorInvoice } from "@/lib/billing/draft-editor";
-import { getDueDays, getPaymentForm, PAYMENT_FORM } from "@/lib/billing/draft-repeat";
+import { getPaymentForm, PAYMENT_FORM } from "@/lib/billing/draft-repeat";
 import { lockBillingPeriod, toRepeatSource } from "@/lib/billing/draft-store";
 import { pickExplicitDates, resolveDraftDates, toIsoDay } from "@/lib/billing/invoice-dates";
 import { readStoredItems, readStoredReceiver } from "@/lib/billing/invoice-json";
@@ -29,8 +29,9 @@ export const loadDraftEditorRow = (db: Reader, invoiceId: string) =>
   db.invoice.findUnique({ where: { id: invoiceId }, select: draftEditorSelect });
 
 // La fila como la ve el formulario: la forma de pago de la de origen si no
-// guardó una (como toDraftRow) y las fechas elegidas o las de por defecto.
-export const toEditorState = (row: DraftEditorRow, today: Date) => {
+// guardó una (como toDraftRow) y las fechas elegidas o las de por defecto
+// para `period`, el mes del borrador.
+export const toEditorState = (row: DraftEditorRow, period: Date, today: Date) => {
   const source = row.sourceInvoice ? toRepeatSource(row.sourceInvoice) : null;
   const invoice: DraftEditorInvoice = {
     adenda: row.adenda,
@@ -41,10 +42,9 @@ export const toEditorState = (row: DraftEditorRow, today: Date) => {
     purchaseOrder: row.purchaseOrder,
     receiver: readStoredReceiver(row.receiver),
   };
-  const dueDays = row.dueDays ?? (source ? getDueDays(source) : null);
-  const dates = resolveDraftDates({ dueDays, explicitDue: row.dueDate, explicitIssue: row.issueDate, paymentForm: invoice.paymentForm, today });
+  const dates = resolveDraftDates({ explicitDue: row.dueDate, explicitIssue: row.issueDate, paymentForm: invoice.paymentForm, period, today });
   const form = draftToForm(invoice, { dueDate: dates.dueDate ? toIsoDay(dates.dueDate) : "", issueDate: toIsoDay(dates.issueDate) });
-  return { block: getDraftEditorBlock({ ...row, batchStatus: row.batch?.status ?? null }), dueDays, form, invoice, source };
+  return { block: getDraftEditorBlock({ ...row, batchStatus: row.batch?.status ?? null }), form, invoice, source };
 };
 
 export type DraftFormSaveResult =
@@ -68,7 +68,7 @@ export const saveDraftInvoiceForm = (db: PrismaClient, request: DraftInvoiceForm
     }
     const row = await loadDraftEditorRow(tx, request.invoiceId);
     if (!row?.batch) return { error: "not_found" };
-    const state = toEditorState(row, today);
+    const state = toEditorState(row, row.batch.period, today);
     if (state.block) return { error: "not_editable" };
     if (row.updatedAt.toISOString() !== request.updatedAt) return { error: "stale" };
     const problems = getNewInvoiceProblems(request.form, toIsoDay(today));
@@ -77,12 +77,13 @@ export const saveDraftInvoiceForm = (db: PrismaClient, request: DraftInvoiceForm
     const data = formToDraftData(state.invoice, state.form, request.form);
     const changes = describeFormChanges(state.form, request.form, { after: data.items, before: state.invoice.items ?? [] });
     if (!changes.length) return { changes, ok: true, total: Number(row.total), updatedAt: row.updatedAt };
-    const dates = pickExplicitDates(request.form, { dueDays: state.dueDays, today });
+    const dates = pickExplicitDates(request.form, { period: row.batch.period, today });
 
     const updatedAt = new Date();
     const { count } = await tx.invoice.updateMany({
       where: { id: row.id, status: "DRAFT", updatedAt: row.updatedAt },
-      data: { ...data, dueDate: dates.dueDate, issueDate: dates.issueDate, items: json(data.items), receiver: json(data.receiver), updatedAt },
+      // dueDays (45) ya no cuenta: el vencimiento es el elegido o el del 10.
+      data: { ...data, dueDate: dates.dueDate, dueDays: null, issueDate: dates.issueDate, items: json(data.items), receiver: json(data.receiver), updatedAt },
     });
     if (!count) return { error: "stale" };
     await tx.invoiceBatch.update({ where: { id: row.batch.id }, data: { updatedAt } });

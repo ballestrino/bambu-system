@@ -15,6 +15,7 @@ import { Button } from "@/components/ui/button";
 import { Dialog, DialogDescription, DialogTitle } from "@/components/ui/dialog";
 import type { BillingMonthView } from "@/data/billing/month";
 import type { DraftRow } from "@/lib/billing/billing-month-view";
+import { getDefaultDueDay } from "@/lib/billing/invoice-dates";
 
 type Draft = NonNullable<BillingMonthView["draft"]>;
 
@@ -80,7 +81,7 @@ export const BillingIssueDialog = ({
             {phase === "confirm" ? `Emitir ${pluralInvoices(totals.count)}` : phase === "running" ? "Emitiendo…" : "Emisión terminada"}
           </DialogTitle>
           <DialogDescription>
-            Fecha de emisión {formatLongDate(view.issueDay)} ·{" "}
+            Emisión {formatLongDate(view.draftIssueDay)} · a crédito vencen el {formatLongDate(getDefaultDueDay(view.draftIssueDay))} ·{" "}
             {view.biller.environment === "production" ? "Producción: tienen valor fiscal." : "Biller test: sin valor fiscal."}{" "}
             Biller las manda por mail a los emails guardados de cada cliente.
           </DialogDescription>

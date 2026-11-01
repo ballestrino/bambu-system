@@ -35,7 +35,7 @@ export const fillInvoiceFormInputSchema = z.object({
     .min(0)
     .max(365)
     .nullable()
-    .describe("Con crédito: días hasta el vencimiento desde la emisión; null deja el vencimiento (o 10 días si no tenía)"),
+    .describe("Con crédito: días hasta el vencimiento desde la emisión; null deja el de la regla (el 10 del mes de emisión, o a 5 días si se emite después del 10)"),
   currency: z.enum(["UYU", "USD"]).nullable().describe("Moneda; null no cambia"),
   purchaseOrder: text(50, "Orden de compra; cadena vacía la borra; null no cambia"),
   clientDocument: z

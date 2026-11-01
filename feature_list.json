@@ -836,7 +836,7 @@
         "The pending decisions are answered and written in docs/billing.md before implementing",
         "tsc, lint, check:billing and a smoke on the Biller test account"
       ],
-      "status": "pending"
+      "status": "done"
     }
   ]
 }

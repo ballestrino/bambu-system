@@ -1545,3 +1545,17 @@
 - PASS: tsc, ESLint, `init.sh`, `check:billing` (con
   `billing-editor-checks`) y Chromium a 1440 y 390 px con Biller test
   (guardar, siguiente, recargar, conflicto y emitir 2 desde el diálogo).
+
+## 2026-11-01 - Feature 50: fechas por defecto del 1 al 10
+
+- En `claude/billing-side-editor-dates`, sobre la 49.
+- Decisiones del usuario: emitida después del 10 vence a los 5 días; las de
+  contado pasan a crédito. Escritas en `docs/billing.md`.
+- `lib/billing/invoice-dates.ts`: emisión hoy o el 1 del mes si no empezó;
+  vencimiento el 10 del mes de emisión (o a 5 días). La usan el lote, la
+  fila, la barra y el diálogo de "Emitir", Nueva factura, guardar en el
+  borrador, el editor lateral y el agente. Repetir y el agente guardan a
+  crédito. Sin migración.
+- PASS: tsc, ESLint, `check:billing` (con `billing-dates-checks`), checks del
+  agente, `init.sh` con build y Biller test desde Chromium: diciembre emitido
+  el 1/11 salió con 01/12 y vence 10/12 (MT 965026, MF 673321).

@@ -2,19 +2,26 @@
 
 import { Field, inputClass, Segmented, SectionChip, SectionTitle, sectionClass } from "@/components/billing/new-invoice/new-invoice-fields";
 import { PAYMENT_FORM } from "@/lib/billing/draft-repeat";
+import { getDefaultDueDay } from "@/lib/billing/invoice-dates";
 import type { NewInvoiceForm } from "@/lib/billing/new-invoice";
 
 type Props = { disabled: boolean; form: NewInvoiceForm; onChange: (patch: Partial<NewInvoiceForm>) => void; today: string };
 
 const DAY_MS = 24 * 60 * 60 * 1000;
-// Al pasar a crédito el vencimiento arranca a 10 días de la emisión (se puede cambiar).
-const DEFAULT_CREDIT_DAYS = 10;
 const addDays = (day: string, days: number) => new Date(new Date(`${day}T00:00:00Z`).getTime() + days * DAY_MS).toISOString().slice(0, 10);
 
 const dueHint = (form: NewInvoiceForm) => {
   if (!form.dueDate || !form.issueDate) return undefined;
   const days = Math.round((new Date(`${form.dueDate}T00:00:00Z`).getTime() - new Date(`${form.issueDate}T00:00:00Z`).getTime()) / DAY_MS);
   return days >= 0 ? `${days} días` : undefined;
+};
+
+// Vence el 10 del mes de emisión, o a 5 días si se emite después del 10
+// (50). Al cambiar la emisión, un vencimiento que seguía la regla (o que
+// queda antes) se mueve con ella; uno elegido a mano se respeta.
+const withIssueDate = (form: NewInvoiceForm, issueDate: string): Partial<NewInvoiceForm> => {
+  const followsRule = !form.dueDate || form.dueDate === getDefaultDueDay(form.issueDate) || form.dueDate < issueDate;
+  return form.paymentForm === PAYMENT_FORM.CREDIT && followsRule && issueDate ? { dueDate: getDefaultDueDay(issueDate), issueDate } : { issueDate };
 };
 
 // "Comprobante" (diseño B): tipo, fecha de emisión, forma de pago con su
@@ -36,7 +43,7 @@ export const NewInvoiceVoucher = ({ disabled, form, onChange, today }: Props) =>
           className={inputClass}
           disabled={disabled}
           max={addDays(today, 59)}
-          onChange={(event) => onChange({ issueDate: event.target.value })}
+          onChange={(event) => onChange(withIssueDate(form, event.target.value))}
           type="date"
           value={form.issueDate}
         />
@@ -47,7 +54,7 @@ export const NewInvoiceVoucher = ({ disabled, form, onChange, today }: Props) =>
           disabled={disabled}
           label="Forma de pago"
           onChange={(paymentForm) =>
-            onChange({ paymentForm, ...(paymentForm === PAYMENT_FORM.CREDIT && !form.dueDate && form.issueDate ? { dueDate: addDays(form.issueDate, DEFAULT_CREDIT_DAYS) } : {}) })
+            onChange({ paymentForm, ...(paymentForm === PAYMENT_FORM.CREDIT && !form.dueDate && form.issueDate ? { dueDate: getDefaultDueDay(form.issueDate) } : {}) })
           }
           options={[{ label: "Contado", value: PAYMENT_FORM.CASH as number }, { label: "Crédito", value: PAYMENT_FORM.CREDIT as number }]}
           value={form.paymentForm}

@@ -18,7 +18,8 @@ export const facturaSkill: AgentSkill = {
     "- e-Factura solo con RUT de 12 dígitos; a una persona sin RUT, e-Ticket (con CI o consumidor final).",
     "- Importes: los precios van SIN IVA y salen de una tool (una factura anterior, un presupuesto) o del usuario. No inventes ni estimes un precio: si falta, preguntalo. Si el usuario da un importe con IVA, decilo y preguntá antes de usarlo.",
     "- El indicador de IVA de cada línea: dejalo en null (usa el del formulario, el de la última factura emitida) salvo que el usuario pida otro.",
-    "- Crédito: payment credito con creditDays (los días que pida el usuario; null deja el vencimiento o pone 10 días).",
+    "- Fechas: se factura del 1 al 10. El formulario ya trae la emisión (hoy, o el 1 del mes si se factura un mes que no empezó) y el vencimiento: el 10 del mes de emisión, o a 5 días si se emite después del 10. Cambialas solo si el usuario lo pide.",
+    "- Crédito: payment credito con creditDays (los días que pida el usuario; null deja el vencimiento de la regla). Las facturas van a crédito por defecto; contado solo si el usuario lo pide.",
     `- Al terminar, decí en una o dos líneas qué completaste y, si la tarjeta muestra lo que falta, qué falta. Después el usuario la emite desde esta página (o desde Facturación, ${BILLING_URL}, si la guarda en el borrador). No repitas lo que muestra la tarjeta.`,
   ].join("\n"),
   tools: [

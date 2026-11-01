@@ -16,6 +16,7 @@ import { NewInvoiceSummary } from "@/components/billing/new-invoice/new-invoice-
 import { NewInvoiceVoucher } from "@/components/billing/new-invoice/new-invoice-voucher";
 import { OpsPageShell, selectOpsMonth } from "@/components/ops/shared";
 import type { NewInvoiceView } from "@/data/billing/new-invoice";
+import { getDefaultIssueDay } from "@/lib/billing/invoice-dates";
 import { getNewInvoiceProblems, getNewInvoiceTotals, newInvoiceDefaults, type NewInvoiceForm } from "@/lib/billing/new-invoice";
 import { cn } from "@/lib/utils";
 
@@ -30,7 +31,8 @@ const newRequestId = () => crypto.randomUUID().replace(/-/g, "");
 // momento o se guarda en el borrador del mes para emitirla con las demás.
 export const NewInvoicePage = ({ view }: { view: NewInvoiceView }) => {
   const router = useRouter();
-  const [form, setForm] = useState<NewInvoiceForm>(() => newInvoiceDefaults(view.issueDay, view.indicator));
+  // Emisión hoy, o el 1 del mes si se factura un mes que no empezó (50).
+  const [form, setForm] = useState<NewInvoiceForm>(() => newInvoiceDefaults(getDefaultIssueDay(view.issueDay, view.month), view.indicator));
   const [requestId] = useState(newRequestId);
   const [open, setOpen] = useState(false);
   const [result, setResult] = useState<NewInvoiceDialogResult>(null);

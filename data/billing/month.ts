@@ -10,6 +10,7 @@ import { loadDraftJobs } from "@/lib/billing/receiver-job-store";
 import { buildRepeatDraft, getRepeatSkip, type RepeatSkipKind } from "@/lib/billing/draft-repeat";
 import { loadRepeatInputs, toRepeatSource } from "@/lib/billing/draft-store";
 import { ISSUE_STALE_MS } from "@/lib/billing/issue-claim";
+import { getDefaultIssueDate, toIsoDay } from "@/lib/billing/invoice-dates";
 import { getIssueDay } from "@/lib/billing/issue-payload";
 import { db } from "@/lib/db";
 import { requireAdminSession } from "@/lib/require-admin-session";
@@ -43,7 +44,7 @@ export const getBillingMonthView = async (periodKey: unknown) => {
       createdAt: true, id: true, origin: true, status: true, updatedAt: true,
       invoices: {
         select: {
-          archivedAt: true, billerId: true, billerStatus: true, cfeType: true, currency: true, dueDays: true, error: true, id: true, items: true, number: true, paymentForm: true,
+          archivedAt: true, billerId: true, billerStatus: true, cfeType: true, currency: true, dueDate: true, error: true, id: true, issueDate: true, items: true, number: true, paymentForm: true,
           receiver: true, selected: true, series: true, status: true, total: true, updatedAt: true,
           sourceInvoice: { select: sourceSelect },
         },
@@ -74,12 +75,14 @@ export const getBillingMonthView = async (periodKey: unknown) => {
   );
 
   // Lo archivado (47) sale de las listas: solo puede ser algo ya emitido.
+  const now = new Date();
+  const today = getIssueDay(now);
   const draftRows = (batch?.invoices ?? [])
     .filter((invoice) => !invoice.archivedAt)
     .map((invoice) => {
       const source = invoice.sourceInvoice ? toRepeatSource(invoice.sourceInvoice) : null;
       const order = [invoice.sourceInvoice?.issueDate?.getTime() ?? Infinity, invoice.sourceInvoice?.number ?? 0];
-      return { order, row: toDraftRow(invoice, source, repeat.context) };
+      return { order, row: toDraftRow(invoice, source, repeat.context, today) };
     })
     .sort((a, b) => a.order[0] - b.order[0] || a.order[1] - b.order[1] || a.row.name.localeCompare(b.row.name))
     .map(({ row }) => row);
@@ -99,7 +102,6 @@ export const getBillingMonthView = async (periodKey: unknown) => {
   }
   const repeatRows = buildRepeatDraft(repeat.sources, repeat.context);
   const { gte } = getIssueDateRange(period);
-  const now = new Date();
 
   return {
     biller: getBillerStatus(),
@@ -121,7 +123,9 @@ export const getBillingMonthView = async (periodKey: unknown) => {
     // Lo archivado (47) sale de "Emitidas" y sigue en el resumen (current).
     issued: current.filter((invoice) => !invoice.archivedAt).map((invoice) => toIssuedRow(invoice, credits)),
     archived: current.filter((invoice) => invoice.archivedAt).map((invoice) => toIssuedRow(invoice, credits)),
-    issueDay: getIssueDay(now).toISOString().slice(0, 10),
+    issueDay: toIsoDay(today),
+    // Con qué fecha sale el borrador de este mes (50): hoy, o el 1 si el mes no empezó.
+    draftIssueDay: toIsoDay(getDefaultIssueDate(today, period)),
     period: getBillingPeriodKey(period),
     previousPeriod: getBillingPeriodKey(previous),
     repeatPreview: {

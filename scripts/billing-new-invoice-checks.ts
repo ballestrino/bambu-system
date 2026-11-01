@@ -49,9 +49,10 @@ assert.deepEqual(getNewInvoiceProblems(form(), today), []);
 assert.deepEqual(getNewInvoiceProblems(form({ document: "1234567" }), today), ["La e-Factura va solo con un RUT de 12 dígitos."]);
 assert.deepEqual(getNewInvoiceProblems(form({ cfeType: 101, consumer: true, document: "", name: "" }), today), []);
 assert.deepEqual(getNewInvoiceProblems(form({ cfeType: 101, name: " " }), today), ["Falta el nombre del cliente."]);
-assert.deepEqual(getNewInvoiceProblems(form({ paymentForm: 2 }), today), ["A crédito necesita vencimiento."]);
+assert.deepEqual(getNewInvoiceProblems(form(), today), [], "arranca a crédito con el vencimiento de la regla (50)");
+assert.deepEqual(getNewInvoiceProblems(form({ paymentForm: 2, dueDate: "" }), today), ["A crédito necesita vencimiento."]);
 assert.deepEqual(getNewInvoiceProblems(form({ paymentForm: 2, dueDate: "2026-11-01" }), today), ["El vencimiento no puede ser antes de la emisión."]);
-assert.deepEqual(getNewInvoiceProblems(form({ issueDate: "2027-02-01" }), today), ["La fecha de emisión va hasta dos meses a futuro."]);
+assert.deepEqual(getNewInvoiceProblems(form({ issueDate: "2027-02-01", paymentForm: 1 }), today), ["La fecha de emisión va hasta dos meses a futuro."]);
 assert.deepEqual(getNewInvoiceProblems(form({ emails: ["contador@"] }), today), ["Hay un email que no es válido."]);
 assert.deepEqual(getNewInvoiceProblems(form({ items: [emptyNewInvoiceItem(3)] }), today), ["Falta al menos un ítem con concepto y precio."]);
 assert.ok(getNewInvoiceProblems(form({ items: [{ ...emptyNewInvoiceItem(3), precio: "100" }] }), today).includes("Hay un ítem con precio y sin concepto."));
@@ -75,7 +76,7 @@ assert.equal(getNewInvoiceReceiver(form({ cfeType: 101, consumer: true })), null
 const ci = getNewInvoiceReceiver(form({ cfeType: 101, documentType: 3, document: "1.234.567-8", name: "Ana Pérez" }))!;
 assert.deepEqual([ci.razon_social, ci.nombre_fantasia, ci.documento], ["Ana Pérez", "Ana Pérez", "12345678"]);
 assert.equal(getNewInvoiceDueDays(form({ paymentForm: 2, dueDate: "2026-12-20" })), 30);
-assert.equal(getNewInvoiceDueDays(form({ dueDate: "2026-12-20" })), null, "contado no tiene vencimiento");
+assert.equal(getNewInvoiceDueDays(form({ dueDate: "2026-12-20", paymentForm: 1 })), null, "contado no tiene vencimiento");
 
 // --- El pedido: un id que arma el número interno, y los largos de Biller.
 const request = { form: form(), month: "2026-11", requestId: "k3j4h5g6f7d8s9a0q1w2e3r4" };

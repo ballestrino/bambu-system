@@ -181,8 +181,9 @@ En la empresa de prueba PEPITO 12, con emisiones por la API:
   - **Se copia:** tipo, receptor, ítems con su indicador, adenda y forma de
     pago.
   - **Se ajusta:** el mes del detalle ("octubre 2026" pasa a "noviembre
-    2026"); la fecha de emisión pasa a ser el día en que se emite; el
-    vencimiento mantiene los mismos días.
+    2026"); la fecha de emisión es el día en que se emite (o el 1 del mes si
+    todavía no empezó) y vence el 10, a crédito aunque el mes pasado fuera de
+    contado (feature 50).
   - **Arrancan desmarcadas:** las ya facturadas en el mes nuevo, las anuladas
     y las notas de crédito.
   - **Se edita:** las casillas, el precio (una factura de varias líneas se
@@ -260,8 +261,8 @@ En la empresa de prueba PEPITO 12, con emisiones por la API:
 - **Emitir de a una** (`runBatchIssue`, `lib/billing/issue-run.ts`): sigue
   después de responder (`after`, la página tiene `maxDuration` 300 s). Una
   cada 1,1 s, con su `numero_interno`:
-  - `issue-payload` arma el pedido: fecha de emisión de hoy, vencimiento con
-    los mismos días que la factura de origen (crédito), sin nulls y `"-"`
+  - `issue-payload` arma el pedido con las fechas de `resolveDraftDates`
+    (las elegidas en el editor o las de por defecto de la 50), sin nulls y `"-"`
     como cliente de un e-Ticket sin receptor. Antes de llamar a Biller
     frena una e-Factura sin RUT de 12 dígitos, sin ítems o sin montos, y una
     nota de crédito o débito marcada (necesita la factura que corrige: eso es
@@ -299,9 +300,9 @@ En la empresa de prueba PEPITO 12, con emisiones por la API:
   filas emitidas del borrador y en "Emitidas".
 - **Apagado.** `BILLER_ISSUE_ENABLED=false` (o `0`, `off`) deshabilita el
   botón y la acción; la lectura sigue.
-- **Fecha.** Se emite con la fecha del día. Un borrador de noviembre emitido
-  el 30 de octubre cuenta en el resumen de octubre, que es por fecha de
-  emisión; en el borrador de noviembre se ve emitido igual.
+- **Fecha.** Desde la 50, un borrador de noviembre emitido el 30 de octubre
+  sale con fecha 1 de noviembre y cuenta en el resumen de noviembre; ya
+  empezado el mes, sale con la fecha del día.
 - Smoke: `pnpm exec tsx scripts/smoke-billing-issue.ts 2026-11 101` deja
   marcadas solo las de ese tipo, prueba el `updatedAt` viejo, otra cantidad
   y el doble clic, emite, simula una respuesta perdida (reintento sin
@@ -394,8 +395,8 @@ En la empresa de prueba PEPITO 12, con emisiones por la API:
   El indicador por defecto es el de la última factura emitida (16 si Bambú
   factura con IVA mínimo: no suma IVA).
 - **Emitir ahora:** diálogo con cliente, total y ambiente; se emite en el
-  momento con `emitir`. Al elegir crédito el vencimiento arranca a 10 días
-  de la emisión. La página genera un `requestId` al abrir: la factura
+  momento con `emitir`. Arranca a crédito, con emisión hoy (o el 1 del mes
+  elegido si no empezó) y vencimiento el 10 o a 5 días (50). La página genera un `requestId` al abrir: la factura
   se crea con ese id y `numero_interno` `BAMBU-<id>`, así un doble clic o un
   reintento encuentran la misma (regla 3). Una respuesta dudosa busca por
   `numero_interno`; si no aparece queda `UNKNOWN` y "Reintentar" la manda de
@@ -403,8 +404,9 @@ En la empresa de prueba PEPITO 12, con emisiones por la API:
 - **Guardar en el borrador de <mes>:** con el lock del mes, la suma marcada
   al borrador abierto (`DRAFT`) o crea uno (origen `MANUAL`, migración
   aditiva); uno que se está emitiendo la rechaza. Guarda los días de crédito
-  (`Invoice.dueDays`) para que el lote calcule el vencimiento. La fecha de
-  emisión no se guarda: el lote emite con la fecha del día.
+  (`Invoice.dueDays`) para que el lote calcule el vencimiento. Desde la 50
+  guarda la emisión y el vencimiento solo si se eligieron distintos de los de
+  por defecto (`dueDays` queda null); si no, el lote los calcula al emitir.
 - Quedan afuera: notas de débito, descuentos y recargos globales, precios con
   IVA incluido, tasa de cambio, lugar de entrega, pagos a terceros, GTIN,
   agente responsable y emails solo para esta vez. Las notas de crédito salen
@@ -445,8 +447,8 @@ En la empresa de prueba PEPITO 12, con emisiones por la API:
 
 ### Borrar, archivar, filtros, editor lateral y fechas (features 47 a 50)
 
-Pedido del usuario del 2026-11-01. La 47, la 48 y la 49 están
-implementadas (2026-11-01); la 50 es plan.
+Pedido del usuario del 2026-11-01. Las cuatro están implementadas
+(2026-11-01).
 
 - **Borrar y archivar (47).**
   - Se borra solo una factura del borrador (`DRAFT`): por ejemplo un servicio
@@ -526,9 +528,31 @@ implementadas (2026-11-01); la 50 es plan.
   - aplica al lote (`issue-payload`), a Nueva factura, al editor lateral y al
     agente (`fillInvoiceForm` y `draftInvoices`); el usuario puede cambiar las
     dos en el formulario.
-  - **A decidir antes de implementar:** el vencimiento de una factura que se
-    emite después del 10 (¿el 10 del mes siguiente?), y si las de contado
-    pasan a crédito con ese vencimiento o siguen de contado.
+  - **Decidido por el usuario (2026-11-01):** una factura que se emite
+    después del 10 vence a los 5 días de la emisión (emitida el 15/11 vence
+    el 20/11), y las de contado pasan a crédito con ese vencimiento (se puede
+    volver a contado en el formulario).
+  - Lo hecho (2026-11-01): `lib/billing/invoice-dates.ts` (puro) tiene la
+    regla (`getDefaultIssueDate`, `getDefaultDueDate`, `resolveDraftDates`,
+    `pickExplicitDates`). La usan el lote (`issue-run`, con el mes del
+    borrador), el editor lateral, la fila ("Crédito · vence 10/12"), la barra
+    y el diálogo de "Emitir" (`draftIssueDay` del mes), Nueva factura (al
+    abrir y al mover la emisión: un vencimiento que seguía la regla se mueve
+    con ella, uno elegido a mano no), guardar en el borrador y el agente
+    (`fillInvoiceForm` y las e-Facturas nuevas de `draftInvoices`, a
+    crédito). Repetir el mes guarda todo a crédito. Un borrador abierto antes
+    de la 50 conserva la forma de pago que ya tenía guardada (contado se
+    cambia en el editor) y vence por la regla, no con los días de la factura
+    de origen.
+  - Probado el 2026-11-01 en Biller test desde Chromium (Postgres local):
+    el borrador de diciembre repetido el 1 de noviembre (las 4 a crédito)
+    emitió un e-Ticket que en noviembre fue de contado y una e-Factura, las
+    dos con `fecha_emision` 2026-12-01 y `fecha_vencimiento` 2026-12-10 en el
+    detalle de Biller; el resumen de diciembre las cuenta.
+  - A revisar: la e-Factura con fecha futura (01/12) seguía "Pendiente DGI"
+    a los 6 minutos, cuando la de la fecha del día se aceptó en unos
+    minutos. Puede que Biller o DGI la procesen recién el día de emisión; la
+    página la sigue sondeando como cualquier pendiente.
 
 ### Formulario de factura
 

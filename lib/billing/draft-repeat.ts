@@ -95,8 +95,8 @@ export type RepeatDraftInvoice = {
 };
 
 // El borrador del mes `to` a partir de lo emitido en `from`: mismo tipo,
-// receptor, ítems con su indicador, adenda y forma de pago; el mes del texto
-// pasa al nuevo. Las ya facturadas, las anuladas y las notas van desmarcadas.
+// receptor, ítems con su indicador y adenda, a crédito (50); el mes del
+// texto pasa al nuevo. Las ya facturadas, las anuladas y las notas van desmarcadas.
 export const buildRepeatDraft = (sources: RepeatSource[], context: RepeatContext): RepeatDraftInvoice[] =>
   sources.filter(isRepeatSource).map((source) => {
     const items = moveItemsMonth(source.items ?? [], context.from, context.to);
@@ -105,7 +105,9 @@ export const buildRepeatDraft = (sources: RepeatSource[], context: RepeatContext
       cfeType: source.cfeType,
       currency: source.currency,
       items,
-      paymentForm: getPaymentForm(source),
+      // Se factura a crédito, con vencimiento el 10 (feature 50): también las
+      // que el mes pasado fueron de contado.
+      paymentForm: PAYMENT_FORM.CREDIT,
       receiver: source.receiver,
       receiverDocument: source.receiverDocument,
       selected: getRepeatSkip(source, context) === null,

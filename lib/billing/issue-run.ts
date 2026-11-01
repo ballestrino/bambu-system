@@ -100,11 +100,13 @@ const issueOne = async (
   deps: IssueRunDeps,
   waitTurn: () => Promise<void>
 ): Promise<IssueOutcome> => {
+  // Las fechas elegidas en el editor (49) o las de por defecto (50): el día
+  // en que se emite o el 1 del mes del borrador, y vence el 10.
   const dates = resolveDraftDates({
-    dueDays: candidate.dueDays,
     explicitDue: candidate.dueDate ?? null,
     explicitIssue: candidate.issueDate,
     paymentForm: candidate.paymentForm ?? PAYMENT_FORM.CASH,
+    period: candidate.period,
     today: getIssueDay(deps.now()),
   });
   const plan = buildIssuePlan({ ...candidate, dueDate: dates.dueDate }, dates.issueDate);

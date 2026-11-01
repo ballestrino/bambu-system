@@ -105,7 +105,7 @@ export type PlannedAddition = {
   total: number;
 };
 
-// Una factura nueva para un cliente que no estaba: e-Factura al contado con el
+// Una factura nueva para un cliente que no estaba: e-Factura a crédito con el
 // RUT pedido y la razón social y el domicilio de DGI. El indicador de IVA es
 // el de la última emitida.
 export const planDraftAddition = (
@@ -150,4 +150,5 @@ export const planDraftAddition = (
   };
 };
 
-export const NEW_INVOICE_DEFAULTS = { cfeType: E_FACTURA, currency: "UYU", paymentForm: PAYMENT_FORM.CASH } as const;
+// A crédito, con vencimiento el 10 del mes de emisión (feature 50).
+export const NEW_INVOICE_DEFAULTS = { cfeType: E_FACTURA, currency: "UYU", paymentForm: PAYMENT_FORM.CREDIT } as const;
