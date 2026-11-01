@@ -41,8 +41,8 @@ Status: active
   `feature_list.json` (en este orden): borrar las del borrador y archivar
   las emitidas (47), filtros en lugar de las pestañas (48), editor lateral
   desde el borrador y desde el diálogo de emitir (49) y fechas por defecto
-  del 1 al 10 (50). Las cuatro hechas; 49 y 50 en la rama
-  `claude/billing-side-editor-dates`, sin merge ni migración.
+  del 1 al 10 (50). Las cuatro hechas; 49 y 50 sin migración, mergeadas y
+  pusheadas a `main` el 2026-11-01 con autorización del usuario.
 - Encontrado en la 49 y fuera de alcance: `next dev` (Next 16) reescribe
   `AGENTS.md` al arrancar ("Generated AGENTS.md for AI agents"); se
   restauró a mano. Se apaga con `agentRules: false` en `next.config.ts`.
@@ -81,8 +81,8 @@ Status: active
   forma de pago guardada. Sin migración. Biller test: un borrador de
   diciembre emitido el 1/11 salió con 01/12 y vence 10/12 (MT 965026, MF
   673321). La e-Factura con fecha 01/12 seguía "Pendiente DGI" a los 6
-  minutos (a revisar si Biller la manda a DGI recién ese día). Rama
-  `claude/billing-side-editor-dates`, sin merge. Informe en
+  minutos (a revisar si Biller la manda a DGI recién ese día). Mergeada y
+  pusheada a `main` con la 49. Informe en
   `progress/impl_50.md`.
 
 - 2026-11-01: facturación, editor lateral del borrador (49): panel con el
@@ -90,8 +90,8 @@ Status: active
   `invoice.edit`, también la fila y el agente), Guardar con compare-and-set,
   Quitar del borrador, Borrar y anterior/siguiente; también desde el diálogo
   de "Emitir", que queda abierto con el total nuevo. Sin migración. Smoke en
-  Chromium a 1440 y 390 px con Biller test. Rama
-  `claude/billing-side-editor-dates`, sin merge. Informe en
+  Chromium a 1440 y 390 px con Biller test. Mergeada y pusheada a `main`
+  con la 50. Informe en
   `progress/impl_49.md`.
 
 - 2026-11-01: facturación, vistas y filtros (48): Borrador, Emitidas y

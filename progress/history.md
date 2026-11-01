@@ -1559,3 +1559,8 @@
 - PASS: tsc, ESLint, `check:billing` (con `billing-dates-checks`), checks del
   agente, `init.sh` con build y Biller test desde Chromium: diciembre emitido
   el 1/11 salió con 01/12 y vence 10/12 (MT 965026, MF 673321).
+
+## 2026-11-01 - Merge de facturación a `main` (49 y 50)
+
+- `claude/billing-side-editor-dates` a `main` por fast-forward y push, con
+  autorización del usuario. Sin migraciones.
