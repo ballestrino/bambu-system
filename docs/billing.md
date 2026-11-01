@@ -549,10 +549,9 @@ referencia. Los colores, radios y la letra son los de Operaciones
 
 ## Pendiente del usuario
 
-- Feature 43: aplicar la migración `20261101120000_billing_corrections_jobs`
-  en la rama de Neon `feature-39-billing` (desde la nube no se llega a Neon)
-  y probar en la página una nota y el vínculo de un receptor con sus avisos.
-  El envío a Biller test ya está probado por script.
+- Feature 43: la migración `20261101120000_billing_corrections_jobs` está en
+  la rama de Neon `feature-39-billing` (2026-11-01). En producción va con la
+  de la 39 en la 44.
 - Confirmar que hoy facturan desde el panel de Biller y con qué plan.
 - Acceso a la API en producción: el panel de test dice que "fuera del ambiente
   de test, el uso de la API es exclusivo del plan Estándar". En la web el plan

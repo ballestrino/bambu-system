@@ -1433,5 +1433,5 @@
   Chromium con sesión a 1440 y 390 px.
 - Comprobantes de prueba en Biller test (PEPITO 12): e-Tickets MT 964935–964939,
   e-Facturas MF 673310–673311 y notas MA 120677–120681 y A 208055–208056.
-- Queda: aplicar la migración en la rama de Neon `feature-39-billing` (desde
-  la nube no se llega a Neon) y decidir el merge.
+- Migración aplicada por el usuario en la rama de Neon `feature-39-billing`
+  el 2026-11-01 con `prisma migrate deploy`. Queda decidir el merge.

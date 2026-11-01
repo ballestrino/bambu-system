@@ -38,9 +38,9 @@ Status: active
 ## Queue
 
 - 2026-10-30: facturación con Biller en `docs/billing.md`, feature 44
-  pendiente (salida a producción). Antes de la 44: aplicar en la rama de Neon
-  `feature-39-billing` la migración `20261101120000_billing_corrections_jobs`
-  de la 43 (desde la nube no se llega a Neon).
+  pendiente (salida a producción). La migración de la 43 ya está en la rama
+  de Neon `feature-39-billing` (aplicada por el usuario el 2026-11-01); en
+  producción faltan la de la 39 y la de la 43.
 - Encontrado en la 43 y fuera de alcance: en producción los envoltorios de
   Facturación que tiran `ValidationError` (sincronizar, repetir, editar el
   borrador, emitir el lote) muestran "Minified React error #441" en vez del
@@ -57,7 +57,7 @@ Status: active
   "Anulada · NC …" y "NC parcial" en Emitidas, vínculo receptor → trabajo con
   avisos en el borrador y el agente que solo prepara. `referencias` va con el
   ID de Biller y la razón en la adenda (probado en Biller test). Migración
-  aditiva sin aplicar en Neon. Ramas `claude/beautiful-clarke-ywhsz6` y
+  aditiva aplicada en la rama de Neon `feature-39-billing`. Ramas `claude/beautiful-clarke-ywhsz6` y
   `claude/feature-43-continuation-5ht481`, sin merge.
 
 - 2026-10-30: facturación, el agente arma borradores y nunca emite (42):
