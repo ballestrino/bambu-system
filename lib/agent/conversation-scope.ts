@@ -1,20 +1,34 @@
 import type { AgentBudgetContextInput } from "@/schemas/agent";
 
 // Qué conversaciones lista un historial: las de un presupuesto (su Sheet), las
-// que no tienen presupuesto (el Sheet de crear) o todas (la página del agente).
+// que no tienen presupuesto (el Sheet de crear), las de Facturación (su panel,
+// contextKind billing) o todas (la página del agente).
 export type AgentConversationScope =
   | { kind: "budget"; budgetId: string }
   | { kind: "no-budget" }
+  | { kind: "billing" }
   | { kind: "all" };
 
 export const ALL_AGENT_CONVERSATIONS: AgentConversationScope = { kind: "all" };
+
+export const BILLING_AGENT_CONVERSATIONS: AgentConversationScope = { kind: "billing" };
+
+// Las conversaciones de Facturación se crean con este contextKind
+// (resolveBudgetContext): así tienen su propio historial.
+export const BILLING_CONTEXT_KIND = "billing";
 
 export const budgetConversationScope = (budgetId: string | null): AgentConversationScope =>
   budgetId ? { kind: "budget", budgetId } : { kind: "no-budget" };
 
 // La parte variable de la query key del historial.
 export const conversationScopeKey = (scope: AgentConversationScope) =>
-  scope.kind === "budget" ? scope.budgetId : scope.kind === "no-budget" ? "sin-presupuesto" : "todas";
+  scope.kind === "budget"
+    ? scope.budgetId
+    : scope.kind === "no-budget"
+      ? "sin-presupuesto"
+      : scope.kind === "billing"
+        ? "facturacion"
+        : "todas";
 
 // Cuántas trae cada historial, las más recientes: la página todas (100) y un
 // Sheet las de su presupuesto (50). La lista avisa cuando llega al tope.
@@ -23,7 +37,11 @@ export const conversationListLimit = (all: boolean | undefined) => (all ? 100 : 
 // Lo que recibe listAgentConversations: sin presupuesto es budgetId null, no
 // "cualquiera".
 export const conversationListInput = (scope: AgentConversationScope) =>
-  scope.kind === "all" ? { all: true } : { budgetId: scope.kind === "budget" ? scope.budgetId : null };
+  scope.kind === "all"
+    ? { all: true }
+    : scope.kind === "billing"
+      ? { contextKind: BILLING_CONTEXT_KIND }
+      : { budgetId: scope.kind === "budget" ? scope.budgetId : null };
 
 type LinkedBudget = { id: string; name: string } | null | undefined;
 
@@ -33,5 +51,5 @@ type LinkedBudget = { id: string; name: string } | null | undefined;
 export const pageBudgetContext = (budget: LinkedBudget): AgentBudgetContextInput | undefined =>
   budget ? { kind: "saved", budgetId: budget.id } : undefined;
 
-export const pageContextLabel = (budget: LinkedBudget) =>
-  budget ? `Presupuesto: ${budget.name}` : "Sin presupuesto";
+export const pageContextLabel = (budget: LinkedBudget, contextKind?: string | null) =>
+  budget ? `Presupuesto: ${budget.name}` : contextKind === BILLING_CONTEXT_KIND ? "Facturación" : "Sin presupuesto";

@@ -2,6 +2,7 @@ import {
   BriefcaseBusiness,
   CalendarDays,
   LayoutDashboard,
+  ReceiptText,
   UsersRound,
   WalletCards,
 } from "lucide-react";
@@ -36,6 +37,12 @@ export const opsNavItems = [
     description: "Cobros, costes y pagos a empleadas",
     url: "/dashboard/financial",
     icon: WalletCards,
+  },
+  {
+    title: "Facturación",
+    description: "Facturas de Biller y borrador del mes",
+    url: "/dashboard/billing",
+    icon: ReceiptText,
   },
 ] as const;
 

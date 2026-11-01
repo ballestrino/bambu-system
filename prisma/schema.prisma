@@ -75,6 +75,8 @@ model User {
   createdAgentMemories             AgentMemory[]              @relation("AgentMemoryCreatedBy")
   approvedAgentMemories            AgentMemory[]              @relation("AgentMemoryApprovedBy")
   agentInstructionVersions         AgentInstructionVersion[]
+  createdInvoiceBatches            InvoiceBatch[]             @relation("InvoiceBatchCreatedBy")
+  createdInvoices                  Invoice[]                  @relation("InvoiceCreatedBy")
 }
 
 model Account {
@@ -1202,6 +1204,7 @@ model AgentConversation {
   proposals           AgentProposal[]
   memories            AgentMemory[]
   instructionVersions AgentInstructionVersion[]
+  invoiceBatches      InvoiceBatch[]
   createdAt           DateTime                  @default(now())
   updatedAt           DateTime                  @updatedAt
 
@@ -1370,4 +1373,113 @@ model AgentInstructionVersion {
 
   @@index([createdById])
   @@index([sourceConversationId])
+}
+
+// Facturación con Biller (docs/billing.md). Un CFE es un comprobante fiscal
+// electrónico: e-Ticket, e-Factura y sus notas de crédito y débito.
+enum InvoiceOrigin {
+  BILLER
+  APP
+}
+
+enum InvoiceStatus {
+  DRAFT
+  ISSUING
+  ISSUED
+  ACCEPTED
+  REJECTED
+  UNKNOWN
+}
+
+enum InvoiceBatchStatus {
+  DRAFT
+  ISSUING
+  DONE
+}
+
+enum InvoiceBatchOrigin {
+  REPEAT
+  AGENT
+}
+
+// El borrador de un mes: las facturas que se van a emitir juntas. El agente
+// lo arma o lo cambia; emitir lo hace siempre una persona desde la página.
+model InvoiceBatch {
+  id             String             @id @default(cuid())
+  // Primer día del mes en UTC, como JobClientPayment.assignedMonth.
+  period         DateTime
+  status         InvoiceBatchStatus @default(DRAFT)
+  origin         InvoiceBatchOrigin
+  conversationId String?
+  conversation   AgentConversation? @relation(fields: [conversationId], references: [id], onDelete: SetNull)
+  createdById    String?
+  createdBy      User?              @relation("InvoiceBatchCreatedBy", fields: [createdById], references: [id], onDelete: SetNull)
+  invoices       Invoice[]
+  createdAt      DateTime           @default(now())
+  updatedAt      DateTime           @updatedAt
+
+  @@index([period, status])
+  @@index([conversationId])
+  @@index([createdById])
+}
+
+// Un CFE. BILLER es una copia de lo que ya está en Biller (también lo emitido
+// desde su panel); APP lo emite Bambú. La fuente de verdad de lo emitido es
+// Biller: la copia guarda lo necesario para el resumen y para repetirlo.
+model Invoice {
+  id               String        @id @default(cuid())
+  origin           InvoiceOrigin
+  status           InvoiceStatus
+  // Código DGI: 101 e-Ticket, 111 e-Factura, 102/112 notas de crédito…
+  cfeType          Int
+  // Primer día del mes en UTC de issueDate (o del mes del borrador).
+  period           DateTime
+  issueDate        DateTime?     @db.Date
+  dueDate          DateTime?     @db.Date
+  currency         String        @default("UYU")
+  // Lo que informa Biller como total del comprobante.
+  total            Decimal       @db.Decimal(14, 2)
+  // El cliente con la forma que pide emitir: { tipo_documento, documento,
+  // razon_social, nombre_fantasia, sucursal: { direccion, ciudad, … } }.
+  receiver         Json?
+  receiverDocument String?
+  // Ítems tal cual se mandan a Biller; null hasta leer el detalle.
+  items            Json?
+  adenda           String?       @db.Text
+  purchaseOrder    String?
+  // numero_interno: Biller lo rechaza repetido.
+  internalNumber   String?       @unique
+  paymentForm      Int?
+  billerId         Int?          @unique
+  billerSucursal   Int?
+  series           String?
+  number           Int?
+  billerStatus     String?
+  cae              Json?
+  // [{ id, cfeType, series, number, issueDate }] y los ids de Biller a los que
+  // apunta (una nota de crédito apunta a la factura que corrige).
+  references       Json?
+  referenceIds     Int[]         @default([])
+  billerCreatedAt  DateTime?
+  syncedAt         DateTime?
+  selected         Boolean       @default(true)
+  sourceInvoiceId  String?
+  sourceInvoice    Invoice?      @relation("InvoiceRepeat", fields: [sourceInvoiceId], references: [id], onDelete: SetNull)
+  repeats          Invoice[]     @relation("InvoiceRepeat")
+  batchId          String?
+  batch            InvoiceBatch? @relation(fields: [batchId], references: [id], onDelete: Cascade)
+  error            String?       @db.Text
+  createdById      String?
+  createdBy        User?         @relation("InvoiceCreatedBy", fields: [createdById], references: [id], onDelete: SetNull)
+  createdAt        DateTime      @default(now())
+  updatedAt        DateTime      @updatedAt
+
+  // Una factura del mes pasado se repite una sola vez por mes.
+  @@unique([sourceInvoiceId, period])
+  @@index([period, cfeType])
+  @@index([issueDate])
+  @@index([status])
+  @@index([batchId])
+  @@index([receiverDocument, period])
+  @@index([createdById])
 }

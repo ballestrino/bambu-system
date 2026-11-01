@@ -12,6 +12,7 @@ import { AGENT_CLIENT_ID_PATTERN } from "@/lib/agent/client-id";
 import { AGENT_SKILL_IDS } from "@/lib/agent/skills/types";
 import { AGENT_MODE_IDS } from "@/lib/ai/modes";
 import { BudgetSchema } from "@/schemas/BudgetSchema";
+import { billingPeriodSchema } from "@/schemas/billing";
 
 // Pedido de /api/agent/chat. El cliente manda solo el último mensaje: el
 // historial se lee de la base, así nadie puede reescribirlo desde el navegador.
@@ -30,9 +31,12 @@ export const agentFormContextValuesSchema = BudgetSchema.partial().extend({
 
 export type AgentFormContextValues = z.infer<typeof agentFormContextValuesSchema>;
 
+// El contexto de un turno: un presupuesto guardado, el formulario de crear o
+// el mes que se mira en Facturación (docs/billing.md, "Agente").
 export const agentBudgetContextSchema = z.discriminatedUnion("kind", [
   z.object({ kind: z.literal("saved"), budgetId: z.string().min(1).max(64) }),
   z.object({ kind: z.literal("form"), values: agentFormContextValuesSchema }),
+  z.object({ kind: z.literal("billing"), month: billingPeriodSchema }),
 ]);
 
 export type AgentBudgetContextInput = z.infer<typeof agentBudgetContextSchema>;
@@ -96,9 +100,11 @@ export const agentAttachmentFieldsSchema = z.object({
 export const agentConversationTitleSchema = z.string().trim().min(1).max(120);
 
 // Filtro del historial: las de un presupuesto, las sin presupuesto
-// (budgetId null) o, con all, todas las del usuario (la página del agente).
+// (budgetId null), las de Facturación (contextKind billing) o, con all, todas
+// las del usuario (la página del agente).
 export const agentConversationListSchema = z.object({
   budgetId: z.string().min(1).max(64).nullable().optional(),
+  contextKind: z.literal("billing").optional(),
   all: z.boolean().optional(),
   query: z.string().trim().max(120).optional(),
 });

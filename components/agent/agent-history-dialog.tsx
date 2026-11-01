@@ -15,6 +15,7 @@ import type { AgentConversationScope } from "@/lib/agent/conversation-scope";
 const DESCRIPTIONS: Record<AgentConversationScope["kind"], string> = {
   budget: "Conversaciones de este presupuesto.",
   "no-budget": "Conversaciones sin presupuesto guardado.",
+  billing: "Conversaciones de Facturación.",
   all: "Todas tus conversaciones con el agente.",
 };
 

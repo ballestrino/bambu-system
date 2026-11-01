@@ -93,7 +93,12 @@ assert.match(read("components/agent/agent-sheet-header.tsx"), /<AgentOpenPageBut
 const data = read("data/agent/conversations.ts");
 const listRead = declaration(data, "export const getAgentConversations", "export const");
 assert.match(listRead, /const session = await requireAdminSession\(\);[\s\S]*?userId: session\.user\.id,/);
-assert.match(listRead, /\.\.\.\(all \? \{\} : \{ budgetId: budgetId \?\? null \}\)/);
+assert.match(listRead, /\.\.\.scopeFilter\(\{ budgetId, contextKind, all \}\)/);
+// Without a budget means no budget and not a billing conversation (they have
+// their own history); a null contextKind still counts.
+const scopeRead = declaration(data, "const scopeFilter", "export const");
+assert.match(scopeRead, /if \(all\) return \{\};[\s\S]*if \(contextKind\) return \{ contextKind \};[\s\S]*if \(budgetId\) return \{ budgetId \};/);
+assert.match(scopeRead, /budgetId: null, OR: \[\{ contextKind: null \}, \{ contextKind: \{ not: BILLING_CONTEXT_KIND \} \}\]/);
 assert.match(listRead, /take: conversationListLimit\(all\),/);
 // Pinned ones first, so they fit in the limit however old they are.
 assert.match(listRead, /orderBy: \[\{ pinnedAt: \{ sort: "desc", nulls: "last" \} \}, \{ updatedAt: "desc" \}\],/);
@@ -116,8 +121,9 @@ const session = read("components/agent/hooks/use-agent-session.ts");
 assert.match(session, /\?\? saved;/);
 assert.match(session, /const persisted = conversation !== null;/);
 // The Sheet keeps its behavior with the scope: create starts a new one (only
-// a budget resumes its latest), and deleting the open one starts a new one.
-assert.match(session, /if \(scope\.kind !== "budget"\) return startNew\(\);/);
+// a budget, and Facturación, resume their latest), and deleting the open one
+// starts a new one.
+assert.match(session, /if \(scope\.kind !== "budget" && scope\.kind !== "billing"\) return startNew\(\);/);
 // A budget resumes the last touched conversation, not the first pinned one.
 assert.match(session, /\.then\(latestConversationId, \(\) => null\);/);
 assert.match(session, /if \(deletedId === id\) startNew\(\);/);

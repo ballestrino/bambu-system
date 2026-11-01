@@ -670,6 +670,88 @@
         "tsc, lint without .claude/worktrees and a browser smoke on desktop and at 390 px"
       ],
       "status": "done"
+    },
+    {
+      "id": 39,
+      "name": "billing_biller_history",
+      "title": "Read-only Biller connection: copy a month's invoices and compute the monthly billing summary",
+      "area": "billing",
+      "description": "Plan in docs/billing.md. A server-only Biller read client (obtener, detalle, datos-entidad) with typed errors, 429 backoff and the env guard (test URL unless BILLER_ALLOW_LOCAL_PRODUCTION). Additive Prisma models InvoiceBatch and Invoice. A sync copies the month's CFE from Biller (origin BILLER) and a pure summary computes net billed (invoices minus credit notes), invoices issued by type, credit notes and pending or rejected at DGI, against the previous month. Probe on the test account what the docs leave open: duplicate numero_interno, date formats, numero_compra vs numero_orden, estado values and how contado or crédito is known. No page yet.",
+      "acceptance": [
+        "The read client never calls emitir or anular, and a production URL fails locally without BILLER_ALLOW_LOCAL_PRODUCTION",
+        "Syncing a month in the Biller test account copies its invoices without duplicates when it runs twice",
+        "The summary of a month with an invoice annulled by a credit note counts both and nets them",
+        "The probe results are written into docs/billing.md",
+        "tsc, lint, check:billing and init.ps1 are green"
+      ],
+      "status": "done"
+    },
+    {
+      "id": 40,
+      "name": "billing_page_draft",
+      "title": "Facturación page with the month summary, the month's invoices and a draft that repeats last month",
+      "area": "billing",
+      "description": "Apply the claude-design canvas for Facturación to /dashboard/billing (admin only, ops month selector). The summary shows net billed and invoices issued in the month. Repetir <previous month> creates an InvoiceBatch DRAFT copying type, receiver, items with their tax indicator, adenda and payment form; the month in the detail moves forward; invoices already billed in the new month, annulled ones and credit notes start unchecked. Rows can be unchecked, repriced (multi-line invoices per line) and their detail edited, with compare-and-set on updatedAt. Nothing is issued yet.",
+      "acceptance": [
+        "The summary matches the Biller test panel for the same month, including invoices issued from the panel",
+        "Repeating a month creates one draft; repeating again opens the same draft instead of a second one",
+        "The detail text moves from the previous month to the new one and prices and checks persist after a reload",
+        "tsc, lint, check:billing and a browser smoke on desktop and at 390 px"
+      ],
+      "status": "done"
+    },
+    {
+      "id": 41,
+      "name": "billing_issue_batch",
+      "title": "Issue the checked invoices of a draft from the page, once, with DGI status and PDF",
+      "area": "billing",
+      "description": "Emitir N opens a dialog with the count and total; the server action issue-batch (admin) re-reads the draft and rejects it if updatedAt, count or total changed. Invoices go out one per second through lib/billing/biller-issue.ts with their numeroInterno; a timeout or 5xx looks the invoice up by numero_interno before retrying and leaves UNKNOWN when it cannot tell. Each row shows series and number, then the DGI status from detalle (polled while pending and by a daily Vercel cron) and the PDF through an admin route. BILLER_ISSUE_ENABLED=false turns issuing off.",
+      "acceptance": [
+        "Issuing a draft twice, or double clicking, never creates two invoices for the same receiver and month",
+        "A draft changed after the dialog opened is rejected and the page shows the new one",
+        "Every issued invoice reaches a final DGI status in the test account and its PDF downloads",
+        "tsc, lint, check:billing and a smoke on the Biller test account"
+      ],
+      "status": "done"
+    },
+    {
+      "id": 42,
+      "name": "billing_agent_drafts",
+      "title": "Facturación skill: the agent reads billing and builds or changes the month's draft, and never issues",
+      "area": "billing",
+      "description": "A Facturación skill on the billing page with its own conversation history. Read tools getBillingSummary, listInvoices, getInvoice and lookupRut. draftInvoices creates or changes the month's draft (repeat last month, uncheck, reprice, change detail, add a new receiver found by RUT) without a proposal card, audited as invoice_draft.*, and never touches an ISSUING or DONE batch. The chat card summarizes the draft and links to Facturación, with no issue button. BILLING_RULE in the prompt. check:billing fails if lib/agent/** or app/api/agent/** imports biller-issue or the issue action.",
+      "acceptance": [
+        "Asking the agent to issue ends with a draft and a link to Facturación, never with an invoice in Biller",
+        "check:billing fails when an agent module imports the issue code",
+        "A draft changed by the agent while the page is open shows the change before issuing",
+        "tsc, lint, the agent checks, check:billing and a live turn on the Biller test account"
+      ],
+      "status": "done"
+    },
+    {
+      "id": 43,
+      "name": "billing_corrections_jobs",
+      "title": "Credit notes and voids from the page, and receivers linked to Bambú jobs for the agent's warnings",
+      "area": "billing",
+      "description": "Anular (full credit note) and partial credit notes from the page with confirmation; the agent can only draft them. Each Biller receiver is linked once to its Bambú job (the agent suggests the match, the user confirms) so the draft warns about a job price different from last month, canceled visits in the month and paused or finished jobs.",
+      "acceptance": [
+        "An annulled invoice shows its credit note and the summary nets it",
+        "The draft warns when the linked job's price differs from the repeated invoice",
+        "tsc, lint, check:billing and a smoke on the Biller test account"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": 44,
+      "name": "billing_production",
+      "title": "Go live: production token, real history and the first real batch issued by the user",
+      "area": "billing",
+      "description": "Production variables in Vercel, a read of the real history with the user's permission (it writes copies to the production database) and the first real batch issued by the user from the page. Requires a Biller plan with API access.",
+      "acceptance": [
+        "The production summary matches the Biller panel for the last closed month",
+        "The user issues the first real batch and every invoice reaches Aceptado DGI"
+      ],
+      "status": "pending"
     }
   ]
 }

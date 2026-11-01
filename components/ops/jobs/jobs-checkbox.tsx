@@ -8,10 +8,12 @@ import { cn } from "@/lib/utils";
 // Casilla de 18 px de la tabla de Trabajos, con estado mixto para "todas".
 export const JobsCheckbox = ({
   checked,
+  disabled,
   label,
   onCheckedChange,
 }: {
   checked: boolean | "indeterminate";
+  disabled?: boolean;
   label: string;
   onCheckedChange: () => void;
 }) => (
@@ -19,9 +21,10 @@ export const JobsCheckbox = ({
     aria-label={label}
     checked={checked}
     className={cn(
-      "flex size-[18px] items-center justify-center rounded-[5px] border-[1.5px] border-[#B9C6B5] bg-ops-surface text-white outline-none focus-visible:ring-2 focus-visible:ring-ops-bamboo/40 dark:border-ops-text-muted/50",
+      "flex disabled:cursor-not-allowed disabled:opacity-50 size-[18px] items-center justify-center rounded-[5px] border-[1.5px] border-[#B9C6B5] bg-ops-surface text-white outline-none focus-visible:ring-2 focus-visible:ring-ops-bamboo/40 dark:border-ops-text-muted/50",
       "data-[state=checked]:border-ops-bamboo-strong data-[state=checked]:bg-ops-bamboo-strong data-[state=indeterminate]:border-ops-bamboo-strong data-[state=indeterminate]:bg-ops-bamboo-strong dark:text-ops-canvas"
     )}
+    disabled={disabled}
     onCheckedChange={onCheckedChange}
     onClick={(event) => event.stopPropagation()}
   >

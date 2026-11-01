@@ -39,6 +39,11 @@ export const AGENT_TOOL_CATALOG = {
   searchMemory: { label: "Busca en la memoria", kind: "read" },
   proposeMemory: { label: "Propone recordar", kind: "proposal" },
   proposeInstructionChange: { label: "Propone cambiar una regla", kind: "proposal" },
+  getBillingSummary: { label: "Resumen de facturación", kind: "read" },
+  listInvoices: { label: "Lista facturas", kind: "read" },
+  getInvoice: { label: "Abre una factura", kind: "read" },
+  lookupRut: { label: "Consulta un RUT en DGI", kind: "read" },
+  draftInvoices: { label: "Arma el borrador de facturas", kind: "draft" },
 } as const satisfies Record<string, { label: string; kind: AgentToolKind }>;
 
 export type AgentToolName = keyof typeof AGENT_TOOL_CATALOG;

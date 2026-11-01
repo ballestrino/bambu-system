@@ -10,6 +10,7 @@ import {
   listProposalsAction,
 } from "@/components/agent/actions/agent-reads.action";
 import { agentKeys } from "@/components/agent/query-keys";
+import { billingQueryKeys } from "@/components/billing/query-keys";
 import type { AgentConversationScope } from "@/lib/agent/conversation-scope";
 
 // Las queries del agente (Sheet y página), compartidas por los hooks y por las
@@ -67,7 +68,8 @@ export const savedBudgetQuery = (slug: string) =>
 
 const REFRESH_AGAIN_MS = 4000;
 
-// Al terminar un turno: el título, el costo y las propuestas cambian. El
+// Al terminar un turno: el título, el costo y las propuestas cambian, y el
+// borrador de Facturación si el agente lo tocó (draftInvoices). El
 // título del modelo se genera después de la respuesta (after()) y un turno
 // detenido guarda su consumo al cortarse, así que se lee una vez más.
 export const refreshAfterTurn = (queryClient: QueryClient, conversationId: string) => {
@@ -77,6 +79,7 @@ export const refreshAfterTurn = (queryClient: QueryClient, conversationId: strin
       queryClient.invalidateQueries({ queryKey: agentKeys.usage(conversationId) }),
       queryClient.invalidateQueries({ queryKey: agentKeys.monthlyUsages() }),
       queryClient.invalidateQueries({ queryKey: agentKeys.proposals(conversationId) }),
+      queryClient.invalidateQueries({ queryKey: [...billingQueryKeys.root, "month"] }),
     ]);
   void refresh();
   window.setTimeout(() => void refresh(), REFRESH_AGAIN_MS);

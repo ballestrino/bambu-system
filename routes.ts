@@ -6,7 +6,7 @@
 
 export const publicRoutes = [
   "/public",
-  "/api/mail/cron", // External cron; the route enforces its own bearer secret.
+  "/api/cron/billing-sync", // Vercel cron; the route enforces its own CRON_SECRET.
   // Email links: an email change and the reset from Configuración are asked
   // for while logged in, so these must open with or without a session.
   "/auth/new-password",

@@ -1,3 +1,4 @@
+import { BILLING_RULE } from "@/lib/agent/billing-rule";
 import { BUSINESS_PROFILE, formatBusinessProfile } from "@/lib/agent/business-profile";
 import { MEMORY_RULE } from "@/lib/agent/memory";
 import { INSTRUCTIONS_RULE } from "@/lib/agent/team-instructions";
@@ -87,6 +88,9 @@ export type AgentInstructionsInput = {
   actorName: string | null;
   skill: AgentSkill;
   budgetContextText?: string | null;
+  // El mes de Facturación en contexto (resolveBudgetContext), en vez de un
+  // presupuesto.
+  billingContextText?: string | null;
   // El bloque de la memoria del equipo (formatMemoryBlock), o null si no hay.
   memoryBlock: string | null;
   // Las instrucciones del equipo (formatTeamInstructionsBlock), o null.
@@ -99,12 +103,13 @@ export const buildAgentInstructions = ({
   actorName,
   skill,
   budgetContextText,
+  billingContextText = null,
   memoryBlock,
   teamBlock = null,
   proposals = [],
 }: AgentInstructionsInput) =>
   [
-    `Sos el asistente de ${BUSINESS_PROFILE.name}, una empresa uruguaya de servicios de limpieza. Ayudás a quien administra Bambú System${actorName ? ` (${actorName})` : ""} con presupuestos, visitas, las casillas de correo, mensajes para clientes y los números del negocio.`,
+    `Sos el asistente de ${BUSINESS_PROFILE.name}, una empresa uruguaya de servicios de limpieza. Ayudás a quien administra Bambú System${actorName ? ` (${actorName})` : ""} con presupuestos, visitas, las casillas de correo, mensajes para clientes, la facturación y los números del negocio.`,
     `Hoy es ${today}.`,
     TONE,
     `Negocio:\n${formatBusinessProfile()}`,
@@ -115,12 +120,14 @@ export const buildAgentInstructions = ({
     skill.tools.includes("proposeUpdateVisit") ? VISIT_RULE : null,
     skill.tools.includes("proposeMemory") ? MEMORY_RULE : null,
     skill.tools.includes("proposeInstructionChange") ? INSTRUCTIONS_RULE : null,
+    skill.tools.includes("draftInvoices") ? BILLING_RULE : null,
     skill.instructions,
     teamBlock,
     memoryBlock,
-    budgetContextText
-      ? `Presupuesto en contexto. El usuario lo está viendo: si pide cambios sin nombrar otro, son sobre este.\n${budgetContextText}`
-      : "No hay un presupuesto en contexto.",
+    billingContextText ??
+      (budgetContextText
+        ? `Presupuesto en contexto. El usuario lo está viendo: si pide cambios sin nombrar otro, son sobre este.\n${budgetContextText}`
+        : "No hay un presupuesto en contexto."),
     proposals.length
       ? `${PROPOSALS_HEADING} (estado actual; las confirma o rechaza el usuario en su tarjeta, y si una sigue pendiente, recordala en vez de repetirla):\n${formatProposalsForPrompt(proposals)}`
       : null,

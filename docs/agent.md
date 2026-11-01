@@ -48,6 +48,10 @@ este documento describe lo que ya existe y se actualiza con cada feature.
 - Memoria (feature 34): el agente propone recordar un dato o una preferencia,
   un admin lo confirma en la tarjeta y entra al prompt de todos los turnos.
   Se edita, se vence y se elimina en `/dashboard/memory` (ver "Memoria").
+- Facturación (feature 42): la habilidad Facturación en el panel de
+  `/dashboard/billing`, con su historial, lee el resumen y las facturas del
+  mes y arma o cambia el borrador con `draftInvoices`. Nunca emite: lo
+  garantiza `check:billing` (ver `docs/billing.md`, "Agente").
 - Instrucciones del equipo (feature 35): el agente propone agregar, cambiar o
   quitar una regla de cómo trabaja, un admin confirma el antes y el después y
   queda una versión nueva; las reglas fijas no se tocan. Versiones y
@@ -75,7 +79,7 @@ este documento describe lo que ya existe y se actualiza con cada feature.
   Un renombrado nunca se pisa, ni durante el turno ni al regenerar la primera
   respuesta.
 - Habilidades en `lib/agent/skills/**`: General (todas las tools),
-  Presupuestos, Emails y Consejos. Todas las tools quedan registradas y la
+  Presupuestos, Emails, Consejos y Facturación (la del panel de Facturación). Todas las tools quedan registradas y la
   habilidad elige las activas (`activeTools`), así el historial puede traer
   tools de otra habilidad.
 - Tools en `lib/agent/tools/**`, sin escrituras: `getBusinessProfile`,
@@ -84,8 +88,10 @@ este documento describe lo que ya existe y se actualiza con cada feature.
   `calculateBudget`, `solveForTargetPrice`,
   `getFinancialSnapshot`, `getFinancialTrend`, `getJobProfitability`,
   `getPayrollSummary`, `queryOperations` (visitas del mes o de un `day`),
-  `listEmails`, `readEmail` y `groupBudgetRequests` (ver "Correo") y
-  `draftEmail`. Devuelven
+  `listEmails`, `readEmail` y `groupBudgetRequests` (ver "Correo"),
+  `draftEmail`, `getBillingSummary`, `listInvoices`, `getInvoice`,
+  `lookupRut` y `draftInvoices`, la única que escribe sin tarjeta: un
+  borrador de facturas, nunca una emisión (ver `docs/billing.md`). Devuelven
   `{ ok, data } | { ok: false, error }` con `card` para la UI; `runTool` pasa
   cada salida por `toPlainJson`, así nunca llega un `Decimal` ni un `Date`.
 - Las entradas de las tools son campos obligatorios y nullable (`null` = sin
