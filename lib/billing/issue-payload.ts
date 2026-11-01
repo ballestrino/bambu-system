@@ -15,6 +15,8 @@ export type IssuePayload = {
   moneda: string;
   montos_brutos: 0;
   numero_interno: string;
+  razon_referencia?: string;
+  referencias?: Record<string, unknown>[];
   tipo_comprobante: number;
 };
 
@@ -49,10 +51,10 @@ export const formatBillerDate = (day: Date) =>
 export const addDays = (day: Date, days: number) => new Date(day.getTime() + days * DAY_MS);
 
 // Biller arma XML: un null o un texto vacío no se mandan.
-const compact = (value: Record<string, unknown>) =>
+export const compact = (value: Record<string, unknown>) =>
   Object.fromEntries(Object.entries(value).filter(([, field]) => field !== null && field !== undefined && field !== ""));
 
-const toCliente = (receiver: InvoiceReceiverPayload) => {
+export const toCliente = (receiver: InvoiceReceiverPayload) => {
   const sucursal = compact(receiver.sucursal);
   return compact({
     tipo_documento: receiver.tipo_documento,

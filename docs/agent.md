@@ -51,7 +51,10 @@ este documento describe lo que ya existe y se actualiza con cada feature.
 - Facturación (feature 42): la habilidad Facturación en el panel de
   `/dashboard/billing`, con su historial, lee el resumen y las facturas del
   mes y arma o cambia el borrador con `draftInvoices`. Nunca emite: lo
-  garantiza `check:billing` (ver `docs/billing.md`, "Agente").
+  garantiza `check:billing` (ver `docs/billing.md`, "Agente"). Desde la 43
+  prepara notas de crédito (`prepareCreditNote`, abre su página para que el
+  usuario la emita) y sugiere el trabajo de cada cliente
+  (`suggestReceiverJobs`; el vínculo lo confirma el usuario).
 - Instrucciones del equipo (feature 35): el agente propone agregar, cambiar o
   quitar una regla de cómo trabaja, un admin confirma el antes y el después y
   queda una versión nueva; las reglas fijas no se tocan. Versiones y
@@ -90,8 +93,10 @@ este documento describe lo que ya existe y se actualiza con cada feature.
   `getPayrollSummary`, `queryOperations` (visitas del mes o de un `day`),
   `listEmails`, `readEmail` y `groupBudgetRequests` (ver "Correo"),
   `draftEmail`, `getBillingSummary`, `listInvoices`, `getInvoice`,
-  `lookupRut` y `draftInvoices`, la única que escribe sin tarjeta: un
-  borrador de facturas, nunca una emisión (ver `docs/billing.md`). Devuelven
+  `lookupRut`, `prepareCreditNote` y `suggestReceiverJobs` (no escriben:
+  la nota se emite y el vínculo se confirma en la página) y `draftInvoices`,
+  la única que escribe sin tarjeta: un borrador de facturas, nunca una
+  emisión (ver `docs/billing.md`). Devuelven
   `{ ok, data } | { ok: false, error }` con `card` para la UI; `runTool` pasa
   cada salida por `toPlainJson`, así nunca llega un `Decimal` ni un `Date`.
 - Las entradas de las tools son campos obligatorios y nullable (`null` = sin

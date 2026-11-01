@@ -2,6 +2,7 @@ import { Prisma, type InvoiceStatus, type PrismaClient } from "@prisma/client";
 
 import { addBillingMonths, getBillingPeriodKey, getIssueDateRange } from "@/lib/billing/billing-month";
 import { buildRepeatDraft, isRepeatSource, type RepeatContext, type RepeatSource } from "@/lib/billing/draft-repeat";
+import { linkCreditNotes } from "@/lib/billing/credit-note-links";
 import { readStoredItems, readStoredReceiver } from "@/lib/billing/invoice-json";
 import { classifyCfe } from "@/lib/billing/invoice-mapping";
 
@@ -23,6 +24,7 @@ const sourceSelect = {
   receiver: true,
   receiverDocument: true,
   status: true,
+  total: true,
 } satisfies Prisma.InvoiceSelect;
 
 type SourceRow = Prisma.InvoiceGetPayload<{ select: typeof sourceSelect }>;
@@ -50,7 +52,7 @@ export const loadRepeatInputs = async (db: Db, period: Date, excludeBatchId?: st
     billerIds.length
       ? db.invoice.findMany({
           where: { referenceIds: { hasSome: billerIds }, status: { in: VALID_STATUSES } },
-          select: { cfeType: true, issueDate: true, referenceIds: true },
+          select: { cfeType: true, id: true, issueDate: true, number: true, referenceIds: true, series: true, status: true, total: true },
         })
       : Promise.resolve([]),
     db.invoice.findMany({
@@ -65,10 +67,14 @@ export const loadRepeatInputs = async (db: Db, period: Date, excludeBatchId?: st
     }),
   ]);
 
+  // Solo una nota por el total la deja afuera: con una parcial se repite igual.
+  const credits = linkCreditNotes(
+    rows.map((row) => ({ billerId: row.billerId, total: Number(row.total) })),
+    notes.map((note) => ({ ...note, total: Number(note.total) }))
+  );
   const annulledBy = new Map<number, Date>();
-  for (const note of notes) {
-    if (classifyCfe(note.cfeType) !== "credit_note" || !note.issueDate) continue;
-    for (const id of note.referenceIds) if (!annulledBy.has(id)) annulledBy.set(id, note.issueDate);
+  for (const [billerId, credit] of credits) {
+    if (credit.fully && credit.note?.issueDate) annulledBy.set(billerId, credit.note.issueDate);
   }
   const billedInTarget = new Map<string, Date>();
   for (const invoice of billed) {

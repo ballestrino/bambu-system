@@ -4,7 +4,42 @@ Status: active
 
 ## Active Feature
 
-- Ninguna. La 32 sigue bloqueada (abajo).
+- 43 `billing_corrections_jobs`, en curso (sesión en la nube del
+  2026-11-01, rama `claude/beautiful-clarke-ywhsz6`). Implementada; falta la
+  prueba en Biller test y la migración en Neon, que no se pueden hacer desde
+  el entorno de la nube (sin `.env`, sin Neon y con `biller-labs.github.io`
+  bloqueado por la red).
+  - Hecho: nota de crédito por el total o parcial desde
+    `/dashboard/billing/[id]/credit-note` (diseño B del lienzo), con lock por
+    factura, compare-and-set, envío con búsqueda por `numero_interno`,
+    `UNKNOWN` con "Reintentar" y rechazo que borra la nota; "Anulada · NC …",
+    "NC parcial" y "Nota de crédito" en Emitidas; repetir deja afuera solo lo
+    anulado por el total. Vínculo receptor → trabajo (`BillingReceiverJob`,
+    migración aditiva `20261101120000_billing_corrections_jobs`) con
+    sugerencia por nombre y avisos de precio, visitas canceladas o
+    salteadas y trabajo pausado o terminado en el borrador. Agente:
+    `prepareCreditNote` (tarjeta "Abrir para emitir") y
+    `suggestReceiverJobs`, sin escribir. Detalle en `docs/billing.md`.
+  - Verificado: tsc, ESLint, `check:billing` (con
+    `scripts/billing-correction-checks.ts`), los demás `check:*` salvo
+    `check:agent-sheet`, `check:budget-auth` y
+    `check:official-budget-workspace`, que fallan igual en `HEAD` (leen
+    archivos de presupuestos borrados en la 36–38), y `next build`. Con un
+    Postgres 16 local descartable: la migración aplica sobre el esquema
+    anterior; dos tomas a la vez dejan una sola nota; total o acreditado
+    viejos dan conflicto; sin respuesta → `UNKNOWN` → reintento → emitida;
+    un 422 borra la nota; parcial no anula al repetir y el resto sí; avisos
+    con el vínculo (con la frontera de mes en hora de Montevideo). Smoke en
+    Chromium con sesión y `next start` (Biller sin configurar): sugerencia y
+    vínculo, chips de aviso, Emitidas con "Anulada · NC A 18" y "Nota de
+    crédito", la página de la nota a 1440 y 390 px sin desborde ni errores.
+  - Sin probar: el envío real a Biller test (`referencias` va con la forma de
+    `detalle`, sin confirmar en la documentación), las tools del agente con un
+    modelo y la migración en Neon.
+  - Encontrado y fuera de alcance: en producción los envoltorios de
+    Facturación que tiran `ValidationError` (sincronizar, repetir, editar el
+    borrador, emitir el lote) muestran "Minified React error #441" en vez del
+    mensaje. Los nuevos de la 43 devuelven el error y lo tira el cliente.
 - Entorno de facturación: `.env` apunta a la rama de Neon `feature-39-billing`
   (copia de producción); la URL de producción quedó comentada en la línea 2.
   Biller test: empresa PEPITO 12, sucursal 928, variables `BILLER_*` en `.env`.

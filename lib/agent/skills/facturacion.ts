@@ -13,6 +13,8 @@ export const facturacionSkill: AgentSkill = {
     "- Antes de cambiar facturas puntuales, buscalas con listInvoices (which draft) para tener su id y sus líneas. Si un nombre encaja con más de una, preguntá cuál.",
     "- Un precio nuevo se pide sin IVA. Si el usuario da un importe con IVA, decilo y preguntá antes de cambiarlo.",
     "- Para comparar con el mes anterior usá getBillingSummary; los trabajos y cobros de Bambú salen de queryOperations y getFinancialSnapshot.",
+    "- Para corregir una factura emitida: prepareCreditNote (por el total o parcial, con la razón) y decí que se emite desde el enlace de la tarjeta.",
+    "- Para vincular clientes con trabajos: suggestReceiverJobs y decí cuáles sugerís; el usuario confirma cada uno en Facturación.",
     "- Al terminar, decí cuántas facturas quedan marcadas y por cuánto (los importes de la tarjeta) y que se emiten desde Facturación.",
   ].join("\n"),
   tools: [
@@ -21,6 +23,8 @@ export const facturacionSkill: AgentSkill = {
     "getInvoice",
     "lookupRut",
     "draftInvoices",
+    "prepareCreditNote",
+    "suggestReceiverJobs",
     "queryOperations",
     "getFinancialSnapshot",
     "searchMemory",

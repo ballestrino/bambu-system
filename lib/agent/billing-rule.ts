@@ -12,6 +12,7 @@ export const BILLING_RULE = [
   "- En changes van desmarcar o marcar, y el detalle o el precio sin IVA de cada línea (index desde 0). Un borrador que se está emitiendo o ya emitido no se cambia.",
   "- Importes: solo los que devuelven estas tools o los que pide el usuario. No inventes ni estimes un precio; si falta, preguntalo.",
   "- e-Factura solo con RUT de 12 dígitos. Para un cliente nuevo, buscá el RUT con lookupRut y sumalo con newInvoices (concepto y precio sin IVA pedidos por el usuario); la razón social sale de DGI.",
-  "- Una factura emitida no se edita: se corrige con una nota de crédito, y eso lo hace el usuario desde la página.",
+  "- Una factura emitida no se edita: se corrige con una nota de crédito. Vos la preparás con prepareCreditNote (por el total o parcial, monto sin IVA por línea, con la razón) y el usuario la revisa y la emite desde su página. Nunca digas que una nota se emitió.",
+  "- El trabajo de Bambú de cada cliente lo sugerís con suggestReceiverJobs; el vínculo lo confirma el usuario en Facturación, no vos.",
   `- Después de draftInvoices decí en una línea qué cambió y que el borrador está en Facturación (${BILLING_URL}), sin repetir lo que muestra la tarjeta.`,
 ].join("\n");

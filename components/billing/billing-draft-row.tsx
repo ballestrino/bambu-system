@@ -7,6 +7,7 @@ import { BillingChip } from "@/components/billing/billing-chip";
 import { getDraftRowChip } from "@/components/billing/billing-draft-model";
 import { BillingDraftLines, type LineEdit } from "@/components/billing/billing-draft-lines";
 import { formatMoney, getShortCfeLabel } from "@/components/billing/billing-format";
+import { BillingJobLink } from "@/components/billing/billing-job-link";
 import { AmountInput, CommitInput, detailInputClass } from "@/components/billing/billing-inputs";
 import { BillingIssueStatus } from "@/components/billing/billing-issue-status";
 import { JobsCheckbox } from "@/components/ops/jobs/jobs-checkbox";
@@ -15,16 +16,19 @@ import { cn } from "@/lib/utils";
 import { BILLING_ITEM_CONCEPT_MAX } from "@/schemas/billing";
 
 export type DraftRowProps = {
+  // Los trabajos que se pueden vincular al receptor (feature 43).
+  choices: { id: string; name: string }[];
   locked: boolean;
   onEditLine: (line: LineEdit) => void;
   onToggle: () => void;
+  periodKey: string;
   row: DraftRow;
 };
 
 // Una fila del borrador en escritorio: casilla, receptor y tipo, detalle
 // editable, monto anterior → monto nuevo y la forma de pago. Una factura de
 // varias líneas abre sus líneas.
-export const BillingDraftRow = ({ locked, onEditLine, onToggle, row }: DraftRowProps) => {
+export const BillingDraftRow = ({ choices, locked, onEditLine, onToggle, periodKey, row }: DraftRowProps) => {
   const [open, setOpen] = useState(false);
   const chip = getDraftRowChip(row);
   const single = row.lines.length === 1;
@@ -65,6 +69,7 @@ export const BillingDraftRow = ({ locked, onEditLine, onToggle, row }: DraftRowP
             {row.lines.length ? `${row.lines.length} líneas · ${row.lines.map((item) => item.concepto).join(", ")}` : "Sin ítems"}
           </span>
         )}
+        <BillingJobLink choices={choices} periodKey={periodKey} row={row} />
       </div>
       <div className="flex flex-none items-center gap-2.5 tabular-nums">
         <span className={cn("text-[13px] text-ops-text-muted", row.priceChanged && "line-through")}>

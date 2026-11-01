@@ -77,6 +77,7 @@ model User {
   agentInstructionVersions         AgentInstructionVersion[]
   createdInvoiceBatches            InvoiceBatch[]             @relation("InvoiceBatchCreatedBy")
   createdInvoices                  Invoice[]                  @relation("InvoiceCreatedBy")
+  createdBillingReceiverJobs       BillingReceiverJob[]       @relation("BillingReceiverJobCreatedBy")
 }
 
 model Account {
@@ -422,6 +423,7 @@ model Job {
   timeEntries          TimeEntry[]
   clientPayments       JobClientPayment[]
   operationalCosts     OperationalCost[]
+  billingReceivers     BillingReceiverJob[]
   createdAt            DateTime                @default(now())
   updatedAt            DateTime                @updatedAt
 
@@ -1460,6 +1462,8 @@ model Invoice {
   // apunta (una nota de crédito apunta a la factura que corrige).
   references       Json?
   referenceIds     Int[]         @default([])
+  // razon_referencia de una nota de crédito que emitió Bambú (feature 43).
+  referenceReason  String?
   billerCreatedAt  DateTime?
   syncedAt         DateTime?
   selected         Boolean       @default(true)
@@ -1481,5 +1485,25 @@ model Invoice {
   @@index([status])
   @@index([batchId])
   @@index([receiverDocument, period])
+  @@index([createdById])
+}
+
+// Un receptor de Biller vinculado a su trabajo de Bambú (feature 43). Lo
+// sugiere el agente o la página y lo confirma una persona; sirve para los
+// avisos del borrador (precio, visitas canceladas, trabajo pausado). La clave
+// es el documento sin puntos ni guiones o, sin documento, el nombre
+// normalizado ("nombre:…"): un receptor tiene un solo trabajo.
+model BillingReceiverJob {
+  id           String   @id @default(cuid())
+  receiverKey  String   @unique
+  receiverName String
+  jobId        String
+  job          Job      @relation(fields: [jobId], references: [id], onDelete: Cascade)
+  createdById  String?
+  createdBy    User?    @relation("BillingReceiverJobCreatedBy", fields: [createdById], references: [id], onDelete: SetNull)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@index([jobId])
   @@index([createdById])
 }

@@ -9,7 +9,7 @@ const json = (value: unknown) => (value === null || value === undefined ? Prisma
 
 // Lo que se guarda de cada resultado. "found" es un comprobante que ya estaba
 // en Biller con ese numero_interno: se toma tal cual lo informa Biller.
-const toUpdate = (outcome: IssueOutcome, at: Date): Prisma.InvoiceUpdateInput => {
+export const toOutcomeUpdate = (outcome: IssueOutcome, at: Date): Prisma.InvoiceUpdateInput => {
   if (outcome.kind === "issued") {
     return {
       billerId: outcome.cfe.billerId,
@@ -72,7 +72,7 @@ export const createIssueRunStore = (db: PrismaClient): IssueRunStore => ({
   // Cada resultado toca el updatedAt del lote: así se sabe que la emisión sigue viva.
   saveOutcome: async (candidate, outcome, at) => {
     await db.$transaction([
-      db.invoice.update({ where: { id: candidate.id }, data: toUpdate(outcome, at) }),
+      db.invoice.update({ where: { id: candidate.id }, data: toOutcomeUpdate(outcome, at) }),
       db.invoiceBatch.update({ where: { id: candidate.batchId }, data: { updatedAt: at } }),
     ]);
   },

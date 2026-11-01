@@ -74,3 +74,23 @@ export const draftInvoicesInputSchema = z.object({
 });
 
 export type DraftInvoicesInput = z.infer<typeof draftInvoicesInputSchema>;
+
+// prepareCreditNote (feature 43): arma una nota de crédito para que el usuario
+// la emita desde su página. No emite.
+export const prepareCreditNoteInputSchema = z.object({
+  invoiceId: z.string().trim().min(1).max(64).describe("El id de la factura emitida que se corrige, como lo devuelve listInvoices"),
+  mode: z.enum(["full", "partial"]).describe("full: anula la factura entera; partial: solo los montos de lines"),
+  lines: z
+    .array(
+      z.object({
+        index: z.number().int().min(0).max(199).describe("La línea de la factura, desde 0"),
+        amount: z.number().finite().min(0).max(1_000_000_000).describe("Cuánto acreditar de la línea, sin IVA"),
+      })
+    )
+    .max(200)
+    .nullable()
+    .describe("Solo con partial: el monto sin IVA a acreditar de cada línea; null con full"),
+  reason: z.string().trim().min(1).max(90).describe("La razón de la nota, que va a DGI (hasta 90 caracteres)"),
+});
+
+export type PrepareCreditNoteInput = z.infer<typeof prepareCreditNoteInputSchema>;

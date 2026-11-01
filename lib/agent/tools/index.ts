@@ -1,6 +1,7 @@
 import "server-only";
 
 import { createBillingTools } from "@/lib/agent/tools/billing";
+import { createBillingCorrectionTools } from "@/lib/agent/tools/billing-corrections";
 import { createBillingDraftTools } from "@/lib/agent/tools/billing-draft";
 import { createBudgetRequestTools } from "@/lib/agent/tools/budget-requests";
 import { createBudgetTools } from "@/lib/agent/tools/budgets";
@@ -42,6 +43,7 @@ export const createAgentTools = (ctx: AgentToolContext) => ({
   ...createInstructionTools(ctx),
   ...createBillingTools(ctx),
   ...createBillingDraftTools(ctx),
+  ...createBillingCorrectionTools(ctx),
 });
 
 export type AgentTools = ReturnType<typeof createAgentTools>;

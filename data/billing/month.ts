@@ -4,9 +4,11 @@ import { getBillerStatus } from "@/lib/billing/biller-server";
 import { addBillingMonths, getBillingPeriodKey, getIssueDateRange, parseBillingPeriod } from "@/lib/billing/billing-month";
 import { toDraftRow, toIssuedRow } from "@/lib/billing/billing-month-view";
 import { summarizeBillingMonth } from "@/lib/billing/billing-summary";
+import { linkCreditNotes } from "@/lib/billing/credit-note-links";
+import { readStoredReceiver } from "@/lib/billing/invoice-json";
+import { loadDraftJobs } from "@/lib/billing/receiver-job-store";
 import { buildRepeatDraft, getRepeatSkip, type RepeatSkipKind } from "@/lib/billing/draft-repeat";
 import { loadRepeatInputs, toRepeatSource } from "@/lib/billing/draft-store";
-import { classifyCfe } from "@/lib/billing/invoice-mapping";
 import { ISSUE_STALE_MS } from "@/lib/billing/issue-claim";
 import { getIssueDay } from "@/lib/billing/issue-payload";
 import { db } from "@/lib/db";
@@ -15,7 +17,7 @@ import { billingPeriodSchema } from "@/schemas/billing";
 
 const sourceSelect = {
   adenda: true, billerId: true, cfeType: true, currency: true, dueDate: true, id: true, issueDate: true,
-  items: true, number: true, paymentForm: true, receiver: true, receiverDocument: true, status: true,
+  items: true, number: true, paymentForm: true, receiver: true, receiverDocument: true, status: true, total: true,
 } as const;
 
 const issuedSelect = {
@@ -63,11 +65,12 @@ export const getBillingMonthView = async (periodKey: unknown) => {
   const notes = currentIds.length
     ? await db.invoice.findMany({
         where: { referenceIds: { hasSome: currentIds }, status: { not: "DRAFT" } },
-        select: { cfeType: true, referenceIds: true },
+        select: { cfeType: true, id: true, issueDate: true, number: true, referenceIds: true, series: true, status: true, total: true },
       })
     : [];
-  const annulledIds = new Set(
-    notes.filter((note) => classifyCfe(note.cfeType) === "credit_note").flatMap((note) => note.referenceIds)
+  const credits = linkCreditNotes(
+    current.map((invoice) => ({ billerId: invoice.billerId, total: Number(invoice.total) })),
+    notes.map((note) => ({ ...note, total: Number(note.total) }))
   );
 
   const draftRows = (batch?.invoices ?? [])
@@ -78,6 +81,14 @@ export const getBillingMonthView = async (periodKey: unknown) => {
     })
     .sort((a, b) => a.order[0] - b.order[0] || a.order[1] - b.order[1] || a.row.name.localeCompare(b.row.name))
     .map(({ row }) => row);
+
+  const receivers = new Map((batch?.invoices ?? []).map((invoice) => [invoice.id, readStoredReceiver(invoice.receiver)]));
+  const jobs = await loadDraftJobs(
+    db,
+    period,
+    draftRows.map((row) => ({ currency: row.currency, id: row.id, receiver: receivers.get(row.id) ?? null, subtotal: row.subtotal }))
+  );
+  for (const row of draftRows) row.jobLink = jobs.byInvoice.get(row.id) ?? null;
 
   const skipped: Partial<Record<RepeatSkipKind, number>> = {};
   for (const source of repeat.sources) {
@@ -94,6 +105,7 @@ export const getBillingMonthView = async (periodKey: unknown) => {
       ? {
           createdAt: batch.createdAt.toISOString(),
           id: batch.id,
+          jobChoices: jobs.choices,
           origin: batch.origin,
           rows: draftRows,
           status: batch.status,
@@ -102,7 +114,7 @@ export const getBillingMonthView = async (periodKey: unknown) => {
           updatedAt: batch.updatedAt.toISOString(),
         }
       : null,
-    issued: current.map((invoice) => toIssuedRow(invoice, annulledIds)),
+    issued: current.map((invoice) => toIssuedRow(invoice, credits)),
     issueDay: getIssueDay(now).toISOString().slice(0, 10),
     period: getBillingPeriodKey(period),
     previousPeriod: getBillingPeriodKey(previous),

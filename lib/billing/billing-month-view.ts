@@ -1,5 +1,8 @@
 import type { InvoiceStatus } from "@prisma/client";
 
+import type { InvoiceCredit } from "@/lib/billing/credit-note-links";
+import type { DraftJobInfo } from "@/lib/billing/receiver-job-store";
+import { CREDIT_NOTE_TYPE } from "@/lib/billing/credit-note-plan";
 import { getDueDays, getPaymentForm, getRepeatSkip, PAYMENT_FORM, type RepeatContext, type RepeatSkip, type RepeatSource } from "@/lib/billing/draft-repeat";
 import { getReceiverName, readStoredItems, readStoredReceiver } from "@/lib/billing/invoice-json";
 import { classifyCfe, getCfeLabel } from "@/lib/billing/invoice-mapping";
@@ -12,6 +15,10 @@ const isoDate = (date: Date | null) => (date ? date.toISOString().slice(0, 10) :
 // Una fila de "Emitidas": lo que hay en Biller con fecha de emisión en el mes.
 export type IssuedInvoiceRow = {
   annulled: boolean;
+  // Si admite una nota de crédito ahora (emitida, sin anular ni una en curso).
+  canCredit: boolean;
+  // Las notas que la corrigen: lo acreditado, la primera nota y una sin confirmar.
+  credit: { credited: number; inFlight: boolean; noteLabel: string | null; unknownNoteId: string | null } | null;
   billerStatus: string | null;
   cfeLabel: string;
   cfeType: number;
@@ -34,24 +41,33 @@ export const toIssuedRow = (
     issueDate: Date | null; items: unknown; number: number | null; receiver: unknown; series: string | null;
     status: InvoiceStatus; total: Amount;
   },
-  annulledIds: Set<number>
-): IssuedInvoiceRow => ({
-  annulled: invoice.billerId !== null && annulledIds.has(invoice.billerId),
-  billerStatus: invoice.billerStatus,
-  cfeLabel: getCfeLabel(invoice.cfeType),
-  cfeType: invoice.cfeType,
-  currency: invoice.currency,
-  detail: readStoredItems(invoice.items)?.[0]?.concepto ?? null,
-  hasPdf: invoice.billerId !== null,
-  id: invoice.id,
-  isNote: classifyCfe(invoice.cfeType) !== "invoice",
-  issueDate: isoDate(invoice.issueDate),
-  name: getReceiverName(readStoredReceiver(invoice.receiver)),
-  number: invoice.number,
-  series: invoice.series,
-  status: invoice.status,
-  total: toNumber(invoice.total),
-});
+  credits: Map<number, InvoiceCredit>
+): IssuedInvoiceRow => {
+  const credit = invoice.billerId === null ? undefined : credits.get(invoice.billerId);
+  return {
+    annulled: credit?.fully ?? false,
+    canCredit:
+      Boolean(CREDIT_NOTE_TYPE[invoice.cfeType]) && invoice.billerId !== null &&
+      (invoice.status === "ISSUED" || invoice.status === "ACCEPTED") && !credit?.fully && !credit?.inFlight,
+    credit: credit
+      ? { credited: credit.credited, inFlight: credit.inFlight, noteLabel: credit.note?.label ?? null, unknownNoteId: credit.unknownNoteId }
+      : null,
+    billerStatus: invoice.billerStatus,
+    cfeLabel: getCfeLabel(invoice.cfeType),
+    cfeType: invoice.cfeType,
+    currency: invoice.currency,
+    detail: readStoredItems(invoice.items)?.[0]?.concepto ?? null,
+    hasPdf: invoice.billerId !== null,
+    id: invoice.id,
+    isNote: classifyCfe(invoice.cfeType) !== "invoice",
+    issueDate: isoDate(invoice.issueDate),
+    name: getReceiverName(readStoredReceiver(invoice.receiver)),
+    number: invoice.number,
+    series: invoice.series,
+    status: invoice.status,
+    total: toNumber(invoice.total),
+  };
+};
 
 export type DraftLine = {
   cantidad: number;
@@ -73,6 +89,9 @@ export type DraftRow = {
   error: string | null;
   hasPdf: boolean;
   id: string;
+  // El trabajo vinculado al receptor con sus avisos, o el que se le parece
+  // (feature 43). Lo completa getBillingMonthView.
+  jobLink: DraftJobInfo | null;
   lines: DraftLine[];
   name: string;
   number: number | null;
@@ -125,6 +144,7 @@ export const toDraftRow = (
     error: invoice.error,
     hasPdf: invoice.billerId !== null,
     id: invoice.id,
+    jobLink: null,
     lines,
     name: getReceiverName(readStoredReceiver(invoice.receiver)),
     number: invoice.number,

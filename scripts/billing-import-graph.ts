@@ -58,4 +58,7 @@ export const isIssueCode = (path: string) =>
   path === "lib/billing/biller-issue.ts" ||
   path === "lib/billing/biller-issue-server.ts" ||
   path === "lib/billing/issue-run.ts" ||
+  path === "lib/billing/credit-note-run.ts" ||
+  path === "lib/billing/credit-note-store.ts" ||
+  path === "actions/billing/credit-note.ts" ||
   path.startsWith("actions/billing/issue-");

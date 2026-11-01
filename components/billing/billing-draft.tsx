@@ -18,7 +18,7 @@ export const BillingDraft = ({ draft, view }: { draft: Draft; view: BillingMonth
   const goRows = draft.rows.filter((row) => !row.skip);
   const skipRows = draft.rows.filter((row) => row.skip);
   const prevMonth = getMonthName(view.previousPeriod);
-  const rowProps = { draftStatus: draft.status, periodKey: view.period, prevMonth };
+  const rowProps = { choices: draft.jobChoices, draftStatus: draft.status, periodKey: view.period, prevMonth };
 
   return (
     <div className="flex flex-col gap-3.5">
@@ -59,6 +59,7 @@ const DraftSection = ({ children, count, title }: { children: React.ReactNode; c
 
 // Cada fila tiene su mutación: sus cambios salen de a uno, con el último updatedAt.
 const DraftRowContainer = ({
+  choices,
   draftStatus,
   firstSkipped = false,
   periodKey,
@@ -66,6 +67,7 @@ const DraftRowContainer = ({
   row,
   variant,
 }: {
+  choices: { id: string; name: string }[];
   draftStatus: string;
   firstSkipped?: boolean;
   periodKey: string;
@@ -75,9 +77,11 @@ const DraftRowContainer = ({
 }) => {
   const mutation = useDraftRowMutation(periodKey, row.id);
   const props = {
+    choices,
     locked: isDraftRowLocked(row, draftStatus),
     onEditLine: (line: { concepto?: string; index: number; precio?: number }) => mutation.mutate({ lines: [line] }),
     onToggle: () => mutation.mutate({ selected: !row.selected }),
+    periodKey,
     row,
   };
   return variant === "desktop" ? (

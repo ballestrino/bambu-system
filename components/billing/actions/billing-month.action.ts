@@ -1,12 +1,13 @@
 "use server";
 
 import { issueBillingBatch, resumeBillingIssue } from "@/actions/billing/issue-batch";
+import { setReceiverJob } from "@/actions/billing/receiver-job";
 import { repeatBillingMonth } from "@/actions/billing/repeat-month";
 import { syncBillingMonth } from "@/actions/billing/sync-month";
 import { updateDraftInvoice } from "@/actions/billing/update-draft-invoice";
 import { getBillingMonthView } from "@/data/billing/month";
 import ValidationError from "@/instances/validation-error";
-import type { DraftInvoiceEdit, IssueBatchRequest } from "@/schemas/billing";
+import type { DraftInvoiceEdit, IssueBatchRequest, ReceiverJobLink } from "@/schemas/billing";
 
 // Envoltorios de la página Facturación: un { error } pasa a ValidationError
 // para que TanStack Query lo trate como error.
@@ -47,3 +48,8 @@ export const resumeBillingIssueAction = async (batchId: string) => {
   if ("error" in result) throw new ValidationError(result.error ?? "No se pudo reintentar");
   return result;
 };
+
+// Devuelve el { error } (el hook lo tira en el cliente): en producción Next
+// oculta el mensaje de un error tirado en una server action.
+export const setReceiverJobAction = async (link: ReceiverJobLink): Promise<{ error?: string; success?: string }> =>
+  setReceiverJob(link);

@@ -5,7 +5,8 @@ import type { IssuePayload } from "@/lib/billing/issue-payload";
 
 // La única escritura en Biller (docs/billing.md, regla 1): emitir un CFE. El
 // agente nunca importa este módulo ni la acción que lo usa (check:billing).
-// Anular llega con la 43.
+// Las notas de crédito también salen por acá (emitir con referencias, 43);
+// anular no se usa.
 const ISSUE_PATH = "/v3/comprobantes/emitir";
 const REQUEST_TIMEOUT_MS = 30_000;
 const MAX_ATTEMPTS = 3;

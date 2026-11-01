@@ -4,8 +4,9 @@ Plan del 2026-10-30 para emitir los comprobantes fiscales electrónicos (CFE)
 de Bambú desde la app, con la API de Biller. Son las features 39 a 44 de
 `feature_list.json`. La 39 (leer de Biller, la copia local y el resumen del
 mes), la 40 (la página con el resumen, lo emitido y el borrador) y la 41
-(emitir el borrador) y la 42 (el agente arma borradores) están hechas; lo
-demás es plan. Este documento pasa a ser el contrato de la
+(emitir el borrador) y la 42 (el agente arma borradores) están hechas; la
+43 (notas de crédito y receptores vinculados a trabajos) está implementada y
+le falta la prueba en Biller test; lo demás es plan. Este documento pasa a ser el contrato de la
 página a medida que se implementa.
 
 ## Objetivo
@@ -23,9 +24,10 @@ página a medida que se implementa.
 ## Reglas fijas
 
 1. El agente no emite. Ninguna tool llama a `emitir` ni a `anular`. La
-   escritura en Biller vive en `lib/billing/biller-issue.ts` y la acción
-   `actions/billing/issue-batch.ts`. `check:billing` falla si algo de
-   `lib/agent/**` o `app/api/agent/**` los importa. El prompt lo dice, pero la
+   escritura en Biller vive en `lib/billing/biller-issue.ts` y las acciones
+   `actions/billing/issue-batch.ts` y `actions/billing/credit-note.ts`.
+   `check:billing` falla si algo de `lib/agent/**` o `app/api/agent/**` los
+   importa, aunque sea por el medio. El prompt lo dice, pero la
    garantía es el código.
 2. Se emite lo que se vio. El diálogo de emitir manda `batchId`, `updatedAt`,
    la cantidad y el total. Si el borrador cambió (el agente, otra pestaña), se
@@ -304,6 +306,68 @@ En la empresa de prueba PEPITO 12, con emisiones por la API:
   y el doble clic, emite, simula una respuesta perdida (reintento sin
   duplicar), espera el estado final y baja el PDF. Emite en Biller test.
 
+### Notas de crédito y trabajos (feature 43)
+
+- **Nota de crédito** (`/dashboard/billing/[id]/credit-note`, diseño B del
+  lienzo): "Comprobante que corrige" con la factura, "Por el total" o
+  "Parcial", la razón (hasta 90, va a DGI), las líneas y el resumen fijo con
+  lo que falta y "Emitir nota de crédito". Se llega desde "Nota de crédito"
+  en cada fila de "Emitidas" que la admite (e-Factura o e-Ticket emitido, sin
+  anular ni con una nota en curso).
+  - `planCreditNote` (`lib/billing/credit-note-plan.ts`, puro): por el total
+    copia las líneas (anula); parcial acredita un monto sin IVA por línea,
+    con el concepto y el indicador de la línea, sin pasar su subtotal ni lo
+    que queda de la factura (con IVA, un peso de tolerancia por el redondeo
+    de Biller). Las rechazadas no cuentan; una en curso o sin confirmar
+    frena; con una parcial ya no va "por el total".
+  - `issueCreditNote` (solo admin, `BILLER_ISSUE_ENABLED`) toma la factura
+    con `pg_advisory_xact_lock` por su `billerId`, recalcula y compara el
+    total y lo ya acreditado que vio la página (regla 2), y crea la nota
+    (`APP`, `ISSUING`, `referenceIds`, `referenceReason`, `BAMBU-<id>`).
+    Después la manda en el momento (`runCreditNoteIssue`, con el mismo
+    `sendWithLookup` del lote): un rechazo de datos borra la nota (no se
+    creó nada en Biller), una respuesta dudosa busca por `numero_interno` y
+    si no aparece queda `UNKNOWN` con "Reintentar" en la página de la nota.
+  - Se emite con `POST /v3/comprobantes/emitir` (tipo 102 o 112), por el
+    total y parcial; `anular` no se usa. **Sin probar en Biller:** la
+    documentación no se pudo leer desde el entorno de la sesión, así que
+    `referencias` va con la forma en que `detalle` las devuelve
+    (`tipo_comprobante`, `serie`, `numero`, `fecha_emision`) y
+    `razon_referencia` arriba (`toBillerReference`,
+    `lib/billing/credit-note-payload.ts`). Si Biller la rechaza, el 422
+    dice el campo y se corrige solo esa función.
+  - "Emitidas" muestra "Anulada · NC A 18" (la primera nota emitida), "NC
+    parcial $ X", "NC emitiéndose" o "NC sin confirmar · Reintentar"
+    (`linkCreditNotes`). Una nota que referencia varias facturas las anula
+    todas. El resumen ya resta las notas por su fecha de emisión.
+  - Repetir el mes deja afuera solo lo anulado por el total: una factura con
+    una nota parcial se repite.
+- **Receptor → trabajo** (`BillingReceiverJob`, migración
+  `20261101120000_billing_corrections_jobs`): la clave es el documento sin
+  puntos ni guiones o, sin documento, `nombre:` y el nombre normalizado; un
+  receptor tiene un solo trabajo.
+  - En cada fila del borrador: "¿Es Torre Norte? Vincular" (el trabajo más
+    parecido por nombre de razón social o fantasía contra nombre o nombre de
+    agenda, `suggestJobs`), "Otro" o "Vincular trabajo" con un buscador, y
+    el trabajo vinculado con "Quitar el vínculo" (`setReceiverJob`, solo
+    admin).
+  - Avisos en las filas en borrador (`getJobWarnings`): el precio sin IVA
+    del presupuesto del trabajo distinto del subtotal de la factura (un peso
+    o más), visitas canceladas o salteadas en el mes (en hora de
+    Montevideo) y trabajo pausado, terminado, borrador o archivado. En el
+    teléfono la fila dice "N avisos del trabajo" y la hoja los muestra.
+- **Agente** (sin escribir nada): `prepareCreditNote` valida la nota contra
+  la copia y devuelve una tarjeta con "Abrir para emitir", que abre la
+  página con `?mode=&amounts=&reason=` ya puestos; `suggestReceiverJobs`
+  lista los receptores del mes con su trabajo o hasta 3 sugerencias.
+  `check:billing` verifica que el agente no llegue a `credit-note-run`,
+  `credit-note-store` ni a la acción, y que nada del agente escriba
+  `billingReceiverJob`.
+- Los envoltorios nuevos devuelven el `{ error }` y lo tira el hook en el
+  cliente: en producción Next oculta el mensaje de un error tirado dentro de
+  una server action ("Minified React error #441"), como pasa hoy con
+  sincronizar, repetir y emitir el lote.
+
 ### Formulario de factura
 
 Los campos de `POST /v3/comprobantes/emitir` que usa Bambú, por sección:
@@ -476,6 +540,10 @@ referencia. Los colores, radios y la letra son los de Operaciones
 
 ## Pendiente del usuario
 
+- Feature 43: aplicar la migración `20261101120000_billing_corrections_jobs`
+  en la rama de Neon `feature-39-billing` y probar en Biller test una nota
+  parcial y una por el total (la forma de `referencias` no está confirmada),
+  vincular un receptor y ver los avisos.
 - Confirmar que hoy facturan desde el panel de Biller y con qué plan.
 - Acceso a la API en producción: el panel de test dice que "fuera del ambiente
   de test, el uso de la API es exclusivo del plan Estándar". En la web el plan
