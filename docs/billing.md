@@ -444,8 +444,8 @@ En la empresa de prueba PEPITO 12, con emisiones por la API:
 
 ### Borrar, archivar, filtros, editor lateral y fechas (features 47 a 50)
 
-Pedido del usuario del 2026-11-01. La 47 está implementada (2026-11-01);
-las 48 a 50 son plan.
+Pedido del usuario del 2026-11-01. La 47 y la 48 están implementadas
+(2026-11-01); las 49 y 50 son plan.
 
 - **Borrar y archivar (47).**
   - Se borra solo una factura del borrador (`DRAFT`): por ejemplo un servicio
@@ -458,15 +458,21 @@ las 48 a 50 son plan.
     la sincronización no lo pisa, sigue en Biller y en el resumen del mes, y
     corregirla sigue siendo una nota de crédito.
   - Las dos acciones quedan auditadas.
-- **Filtros (48)** donde hoy están las pestañas "Borrador N/M" y "Emitidas N",
-  como la lista de presupuestos (37):
-  - vistas Borrador, Emitidas y Archivadas, con conteo;
-  - chips de un toque: tipo (e-Factura, e-Ticket, notas de crédito), estado
-    ante DGI (pendiente, aceptada, rechazada, sin confirmar), marcadas o
-    desmarcadas en el borrador, y búsqueda por cliente o RUT;
-  - en el teléfono las vistas siguen como conmutador y los chips van en una
-    hoja;
-  - "Emitir N" cuenta siempre todas las marcadas, no solo las filtradas.
+- **Filtros (48)**, en lugar de las pestañas "Borrador N/M" y "Emitidas N"
+  (el usuario pidió un panel plegable en vez de chips, y en el teléfono la
+  hoja inferior de Visitas):
+  - vistas Borrador, Emitidas y Archivadas; cada una cuenta lo que muestra
+    con los filtros puestos. Lo archivado solo aparece en Archivadas;
+  - búsqueda por cliente (sin tildes) o RUT (por dígitos, desde 3);
+  - "Filtros" abre y cierra un panel con un desplegable por grupo: tipo
+    (e-Factura, e-Ticket, notas), estado ante DGI (pendiente, aceptada,
+    rechazada, sin confirmar) y, solo en el borrador, marcadas o
+    desmarcadas. Se aplican al instante, en el cliente, y siguen al cambiar
+    de mes;
+  - en el teléfono las vistas son un conmutador y un botón redondo con la
+    cuenta abre la hoja inferior (`VisitSheet`) con "Limpiar" y "Ver N";
+  - "Emitir N" cuenta siempre todas las marcadas; si el filtro oculta
+    alguna, el borrador lo avisa.
 - **Editor lateral (49).** Tocar una fila de Borrador → "Para emitir" abre
   un panel al costado (a la derecha en escritorio, hoja en el teléfono) con
   la factura entera en el formulario de Nueva factura:

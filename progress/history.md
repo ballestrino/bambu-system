@@ -1515,3 +1515,17 @@
   1440 y 390 px (borrar con un "Emitir" abierto en otra pestaña, archivar,
   Deshacer, Desarchivar, borrador vacío).
 - Falta: la migración en producción antes del merge a `main`.
+
+## 2026-11-01 - Feature 48: vistas y filtros de Facturación
+
+- En `claude/elegant-edison-wmcobi`, sobre la 47.
+- Vistas Borrador, Emitidas y Archivadas (reemplaza las pestañas y el
+  plegable de archivadas de la 47), cada una con lo que muestra.
+- Búsqueda por cliente o RUT y filtros de tipo, estado DGI y marcadas (solo
+  en el borrador), en el cliente y al instante. El usuario pidió durante la
+  sesión un panel plegable en vez de chips y, en el teléfono, la hoja
+  inferior de Visitas (`VisitSheet`).
+- "Emitir N" cuenta todo lo marcado; el borrador avisa cuántas marcadas
+  oculta el filtro.
+- PASS: tsc, ESLint, `init.sh`, `check:billing` (con
+  `billing-filter-checks`), `pnpm build` y Chromium a 1440 y 390 px.

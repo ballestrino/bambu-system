@@ -28,6 +28,8 @@ export type IssuedInvoiceRow = {
   cfeType: number;
   currency: string;
   detail: string | null;
+  // RUT o cédula del receptor, para buscar (48).
+  document: string | null;
   hasPdf: boolean;
   id: string;
   isNote: boolean;
@@ -63,6 +65,7 @@ export const toIssuedRow = (
     cfeType: invoice.cfeType,
     currency: invoice.currency,
     detail: readStoredItems(invoice.items)?.[0]?.concepto ?? null,
+    document: readStoredReceiver(invoice.receiver)?.documento ?? null,
     hasPdf: invoice.billerId !== null,
     id: invoice.id,
     isNote: classifyCfe(invoice.cfeType) !== "invoice",
@@ -92,6 +95,7 @@ export type DraftRow = {
   cfeLabel: string;
   cfeType: number;
   currency: string;
+  document: string | null;
   error: string | null;
   hasPdf: boolean;
   id: string;
@@ -147,6 +151,7 @@ export const toDraftRow = (
     cfeLabel: getCfeLabel(invoice.cfeType),
     cfeType: invoice.cfeType,
     currency: invoice.currency,
+    document: readStoredReceiver(invoice.receiver)?.documento ?? null,
     error: invoice.error,
     hasPdf: invoice.billerId !== null,
     id: invoice.id,

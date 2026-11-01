@@ -801,14 +801,14 @@
       "name": "billing_list_filters",
       "title": "Filters where Borrador and Emitidas are today",
       "area": "billing",
-      "description": "Replace the Borrador N/M and Emitidas N tabs with the ops table filters (like the budgets list, 37): views Borrador, Emitidas and Archivadas with counts, plus one-tap chips for type (e-Factura, e-Ticket, credit notes), DGI status (pending, accepted, rejected, unconfirmed), checked or unchecked in the draft and a search by client name or RUT. Filters apply immediately and keep the month selector; on a phone the views stay a switch and the chips go in a bottom sheet. The Emitir bar always counts every checked row, not only the filtered ones.",
+      "description": "Replace the Borrador N/M and Emitidas N tabs with views Borrador, Emitidas and Archivadas with counts, a search by client name or RUT and filters for type (e-Factura, e-Ticket, credit notes), DGI status (pending, accepted, rejected, unconfirmed) and checked or unchecked in the draft. Per the user (2026-11-01) the filters are a collapsible panel on desktop, not chips, and on a phone the same bottom sheet as the Visitas filters. Filters apply immediately and keep the month selector. The Emitir bar always counts every checked row, not only the filtered ones.",
       "acceptance": [
         "Each view shows its count and the chips combine with the search",
         "Archived invoices only show in Archivadas",
         "Emitir N counts the checked draft rows whatever the filter",
         "tsc, lint, check:billing and a browser smoke on desktop and at 390 px"
       ],
-      "status": "pending"
+      "status": "done"
     },
     {
       "id": 49,

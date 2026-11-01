@@ -39,7 +39,7 @@ Status: active
 
 - 2026-11-01: facturación, pedidas por el usuario y anotadas en
   `feature_list.json` (en este orden): borrar las del borrador y archivar
-  las emitidas (47, hecha), filtros en lugar de las pestañas (48), editor
+  las emitidas (47, hecha), filtros en lugar de las pestañas (48, hecha), editor
   lateral desde el borrador y desde el diálogo de emitir (49) y fechas por
   defecto del 1 al 10 (50). Plan en `docs/billing.md`; la 50 tiene dos
   decisiones pendientes del usuario.
@@ -60,6 +60,15 @@ Status: active
   equivalencias con los ids viejos está en `progress/history.md`.
 
 ## Last Closed Work
+
+- 2026-11-01: facturación, vistas y filtros (48): Borrador, Emitidas y
+  Archivadas con su cuenta, búsqueda por cliente o RUT y filtros de tipo,
+  estado DGI y marcadas. Por pedido del usuario, sin chips: panel plegable
+  en escritorio y la hoja inferior de Visitas en el teléfono. "Emitir N"
+  cuenta todas las marcadas y avisa las que el filtro oculta. Sin
+  migración. Smoke en Chromium a 1440 y 390 px con un Postgres local. Rama
+  `claude/elegant-edison-wmcobi`, sin merge. Informes en
+  `progress/impl_48.md` y `progress/review_48.md`.
 
 - 2026-11-01: facturación, borrar del borrador y archivar lo emitido (47):
   "Borrar" con confirmación solo en filas `DRAFT` de un lote abierto (locks

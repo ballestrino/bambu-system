@@ -5,19 +5,36 @@ import { BillingDraftPhoneRow } from "@/components/billing/billing-draft-phone";
 import { BillingDraftRow } from "@/components/billing/billing-draft-row";
 import { getMonthName } from "@/components/billing/billing-format";
 import { BillingIssueBar, BillingIssueNotice } from "@/components/billing/billing-issue-bar";
+import { BillingNoMatches } from "@/components/billing/billing-no-matches";
 import { BillingRepeatNotice } from "@/components/billing/billing-repeat-notice";
 import { useDraftRowMutation } from "@/components/billing/hooks/use-billing-draft-mutations";
 import type { BillingMonthView } from "@/data/billing/month";
 import type { DraftRow } from "@/lib/billing/billing-month-view";
+import { cn } from "@/lib/utils";
 
 type Draft = NonNullable<BillingMonthView["draft"]>;
 
 // El borrador del mes: "Para emitir" y "No van este mes" (ya facturadas,
 // anuladas, notas), y la barra con lo marcado y "Emitir N". Lo emitido queda
-// en su fila con la serie, el número y el estado ante DGI.
-export const BillingDraft = ({ draft, view }: { draft: Draft; view: BillingMonthView }) => {
-  const goRows = draft.rows.filter((row) => !row.skip);
-  const skipRows = draft.rows.filter((row) => row.skip);
+// en su fila con la serie, el número y el estado ante DGI. Con filtros (48)
+// muestra `rows`; la barra y "Emitir N" cuentan siempre todo el borrador.
+export const BillingDraft = ({
+  draft,
+  filtered,
+  hiddenMarked,
+  onClearFilters,
+  rows,
+  view,
+}: {
+  draft: Draft;
+  filtered: boolean;
+  hiddenMarked: number;
+  onClearFilters: () => void;
+  rows: DraftRow[];
+  view: BillingMonthView;
+}) => {
+  const goRows = rows.filter((row) => !row.skip);
+  const skipRows = rows.filter((row) => row.skip);
   const prevMonth = getMonthName(view.previousPeriod);
   const rowProps = { choices: draft.jobChoices, draftStatus: draft.status, periodKey: view.period, prevMonth };
 
@@ -25,7 +42,13 @@ export const BillingDraft = ({ draft, view }: { draft: Draft; view: BillingMonth
     <div className="flex flex-col gap-3.5">
       <BillingIssueNotice draft={draft} periodKey={view.period} />
       <BillingRepeatNotice draft={draft} view={view} />
-      <div className="hidden flex-col gap-3.5 md:flex">
+      {hiddenMarked ? (
+        <p className="rounded-[var(--ops-radius-control)] bg-ops-surface-muted px-3.5 py-2.5 text-[13px] text-ops-text-muted">
+          El filtro oculta {hiddenMarked} {hiddenMarked === 1 ? "marcada" : "marcadas"}: &quot;Emitir&quot; las incluye igual.
+        </p>
+      ) : null}
+      {filtered && !rows.length ? <BillingNoMatches onClear={onClearFilters} /> : null}
+      <div className={cn("hidden flex-col gap-3.5", (rows.length || !filtered) && "md:flex")}>
         <DraftSection count={goRows.length} title="Para emitir">
           {goRows.map((row) => <DraftRowContainer {...rowProps} key={row.id} row={row} variant="desktop" />)}
         </DraftSection>
@@ -36,12 +59,16 @@ export const BillingDraft = ({ draft, view }: { draft: Draft; view: BillingMonth
         ) : null}
       </div>
 
-      <section className="overflow-hidden rounded-[var(--ops-radius-panel)] border border-ops-border bg-ops-surface md:hidden">
-        {[...goRows, ...skipRows].map((row, index) => (
-          <DraftRowContainer {...rowProps} firstSkipped={index === goRows.length && index > 0} key={row.id} row={row} variant="phone" />
-        ))}
-      </section>
-      <p className="text-center text-xs text-ops-text-muted md:hidden">Tocá una factura para cambiar el monto o el detalle.</p>
+      {rows.length ? (
+        <>
+          <section className="overflow-hidden rounded-[var(--ops-radius-panel)] border border-ops-border bg-ops-surface md:hidden">
+            {[...goRows, ...skipRows].map((row, index) => (
+              <DraftRowContainer {...rowProps} firstSkipped={index === goRows.length && index > 0} key={row.id} row={row} variant="phone" />
+            ))}
+          </section>
+          <p className="text-center text-xs text-ops-text-muted md:hidden">Tocá una factura para cambiar el monto o el detalle.</p>
+        </>
+      ) : null}
 
       <BillingIssueBar draft={draft} view={view} />
     </div>

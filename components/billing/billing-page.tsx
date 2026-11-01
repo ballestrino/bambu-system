@@ -2,7 +2,6 @@
 
 import { Plus } from "lucide-react";
 import Link from "next/link";
-import { useState } from "react";
 
 import { BillingAgent } from "@/components/billing/billing-agent";
 import { BillingDraft } from "@/components/billing/billing-draft";
@@ -11,22 +10,25 @@ import { BillingEmptyDraft } from "@/components/billing/billing-empty-draft";
 import { BillingHeader } from "@/components/billing/billing-header";
 import { BillingIssuedList } from "@/components/billing/billing-issued-list";
 import { BillingSummary } from "@/components/billing/billing-summary";
-import { BillingTabs, type BillingTab } from "@/components/billing/billing-tabs";
+import { BillingToolbar } from "@/components/billing/billing-toolbar";
+import { BillingViews } from "@/components/billing/billing-views";
 import { useRepeatBillingMonth } from "@/components/billing/hooks/use-billing-draft-mutations";
+import { useBillingList } from "@/components/billing/hooks/use-billing-list";
 import { useBillingMonth } from "@/components/billing/hooks/use-billing-month";
 import { OpsPageShell, useOpsSelectedMonth } from "@/components/ops/shared";
 import { Skeleton } from "@/components/ui/skeleton";
 
 // Facturación del mes (docs/billing.md, diseño B de claude-design): resumen,
-// borrador que repite el mes anterior, emitir lo marcado y lo emitido.
+// borrador que repite el mes anterior, emitir lo marcado y lo emitido, con
+// vistas y filtros (48).
 export const BillingPage = () => {
   const { monthKey } = useOpsSelectedMonth();
   const { month, sync } = useBillingMonth(monthKey);
   const repeat = useRepeatBillingMonth(monthKey);
-  const [tab, setTab] = useState<BillingTab>("draft");
   const view = month.data;
+  const list = useBillingList(view);
   const pending = view?.draft?.rows.filter((row) => row.status === "DRAFT") ?? [];
-  const draftTotals = getDraftTotals(view?.draft?.rows ?? []);
+  const filtered = list.activeCount > 0;
 
   return (
     <OpsPageShell className="gap-4 md:gap-5">
@@ -65,16 +67,27 @@ export const BillingPage = () => {
       ) : (
         <>
           <BillingSummary draftAmount={getDraftTotals(pending).amount} view={view} />
-          <BillingTabs
-            draftLabel={view.draft ? `${draftTotals.count}/${view.draft.rows.length}` : "0"}
-            issuedCount={view.issued.length}
-            onChange={setTab}
-            value={tab}
-          />
-          {tab === "issued" ? (
-            <BillingIssuedList archived={view.archived} periodKey={view.period} rows={view.issued} />
+          <div className="flex flex-col gap-3">
+            <BillingViews counts={list.counts} onChange={list.setView} value={list.view} />
+            <BillingToolbar list={list} />
+          </div>
+          {list.view !== "draft" ? (
+            <BillingIssuedList
+              filtered={filtered}
+              mode={list.view}
+              onClearFilters={list.clearFilters}
+              periodKey={view.period}
+              rows={list.view === "issued" ? list.issued : list.archived}
+            />
           ) : view.draft ? (
-            <BillingDraft draft={view.draft} view={view} />
+            <BillingDraft
+              draft={view.draft}
+              filtered={filtered}
+              hiddenMarked={list.hiddenMarked}
+              onClearFilters={list.clearFilters}
+              rows={list.draft}
+              view={view}
+            />
           ) : (
             <BillingEmptyDraft
               canRepeat={view.biller.configured}
