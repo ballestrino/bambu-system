@@ -38,10 +38,10 @@ Status: active
 ## Queue
 
 - 2026-10-30: facturación con Biller en `docs/billing.md`, feature 44
-  pendiente (salida a producción). La migración de la 43 ya está en la rama
-  de Neon `feature-39-billing` (aplicada por el usuario el 2026-11-01); en
-  producción faltan la de la 39 y la de la 43. Falta aplicar en esa rama la
-  de la 45 (`20261101180000_billing_new_invoice`).
+  pendiente (salida a producción: variables de Biller en Vercel, historial
+  real y el primer lote). Las migraciones de facturación (39, 43 y 45) las
+  aplicó el usuario en producción (según él, el 2026-11-01). Las features 39
+  a 46 se mergearon y pushearon a `main` el 2026-11-01 con su autorización.
 - Encontrado en la 46 y fuera de alcance: `check:agent-sheet` falla porque
   busca `components/budgets/create-budget/Header.tsx`, que se quitó en la 36.
 - Encontrado en la 43 y fuera de alcance: en producción los envoltorios de

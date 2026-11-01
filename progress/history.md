@@ -1489,3 +1489,10 @@
   de consola. `check:agent-sheet` falla igual que antes del cambio (busca
   `components/budgets/create-budget/Header.tsx`, que se fue en la 36).
 - Falta: un turno con un modelo real en Biller test.
+
+## 2026-11-01 - Merge de facturación a `main` (43, 45 y 46)
+
+- Con autorización del usuario: `claude/zealous-fermat-q1gea3` (que trae
+  `claude/beautiful-clarke-ywhsz6` y `claude/feature-43-continuation-5ht481`)
+  mergeada en `main` y pusheada. El usuario dice que aplicó las migraciones
+  en producción.
