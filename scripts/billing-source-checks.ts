@@ -26,10 +26,13 @@ for (const file of [...listFiles("lib/agent"), ...listFiles("app/api/agent"), ..
 }
 
 // --- Ni por el medio: lo que importa el agente (sus tools, su ruta, sus
-// componentes y el panel de Facturación) no llega a la emisión.
+// componentes, el panel de Facturación y el de Nueva factura) no llega a la
+// emisión.
 const agentEntries = [
   ...listFiles("lib/agent"), ...listFiles("app/api/agent"), ...listFiles("components/agent"),
   "components/billing/billing-agent.tsx",
+  "components/billing/new-invoice/new-invoice-agent.tsx",
+  "components/billing/hooks/use-invoice-form-patches.ts",
 ];
 const leak = findForbiddenImport(agentEntries, isIssueCode, readRepoSource(root));
 assert.equal(leak, null, `the agent reaches the Biller issue code: ${leak?.join(" -> ")}`);

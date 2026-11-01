@@ -1464,3 +1464,28 @@
   corregir y reemitir, PDF, guardar desde 390 px sin desborde, volver al mes
   de la factura, sin errores de consola.
 - Comprobantes de prueba en Biller test: MF 673312–673314 y MT 964940–964942.
+
+## 2026-11-01 - Facturación: el agente dentro de Nueva factura (46)
+
+- Pedido por el usuario ("el agente que trabaja dentro de crear factura").
+  Rama `claude/zealous-fermat-q1gea3`, sobre la 45
+  (`claude/feature-43-continuation-5ht481`), sin merge.
+- El panel de Facturación con props (contexto, habilidad, retomar o no y un
+  listener) y `NewInvoiceAgent` en Nueva factura: habilidad `factura`,
+  contexto `new-invoice` con el formulario (leído campo por campo), una
+  conversación nueva por página guardada como de Facturación.
+- `fillInvoiceForm` devuelve solo los campos que cambian (cliente por
+  documento desde su última factura o DGI, ítems sin IVA, crédito con días,
+  adenda) y la página los aplica una vez al llegar; `findBillingClient`
+  busca en las facturas con el id de la última. No escribe nada. La búsqueda
+  de clientes pasó a `data/billing/clients.ts`.
+- Sin migración.
+- PASS: tsc, ESLint, `init.sh`, `check:billing` (con
+  `billing-invoice-form-checks`), `check:agent-tools`, `check:agent-page`,
+  `check:agent-proposals` y los demás `check:agent-*`, `next build`.
+  `scripts/smoke-billing-invoice-form.ts` contra un Postgres local. Chromium
+  con `next start` a 1440 y 390 px con la respuesta del modelo simulada:
+  pedido con habilidad y formulario, tarjeta y campos aplicados, sin errores
+  de consola. `check:agent-sheet` falla igual que antes del cambio (busca
+  `components/budgets/create-budget/Header.tsx`, que se fue en la 36).
+- Falta: un turno con un modelo real en Biller test.

@@ -3,11 +3,12 @@
 // la sincronización idempotente, el borrador que repite el mes anterior y
 // que el agente nunca emita (y solo arme borradores), y la emisión de a una
 // sin duplicar, las notas de crédito y el vínculo receptor → trabajo (43) y
-// la factura nueva (45).
+// la factura nueva (45) y el agente que la completa sin emitir (46).
 import "./billing-agent-checks";
 import { billingConfigChecks } from "./billing-config-checks";
 import { billingCorrectionChecks } from "./billing-correction-checks";
 import "./billing-draft-checks";
+import "./billing-invoice-form-checks";
 import { billingIssueChecks } from "./billing-issue-checks";
 import { billingNewInvoiceChecks } from "./billing-new-invoice-checks";
 import "./billing-source-checks";

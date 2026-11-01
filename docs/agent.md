@@ -54,7 +54,10 @@ este documento describe lo que ya existe y se actualiza con cada feature.
   garantiza `check:billing` (ver `docs/billing.md`, "Agente"). Desde la 43
   prepara notas de crédito (`prepareCreditNote`, abre su página para que el
   usuario la emita) y sugiere el trabajo de cada cliente
-  (`suggestReceiverJobs`; el vínculo lo confirma el usuario).
+  (`suggestReceiverJobs`; el vínculo lo confirma el usuario). Desde la 46
+  trabaja dentro de Nueva factura con la habilidad Nueva factura: completa el
+  formulario con `fillInvoiceForm` (y busca clientes con
+  `findBillingClient`) y la persona la emite con los botones de la página.
 - Instrucciones del equipo (feature 35): el agente propone agregar, cambiar o
   quitar una regla de cómo trabaja, un admin confirma el antes y el después y
   queda una versión nueva; las reglas fijas no se tocan. Versiones y
@@ -82,7 +85,8 @@ este documento describe lo que ya existe y se actualiza con cada feature.
   Un renombrado nunca se pisa, ni durante el turno ni al regenerar la primera
   respuesta.
 - Habilidades en `lib/agent/skills/**`: General (todas las tools),
-  Presupuestos, Emails, Consejos y Facturación (la del panel de Facturación). Todas las tools quedan registradas y la
+  Presupuestos, Emails, Consejos, Facturación (la del panel de Facturación) y
+  Nueva factura (la del panel de Nueva factura). Todas las tools quedan registradas y la
   habilidad elige las activas (`activeTools`), así el historial puede traer
   tools de otra habilidad.
 - Tools en `lib/agent/tools/**`, sin escrituras: `getBusinessProfile`,
@@ -93,7 +97,9 @@ este documento describe lo que ya existe y se actualiza con cada feature.
   `getPayrollSummary`, `queryOperations` (visitas del mes o de un `day`),
   `listEmails`, `readEmail` y `groupBudgetRequests` (ver "Correo"),
   `draftEmail`, `getBillingSummary`, `listInvoices`, `getInvoice`,
-  `lookupRut`, `prepareCreditNote` y `suggestReceiverJobs` (no escriben:
+  `lookupRut`, `findBillingClient`, `fillInvoiceForm` (devuelve los campos
+  que la página pone en Nueva factura), `prepareCreditNote` y
+  `suggestReceiverJobs` (no escriben:
   la nota se emite y el vínculo se confirma en la página) y `draftInvoices`,
   la única que escribe sin tarjeta: un borrador de facturas, nunca una
   emisión (ver `docs/billing.md`). Devuelven

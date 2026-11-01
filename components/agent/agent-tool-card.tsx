@@ -5,6 +5,7 @@ import { AgentBudgetTotalsCard } from "@/components/agent/cards/agent-budget-tot
 import { AgentEmailCard } from "@/components/agent/cards/agent-email-card";
 import { AgentEmailMessageCard } from "@/components/agent/cards/agent-email-message-card";
 import { AgentFinanceCard, AgentFinanceTrendCard } from "@/components/agent/cards/agent-finance-card";
+import { AgentInvoiceFormCard } from "@/components/agent/cards/agent-invoice-form-card";
 import { AgentListCard } from "@/components/agent/cards/agent-list-card";
 import { AgentOfficialBudgetCard, AgentOfficialSearchCard } from "@/components/agent/cards/agent-official-card";
 import { AgentPayrollCard } from "@/components/agent/cards/agent-payroll-card";
@@ -46,6 +47,8 @@ export function AgentToolCard({ data, toolCallId }: { data: AgentToolData<AgentT
       return <AgentBillingSummaryCard data={data} />;
     case "billing-credit-note":
       return <AgentCreditNoteCard data={data} />;
+    case "invoice-form":
+      return <AgentInvoiceFormCard data={data} />;
     case "list":
       return <AgentListCard data={data as ListCardData} />;
     default:

@@ -2,12 +2,13 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 
 import { BillingChip } from "@/components/billing/billing-chip";
 import { useNewInvoice } from "@/components/billing/hooks/use-new-invoice";
 import { NewInvoiceAdenda } from "@/components/billing/new-invoice/new-invoice-adenda";
+import { NewInvoiceAgent } from "@/components/billing/new-invoice/new-invoice-agent";
 import { NewInvoiceClient } from "@/components/billing/new-invoice/new-invoice-client";
 import { NewInvoiceDialog, type NewInvoiceDialogResult } from "@/components/billing/new-invoice/new-invoice-dialog";
 import { NewInvoiceItems } from "@/components/billing/new-invoice/new-invoice-items";
@@ -16,6 +17,7 @@ import { NewInvoiceVoucher } from "@/components/billing/new-invoice/new-invoice-
 import { OpsPageShell, selectOpsMonth } from "@/components/ops/shared";
 import type { NewInvoiceView } from "@/data/billing/new-invoice";
 import { getNewInvoiceProblems, getNewInvoiceTotals, newInvoiceDefaults, type NewInvoiceForm } from "@/lib/billing/new-invoice";
+import { cn } from "@/lib/utils";
 
 const BILLING_HREF = "/dashboard/billing";
 
@@ -38,6 +40,18 @@ export const NewInvoicePage = ({ view }: { view: NewInvoiceView }) => {
   const busy = issue.isPending || save.isPending || issued;
   const change = (patch: Partial<NewInvoiceForm>) => setForm((current) => ({ ...current, ...patch }));
   const request = { form, month: view.month, requestId };
+  // El agente (feature 46) lee el formulario al enviar cada mensaje y lo que
+  // completa entra con los mismos cambios que la página. En escritorio, con
+  // el panel abierto, el formulario le deja lugar a la derecha.
+  const [agentOpen, setAgentOpen] = useState(false);
+  const formRef = useRef(form);
+  useEffect(() => {
+    formRef.current = form;
+  });
+  const applyAgentPatch = (patch: Partial<NewInvoiceForm>) => {
+    if (busy) return void toast.info("La factura ya se está emitiendo o guardando: el agente no la cambia.");
+    if (Object.keys(patch).length) change(patch);
+  };
 
   // Volver a Facturación abre el mes del borrador (el selector es compartido).
   useEffect(() => selectOpsMonth(view.month), [view.month]);
@@ -60,7 +74,7 @@ export const NewInvoicePage = ({ view }: { view: NewInvoiceView }) => {
   };
 
   return (
-    <OpsPageShell className="gap-4 md:gap-5">
+    <OpsPageShell className={cn("gap-4 md:gap-5", agentOpen && "lg:pr-[416px]")}>
       <header className="flex flex-wrap items-end justify-between gap-4">
         <div className="flex flex-col gap-1.5">
           <nav aria-label="Ubicación" className="text-[13px] text-ops-text-muted">
@@ -80,21 +94,24 @@ export const NewInvoicePage = ({ view }: { view: NewInvoiceView }) => {
             Emitila ahora o guardala en el borrador de {view.monthName} para emitirla con las demás.
           </p>
         </div>
-        <Link
-          className="flex h-10 items-center rounded-[10px] border border-ops-border bg-ops-surface px-3.5 text-sm font-medium text-ops-text hover:bg-ops-surface-muted"
-          href={BILLING_HREF}
-        >
-          Cancelar
-        </Link>
+        <div className="flex items-center gap-2">
+          <NewInvoiceAgent getForm={() => formRef.current} month={view.month} onOpenChange={setAgentOpen} onPatch={applyAgentPatch} />
+          <Link
+            className="flex h-10 items-center rounded-[10px] border border-ops-border bg-ops-surface px-3.5 text-sm font-medium text-ops-text hover:bg-ops-surface-muted"
+            href={BILLING_HREF}
+          >
+            Cancelar
+          </Link>
+        </div>
       </header>
-      <div className="flex flex-col gap-5 lg:flex-row lg:items-start">
+      <div className={cn("flex flex-col gap-5 lg:items-start", agentOpen ? "2xl:flex-row" : "lg:flex-row")}>
         <div className="flex min-w-0 flex-[999_1_600px] flex-col gap-4">
           <NewInvoiceVoucher disabled={busy} form={form} onChange={change} today={view.issueDay} />
           <NewInvoiceClient disabled={busy} form={form} onChange={change} />
           <NewInvoiceItems defaultIndicator={view.indicator} disabled={busy} form={form} onChange={change} />
           <NewInvoiceAdenda disabled={busy} form={form} onChange={change} />
         </div>
-        <div className="lg:w-[320px] lg:flex-none">
+        <div className={cn(agentOpen ? "lg:w-full 2xl:w-[320px] 2xl:flex-none" : "lg:w-[320px] lg:flex-none")}>
           <NewInvoiceSummary
             form={form}
             onIssue={() => { setResult(issued ? result : null); setOpen(true); }}

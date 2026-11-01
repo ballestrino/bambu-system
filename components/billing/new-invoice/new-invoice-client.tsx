@@ -8,6 +8,7 @@ import { NewInvoiceClientSearch } from "@/components/billing/new-invoice/new-inv
 import { Checkbox, Field, inputClass, SectionChip, SectionTitle, sectionClass } from "@/components/billing/new-invoice/new-invoice-fields";
 import type { BillingClient } from "@/lib/billing/billing-clients";
 import { RUT_DOCUMENT, type NewInvoiceForm } from "@/lib/billing/new-invoice";
+import { receiverToNewInvoiceForm } from "@/lib/billing/new-invoice-agent-fill";
 import { cn } from "@/lib/utils";
 
 const DOCUMENT_TYPES = [[2, "RUT"], [3, "CI"], [4, "Otro"], [5, "Pasaporte"], [6, "DNI"], [7, "NIFE"]] as const;
@@ -17,11 +18,7 @@ const COUNTRIES = [["UY", "Uruguay"], ["AR", "Argentina"], ["BR", "Brasil"], ["P
 
 type Props = { disabled: boolean; form: NewInvoiceForm; onChange: (patch: Partial<NewInvoiceForm>) => void };
 
-const fromClient = ({ receiver }: BillingClient): Partial<NewInvoiceForm> => ({
-  address: receiver.sucursal.direccion ?? "", city: receiver.sucursal.ciudad ?? "", consumer: false, country: receiver.sucursal.pais || "UY",
-  department: receiver.sucursal.departamento ?? "", document: receiver.documento ?? "", documentType: receiver.tipo_documento ?? RUT_DOCUMENT,
-  name: receiver.razon_social || receiver.nombre_fantasia || "", tradeName: receiver.nombre_fantasia ?? "",
-});
+const fromClient = ({ receiver }: BillingClient) => receiverToNewInvoiceForm(receiver);
 
 // "Cliente" (diseño B): buscar uno de una factura anterior o consultar un RUT
 // a DGI, consumidor final en un e-Ticket, y los datos que pide emitir. En el

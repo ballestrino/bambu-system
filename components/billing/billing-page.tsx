@@ -41,7 +41,7 @@ export const BillingPage = () => {
               <Plus aria-hidden className="size-4" />
               <span className="hidden sm:inline">Nueva factura</span>
             </Link>
-            <BillingAgent monthKey={monthKey} />
+            <BillingAgent getContext={() => ({ kind: "billing", month: monthKey })} />
           </>
         }
         biller={view?.biller}

@@ -5,12 +5,15 @@ import type { InvoiceReceiverPayload } from "@/lib/billing/invoice-mapping";
 export type BillingClient = {
   key: string;
   lastCfeType: number;
+  // La factura más nueva del cliente (para leer sus líneas), si se conoce.
+  lastInvoiceId: string | null;
   lastIssueDate: string | null;
   lastTotal: number;
   receiver: InvoiceReceiverPayload;
 };
 
 export type BillingClientRow = {
+  id?: string;
   cfeType: number;
   issueDate: Date | null;
   receiver: InvoiceReceiverPayload | null;
@@ -32,6 +35,7 @@ export const groupBillingClients = (rows: BillingClientRow[], limit: number): Bi
     clients.set(key, {
       key,
       lastCfeType: row.cfeType,
+      lastInvoiceId: row.id ?? null,
       lastIssueDate: row.issueDate ? row.issueDate.toISOString().slice(0, 10) : null,
       lastTotal: row.total,
       receiver,

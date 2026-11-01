@@ -31,12 +31,16 @@ export const agentFormContextValuesSchema = BudgetSchema.partial().extend({
 
 export type AgentFormContextValues = z.infer<typeof agentFormContextValuesSchema>;
 
-// El contexto de un turno: un presupuesto guardado, el formulario de crear o
-// el mes que se mira en Facturación (docs/billing.md, "Agente").
+// El contexto de un turno: un presupuesto guardado, el formulario de crear,
+// el mes que se mira en Facturación (docs/billing.md, "Agente") o el
+// formulario de Nueva factura con el mes de su borrador (feature 46). Ese
+// formulario se lee campo por campo en el servidor
+// (sanitizeNewInvoiceForm): uno a medio escribir no rechaza el turno.
 export const agentBudgetContextSchema = z.discriminatedUnion("kind", [
   z.object({ kind: z.literal("saved"), budgetId: z.string().min(1).max(64) }),
   z.object({ kind: z.literal("form"), values: agentFormContextValuesSchema }),
   z.object({ kind: z.literal("billing"), month: billingPeriodSchema }),
+  z.object({ kind: z.literal("new-invoice"), month: billingPeriodSchema, form: z.record(z.string(), z.unknown()) }),
 ]);
 
 export type AgentBudgetContextInput = z.infer<typeof agentBudgetContextSchema>;

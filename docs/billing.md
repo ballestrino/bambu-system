@@ -537,6 +537,65 @@ Los campos de `POST /v3/comprobantes/emitir` que usa Bambú, por sección:
   la tarjeta del borrador no tiene botón de emitir y la página muestra el
   cambio al terminar el turno.
 
+### Nueva factura (feature 46)
+
+El agente trabaja dentro de `/dashboard/billing/new`: completa el formulario
+que el usuario tiene abierto y nunca emite ni guarda.
+
+- **Panel:** el mismo de Facturación (`components/billing/billing-agent.tsx`),
+  ahora con props: `NewInvoiceAgent`
+  (`components/billing/new-invoice/new-invoice-agent.tsx`) lo abre con
+  "Agente" junto a "Cancelar" (en el teléfono, el botón flotante). Cada vez
+  que se abre la página arranca una conversación nueva (`resumeLatest`
+  false en `useAgentSession`); se guarda con `contextKind` `billing`, así
+  queda en el historial de Facturación. En escritorio, con el panel abierto,
+  el formulario le deja 416 px a la derecha y el resumen baja debajo del
+  formulario hasta 1536 px.
+- **Habilidad Nueva factura** (`lib/agent/skills/factura.ts`, id `factura`):
+  `fillInvoiceForm`, `findBillingClient`, `getInvoice`, `lookupRut`,
+  `listInvoices`, `getBillingSummary`, `searchBudgets`, `getBudget` y memoria
+  e instrucciones. No tiene `draftInvoices`.
+- **Contexto del turno:** `{ kind: "new-invoice", month, form }` con el
+  formulario tal como está al enviar. El servidor lo lee campo por campo
+  (`sanitizeNewInvoiceForm`, `lib/billing/new-invoice-agent-context.ts`): un
+  campo a medio escribir queda con su valor por defecto y no rechaza el
+  turno. El prompt recibe el formulario en texto (comprobante, cliente,
+  ítems sin IVA, totales y lo que falta para emitir) y sus importes se pueden
+  citar.
+- **`findBillingClient`:** busca en las facturas emitidas, como "Buscar
+  cliente" (`data/billing/clients.ts`, que ahora usan los dos), y devuelve el
+  id de la última factura de cada cliente para leer sus líneas con
+  `getInvoice` ("lo mismo que la última vez").
+- **`fillInvoiceForm`** (`lib/agent/tools/billing-invoice-form.ts`, plan
+  puro en `lib/billing/new-invoice-agent-fill.ts`): tipo, fecha, contado o
+  crédito con días (sin días: 10, como la página), moneda, orden de compra,
+  cliente por documento (`clientDocument`: su última factura o, si es un RUT
+  sin facturas, DGI) o escrito a mano, ítems sin IVA (reemplazan todas las
+  líneas; el indicador por defecto es el del formulario) y adenda. Cada
+  campo null no cambia. Devuelve solo los campos que cambian (`patch`, que el
+  modelo no ve), lo que cambió en palabras, los totales y lo que falta. Dos
+  llamadas en un turno parten una de la otra (el formulario del contexto se
+  actualiza en el servidor). No escribe en la base ni en Biller.
+- **La página aplica el patch** apenas llega el resultado
+  (`use-invoice-form-patches.ts`), una sola vez por llamada; los de una
+  conversación abierta del historial no se vuelven a aplicar. Si la factura
+  se está emitiendo o guardando, no se toca y se avisa.
+- **Tarjeta** (`agent-invoice-form-card.tsx`): "e-Factura para X · $ total",
+  lo que cambió, neto, IVA, total, lo que falta y "No está emitida", sin
+  botón de emitir.
+- **Nunca emite:** `check:billing` suma `new-invoice-agent.tsx` y
+  `use-invoice-form-patches.ts` a lo que no puede llegar a la emisión, y
+  `scripts/billing-invoice-form-checks.ts` prueba el contexto, el plan y la
+  habilidad.
+- Probado el 2026-11-01 con un Postgres local:
+  `pnpm exec tsx --require ./scripts/server-only-stub.cjs scripts/smoke-billing-invoice-form.ts`
+  (contexto, `findBillingClient` sobre una factura de prueba, dos
+  `fillInvoiceForm` seguidos, documento desconocido y fuera de Nueva
+  factura; borra la factura de prueba) y en Chromium con `next start` a 1440
+  y 390 px, con la respuesta del modelo simulada: el pedido lleva la
+  habilidad y el formulario, la tarjeta aparece y los campos entran al
+  formulario, sin errores de consola. Falta un turno con un modelo real.
+
 ### Plan
 
 - Es el agente de siempre, con todas sus tools (visitas, trabajos, finanzas,

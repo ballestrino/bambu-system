@@ -8,7 +8,7 @@ import { billingPeriodSchema } from "@/schemas/billing";
 const text = (max: number) => z.string().max(max, `Hasta ${max} caracteres`);
 const adjustType = z.enum(["%", "$"]);
 
-const itemSchema = z.object({
+export const newInvoiceItemSchema = z.object({
   cantidad: text(20),
   codigo: text(35),
   concepto: text(80),
@@ -36,7 +36,7 @@ export const newInvoiceFormSchema = z.object({
   dueDate: z.string().max(10),
   emails: z.array(text(120)).max(10),
   issueDate: z.string().max(10),
-  items: z.array(itemSchema).min(1).max(40),
+  items: z.array(newInvoiceItemSchema).min(1).max(40),
   name: text(70),
   paymentForm: z.number().int().min(1).max(2),
   purchaseOrder: text(50),

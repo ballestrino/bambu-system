@@ -2,6 +2,7 @@ import "server-only";
 
 import { getAgentBudget } from "@/data/agent/budgets";
 import { budgetOptionToFormValues } from "@/lib/agent/budget-calculation";
+import type { InvoiceFormContext } from "@/lib/agent/context";
 import type { Grounding } from "@/lib/agent/grounding";
 import type { AgentUsageCollector } from "@/lib/agent/usage-collector";
 import type { AgentMode } from "@/lib/ai/modes";
@@ -17,6 +18,8 @@ export type AgentToolContext = {
   formValues: BudgetFormValues | null;
   // El mes de Facturación en contexto (AAAA-MM), o null.
   billingMonth: string | null;
+  // El formulario de Nueva factura, si el turno viene de ahí (feature 46).
+  invoiceForm: InvoiceFormContext | null;
   grounding: Grounding;
   usage: AgentUsageCollector;
   // Las instrucciones del equipo y la memoria del turno: draftEmail redacta

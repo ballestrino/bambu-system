@@ -1,18 +1,11 @@
 "use server";
 
-import { Prisma } from "@prisma/client";
-
+import { findBillingClients } from "@/data/billing/clients";
 import { describeBillerError } from "@/lib/billing/biller-errors";
 import { getBillerReader } from "@/lib/billing/biller-server";
-import { groupBillingClients, toClientSearch } from "@/lib/billing/billing-clients";
-import { readStoredReceiver } from "@/lib/billing/invoice-json";
-import { db } from "@/lib/db";
 import { AdminAuthorizationError, requireAdminSession } from "@/lib/require-admin-session";
 
 const CLIENT_LIMIT = 8;
-const ROW_LIMIT = 120;
-
-type Row = { cfeType: number; issueDate: Date | null; receiver: unknown; total: string };
 
 // "Buscar cliente" de Nueva factura (feature 45): los receptores de las
 // facturas copiadas de Biller y de las que emitió Bambú, por nombre, nombre
@@ -20,25 +13,7 @@ type Row = { cfeType: number; issueDate: Date | null; receiver: unknown; total: 
 export const searchBillingClients = async (query: unknown) => {
   try {
     await requireAdminSession();
-    const search = toClientSearch(typeof query === "string" ? query : "");
-    if (!search.text && !search.digits) return { clients: [] };
-    const conditions: Prisma.Sql[] = [];
-    if (search.text) {
-      const like = `%${search.text}%`;
-      conditions.push(Prisma.sql`"receiver"->>'razon_social' ILIKE ${like}`, Prisma.sql`"receiver"->>'nombre_fantasia' ILIKE ${like}`);
-    }
-    if (search.digits) conditions.push(Prisma.sql`"receiverDocument" LIKE ${`%${search.digits}%`}`);
-    const rows = await db.$queryRaw<Row[]>`
-      SELECT "cfeType", "issueDate", "receiver", "total"::text AS "total"
-      FROM "Invoice"
-      WHERE "receiver" IS NOT NULL AND "cfeType" IN (101, 111) AND "status" <> 'DRAFT'
-        AND (${Prisma.join(conditions, " OR ")})
-      ORDER BY "issueDate" DESC NULLS LAST, "createdAt" DESC
-      LIMIT ${ROW_LIMIT}`;
-    const clients = groupBillingClients(
-      rows.map((row) => ({ cfeType: row.cfeType, issueDate: row.issueDate, receiver: readStoredReceiver(row.receiver), total: Number(row.total) })),
-      CLIENT_LIMIT
-    );
+    const clients = await findBillingClients(typeof query === "string" ? query : "", CLIENT_LIMIT);
     return { clients };
   } catch (error) {
     if (error instanceof AdminAuthorizationError) return { clients: [], error: error.message };

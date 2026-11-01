@@ -25,8 +25,9 @@ type SessionState =
 
 // La sesión del agente: qué conversación está abierta, su instancia Chat y el
 // modo. Vive en el host (el Sheet o la página), así cerrar el Sheet no la
-// pierde. El scope dice qué historial acompaña a la sesión.
-export const useAgentSession = ({ scope }: { scope: AgentConversationScope }) => {
+// pierde. El scope dice qué historial acompaña a la sesión. resumeLatest
+// false arranca siempre una nueva (Nueva factura: cada factura es un pedido).
+export const useAgentSession = ({ scope, resumeLatest = true }: { scope: AgentConversationScope; resumeLatest?: boolean }) => {
   const queryClient = useQueryClient();
   const [state, setState] = useState<SessionState>({ status: "idle" });
   const [modeOverride, setModeOverride] = useState<AgentMode | null>(null);
@@ -90,7 +91,7 @@ export const useAgentSession = ({ scope }: { scope: AgentConversationScope }) =>
   // se arranca una nueva.
   const ensureStarted = async () => {
     if (started) return;
-    if (scope.kind !== "budget" && scope.kind !== "billing") return startNew();
+    if (!resumeLatest || (scope.kind !== "budget" && scope.kind !== "billing")) return startNew();
     const request = begin({ status: "loading", id: null });
     const latest = await queryClient
       .fetchQuery(conversationListQuery(scope))
