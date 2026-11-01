@@ -72,7 +72,7 @@ export const BillingPage = () => {
             value={tab}
           />
           {tab === "issued" ? (
-            <BillingIssuedList periodKey={view.period} rows={view.issued} />
+            <BillingIssuedList archived={view.archived} periodKey={view.period} rows={view.issued} />
           ) : view.draft ? (
             <BillingDraft draft={view.draft} view={view} />
           ) : (

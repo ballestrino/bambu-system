@@ -3,6 +3,7 @@ import type { InvoiceStatus } from "@prisma/client";
 import type { InvoiceCredit } from "@/lib/billing/credit-note-links";
 import type { DraftJobInfo } from "@/lib/billing/receiver-job-store";
 import { CREDIT_NOTE_TYPE } from "@/lib/billing/credit-note-plan";
+import { canArchiveInvoice } from "@/lib/billing/invoice-remove";
 import { getDueDays, getPaymentForm, getRepeatSkip, PAYMENT_FORM, type RepeatContext, type RepeatSkip, type RepeatSource } from "@/lib/billing/draft-repeat";
 import { getReceiverName, readStoredItems, readStoredReceiver } from "@/lib/billing/invoice-json";
 import { classifyCfe, getCfeLabel } from "@/lib/billing/invoice-mapping";
@@ -15,6 +16,9 @@ const isoDate = (date: Date | null) => (date ? date.toISOString().slice(0, 10) :
 // Una fila de "Emitidas": lo que hay en Biller con fecha de emisión en el mes.
 export type IssuedInvoiceRow = {
   annulled: boolean;
+  // Archivada (47): sale de "Emitidas" y sigue en el resumen.
+  archivedAt: string | null;
+  canArchive: boolean;
   // Si admite una nota de crédito ahora (emitida, sin anular ni una en curso).
   canCredit: boolean;
   // Las notas que la corrigen: lo acreditado, la primera nota y una sin confirmar.
@@ -37,7 +41,7 @@ export type IssuedInvoiceRow = {
 
 export const toIssuedRow = (
   invoice: {
-    billerId: number | null; billerStatus: string | null; cfeType: number; currency: string; id: string;
+    archivedAt?: Date | null; billerId: number | null; billerStatus: string | null; cfeType: number; currency: string; id: string;
     issueDate: Date | null; items: unknown; number: number | null; receiver: unknown; series: string | null;
     status: InvoiceStatus; total: Amount;
   },
@@ -46,6 +50,8 @@ export const toIssuedRow = (
   const credit = invoice.billerId === null ? undefined : credits.get(invoice.billerId);
   return {
     annulled: credit?.fully ?? false,
+    archivedAt: invoice.archivedAt?.toISOString() ?? null,
+    canArchive: canArchiveInvoice(invoice.status),
     canCredit:
       Boolean(CREDIT_NOTE_TYPE[invoice.cfeType]) && invoice.billerId !== null &&
       (invoice.status === "ISSUED" || invoice.status === "ACCEPTED") && !credit?.fully && !credit?.inFlight,

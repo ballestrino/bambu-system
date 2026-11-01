@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 
+import { BillingDeleteDraft } from "@/components/billing/billing-delete-draft";
 import { getDraftRowChip } from "@/components/billing/billing-draft-model";
 import type { DraftRowProps } from "@/components/billing/billing-draft-row";
 import { formatMoney, getShortCfeLabel } from "@/components/billing/billing-format";
@@ -54,7 +55,7 @@ export const BillingDraftPhoneRow = ({
       <button
         aria-label={`Editar ${row.name}`}
         className="flex min-h-14 min-w-0 flex-1 items-center gap-2.5 py-2 pr-3.5 text-left active:bg-ops-surface-muted disabled:opacity-80"
-        disabled={!row.lines.length}
+        disabled={!row.lines.length && locked}
         onClick={() => setOpen(true)}
         type="button"
       >
@@ -122,6 +123,7 @@ export const BillingDraftPhoneRow = ({
           >
             Listo
           </button>
+          {locked ? null : <BillingDeleteDraft periodKey={periodKey} row={row} variant="sheet" />}
         </SheetContent>
       </Sheet>
     </div>

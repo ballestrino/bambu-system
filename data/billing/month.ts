@@ -21,7 +21,7 @@ const sourceSelect = {
 } as const;
 
 const issuedSelect = {
-  billerId: true, billerStatus: true, cfeType: true, currency: true, id: true, issueDate: true, items: true,
+  archivedAt: true, billerId: true, billerStatus: true, cfeType: true, currency: true, id: true, issueDate: true, items: true,
   number: true, receiver: true, series: true, status: true, total: true,
 } as const;
 
@@ -43,7 +43,7 @@ export const getBillingMonthView = async (periodKey: unknown) => {
       createdAt: true, id: true, origin: true, status: true, updatedAt: true,
       invoices: {
         select: {
-          billerId: true, billerStatus: true, cfeType: true, currency: true, dueDays: true, error: true, id: true, items: true, number: true, paymentForm: true,
+          archivedAt: true, billerId: true, billerStatus: true, cfeType: true, currency: true, dueDays: true, error: true, id: true, items: true, number: true, paymentForm: true,
           receiver: true, selected: true, series: true, status: true, total: true, updatedAt: true,
           sourceInvoice: { select: sourceSelect },
         },
@@ -73,7 +73,9 @@ export const getBillingMonthView = async (periodKey: unknown) => {
     notes.map((note) => ({ ...note, total: Number(note.total) }))
   );
 
+  // Lo archivado (47) sale de las listas: solo puede ser algo ya emitido.
   const draftRows = (batch?.invoices ?? [])
+    .filter((invoice) => !invoice.archivedAt)
     .map((invoice) => {
       const source = invoice.sourceInvoice ? toRepeatSource(invoice.sourceInvoice) : null;
       const order = [invoice.sourceInvoice?.issueDate?.getTime() ?? Infinity, invoice.sourceInvoice?.number ?? 0];
@@ -116,7 +118,9 @@ export const getBillingMonthView = async (periodKey: unknown) => {
           updatedAt: batch.updatedAt.toISOString(),
         }
       : null,
-    issued: current.map((invoice) => toIssuedRow(invoice, credits)),
+    // Lo archivado (47) sale de "Emitidas" y sigue en el resumen (current).
+    issued: current.filter((invoice) => !invoice.archivedAt).map((invoice) => toIssuedRow(invoice, credits)),
+    archived: current.filter((invoice) => invoice.archivedAt).map((invoice) => toIssuedRow(invoice, credits)),
     issueDay: getIssueDay(now).toISOString().slice(0, 10),
     period: getBillingPeriodKey(period),
     previousPeriod: getBillingPeriodKey(previous),

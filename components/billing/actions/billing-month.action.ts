@@ -1,5 +1,6 @@
 "use server";
 
+import { deleteDraftInvoice, setInvoiceArchived } from "@/actions/billing/invoice-remove";
 import { issueBillingBatch, resumeBillingIssue } from "@/actions/billing/issue-batch";
 import { setReceiverJob } from "@/actions/billing/receiver-job";
 import { repeatBillingMonth } from "@/actions/billing/repeat-month";
@@ -7,7 +8,7 @@ import { syncBillingMonth } from "@/actions/billing/sync-month";
 import { updateDraftInvoice } from "@/actions/billing/update-draft-invoice";
 import { getBillingMonthView } from "@/data/billing/month";
 import ValidationError from "@/instances/validation-error";
-import type { DraftInvoiceEdit, IssueBatchRequest, ReceiverJobLink } from "@/schemas/billing";
+import type { DraftInvoiceDelete, DraftInvoiceEdit, InvoiceArchive, IssueBatchRequest, ReceiverJobLink } from "@/schemas/billing";
 
 // Envoltorios de la página Facturación: un { error } pasa a ValidationError
 // para que TanStack Query lo trate como error.
@@ -53,3 +54,8 @@ export const resumeBillingIssueAction = async (batchId: string) => {
 // oculta el mensaje de un error tirado en una server action.
 export const setReceiverJobAction = async (link: ReceiverJobLink): Promise<{ error?: string; success?: string }> =>
   setReceiverJob(link);
+
+// Borrar del borrador y archivar (47): también devuelven el { error }.
+export const deleteDraftInvoiceAction = async (values: DraftInvoiceDelete) => deleteDraftInvoice(values);
+
+export const setInvoiceArchivedAction = async (values: InvoiceArchive) => setInvoiceArchived(values);

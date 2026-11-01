@@ -4,6 +4,7 @@ import { ArrowRight } from "lucide-react";
 import { useState } from "react";
 
 import { BillingChip } from "@/components/billing/billing-chip";
+import { BillingDeleteDraft } from "@/components/billing/billing-delete-draft";
 import { getDraftRowChip } from "@/components/billing/billing-draft-model";
 import { BillingDraftLines, type LineEdit } from "@/components/billing/billing-draft-lines";
 import { formatMoney, getShortCfeLabel } from "@/components/billing/billing-format";
@@ -104,6 +105,7 @@ export const BillingDraftRow = ({ choices, locked, onEditLine, onToggle, periodK
         <span>{row.paymentLabel}</span>
         {row.taxed ? <span className="text-xs">+ IVA · {formatMoney(row.total, row.currency)}</span> : null}
       </div>
+      {locked ? <span aria-hidden className="size-8 flex-none" /> : <BillingDeleteDraft periodKey={periodKey} row={row} variant="icon" />}
       {open && !single ? <BillingDraftLines locked={locked} onEdit={onEditLine} row={row} /> : null}
     </div>
   );

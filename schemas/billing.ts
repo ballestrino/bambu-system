@@ -73,3 +73,19 @@ export const receiverJobLinkSchema = z.object({
 });
 
 export type ReceiverJobLink = z.infer<typeof receiverJobLinkSchema>;
+
+// Borrar una factura del borrador (47): updatedAt es el que vio la página.
+export const draftInvoiceDeleteSchema = z.object({
+  invoiceId: z.string().trim().min(1),
+  updatedAt: z.string().datetime(),
+});
+
+export type DraftInvoiceDelete = z.infer<typeof draftInvoiceDeleteSchema>;
+
+// Archivar o desarchivar una factura emitida (47).
+export const invoiceArchiveSchema = z.object({
+  invoiceId: z.string().trim().min(1),
+  archived: z.boolean(),
+});
+
+export type InvoiceArchive = z.infer<typeof invoiceArchiveSchema>;

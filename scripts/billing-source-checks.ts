@@ -64,7 +64,7 @@ assert.match(read("data/billing/month.ts"), /^import "server-only";[\s\S]*requir
 assert.match(read("data/billing/invoice.ts"), /^import "server-only";[\s\S]*requireAdminSession\(\)/);
 assert.match(read("data/billing/credit-note.ts"), /^import "server-only";[\s\S]*requireAdminSession\(\)/);
 assert.match(read("data/billing/new-invoice.ts"), /^import "server-only";[\s\S]*requireAdminSession\(\)/);
-for (const action of ["sync-month", "repeat-month", "update-draft-invoice", "issue-batch", "credit-note", "receiver-job", "new-invoice", "billing-clients"]) {
+for (const action of ["sync-month", "repeat-month", "update-draft-invoice", "issue-batch", "credit-note", "receiver-job", "new-invoice", "billing-clients", "invoice-remove"]) {
   assert.match(read(`actions/billing/${action}.ts`), /^"use server";[\s\S]*requireAdminSession\(\)/, `${action} requires admin`);
 }
 

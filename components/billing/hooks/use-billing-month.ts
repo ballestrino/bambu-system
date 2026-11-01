@@ -10,11 +10,12 @@ import type { BillingMonthView } from "@/data/billing/month";
 const ISSUING_POLL_MS = 1_500;
 const DGI_POLL_MS = 20_000;
 
-// Algo espera a DGI: lo emitido del mes en "Pendiente DGI" o una factura del
-// borrador emitida o sin confirmar.
+// Algo espera a DGI: lo emitido del mes en "Pendiente DGI" (también lo
+// archivado) o una factura del borrador emitida o sin confirmar.
 const isWaitingForDgi = (view: BillingMonthView | undefined) =>
   Boolean(
     view?.issued.some((row) => row.status === "ISSUED") ||
+      view?.archived.some((row) => row.status === "ISSUED") ||
       view?.draft?.rows.some((row) => row.status === "ISSUED" || row.status === "UNKNOWN")
   );
 
