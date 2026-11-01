@@ -442,6 +442,55 @@ En la empresa de prueba PEPITO 12, con emisiones por la API:
   borrador desde 390 px sin desborde y volver al mes de la factura. Sin
   errores de consola.
 
+### Borrar, archivar, filtros, editor lateral y fechas (features 47 a 50)
+
+Pedido del usuario del 2026-11-01. Plan; nada implementado todavía.
+
+- **Borrar y archivar (47).**
+  - Se borra solo una factura del borrador (`DRAFT`): por ejemplo un servicio
+    puntual que se duplicó. Con confirmación, con el lock del mes y del lote
+    y compare-and-set sobre su `updatedAt`; mueve el `updatedAt` del lote,
+    así un diálogo de "Emitir" abierto antes recibe "El borrador cambió".
+  - Una emitida (de Bambú o copiada de Biller, también una rechazada) nunca
+    se borra: se archiva y se desarchiva (`Invoice.archivedAt` y
+    `archivedById`, migración aditiva). Archivar solo la saca de las listas:
+    la sincronización no lo pisa, sigue en Biller y en el resumen del mes, y
+    corregirla sigue siendo una nota de crédito.
+  - Las dos acciones quedan auditadas.
+- **Filtros (48)** donde hoy están las pestañas "Borrador N/M" y "Emitidas N",
+  como la lista de presupuestos (37):
+  - vistas Borrador, Emitidas y Archivadas, con conteo;
+  - chips de un toque: tipo (e-Factura, e-Ticket, notas de crédito), estado
+    ante DGI (pendiente, aceptada, rechazada, sin confirmar), marcadas o
+    desmarcadas en el borrador, y búsqueda por cliente o RUT;
+  - en el teléfono las vistas siguen como conmutador y los chips van en una
+    hoja;
+  - "Emitir N" cuenta siempre todas las marcadas, no solo las filtradas.
+- **Editor lateral (49).** Tocar una fila de Borrador → "Para emitir" abre
+  un panel al costado (a la derecha en escritorio, hoja en el teléfono) con
+  la factura entera en el formulario de Nueva factura:
+  - lo que cambió contra el mes pasado y quién lo cambió (el agente o una
+    persona);
+  - Guardar (compare-and-set sobre el `updatedAt` de la factura, que mueve
+    el del lote), Quitar del borrador, Borrar (47), y anterior o siguiente
+    para revisar la lista sin cerrarlo;
+  - reemplaza la página `/dashboard/billing/draft/[id]` del plan;
+  - también se abre desde el diálogo de "Emitir" sin cerrarlo: el diálogo
+    queda abierto detrás y al guardar recalcula la cantidad y el total y toma
+    el `updatedAt` nuevo del lote, así un cambio propio no hace fallar la
+    emisión.
+- **Fechas por defecto (50).** Se factura del 1 al 10:
+  - fecha de emisión: el día en que se emite, o el 1 del mes si el usuario
+    factura un mes antes de que empiece (un borrador de noviembre emitido el
+    30 de octubre sale con fecha 1 de noviembre y cuenta en noviembre);
+  - vencimiento: el 10 del mes de la emisión;
+  - aplica al lote (`issue-payload`), a Nueva factura, al editor lateral y al
+    agente (`fillInvoiceForm` y `draftInvoices`); el usuario puede cambiar las
+    dos en el formulario.
+  - **A decidir antes de implementar:** el vencimiento de una factura que se
+    emite después del 10 (¿el 10 del mes siguiente?), y si las de contado
+    pasan a crédito con ese vencimiento o siguen de contado.
+
 ### Formulario de factura
 
 Los campos de `POST /v3/comprobantes/emitir` que usa Bambú, por sección:

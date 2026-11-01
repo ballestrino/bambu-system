@@ -37,6 +37,13 @@ Status: active
 
 ## Queue
 
+- 2026-11-01: facturación, pedidas por el usuario y anotadas en
+  `feature_list.json` (pendientes, en este orden): borrar las del borrador y
+  archivar las emitidas (47), filtros en lugar de las pestañas (48), editor
+  lateral desde el borrador y desde el diálogo de emitir (49) y fechas por
+  defecto del 1 al 10 (50). Plan en `docs/billing.md`; la 50 tiene dos
+  decisiones pendientes del usuario.
+
 - 2026-10-30: facturación con Biller en `docs/billing.md`, feature 44
   pendiente (salida a producción: variables de Biller en Vercel, historial
   real y el primer lote). Las migraciones de facturación (39, 43 y 45) las

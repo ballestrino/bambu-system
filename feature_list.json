@@ -780,6 +780,63 @@
         "tsc, lint, check:billing, the agent checks, next build, a scripted smoke of the tools on a local Postgres and a browser smoke at 1440 and 390 px"
       ],
       "status": "done"
+    },
+    {
+      "id": 47,
+      "name": "billing_delete_archive",
+      "title": "Delete draft invoices and archive issued ones",
+      "area": "billing",
+      "description": "Plan in docs/billing.md (\"Borrar, archivar, filtros, editor lateral y fechas\"). A draft invoice that should not exist (a one-off service duplicated, a row added by mistake) can be deleted with confirmation: only status DRAFT, never ISSUING or UNKNOWN, with the month and batch locks and compare-and-set on updatedAt; the batch updatedAt moves so an open Emitir dialog sees the change. An issued invoice (Bambú or copied from Biller, including rejected ones) is never deleted: it can be archived and unarchived (additive Invoice.archivedAt and archivedById). Archiving only hides it from the lists: the sync never clears it, it stays in Biller and in the month summary, and correcting it is still a credit note. Both actions are audited.",
+      "acceptance": [
+        "Deleting a checked draft row removes it from the draft, the count and the total, and an Emitir dialog opened before is rejected and reloads",
+        "An issued invoice offers Archivar and never Borrar, also through the server action",
+        "An archived invoice stays archived after syncing the month again and still counts in the summary",
+        "Additive migration applied on Neon before any push",
+        "tsc, lint, check:billing and a browser smoke on desktop and at 390 px"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": 48,
+      "name": "billing_list_filters",
+      "title": "Filters where Borrador and Emitidas are today",
+      "area": "billing",
+      "description": "Replace the Borrador N/M and Emitidas N tabs with the ops table filters (like the budgets list, 37): views Borrador, Emitidas and Archivadas with counts, plus one-tap chips for type (e-Factura, e-Ticket, credit notes), DGI status (pending, accepted, rejected, unconfirmed), checked or unchecked in the draft and a search by client name or RUT. Filters apply immediately and keep the month selector; on a phone the views stay a switch and the chips go in a bottom sheet. The Emitir bar always counts every checked row, not only the filtered ones.",
+      "acceptance": [
+        "Each view shows its count and the chips combine with the search",
+        "Archived invoices only show in Archivadas",
+        "Emitir N counts the checked draft rows whatever the filter",
+        "tsc, lint, check:billing and a browser smoke on desktop and at 390 px"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": 49,
+      "name": "billing_side_editor",
+      "title": "Invoice editor in a side panel from the draft and from the Emitir dialog",
+      "area": "billing",
+      "description": "Clicking a row of Borrador -> Para emitir opens a side panel (right on desktop, sheet on a phone) with the whole invoice in the Nueva factura form: type, dates, payment, client, items, adenda, what changed against last month and who changed it (the agent or a person). Save with compare-and-set on the invoice updatedAt (it moves the batch updatedAt), Quitar del borrador, Borrar (47) and next or previous row to review the list without closing. It replaces the planned /dashboard/billing/draft/[id] page. The same editor opens from the Emitir dialog without closing it: the dialog stays open behind, and after saving it recalculates count and total and takes the new batch updatedAt so the user's own change does not reject the issue.",
+      "acceptance": [
+        "Editing a row from the draft and saving updates the row, the totals and survives a reload",
+        "Opening the editor from the Emitir dialog and saving keeps the dialog open with the new count and total, and issuing works",
+        "A change made elsewhere meanwhile (the agent, another tab) is rejected and the editor shows the new version",
+        "tsc, lint, check:billing and a browser smoke on desktop and at 390 px"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": 50,
+      "name": "billing_default_dates",
+      "title": "Default issue and due dates: billing from the 1st to the 10th",
+      "area": "billing",
+      "description": "Invoices are billed between the 1st and the 10th. Issue date: the day it is issued, or the 1st of the month when the user bills a specific month before it starts (a November draft issued on 30 October goes out dated 1 November, so the summary counts it in November). Due date: the 10th of the issue month. Applies to the batch (issue-payload), Nueva factura defaults, the side editor and the agent (fillInvoiceForm and draftInvoices). The user can still change both in the form. Pending decisions in docs/billing.md: due date when issuing after the 10th, and whether cash invoices become credit with that due date.",
+      "acceptance": [
+        "A draft of the next month issued before the 1st goes out dated the 1st and counts in that month's summary",
+        "A new invoice and a repeated one default to due date the 10th of the issue month",
+        "The pending decisions are answered and written in docs/billing.md before implementing",
+        "tsc, lint, check:billing and a smoke on the Biller test account"
+      ],
+      "status": "pending"
     }
   ]
 }
