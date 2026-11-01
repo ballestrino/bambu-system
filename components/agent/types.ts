@@ -60,6 +60,10 @@ export type BillingDraftCardData = AgentToolData<"draftInvoices">;
 
 export type BillingSummaryCardData = AgentToolData<"getBillingSummary">;
 
+export type BillingCreditNoteCardData = AgentToolData<"prepareCreditNote">;
+
+export type InvoiceFormCardData = AgentToolData<"fillInvoiceForm">;
+
 export type AgentConversationItem = Success<
   ReturnType<typeof listAgentConversations>
 >["conversations"][number];

@@ -37,13 +37,47 @@ Status: active
 
 ## Queue
 
-- 2026-10-30: facturación con Biller en `docs/billing.md`, features 43 y 44
-  pendientes (notas de crédito y trabajos; salida a producción).
+- 2026-10-30: facturación con Biller en `docs/billing.md`, feature 44
+  pendiente (salida a producción: variables de Biller en Vercel, historial
+  real y el primer lote). Las migraciones de facturación (39, 43 y 45) las
+  aplicó el usuario en producción (según él, el 2026-11-01). Las features 39
+  a 46 se mergearon y pushearon a `main` el 2026-11-01 con su autorización.
+- Encontrado en la 46 y fuera de alcance: `check:agent-sheet` falla porque
+  busca `components/budgets/create-budget/Header.tsx`, que se quitó en la 36.
+- Encontrado en la 43 y fuera de alcance: en producción los envoltorios de
+  Facturación que tiran `ValidationError` (sincronizar, repetir, editar el
+  borrador, emitir el lote) muestran "Minified React error #441" en vez del
+  mensaje. Los de la 43 devuelven el error y lo tira el cliente.
 - `feature_list.json` se renumeró el 2026-09-24: las ids 1–10 son contexto
   terminado y la cola va de la 11 a la 20, en orden de prioridad. La tabla de
   equivalencias con los ids viejos está en `progress/history.md`.
 
 ## Last Closed Work
+
+- 2026-11-01: facturación, el agente dentro de Nueva factura (46): panel con
+  la habilidad Nueva factura y el formulario como contexto;
+  `fillInvoiceForm` completa los campos (la página los aplica al llegar) y
+  `findBillingClient` busca clientes; no emite ni guarda. Sin migración.
+  Smoke de las tools con un Postgres local y en Chromium a 1440 y 390 px con
+  la respuesta del modelo simulada. Falta un turno real. Rama
+  `claude/zealous-fermat-q1gea3`, sobre la 45, sin merge.
+
+- 2026-11-01: facturación, Nueva factura (45), pedida antes de la 44:
+  `/dashboard/billing/new` con el diseño B, "Nueva factura" en la cabecera,
+  emitir en el momento (id por pedido: doble clic y reintento no duplican) o
+  guardar en el borrador del mes (lote `MANUAL` si no hay; "Repetir" lo
+  completa). Migración aditiva sin aplicar en Neon. Probada en Biller test por
+  script y en Chromium a 1440 y 390 px. Rama
+  `claude/feature-43-continuation-5ht481`, sin merge.
+
+- 2026-11-01: facturación, notas de crédito y receptores vinculados a
+  trabajos (43): nota por el total o parcial desde
+  `/dashboard/billing/[id]/credit-note` con lock y compare-and-set,
+  "Anulada · NC …" y "NC parcial" en Emitidas, vínculo receptor → trabajo con
+  avisos en el borrador y el agente que solo prepara. `referencias` va con el
+  ID de Biller y la razón en la adenda (probado en Biller test). Migración
+  aditiva aplicada en la rama de Neon `feature-39-billing`. Ramas `claude/beautiful-clarke-ywhsz6` y
+  `claude/feature-43-continuation-5ht481`, sin merge.
 
 - 2026-10-30: facturación, el agente arma borradores y nunca emite (42):
   habilidad Facturación en un panel de la página con historial propio,

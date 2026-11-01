@@ -3,8 +3,7 @@
 import { after } from "next/server";
 
 import { describeBillerError } from "@/lib/billing/biller-errors";
-import { runBillingBatchIssue } from "@/lib/billing/biller-issue-server";
-import { getBillerConfig, isIssueEnabled } from "@/lib/billing/biller-server";
+import { assertCanIssue, runBillingBatchIssue } from "@/lib/billing/biller-issue-server";
 import { claimBatchIssue, claimBatchResume } from "@/lib/billing/issue-claim";
 import { db } from "@/lib/db";
 import { AdminAuthorizationError, requireAdminSession } from "@/lib/require-admin-session";
@@ -35,12 +34,6 @@ const issueInBackground = (batchId: string) =>
       console.error("Error issuing billing batch:", error);
     }
   });
-
-const assertCanIssue = () => {
-  if (!isIssueEnabled()) return "Emitir está apagado (BILLER_ISSUE_ENABLED=false)";
-  getBillerConfig();
-  return null;
-};
 
 // "Emitir N" desde Facturación (docs/billing.md, reglas 2 y 3). Solo admin y
 // nunca desde el agente (check:billing).

@@ -5,6 +5,7 @@ import { useState } from "react";
 import { getDraftRowChip } from "@/components/billing/billing-draft-model";
 import type { DraftRowProps } from "@/components/billing/billing-draft-row";
 import { formatMoney, getShortCfeLabel } from "@/components/billing/billing-format";
+import { BillingJobLink } from "@/components/billing/billing-job-link";
 import { AmountInput, CommitInput } from "@/components/billing/billing-inputs";
 import { BillingIssueStatus, BillingPdfLink } from "@/components/billing/billing-issue-status";
 import { JobsCheckbox } from "@/components/ops/jobs/jobs-checkbox";
@@ -18,17 +19,24 @@ const fieldClass =
 // Una fila del borrador en el teléfono: casilla y un botón con el receptor y
 // el monto; tocarla abre una hoja para el detalle y los montos.
 export const BillingDraftPhoneRow = ({
+  choices,
   firstSkipped,
   locked,
   onEditLine,
   onToggle,
+  periodKey,
   prevMonth,
   row,
 }: DraftRowProps & { firstSkipped: boolean; prevMonth: string }) => {
   const [open, setOpen] = useState(false);
   const chip = getDraftRowChip(row);
-  const warn = chip?.label === "Precio cambiado";
-  const sub = [getShortCfeLabel(row.cfeType), chip?.label ?? (row.lines.length > 1 ? `${row.lines.length} líneas` : null)]
+  const jobWarnings = row.status === "DRAFT" ? row.jobLink?.warnings.length ?? 0 : 0;
+  const warn = chip?.label === "Precio cambiado" || jobWarnings > 0;
+  const sub = [
+    getShortCfeLabel(row.cfeType),
+    chip?.label ?? (row.lines.length > 1 ? `${row.lines.length} líneas` : null),
+    jobWarnings ? (jobWarnings === 1 ? "1 aviso del trabajo" : `${jobWarnings} avisos del trabajo`) : null,
+  ]
     .filter(Boolean)
     .join(" · ");
 
@@ -73,6 +81,7 @@ export const BillingDraftPhoneRow = ({
           </SheetHeader>
           {row.error ? <p className="text-sm text-red-700 dark:text-red-300">{row.error}</p> : null}
           {row.hasPdf ? <BillingPdfLink className="self-start" id={row.id} label="Ver PDF" /> : null}
+          <BillingJobLink choices={choices} periodKey={periodKey} row={row} />
           {row.lines.map((line, index) => (
             <div className="flex flex-col gap-2" key={index}>
               <label className="flex flex-col gap-1.5 text-[13px] font-semibold text-ops-text">

@@ -4,8 +4,9 @@ Plan del 2026-10-30 para emitir los comprobantes fiscales electrónicos (CFE)
 de Bambú desde la app, con la API de Biller. Son las features 39 a 44 de
 `feature_list.json`. La 39 (leer de Biller, la copia local y el resumen del
 mes), la 40 (la página con el resumen, lo emitido y el borrador) y la 41
-(emitir el borrador) y la 42 (el agente arma borradores) están hechas; lo
-demás es plan. Este documento pasa a ser el contrato de la
+(emitir el borrador) y la 42 (el agente arma borradores) están hechas; la
+43 (notas de crédito y receptores vinculados a trabajos) está implementada y
+le falta la prueba en Biller test; lo demás es plan. Este documento pasa a ser el contrato de la
 página a medida que se implementa.
 
 ## Objetivo
@@ -23,9 +24,10 @@ página a medida que se implementa.
 ## Reglas fijas
 
 1. El agente no emite. Ninguna tool llama a `emitir` ni a `anular`. La
-   escritura en Biller vive en `lib/billing/biller-issue.ts` y la acción
-   `actions/billing/issue-batch.ts`. `check:billing` falla si algo de
-   `lib/agent/**` o `app/api/agent/**` los importa. El prompt lo dice, pero la
+   escritura en Biller vive en `lib/billing/biller-issue.ts` y las acciones
+   `actions/billing/issue-batch.ts` y `actions/billing/credit-note.ts`.
+   `check:billing` falla si algo de `lib/agent/**` o `app/api/agent/**` los
+   importa, aunque sea por el medio. El prompt lo dice, pero la
    garantía es el código.
 2. Se emite lo que se vio. El diálogo de emitir manda `batchId`, `updatedAt`,
    la cantidad y el total. Si el borrador cambió (el agente, otra pestaña), se
@@ -304,6 +306,142 @@ En la empresa de prueba PEPITO 12, con emisiones por la API:
   y el doble clic, emite, simula una respuesta perdida (reintento sin
   duplicar), espera el estado final y baja el PDF. Emite en Biller test.
 
+### Notas de crédito y trabajos (feature 43)
+
+- **Nota de crédito** (`/dashboard/billing/[id]/credit-note`, diseño B del
+  lienzo): "Comprobante que corrige" con la factura, "Por el total" o
+  "Parcial", la razón (hasta 90, sale en la adenda), las líneas y el resumen fijo con
+  lo que falta y "Emitir nota de crédito". Se llega desde "Nota de crédito"
+  en cada fila de "Emitidas" que la admite (e-Factura o e-Ticket emitido, sin
+  anular ni con una nota en curso).
+  - `planCreditNote` (`lib/billing/credit-note-plan.ts`, puro): por el total
+    copia las líneas (anula); parcial acredita un monto sin IVA por línea,
+    con el concepto y el indicador de la línea, sin pasar su subtotal ni lo
+    que queda de la factura (con IVA, un peso de tolerancia por el redondeo
+    de Biller). Las rechazadas no cuentan; una en curso o sin confirmar
+    frena; con una parcial ya no va "por el total".
+  - `issueCreditNote` (solo admin, `BILLER_ISSUE_ENABLED`) toma la factura
+    con `pg_advisory_xact_lock` por su `billerId`, recalcula y compara el
+    total y lo ya acreditado que vio la página (regla 2), y crea la nota
+    (`APP`, `ISSUING`, `referenceIds`, `referenceReason`, `BAMBU-<id>`).
+    Después la manda en el momento (`runCreditNoteIssue`, con el mismo
+    `sendWithLookup` del lote): un rechazo de datos borra la nota (no se
+    creó nada en Biller), una respuesta dudosa busca por `numero_interno` y
+    si no aparece queda `UNKNOWN` con "Reintentar" en la página de la nota.
+  - Se emite con `POST /v3/comprobantes/emitir` (tipo 102 o 112), por el
+    total y parcial; `anular` no se usa. `referencias` va con el ID de la
+    factura en Biller (`[445804]`, la forma más simple de la documentación;
+    también acepta `{ tipo, serie, numero }` y `fecha` para comprobantes de
+    fuera de Biller). La forma de lectura de `detalle` (`tipo_comprobante`,
+    `fecha_emision`) no sirve para emitir. `razon_referencia` es de la
+    referencia global: con referencias puntuales Biller responde "Referencia
+    Global no puede estar vacío" y no acepta `referencia_global: 0`, así que
+    la razón va en `adenda` y sale en el PDF (`buildCreditNotePayload`,
+    `lib/billing/credit-note-payload.ts`).
+  - Probado en Biller test el 2026-11-01 (`scripts/smoke-billing-credit-note.ts
+    101` y `111`, sin base): dos e-Tickets y dos e-Facturas con una nota
+    parcial y una por el total cada par. `detalle` devuelve la referencia en
+    la nota y `referenciado_por` en la factura; `linkCreditNotes` marca la
+    parcial (acreditado 1220 de 3660) y la anulada, y el resumen da neto
+    7320 − 4880 = 2440. Las notas de e-Ticket quedan en "Envío no
+    corresponde"; las de e-Factura, en "Pendiente DGI" como sus facturas.
+  - "Emitidas" muestra "Anulada · NC A 18" (la primera nota emitida), "NC
+    parcial $ X", "NC emitiéndose" o "NC sin confirmar · Reintentar"
+    (`linkCreditNotes`). Una nota que referencia varias facturas las anula
+    todas. El resumen ya resta las notas por su fecha de emisión.
+  - Repetir el mes deja afuera solo lo anulado por el total: una factura con
+    una nota parcial se repite.
+- **Receptor → trabajo** (`BillingReceiverJob`, migración
+  `20261101120000_billing_corrections_jobs`): la clave es el documento sin
+  puntos ni guiones o, sin documento, `nombre:` y el nombre normalizado; un
+  receptor tiene un solo trabajo.
+  - En cada fila del borrador: "¿Es Torre Norte? Vincular" (el trabajo más
+    parecido por nombre de razón social o fantasía contra nombre o nombre de
+    agenda, `suggestJobs`), "Otro" o "Vincular trabajo" con un buscador, y
+    el trabajo vinculado con "Quitar el vínculo" (`setReceiverJob`, solo
+    admin).
+  - Avisos en las filas en borrador (`getJobWarnings`): el precio sin IVA
+    del presupuesto del trabajo distinto del subtotal de la factura (un peso
+    o más), visitas canceladas o salteadas en el mes (en hora de
+    Montevideo) y trabajo pausado, terminado, borrador o archivado. En el
+    teléfono la fila dice "N avisos del trabajo" y la hoja los muestra.
+- **Agente** (sin escribir nada): `prepareCreditNote` valida la nota contra
+  la copia y devuelve una tarjeta con "Abrir para emitir", que abre la
+  página con `?mode=&amounts=&reason=` ya puestos; `suggestReceiverJobs`
+  lista los receptores del mes con su trabajo o hasta 3 sugerencias.
+  `check:billing` verifica que el agente no llegue a `credit-note-run`,
+  `credit-note-store` ni a la acción, y que nada del agente escriba
+  `billingReceiverJob`.
+- Los envoltorios nuevos devuelven el `{ error }` y lo tira el hook en el
+  cliente: en producción Next oculta el mensaje de un error tirado dentro de
+  una server action ("Minified React error #441"), como pasa hoy con
+  sincronizar, repetir y emitir el lote.
+
+### Nueva factura (feature 45)
+
+- `/dashboard/billing/new?month=AAAA-MM` (solo admin), diseño B del lienzo
+  ("Escritorio B · Nueva factura" y "Teléfono B · Nueva factura", con el
+  "Formulario de factura" en modo nueva). Se llega con "Nueva factura" en la
+  cabecera de Facturación; el mes es el del selector.
+- Campos: los de "Formulario de factura" salvo lo que queda afuera abajo.
+  Comprobante (e-Factura o e-Ticket, fecha de emisión, contado o crédito con
+  vencimiento, UYU o USD, orden de compra), cliente (de una factura anterior,
+  RUT consultado a DGI o consumidor final en un e-Ticket; dirección, ciudad,
+  departamento, país y emails, que Biller suma a los del cliente), ítems
+  (concepto, cantidad, unidad, precio, indicador de IVA y en "Más campos"
+  descripción, código, descuento y recargo), adenda e información adicional.
+  El indicador por defecto es el de la última factura emitida (16 si Bambú
+  factura con IVA mínimo: no suma IVA).
+- **Emitir ahora:** diálogo con cliente, total y ambiente; se emite en el
+  momento con `emitir`. Al elegir crédito el vencimiento arranca a 10 días
+  de la emisión. La página genera un `requestId` al abrir: la factura
+  se crea con ese id y `numero_interno` `BAMBU-<id>`, así un doble clic o un
+  reintento encuentran la misma (regla 3). Una respuesta dudosa busca por
+  `numero_interno`; si no aparece queda `UNKNOWN` y "Reintentar" la manda de
+  nuevo con el mismo número. Un rechazo de datos la borra y dice por qué.
+- **Guardar en el borrador de <mes>:** con el lock del mes, la suma marcada
+  al borrador abierto (`DRAFT`) o crea uno (origen `MANUAL`, migración
+  aditiva); uno que se está emitiendo la rechaza. Guarda los días de crédito
+  (`Invoice.dueDays`) para que el lote calcule el vencimiento. La fecha de
+  emisión no se guarda: el lote emite con la fecha del día.
+- Quedan afuera: notas de débito, descuentos y recargos globales, precios con
+  IVA incluido, tasa de cambio, lugar de entrega, pagos a terceros, GTIN,
+  agente responsable y emails solo para esta vez. Las notas de crédito salen
+  de "Emitidas" (43).
+
+- Lo hecho: `lib/billing/new-invoice.ts` (puro: valores del formulario, lo
+  que falta, totales por tasa, receptor e ítems; `parseDecimal` entiende
+  "10.000" y "1.234,50" como la página), `schemas/billing-new-invoice.ts`,
+  `lib/billing/new-invoice-store.ts` (claim con lock por pedido y guardar en
+  el borrador con el lock del mes y del lote), `new-invoice-run.ts` (manda
+  con `sendWithLookup`; un rechazo borra la fila y el mismo pedido se puede
+  corregir y volver a emitir), `actions/billing/new-invoice.ts`,
+  `actions/billing/billing-clients.ts` (buscar cliente en las facturas ya
+  copiadas, consultar RUT) y `components/billing/new-invoice/`. `numero_compra`
+  y `Invoice.dueDays` también los usa el lote. `getLastIndicator` pasó a
+  `lib/billing/invoice-defaults.ts` (lo usan el agente y la página).
+- Un borrador abierto sin nada repetido (creado al guardar una factura nueva)
+  se completa con "Repetir <mes>": `createRepeatDraft` suma las del mes
+  anterior a ese mismo borrador, con el lock del lote, y la página lo ofrece
+  arriba del borrador (`BillingRepeatNotice`, `draft.repeated`).
+- Después de emitir, "Volver a Facturación" abre el mes de la fecha de
+  emisión (puede no ser el del borrador).
+- `check:billing` suma `scripts/billing-new-invoice-checks.ts` y trata
+  `new-invoice-run`, `new-invoice-store` y la acción como código que emite:
+  el agente no llega a ellos.
+- Probado el 2026-11-01 con Biller test y un Postgres local
+  (`scripts/smoke-billing-new-invoice.ts`): e-Factura a crédito 30 días con
+  orden de compra y email (doble clic a la vez y un tercer intento: una sola
+  en Biller con ese número interno), e-Ticket a consumidor final y con CI,
+  factura guardada en un mes sin borrador (lote `MANUAL`, guardar dos veces no
+  duplica), "Repetir" dos veces que la completa sin duplicar (23 filas) y el
+  lote que la emite con sus 15 días. Las e-Facturas llegaron a "Aceptado
+  DGI". En Chromium con `next start`: buscar cliente, dos ítems, el indicador
+  16 rechazado por la empresa de test ("Indicador Facturación es inválido"),
+  corregir y emitir con el mismo pedido, PDF, e-Ticket guardado en el
+  borrador desde 390 px sin desborde y volver al mes de la factura. Sin
+  errores de consola.
+
 ### Formulario de factura
 
 Los campos de `POST /v3/comprobantes/emitir` que usa Bambú, por sección:
@@ -399,6 +537,65 @@ Los campos de `POST /v3/comprobantes/emitir` que usa Bambú, por sección:
   la tarjeta del borrador no tiene botón de emitir y la página muestra el
   cambio al terminar el turno.
 
+### Nueva factura (feature 46)
+
+El agente trabaja dentro de `/dashboard/billing/new`: completa el formulario
+que el usuario tiene abierto y nunca emite ni guarda.
+
+- **Panel:** el mismo de Facturación (`components/billing/billing-agent.tsx`),
+  ahora con props: `NewInvoiceAgent`
+  (`components/billing/new-invoice/new-invoice-agent.tsx`) lo abre con
+  "Agente" junto a "Cancelar" (en el teléfono, el botón flotante). Cada vez
+  que se abre la página arranca una conversación nueva (`resumeLatest`
+  false en `useAgentSession`); se guarda con `contextKind` `billing`, así
+  queda en el historial de Facturación. En escritorio, con el panel abierto,
+  el formulario le deja 416 px a la derecha y el resumen baja debajo del
+  formulario hasta 1536 px.
+- **Habilidad Nueva factura** (`lib/agent/skills/factura.ts`, id `factura`):
+  `fillInvoiceForm`, `findBillingClient`, `getInvoice`, `lookupRut`,
+  `listInvoices`, `getBillingSummary`, `searchBudgets`, `getBudget` y memoria
+  e instrucciones. No tiene `draftInvoices`.
+- **Contexto del turno:** `{ kind: "new-invoice", month, form }` con el
+  formulario tal como está al enviar. El servidor lo lee campo por campo
+  (`sanitizeNewInvoiceForm`, `lib/billing/new-invoice-agent-context.ts`): un
+  campo a medio escribir queda con su valor por defecto y no rechaza el
+  turno. El prompt recibe el formulario en texto (comprobante, cliente,
+  ítems sin IVA, totales y lo que falta para emitir) y sus importes se pueden
+  citar.
+- **`findBillingClient`:** busca en las facturas emitidas, como "Buscar
+  cliente" (`data/billing/clients.ts`, que ahora usan los dos), y devuelve el
+  id de la última factura de cada cliente para leer sus líneas con
+  `getInvoice` ("lo mismo que la última vez").
+- **`fillInvoiceForm`** (`lib/agent/tools/billing-invoice-form.ts`, plan
+  puro en `lib/billing/new-invoice-agent-fill.ts`): tipo, fecha, contado o
+  crédito con días (sin días: 10, como la página), moneda, orden de compra,
+  cliente por documento (`clientDocument`: su última factura o, si es un RUT
+  sin facturas, DGI) o escrito a mano, ítems sin IVA (reemplazan todas las
+  líneas; el indicador por defecto es el del formulario) y adenda. Cada
+  campo null no cambia. Devuelve solo los campos que cambian (`patch`, que el
+  modelo no ve), lo que cambió en palabras, los totales y lo que falta. Dos
+  llamadas en un turno parten una de la otra (el formulario del contexto se
+  actualiza en el servidor). No escribe en la base ni en Biller.
+- **La página aplica el patch** apenas llega el resultado
+  (`use-invoice-form-patches.ts`), una sola vez por llamada; los de una
+  conversación abierta del historial no se vuelven a aplicar. Si la factura
+  se está emitiendo o guardando, no se toca y se avisa.
+- **Tarjeta** (`agent-invoice-form-card.tsx`): "e-Factura para X · $ total",
+  lo que cambió, neto, IVA, total, lo que falta y "No está emitida", sin
+  botón de emitir.
+- **Nunca emite:** `check:billing` suma `new-invoice-agent.tsx` y
+  `use-invoice-form-patches.ts` a lo que no puede llegar a la emisión, y
+  `scripts/billing-invoice-form-checks.ts` prueba el contexto, el plan y la
+  habilidad.
+- Probado el 2026-11-01 con un Postgres local:
+  `pnpm exec tsx --require ./scripts/server-only-stub.cjs scripts/smoke-billing-invoice-form.ts`
+  (contexto, `findBillingClient` sobre una factura de prueba, dos
+  `fillInvoiceForm` seguidos, documento desconocido y fuera de Nueva
+  factura; borra la factura de prueba) y en Chromium con `next start` a 1440
+  y 390 px, con la respuesta del modelo simulada: el pedido lleva la
+  habilidad y el formulario, la tarjeta aparece y los campos entran al
+  formulario, sin errores de consola. Falta un turno con un modelo real.
+
 ### Plan
 
 - Es el agente de siempre, con todas sus tools (visitas, trabajos, finanzas,
@@ -476,6 +673,12 @@ referencia. Los colores, radios y la letra son los de Operaciones
 
 ## Pendiente del usuario
 
+- Feature 43: la migración `20261101120000_billing_corrections_jobs` está en
+  la rama de Neon `feature-39-billing` (2026-11-01). En producción va con la
+  de la 39 en la 44.
+- Feature 45: aplicar `20261101180000_billing_new_invoice` (aditiva: origen
+  `MANUAL` y `Invoice.dueDays`) en la rama de Neon `feature-39-billing` con
+  `prisma migrate deploy` desde la rama `claude/feature-43-continuation-5ht481`.
 - Confirmar que hoy facturan desde el panel de Biller y con qué plan.
 - Acceso a la API en producción: el panel de test dice que "fuera del ambiente
   de test, el uso de la API es exclusivo del plan Estándar". En la web el plan

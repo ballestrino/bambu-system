@@ -739,7 +739,21 @@
         "The draft warns when the linked job's price differs from the repeated invoice",
         "tsc, lint, check:billing and a smoke on the Biller test account"
       ],
-      "status": "pending"
+      "status": "done"
+    },
+    {
+      "id": 45,
+      "name": "billing_new_invoice",
+      "title": "Nueva factura: the full invoice form, issued on the spot or saved in the month's draft",
+      "area": "billing",
+      "description": "Plan in docs/billing.md (\"Nueva factura (feature 45)\"), design B of the canvas (Escritorio and Teléfono · Nueva factura). /dashboard/billing/new (admin) with a Nueva factura button in Facturación: e-Factura or e-Ticket, issue date, cash or credit with due date, UYU or USD, purchase order; client from a previous invoice, a RUT looked up at DGI or final consumer on an e-Ticket, with address and emails; items with concept, quantity, unit, price, VAT indicator (the last issued one by default, 16 for IVA mínimo) and description, code, discount and surcharge; adenda and additional information. The summary shows net, VAT per rate, total and what is missing. Emitir ahora confirms in a dialog and issues once (a request id makes the internal number, so a double click or a retry never duplicates; UNKNOWN can be retried). Guardar en el borrador adds it to the month's open draft, creating one if there is none. Left out: debit notes, global discounts, prices with VAT, exchange rate, delivery place and third-party payments.",
+      "acceptance": [
+        "Issuing a new e-Factura and a final-consumer e-Ticket in the Biller test account reaches a final DGI status and shows in Emitidas",
+        "Double clicking or retrying Emitir ahora never creates two invoices",
+        "Saving in the draft adds one checked row (also when the month had no draft) that issues with the batch, with its credit days",
+        "tsc, lint, check:billing, next build and a browser smoke on desktop and at 390 px"
+      ],
+      "status": "done"
     },
     {
       "id": 44,
@@ -752,6 +766,20 @@
         "The user issues the first real batch and every invoice reaches Aceptado DGI"
       ],
       "status": "pending"
+    },
+    {
+      "id": 46,
+      "name": "billing_new_invoice_agent",
+      "title": "The agent inside Nueva factura fills the invoice form and never issues or saves",
+      "area": "billing",
+      "description": "Plan in docs/billing.md (\"Nueva factura (feature 46)\"). The Facturación agent panel on /dashboard/billing/new with a Nueva factura skill and the form as the turn context ({ kind: new-invoice, month, form }, read field by field on the server). fillInvoiceForm returns only the fields that change (type, date, cash or credit with days, currency, purchase order, client by document from its last invoice or DGI or typed, items without VAT, adenda) and the page applies them once when the result arrives; findBillingClient searches previous invoices with the id of the last one for getInvoice. Nothing is written to the database or Biller: the person issues or saves with the page buttons.",
+      "acceptance": [
+        "A fillInvoiceForm result fills the open form once (not again when the conversation reopens) and the card has no issue button",
+        "Two fillInvoiceForm calls in one turn build on each other and a half-typed field never rejects the turn",
+        "check:billing fails if the Nueva factura agent panel reaches the issue code",
+        "tsc, lint, check:billing, the agent checks, next build, a scripted smoke of the tools on a local Postgres and a browser smoke at 1440 and 390 px"
+      ],
+      "status": "done"
     }
   ]
 }

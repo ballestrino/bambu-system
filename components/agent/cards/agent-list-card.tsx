@@ -118,6 +118,12 @@ const KINDS: Record<
         : joined(row.cfe, row.number, row.issueDate, row.annulled ? "Anulada" : row.status),
     amount: (row) => row.total,
   },
+  billingClients: {
+    title: "Clientes de facturas",
+    primary: (row) => text(row.name),
+    detail: (row) => joined(row.document, row.address, row.lastCfe, row.lastIssueDate),
+    amount: (row) => row.total,
+  },
   employeePayments: {
     title: "Pagos a empleadas",
     primary: (row) => text(row.employee),

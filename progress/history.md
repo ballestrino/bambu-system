@@ -1401,3 +1401,98 @@
   conversación de Facturación.
 - `init.ps1` falla solo en ESLint por `.claude/worktrees/.../.next`, como
   antes. Sin commitear, en la rama `feature/39-billing-biller-history`.
+
+## 2026-11-01 - Facturación: notas de crédito y receptores vinculados a trabajos (43)
+
+- Nota de crédito por el total o parcial desde
+  `/dashboard/billing/[id]/credit-note` (diseño B): lock por factura,
+  compare-and-set de lo que vio la página, envío con búsqueda por
+  `numero_interno`, `UNKNOWN` con "Reintentar" y rechazo que borra la nota.
+  Emitidas muestra "Anulada · NC …", "NC parcial" y el enlace; repetir el mes
+  deja afuera solo lo anulado por el total.
+- `BillingReceiverJob` (migración aditiva
+  `20261101120000_billing_corrections_jobs`) con sugerencia por nombre y
+  avisos en el borrador: precio distinto, visitas canceladas o salteadas y
+  trabajo pausado o terminado. El agente solo prepara: `prepareCreditNote`
+  (tarjeta "Abrir para emitir") y `suggestReceiverJobs`.
+- Continuación en la nube: con la documentación de Biller, `referencias` va
+  con el ID de la factura en Biller (la forma de lectura de `detalle` no sirve
+  para emitir) y la razón va en `adenda`: con referencias puntuales,
+  `razon_referencia` hace que Biller pida `referencia_global`, que no acepta
+  en 0. El campo de la página dice "Sale en la adenda del PDF".
+- PASS: tsc, ESLint, `check:billing`, `init.sh`, `next build`.
+  `scripts/smoke-billing-credit-note.ts 101` y `111` contra Biller test, sin
+  base: dos e-Tickets y dos e-Facturas con una nota parcial y una por el
+  total cada par; `detalle` devuelve `referencias` y `referenciado_por`,
+  Emitidas marca la parcial y la anulada y el neto da 7320 − 4880 = 2440;
+  las e-Facturas y sus notas 112 llegaron a "Aceptado DGI". Con un Postgres 16
+  local descartable y Biller test: total viejo da conflicto, doble clic deja
+  una sola nota, parcial y resto emitidos por el store real, la
+  sincronización une la copia de Biller con las notas de Bambú sin duplicar y
+  la fila queda anulada. Sesión anterior: avisos del vínculo y smoke en
+  Chromium con sesión a 1440 y 390 px.
+- Comprobantes de prueba en Biller test (PEPITO 12): e-Tickets MT 964935–964939,
+  e-Facturas MF 673310–673311 y notas MA 120677–120681 y A 208055–208056.
+- Migración aplicada por el usuario en la rama de Neon `feature-39-billing`
+  el 2026-11-01 con `prisma migrate deploy`. Queda decidir el merge.
+
+## 2026-11-01 - Facturación: Nueva factura (45)
+
+- Pedida por el usuario antes de la 44. `/dashboard/billing/new?month=` con el
+  diseño B del lienzo (escritorio y teléfono) y "Nueva factura" en la
+  cabecera de Facturación. Comprobante (e-Factura o e-Ticket, fecha, contado
+  o crédito con vencimiento, UYU o USD, orden de compra), cliente (de una
+  factura anterior, RUT consultado a DGI, consumidor final; dirección y
+  emails), ítems con indicador de IVA (por defecto el de la última emitida),
+  descripción, código, descuento y recargo, y adenda.
+- Emitir ahora: la página genera un id por pedido; la factura se crea con ese
+  id y `BAMBU-<id>`, con lock por pedido. Doble clic, reintento y `UNKNOWN`
+  no duplican; un rechazo borra la fila y se puede corregir y reenviar.
+  Guardar en el borrador: lock del mes y del lote, lote `MANUAL` si no hay,
+  `Invoice.dueDays` y `numero_compra` que también usa el lote. "Repetir"
+  completa un borrador que solo tiene facturas nuevas.
+- Migración aditiva `20261101180000_billing_new_invoice`, sin aplicar en
+  Neon (desde la nube no se llega).
+- PASS: tsc, ESLint, `check:billing` (con `billing-new-invoice-checks`),
+  `check:agent-tools`, `check:agent-page`, `check:agent-proposals`,
+  `next build`. `scripts/smoke-billing-new-invoice.ts` contra Biller test con
+  un Postgres local: e-Factura a crédito con orden de compra y email (una
+  sola en Biller tras el doble clic), e-Tickets a consumidor final y con CI,
+  borrador `MANUAL`, "Repetir" sin duplicar y el lote con sus 15 días;
+  e-Facturas en "Aceptado DGI". Chromium con `next start`: emitir con
+  rechazo del indicador 16 (la empresa de test no es de IVA mínimo),
+  corregir y reemitir, PDF, guardar desde 390 px sin desborde, volver al mes
+  de la factura, sin errores de consola.
+- Comprobantes de prueba en Biller test: MF 673312–673314 y MT 964940–964942.
+
+## 2026-11-01 - Facturación: el agente dentro de Nueva factura (46)
+
+- Pedido por el usuario ("el agente que trabaja dentro de crear factura").
+  Rama `claude/zealous-fermat-q1gea3`, sobre la 45
+  (`claude/feature-43-continuation-5ht481`), sin merge.
+- El panel de Facturación con props (contexto, habilidad, retomar o no y un
+  listener) y `NewInvoiceAgent` en Nueva factura: habilidad `factura`,
+  contexto `new-invoice` con el formulario (leído campo por campo), una
+  conversación nueva por página guardada como de Facturación.
+- `fillInvoiceForm` devuelve solo los campos que cambian (cliente por
+  documento desde su última factura o DGI, ítems sin IVA, crédito con días,
+  adenda) y la página los aplica una vez al llegar; `findBillingClient`
+  busca en las facturas con el id de la última. No escribe nada. La búsqueda
+  de clientes pasó a `data/billing/clients.ts`.
+- Sin migración.
+- PASS: tsc, ESLint, `init.sh`, `check:billing` (con
+  `billing-invoice-form-checks`), `check:agent-tools`, `check:agent-page`,
+  `check:agent-proposals` y los demás `check:agent-*`, `next build`.
+  `scripts/smoke-billing-invoice-form.ts` contra un Postgres local. Chromium
+  con `next start` a 1440 y 390 px con la respuesta del modelo simulada:
+  pedido con habilidad y formulario, tarjeta y campos aplicados, sin errores
+  de consola. `check:agent-sheet` falla igual que antes del cambio (busca
+  `components/budgets/create-budget/Header.tsx`, que se fue en la 36).
+- Falta: un turno con un modelo real en Biller test.
+
+## 2026-11-01 - Merge de facturación a `main` (43, 45 y 46)
+
+- Con autorización del usuario: `claude/zealous-fermat-q1gea3` (que trae
+  `claude/beautiful-clarke-ywhsz6` y `claude/feature-43-continuation-5ht481`)
+  mergeada en `main` y pusheada. El usuario dice que aplicó las migraciones
+  en producción.

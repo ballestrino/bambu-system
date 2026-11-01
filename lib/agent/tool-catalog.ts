@@ -44,6 +44,10 @@ export const AGENT_TOOL_CATALOG = {
   getInvoice: { label: "Abre una factura", kind: "read" },
   lookupRut: { label: "Consulta un RUT en DGI", kind: "read" },
   draftInvoices: { label: "Arma el borrador de facturas", kind: "draft" },
+  prepareCreditNote: { label: "Prepara una nota de crédito", kind: "draft" },
+  suggestReceiverJobs: { label: "Sugiere el trabajo de cada cliente", kind: "read" },
+  findBillingClient: { label: "Busca un cliente en las facturas", kind: "read" },
+  fillInvoiceForm: { label: "Completa la factura", kind: "draft" },
 } as const satisfies Record<string, { label: string; kind: AgentToolKind }>;
 
 export type AgentToolName = keyof typeof AGENT_TOOL_CATALOG;

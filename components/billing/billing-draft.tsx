@@ -5,6 +5,7 @@ import { BillingDraftPhoneRow } from "@/components/billing/billing-draft-phone";
 import { BillingDraftRow } from "@/components/billing/billing-draft-row";
 import { getMonthName } from "@/components/billing/billing-format";
 import { BillingIssueBar, BillingIssueNotice } from "@/components/billing/billing-issue-bar";
+import { BillingRepeatNotice } from "@/components/billing/billing-repeat-notice";
 import { useDraftRowMutation } from "@/components/billing/hooks/use-billing-draft-mutations";
 import type { BillingMonthView } from "@/data/billing/month";
 import type { DraftRow } from "@/lib/billing/billing-month-view";
@@ -18,11 +19,12 @@ export const BillingDraft = ({ draft, view }: { draft: Draft; view: BillingMonth
   const goRows = draft.rows.filter((row) => !row.skip);
   const skipRows = draft.rows.filter((row) => row.skip);
   const prevMonth = getMonthName(view.previousPeriod);
-  const rowProps = { draftStatus: draft.status, periodKey: view.period, prevMonth };
+  const rowProps = { choices: draft.jobChoices, draftStatus: draft.status, periodKey: view.period, prevMonth };
 
   return (
     <div className="flex flex-col gap-3.5">
       <BillingIssueNotice draft={draft} periodKey={view.period} />
+      <BillingRepeatNotice draft={draft} view={view} />
       <div className="hidden flex-col gap-3.5 md:flex">
         <DraftSection count={goRows.length} title="Para emitir">
           {goRows.map((row) => <DraftRowContainer {...rowProps} key={row.id} row={row} variant="desktop" />)}
@@ -59,6 +61,7 @@ const DraftSection = ({ children, count, title }: { children: React.ReactNode; c
 
 // Cada fila tiene su mutación: sus cambios salen de a uno, con el último updatedAt.
 const DraftRowContainer = ({
+  choices,
   draftStatus,
   firstSkipped = false,
   periodKey,
@@ -66,6 +69,7 @@ const DraftRowContainer = ({
   row,
   variant,
 }: {
+  choices: { id: string; name: string }[];
   draftStatus: string;
   firstSkipped?: boolean;
   periodKey: string;
@@ -75,9 +79,11 @@ const DraftRowContainer = ({
 }) => {
   const mutation = useDraftRowMutation(periodKey, row.id);
   const props = {
+    choices,
     locked: isDraftRowLocked(row, draftStatus),
     onEditLine: (line: { concepto?: string; index: number; precio?: number }) => mutation.mutate({ lines: [line] }),
     onToggle: () => mutation.mutate({ selected: !row.selected }),
+    periodKey,
     row,
   };
   return variant === "desktop" ? (

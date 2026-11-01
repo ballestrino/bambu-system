@@ -7,7 +7,7 @@ import {
   type IssuedCfe,
 } from "@/lib/billing/biller-issue";
 import type { BillerInvoice } from "@/lib/billing/biller-schemas";
-import { buildIssuePlan, getIssueDay, type IssueInput } from "@/lib/billing/issue-payload";
+import { buildIssuePlan, getIssueDay, type IssueInput, type IssuePayload } from "@/lib/billing/issue-payload";
 
 export type IssueCandidate = IssueInput & { batchId: string; id: string };
 
@@ -42,24 +42,29 @@ const LOOKUP_WAIT_MS = 1_500;
 
 const UNKNOWN_MESSAGE = "Biller no confirmó la emisión y no aparece por su número interno. Se puede reintentar sin duplicar.";
 
-class FatalIssueError extends Error {}
+export class FatalIssueError extends Error {}
 
-// Una factura: se arma, se manda y, si la respuesta no es clara (timeout, 5xx),
-// se busca por numero_interno antes de reintentar una sola vez. Si sigue sin
-// saberse, queda UNKNOWN (regla 3). Un reintento nunca duplica: Biller
-// rechaza el numero_interno repetido y entonces se toma el que ya existe.
-const issueOne = async (
-  candidate: IssueCandidate,
-  deps: IssueRunDeps,
+export type SendOutcome =
+  | { cfe: IssuedCfe; kind: "issued" }
+  | { kind: "found"; row: BillerInvoice }
+  | { kind: "failed"; message: string }
+  | { kind: "unknown"; message: string };
+
+export type SendDeps = Pick<IssueRunDeps, "findByInternalNumber" | "issuer" | "sleep">;
+
+// Manda un pedido y, si la respuesta no es clara (timeout, 5xx), busca por
+// numero_interno antes de reintentar una sola vez. Si sigue sin saberse, queda
+// UNKNOWN (regla 3). Un reintento nunca duplica: Biller rechaza el
+// numero_interno repetido y entonces se toma el que ya existe. Lo usan el
+// lote y la nota de crédito.
+export const sendWithLookup = async (
+  payload: IssuePayload,
+  deps: SendDeps,
   waitTurn: () => Promise<void>
-): Promise<IssueOutcome> => {
-  const plan = buildIssuePlan(candidate, getIssueDay(deps.now()));
-  if (!plan.ok) return { kind: "failed", message: plan.error };
-  const internalNumber = plan.payload.numero_interno;
-
+): Promise<SendOutcome> => {
   const lookup = async () => {
     try {
-      return await deps.findByInternalNumber(internalNumber);
+      return await deps.findByInternalNumber(payload.numero_interno);
     } catch {
       return "error" as const;
     }
@@ -68,8 +73,7 @@ const issueOne = async (
   for (let attempt = 1; attempt <= 2; attempt += 1) {
     await waitTurn();
     try {
-      const cfe = await deps.issuer.issue(plan.payload);
-      return { cfe, dueDate: plan.dueDate, issueDate: plan.issueDate, kind: "issued", paymentForm: plan.paymentForm };
+      return { cfe: await deps.issuer.issue(payload), kind: "issued" };
     } catch (error) {
       if (isFatalIssueError(error)) throw new FatalIssueError(describeBillerError(error));
       if (isDuplicateInternalNumber(error)) {
@@ -85,6 +89,20 @@ const issueOne = async (
     }
   }
   return { kind: "unknown", message: UNKNOWN_MESSAGE };
+};
+
+// Una factura del lote: se arma y se manda.
+const issueOne = async (
+  candidate: IssueCandidate,
+  deps: IssueRunDeps,
+  waitTurn: () => Promise<void>
+): Promise<IssueOutcome> => {
+  const plan = buildIssuePlan(candidate, getIssueDay(deps.now()));
+  if (!plan.ok) return { kind: "failed", message: plan.error };
+  const sent = await sendWithLookup(plan.payload, deps, waitTurn);
+  return sent.kind === "issued"
+    ? { cfe: sent.cfe, dueDate: plan.dueDate, issueDate: plan.issueDate, kind: "issued", paymentForm: plan.paymentForm }
+    : sent;
 };
 
 // Emite, de a una y con 1,1 s entre envíos, las facturas del lote que quedaron

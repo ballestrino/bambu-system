@@ -1,4 +1,4 @@
-import { Prisma, type PrismaClient } from "@prisma/client";
+import type { Prisma, PrismaClient } from "@prisma/client";
 
 import {
   NEW_INVOICE_DEFAULTS,
@@ -12,6 +12,7 @@ import {
 import type { BillerRutData } from "@/lib/billing/biller-read";
 import { getBillingMonthName } from "@/lib/billing/billing-month-text";
 import { createRepeatDraft, lockBillingPeriod } from "@/lib/billing/draft-store";
+import { getLastIndicator } from "@/lib/billing/invoice-defaults";
 import { readStoredItems, readStoredReceiver } from "@/lib/billing/invoice-json";
 import { getItemsTotal } from "@/lib/billing/invoice-totals";
 import { lockBatch } from "@/lib/billing/issue-claim";
@@ -29,19 +30,7 @@ export type AgentDraftResult =
   | { batchId: string; created: boolean; notes: AgentDraftNote[]; ok: true }
   | { error: string; ok: false };
 
-const ISSUED = ["ISSUED", "ACCEPTED", "UNKNOWN"] as const;
-
 const monthLabel = (period: Date) => `${getBillingMonthName(period)} ${period.getUTCFullYear()}`;
-
-// El indicador de IVA de la última factura emitida: el de una factura nueva.
-const getLastIndicator = async (tx: Prisma.TransactionClient) => {
-  const last = await tx.invoice.findFirst({
-    where: { cfeType: { in: [101, 111] }, items: { not: Prisma.DbNull }, status: { in: [...ISSUED] } },
-    orderBy: [{ issueDate: "desc" }, { number: "desc" }],
-    select: { items: true },
-  });
-  return readStoredItems(last?.items)?.[0]?.indicador_facturacion ?? null;
-};
 
 // draftInvoices (docs/billing.md, regla 1): crea o cambia el borrador del mes
 // y nunca emite. Repetir usa createRepeatDraft (un único borrador abierto por

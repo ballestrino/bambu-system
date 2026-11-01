@@ -1,8 +1,9 @@
 import type { BillerConfig } from "@/lib/billing/biller-config";
 import { BillerError, billerErrorFromResponse } from "@/lib/billing/biller-errors";
 
-// Solo lectura. Emitir vive en biller-issue.ts (anular, en la 43) y el agente nunca
-// lo importa (check:billing). Este GET rechaza cualquier ruta fuera de la lista.
+// Solo lectura. Emitir (también las notas de crédito) vive en biller-issue.ts y
+// el agente nunca lo importa (check:billing). Este GET rechaza cualquier ruta
+// fuera de la lista.
 export const BILLER_READ_PATHS = [
   "/v2/comprobantes/obtener",
   "/v3/comprobantes/detalle",

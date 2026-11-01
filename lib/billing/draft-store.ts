@@ -2,8 +2,10 @@ import { Prisma, type InvoiceStatus, type PrismaClient } from "@prisma/client";
 
 import { addBillingMonths, getBillingPeriodKey, getIssueDateRange } from "@/lib/billing/billing-month";
 import { buildRepeatDraft, isRepeatSource, type RepeatContext, type RepeatSource } from "@/lib/billing/draft-repeat";
+import { linkCreditNotes } from "@/lib/billing/credit-note-links";
 import { readStoredItems, readStoredReceiver } from "@/lib/billing/invoice-json";
 import { classifyCfe } from "@/lib/billing/invoice-mapping";
+import { lockBatch } from "@/lib/billing/issue-claim";
 
 type Db = Prisma.TransactionClient;
 
@@ -23,6 +25,7 @@ const sourceSelect = {
   receiver: true,
   receiverDocument: true,
   status: true,
+  total: true,
 } satisfies Prisma.InvoiceSelect;
 
 type SourceRow = Prisma.InvoiceGetPayload<{ select: typeof sourceSelect }>;
@@ -50,7 +53,7 @@ export const loadRepeatInputs = async (db: Db, period: Date, excludeBatchId?: st
     billerIds.length
       ? db.invoice.findMany({
           where: { referenceIds: { hasSome: billerIds }, status: { in: VALID_STATUSES } },
-          select: { cfeType: true, issueDate: true, referenceIds: true },
+          select: { cfeType: true, id: true, issueDate: true, number: true, referenceIds: true, series: true, status: true, total: true },
         })
       : Promise.resolve([]),
     db.invoice.findMany({
@@ -65,10 +68,14 @@ export const loadRepeatInputs = async (db: Db, period: Date, excludeBatchId?: st
     }),
   ]);
 
+  // Solo una nota por el total la deja afuera: con una parcial se repite igual.
+  const credits = linkCreditNotes(
+    rows.map((row) => ({ billerId: row.billerId, total: Number(row.total) })),
+    notes.map((note) => ({ ...note, total: Number(note.total) }))
+  );
   const annulledBy = new Map<number, Date>();
-  for (const note of notes) {
-    if (classifyCfe(note.cfeType) !== "credit_note" || !note.issueDate) continue;
-    for (const id of note.referenceIds) if (!annulledBy.has(id)) annulledBy.set(id, note.issueDate);
+  for (const [billerId, credit] of credits) {
+    if (credit.fully && credit.note?.issueDate) annulledBy.set(billerId, credit.note.issueDate);
   }
   const billedInTarget = new Map<string, Date>();
   for (const invoice of billed) {
@@ -93,7 +100,9 @@ export const lockBillingPeriod = (tx: Db, period: Date) =>
 // Crea el borrador de `period` repitiendo el mes anterior, o devuelve el que
 // ya está abierto. El lock de la transacción hace que dos pedidos a la vez (dos
 // pestañas, un doble clic, el agente) terminen en un único borrador. Uno que
-// arma el agente queda con origin AGENT y su conversación.
+// arma el agente queda con origin AGENT y su conversación. Un borrador abierto
+// sin nada repetido (solo facturas nuevas, 45) se completa con el mes anterior,
+// con el lock del lote de "Emitir N".
 type RepeatDraftInput = { conversationId?: string | null; origin?: "REPEAT" | "AGENT"; period: Date; userId: string };
 
 export const createRepeatDraft = (db: PrismaClient, { conversationId = null, origin = "REPEAT", period, userId }: RepeatDraftInput) =>
@@ -103,9 +112,14 @@ export const createRepeatDraft = (db: PrismaClient, { conversationId = null, ori
 
       const open = await tx.invoiceBatch.findFirst({
         where: { period, status: { in: [...OPEN_BATCH_STATUSES] } },
-        select: { id: true },
+        select: { id: true, invoices: { where: { sourceInvoiceId: { not: null } }, select: { id: true }, take: 1 }, status: true },
       });
-      if (open) return { batchId: open.id, created: false };
+      if (open && (open.status !== "DRAFT" || open.invoices.length)) return { batchId: open.id, created: false };
+      if (open) {
+        await lockBatch(tx, open.id);
+        const current = await tx.invoiceBatch.findUnique({ where: { id: open.id }, select: { status: true } });
+        if (current?.status !== "DRAFT") return { batchId: open.id, created: false };
+      }
 
       const { context, sources } = await loadRepeatInputs(tx, period);
       const repeated = await tx.invoice.findMany({
@@ -114,12 +128,14 @@ export const createRepeatDraft = (db: PrismaClient, { conversationId = null, ori
       });
       const repeatedIds = new Set(repeated.map((invoice) => invoice.sourceInvoiceId));
       const rows = buildRepeatDraft(sources.filter((source) => !repeatedIds.has(source.id)), context);
-      if (!rows.length) return { error: "no_sources" };
+      if (!rows.length) return open ? { batchId: open.id, created: false } : { error: "no_sources" };
 
-      const batch = await tx.invoiceBatch.create({
-        data: { conversationId, createdById: userId, origin, period, status: "DRAFT" },
-        select: { id: true },
-      });
+      const batch = open
+        ? await tx.invoiceBatch.update({ where: { id: open.id }, data: { updatedAt: new Date() }, select: { id: true } })
+        : await tx.invoiceBatch.create({
+            data: { conversationId, createdById: userId, origin, period, status: "DRAFT" },
+            select: { id: true },
+          });
       await tx.invoice.createMany({
         data: rows.map((row) => ({
           adenda: row.adenda,
@@ -141,7 +157,7 @@ export const createRepeatDraft = (db: PrismaClient, { conversationId = null, ori
       });
       // numero_interno de cada factura: Biller lo rechaza repetido (regla 3).
       await tx.$executeRaw`UPDATE "Invoice" SET "internalNumber" = 'BAMBU-' || "id" WHERE "batchId" = ${batch.id} AND "internalNumber" IS NULL`;
-      return { batchId: batch.id, created: true };
+      return { batchId: batch.id, created: !open };
     },
     { timeout: 20_000 }
   );

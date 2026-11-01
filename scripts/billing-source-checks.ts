@@ -20,16 +20,19 @@ const listFiles = (dir: string): string[] => {
 };
 
 // --- Nada del agente importa la emisión de Biller.
-const ISSUE_IMPORT = /from\s+["'][^"']*(billing\/biller-issue|actions\/billing\/issue)[^"']*["']/;
+const ISSUE_IMPORT = /from\s+["'][^"']*(billing\/biller-issue|billing\/(credit-note|new-invoice)-(run|store)|actions\/billing\/(issue|credit-note|new-invoice))[^"']*["']/;
 for (const file of [...listFiles("lib/agent"), ...listFiles("app/api/agent"), ...listFiles("components/agent")]) {
   assert.ok(!ISSUE_IMPORT.test(read(file)), `${file} imports the Biller issue code`);
 }
 
 // --- Ni por el medio: lo que importa el agente (sus tools, su ruta, sus
-// componentes y el panel de Facturación) no llega a la emisión.
+// componentes, el panel de Facturación y el de Nueva factura) no llega a la
+// emisión.
 const agentEntries = [
   ...listFiles("lib/agent"), ...listFiles("app/api/agent"), ...listFiles("components/agent"),
   "components/billing/billing-agent.tsx",
+  "components/billing/new-invoice/new-invoice-agent.tsx",
+  "components/billing/hooks/use-invoice-form-patches.ts",
 ];
 const leak = findForbiddenImport(agentEntries, isIssueCode, readRepoSource(root));
 assert.equal(leak, null, `the agent reaches the Biller issue code: ${leak?.join(" -> ")}`);
@@ -59,7 +62,9 @@ assert.match(read("lib/billing/biller-server.ts"), /^import "server-only";/);
 assert.match(read("data/billing/summary.ts"), /^import "server-only";[\s\S]*requireAdminSession\(\)/);
 assert.match(read("data/billing/month.ts"), /^import "server-only";[\s\S]*requireAdminSession\(\)/);
 assert.match(read("data/billing/invoice.ts"), /^import "server-only";[\s\S]*requireAdminSession\(\)/);
-for (const action of ["sync-month", "repeat-month", "update-draft-invoice", "issue-batch"]) {
+assert.match(read("data/billing/credit-note.ts"), /^import "server-only";[\s\S]*requireAdminSession\(\)/);
+assert.match(read("data/billing/new-invoice.ts"), /^import "server-only";[\s\S]*requireAdminSession\(\)/);
+for (const action of ["sync-month", "repeat-month", "update-draft-invoice", "issue-batch", "credit-note", "receiver-job", "new-invoice", "billing-clients"]) {
   assert.match(read(`actions/billing/${action}.ts`), /^"use server";[\s\S]*requireAdminSession\(\)/, `${action} requires admin`);
 }
 
@@ -73,7 +78,24 @@ assert.match(read("lib/billing/draft-update.ts"), /where: \{ id: edit\.invoiceId
 assert.match(read("lib/billing/biller-issue-server.ts"), /^import "server-only";/);
 assert.doesNotMatch(read("lib/billing/biller-server.ts"), /biller-issue/);
 assert.match(read("lib/billing/issue-claim.ts"), /pg_advisory_xact_lock[\s\S]*updatedAt\.toISOString\(\) !== request\.updatedAt[\s\S]*status: "ISSUING"/);
-assert.match(read("actions/billing/issue-batch.ts"), /const assertCanIssue = \(\) => \{\n  if \(!isIssueEnabled\(\)\)[\s\S]*requireAdminSession\(\)[\s\S]*assertCanIssue\(\)[\s\S]*claimBatchIssue\(/);
+assert.match(read("lib/billing/biller-issue-server.ts"), /export const assertCanIssue = \(\) => \{\n  if \(!isIssueEnabled\(\)\)/);
+assert.match(read("actions/billing/issue-batch.ts"), /requireAdminSession\(\)[\s\S]*assertCanIssue\(\)[\s\S]*claimBatchIssue\(/);
+
+// --- Nota de crédito (43): la acción exige admin y emitir prendido antes de
+// tomar la factura; la toma tiene lock por factura y compara lo que vio la
+// página (regla 2) antes de crear la nota en ISSUING con su numero_interno.
+assert.match(read("actions/billing/credit-note.ts"), /requireAdminSession\(\)[\s\S]*assertCanIssue\(\)[\s\S]*claimCreditNote\(/);
+assert.match(read("actions/billing/credit-note.ts"), /retryCreditNote[\s\S]*requireAdminSession\(\)[\s\S]*assertCanIssue\(\)[\s\S]*claimCreditNoteRetry\(/);
+// --- Nueva factura (45): admin, emitir prendido y el claim por pedido.
+assert.match(read("actions/billing/new-invoice.ts"), /requireAdminSession\(\)[\s\S]*assertCanIssue\(\)[\s\S]*claimNewInvoiceIssue\(/);
+assert.match(read("lib/billing/new-invoice-store.ts"), /internalNumber: `BAMBU-\$\{request\.requestId\}`/);
+assert.match(read("lib/billing/new-invoice-store.ts"), /lockRequest\(tx, request\.requestId\);\s+const existing = await tx\.invoice\.findUnique\(\{ where: \{ id: request\.requestId \}/);
+assert.match(read("lib/billing/new-invoice-store.ts"), /lockBillingPeriod\(tx, period\)[\s\S]*lockBatch\(tx, batch\.id\)[\s\S]*status: "DRAFT"/);
+assert.match(read("lib/billing/credit-note-store.ts"), /lockInvoiceCredit\(tx, found\.billerId\)[\s\S]*planCreditNote\([\s\S]*claim\.credited[\s\S]*claim\.total[\s\S]*status: "ISSUING"[\s\S]*internalNumber: `BAMBU-\$\{note\.id\}`/);
+// --- El vínculo receptor → trabajo lo confirma una persona: el agente no lo escribe.
+for (const file of [...listFiles("lib/agent"), "lib/billing/agent-corrections-read.ts"]) {
+  assert.doesNotMatch(read(file), /billingReceiverJob\.(create|upsert|update|delete)/, `${file} writes receiver links`);
+}
 assert.match(read("app/api/billing/invoices/[id]/pdf/route.ts"), /requireAdminSession\(\)/);
 assert.match(read("app/api/cron/billing-sync/route.ts"), /CRON_SECRET[\s\S]*Bearer/);
 assert.doesNotMatch(read("app/api/cron/billing-sync/route.ts"), /biller-issue|issue-batch/);

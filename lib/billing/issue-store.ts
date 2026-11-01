@@ -9,7 +9,7 @@ const json = (value: unknown) => (value === null || value === undefined ? Prisma
 
 // Lo que se guarda de cada resultado. "found" es un comprobante que ya estaba
 // en Biller con ese numero_interno: se toma tal cual lo informa Biller.
-const toUpdate = (outcome: IssueOutcome, at: Date): Prisma.InvoiceUpdateInput => {
+export const toOutcomeUpdate = (outcome: IssueOutcome, at: Date): Prisma.InvoiceUpdateInput => {
   if (outcome.kind === "issued") {
     return {
       billerId: outcome.cfe.billerId,
@@ -50,8 +50,8 @@ export const createIssueRunStore = (db: PrismaClient): IssueRunStore => ({
       where: { batchId, id: { notIn: skipIds }, status: "ISSUING" },
       orderBy: [{ createdAt: "asc" }, { id: "asc" }],
       select: {
-        adenda: true, cfeType: true, currency: true, id: true, internalNumber: true, items: true, paymentForm: true,
-        receiver: true, sourceInvoice: { select: { dueDate: true, issueDate: true } },
+        adenda: true, cfeType: true, currency: true, dueDays: true, id: true, internalNumber: true, items: true, paymentForm: true,
+        purchaseOrder: true, receiver: true, sourceInvoice: { select: { dueDate: true, issueDate: true } },
       },
     });
     if (!invoice) return null;
@@ -60,11 +60,13 @@ export const createIssueRunStore = (db: PrismaClient): IssueRunStore => ({
       batchId,
       cfeType: invoice.cfeType,
       currency: invoice.currency,
-      dueDays: invoice.sourceInvoice ? getDueDays(invoice.sourceInvoice) : null,
+      // Una factura nueva guarda sus días de crédito; una repetida, los de su origen.
+      dueDays: invoice.dueDays ?? (invoice.sourceInvoice ? getDueDays(invoice.sourceInvoice) : null),
       id: invoice.id,
       internalNumber: invoice.internalNumber,
       items: readStoredItems(invoice.items),
       paymentForm: invoice.paymentForm,
+      purchaseOrder: invoice.purchaseOrder,
       receiver: readStoredReceiver(invoice.receiver),
     };
   },
@@ -72,7 +74,7 @@ export const createIssueRunStore = (db: PrismaClient): IssueRunStore => ({
   // Cada resultado toca el updatedAt del lote: así se sabe que la emisión sigue viva.
   saveOutcome: async (candidate, outcome, at) => {
     await db.$transaction([
-      db.invoice.update({ where: { id: candidate.id }, data: toUpdate(outcome, at) }),
+      db.invoice.update({ where: { id: candidate.id }, data: toOutcomeUpdate(outcome, at) }),
       db.invoiceBatch.update({ where: { id: candidate.batchId }, data: { updatedAt: at } }),
     ]);
   },

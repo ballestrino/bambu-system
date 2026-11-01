@@ -58,6 +58,7 @@ export const runAgentTurn = async (input: {
     budgetId: input.budgetContext.budgetId,
     formValues: input.budgetContext.formValues,
     billingMonth: input.budgetContext.billingMonth,
+    invoiceForm: input.budgetContext.invoiceForm,
     grounding: input.grounding,
     usage: input.usage,
     teamContext: input.teamContext,
