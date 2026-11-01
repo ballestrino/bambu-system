@@ -794,7 +794,7 @@
         "Additive migration applied on Neon before any push",
         "tsc, lint, check:billing and a browser smoke on desktop and at 390 px"
       ],
-      "status": "in_progress"
+      "status": "done"
     },
     {
       "id": 48,

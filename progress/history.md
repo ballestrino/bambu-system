@@ -1496,3 +1496,22 @@
   `claude/beautiful-clarke-ywhsz6` y `claude/feature-43-continuation-5ht481`)
   mergeada en `main` y pusheada. El usuario dice que aplicó las migraciones
   en producción.
+
+## 2026-11-01 - Feature 47: borrar del borrador y archivar lo emitido
+
+- Empezada en local (WIP `92a862c`, rama `feature/47-billing-delete-archive`)
+  y terminada en cloud en `claude/elegant-edison-wmcobi`.
+- Borrar: solo `DRAFT` en un lote `DRAFT`, con confirmación, locks del mes y
+  del lote, compare-and-set sobre `updatedAt` y el `updatedAt` del lote
+  movido (un "Emitir" abierto antes recibe "El borrador cambió"). Auditoría
+  `invoice.delete`.
+- Archivar: `ISSUED`, `ACCEPTED` o `REJECTED`, con `Invoice.archivedAt` y
+  `archivedById` (migración aditiva aplicada en la rama de Neon
+  `feature-39-billing`). Sale de las listas, sigue en el resumen, la sync no
+  la toca, "Deshacer" y "Archivadas · N" para desarchivar. Auditoría
+  `invoice.archive` / `invoice.unarchive`.
+- PASS: tsc, ESLint, `init.sh`, `check:billing`, `pnpm build`,
+  `scripts/smoke-billing-remove.ts` contra un Postgres local y Chromium a
+  1440 y 390 px (borrar con un "Emitir" abierto en otra pestaña, archivar,
+  Deshacer, Desarchivar, borrador vacío).
+- Falta: la migración en producción antes del merge a `main`.

@@ -4,34 +4,7 @@ Status: active
 
 ## Active Feature
 
-- 47 `billing_delete_archive` (implementer, rama
-  `feature/47-billing-delete-archive` sobre `main` f621317). Plan:
-  - Migración aditiva `Invoice.archivedAt` y `archivedById` (relación con
-    `User`, `SetNull`), aplicada solo en la rama de Neon `feature-39-billing`.
-  - `lib/billing/invoice-remove.ts` (reglas puras: borrar solo `DRAFT` en un
-    lote `DRAFT`; archivar solo `ISSUED`, `ACCEPTED` o `REJECTED`) y
-    `invoice-remove-store.ts` (borrar con el lock del mes y del lote y
-    compare-and-set sobre `updatedAt`, mueve el `updatedAt` del lote;
-    archivar y desarchivar; auditoría `invoice.delete`, `invoice.archive`,
-    `invoice.unarchive` en `AgentAuditEvent` dentro de la transacción).
-  - `actions/billing/invoice-remove.ts` (admin), esquemas en
-    `schemas/billing.ts`.
-  - Vista: lo archivado sale de Emitidas y del borrador pero sigue en el
-    resumen; "Archivadas · N" plegable debajo de Emitidas para desarchivar
-    (la 48 la reemplaza por la vista Archivadas).
-  - UI: "Borrar" con confirmación en las filas `DRAFT` (escritorio y hoja del
-    teléfono), "Archivar" en Emitidas con "Deshacer" en el aviso.
-  - Verificación: tsc, lint, check:billing (reglas y fuente: la sync no toca
-    `archivedAt`), init, build y smoke en el navegador si hay sesión.
-- Estado al 2026-11-01 (commit WIP para seguir en cloud): el implementer se
-  detuvo al empezar el smoke con `next start`. Código, migración
-  `20261101200000_billing_invoice_archive` (aplicada en `feature-39-billing`),
-  `scripts/billing-remove-checks.ts` y `scripts/smoke-billing-remove.ts`
-  escritos. PASS: tsc, lint, check:billing. Falta: correr el smoke, escribir
-  `progress/impl_47.md`, la revisión (`progress/review_47.md`) y después la
-  48. En cloud no se llega a Neon: probar con un Postgres local. El cambio de
-  `eslint.config.mjs` (ignorar `.claude/**`) es del leader.
-- La 32 sigue bloqueada (abajo).
+- Ninguna. La 32 sigue bloqueada (abajo).
 - Entorno de facturación: `.env` apunta a la rama de Neon `feature-39-billing`
   (copia de producción); la URL de producción quedó comentada en la línea 2.
   Biller test: empresa PEPITO 12, sucursal 928, variables `BILLER_*` en `.env`.
@@ -65,8 +38,8 @@ Status: active
 ## Queue
 
 - 2026-11-01: facturación, pedidas por el usuario y anotadas en
-  `feature_list.json` (pendientes, en este orden): borrar las del borrador y
-  archivar las emitidas (47), filtros en lugar de las pestañas (48), editor
+  `feature_list.json` (en este orden): borrar las del borrador y archivar
+  las emitidas (47, hecha), filtros en lugar de las pestañas (48), editor
   lateral desde el borrador y desde el diálogo de emitir (49) y fechas por
   defecto del 1 al 10 (50). Plan en `docs/billing.md`; la 50 tiene dos
   decisiones pendientes del usuario.
@@ -87,6 +60,17 @@ Status: active
   equivalencias con los ids viejos está en `progress/history.md`.
 
 ## Last Closed Work
+
+- 2026-11-01: facturación, borrar del borrador y archivar lo emitido (47):
+  "Borrar" con confirmación solo en filas `DRAFT` de un lote abierto (locks
+  del mes y del lote, compare-and-set, mueve el lote: un "Emitir" abierto
+  antes se rechaza); "Archivar"/"Desarchivar" en Emitidas con "Deshacer",
+  "Archivadas · N" plegable, sigue en el resumen y la sync no la toca.
+  Auditado. Migración aditiva `20261101200000_billing_invoice_archive`
+  aplicada en la rama de Neon `feature-39-billing`; falta en producción
+  antes del merge. Smoke por script y en Chromium a 1440 y 390 px con un
+  Postgres local. Rama `claude/elegant-edison-wmcobi`, sin merge. Informes
+  en `progress/impl_47.md` y `progress/review_47.md`.
 
 - 2026-11-01: facturación, el agente dentro de Nueva factura (46): panel con
   la habilidad Nueva factura y el formulario como contexto;

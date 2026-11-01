@@ -444,7 +444,8 @@ En la empresa de prueba PEPITO 12, con emisiones por la API:
 
 ### Borrar, archivar, filtros, editor lateral y fechas (features 47 a 50)
 
-Pedido del usuario del 2026-11-01. Plan; nada implementado todavía.
+Pedido del usuario del 2026-11-01. La 47 está implementada (2026-11-01);
+las 48 a 50 son plan.
 
 - **Borrar y archivar (47).**
   - Se borra solo una factura del borrador (`DRAFT`): por ejemplo un servicio
