@@ -114,8 +114,21 @@ export const applyAgentDraft = async (db: PrismaClient, input: AgentDraftInput):
           },
         });
       }
+      // Quién cambió cada factura (el editor lateral lo muestra): el agente,
+      // con la conversación.
+      const auditEdit = (invoiceId: string, changes: string[]) =>
+        tx.agentAuditEvent.create({
+          data: {
+            actorId: input.userId,
+            action: "invoice.edit",
+            entityType: "Invoice",
+            entityId: invoiceId,
+            metadata: { batchId, changes, conversationId: input.conversationId, source: "agent" },
+          },
+        });
+      for (const edit of plan.edits) await auditEdit(edit.invoiceId, edit.notes.map((note) => note.text));
       for (const row of added) {
-        await tx.invoice.create({
+        const created = await tx.invoice.create({
           data: {
             ...NEW_INVOICE_DEFAULTS,
             batchId,
@@ -129,7 +142,9 @@ export const applyAgentDraft = async (db: PrismaClient, input: AgentDraftInput):
             status: "DRAFT",
             total: row.total,
           },
+          select: { id: true },
         });
+        await auditEdit(created.id, [row.note.text]);
       }
       if (added.length) {
         // numero_interno de cada factura: Biller lo rechaza repetido (regla 3).

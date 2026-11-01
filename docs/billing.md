@@ -193,9 +193,10 @@ En la empresa de prueba PEPITO 12, con emisiones por la API:
     como hoy.
 - **Nueva factura** (`/dashboard/billing/new`): el formulario entero. Se
   guarda en el borrador del mes o se emite sola en el momento.
-- **Editar una factura del borrador** (`/dashboard/billing/draft/[id]`): el
-  mismo formulario, con lo que cambió contra el mes pasado y quién lo cambió
-  (el agente o una persona). Guardar, emitir solo esa o quitarla del borrador.
+- **Editar una factura del borrador**: el editor lateral de la 49 (reemplazó
+  a la página `/dashboard/billing/draft/[id]` del plan), con el mismo
+  formulario, lo que cambió contra el mes pasado y quién lo cambió (el agente
+  o una persona). Guardar, quitarla del borrador o borrarla.
 - **Nota de crédito** (`/dashboard/billing/[id]/credit-note`): sale de una
   factura emitida. Por el total o parcial, con la razón; no supera el total
   de la factura. Se emite al confirmar y no queda en borrador. Por el total
@@ -444,8 +445,8 @@ En la empresa de prueba PEPITO 12, con emisiones por la API:
 
 ### Borrar, archivar, filtros, editor lateral y fechas (features 47 a 50)
 
-Pedido del usuario del 2026-11-01. La 47 y la 48 están implementadas
-(2026-11-01); las 49 y 50 son plan.
+Pedido del usuario del 2026-11-01. La 47, la 48 y la 49 están
+implementadas (2026-11-01); la 50 es plan.
 
 - **Borrar y archivar (47).**
   - Se borra solo una factura del borrador (`DRAFT`): por ejemplo un servicio
@@ -486,6 +487,37 @@ Pedido del usuario del 2026-11-01. La 47 y la 48 están implementadas
     queda abierto detrás y al guardar recalcula la cantidad y el total y toma
     el `updatedAt` nuevo del lote, así un cambio propio no hace fallar la
     emisión.
+  - Lo hecho (2026-11-01):
+    - Se abre tocando el nombre del receptor en la fila (escritorio), con
+      "Editar todos los campos" en la hoja de la fila (teléfono) y con
+      "Editar" en cada factura del diálogo de "Emitir". Solo un borrador
+      abierto, e-Factura o e-Ticket, en UYU o USD (`canEditDraftRow`,
+      `getDraftEditorBlock`). Anterior y siguiente recorren las que se ven
+      con los filtros; con cambios sin guardar pregunta antes de cambiar o
+      cerrar.
+    - `lib/billing/draft-editor.ts` (puro) pasa la factura guardada al
+      formulario sin redondear y de vuelta: el cliente y los ítems que no se
+      tocaron quedan como estaban (con todos sus datos), solo lo cambiado se
+      arma como en Nueva factura. `describeFormChanges` dice qué cambió.
+    - Fechas: la fila guarda `issueDate` y `dueDate` solo si se eligieron
+      distintas de las de por defecto (`lib/billing/invoice-dates.ts`); el
+      lote las usa al emitir y, si no, calcula las de por defecto. Un
+      vencimiento elegido que queda antes de la emisión se ignora.
+    - Guardar (`saveDraftInvoiceForm`, `lib/billing/draft-editor-store.ts`):
+      lock del mes y del lote, compare-and-set sobre el `updatedAt` de la
+      factura, mueve el del lote y audita `invoice.edit` en la misma
+      transacción. Un cambio de otro lado responde "Alguien cambió esta
+      factura" y el editor se monta con la versión nueva. Sin cambios no toca
+      nada.
+    - Quién la cambió: `AgentAuditEvent` `invoice.edit` por factura, con
+      `source` `person` (el editor y el detalle o el precio de la fila) o
+      `agent` (`draftInvoices`, con la conversación). Marcar o desmarcar no se
+      audita. "Contra octubre" (`draft-editor-diff.ts`) compara con la
+      factura que repite sin contar el mes que se movió solo.
+    - Guardar y "Quitar del borrador" van en la cola de la fila (misma
+      `mutationKey` y `scope`): "Emitir" espera, la fila y el borrador toman
+      el `updatedAt` nuevo antes de releer el mes. El editor se monta dentro
+      del diálogo de "Emitir" (árbol de React), así sus clics no lo cierran.
 - **Fechas por defecto (50).** Se factura del 1 al 10:
   - fecha de emisión: el día en que se emite, o el 1 del mes si el usuario
     factura un mes antes de que empiece (un borrador de noviembre emitido el

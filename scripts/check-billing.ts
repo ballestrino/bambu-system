@@ -4,10 +4,12 @@
 // que el agente nunca emita (y solo arme borradores), y la emisión de a una
 // sin duplicar, las notas de crédito y el vínculo receptor → trabajo (43) y
 // la factura nueva (45), el agente que la completa sin emitir (46), borrar
-// del borrador y archivar lo emitido (47) y las vistas con filtros (48).
+// del borrador y archivar lo emitido (47), las vistas con filtros (48) y el
+// editor lateral del borrador (49).
 import "./billing-agent-checks";
 import { billingConfigChecks } from "./billing-config-checks";
 import { billingCorrectionChecks } from "./billing-correction-checks";
+import "./billing-editor-checks";
 import "./billing-filter-checks";
 import "./billing-draft-checks";
 import "./billing-invoice-form-checks";

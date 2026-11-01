@@ -20,6 +20,11 @@ export const getDraftRowChip = (row: DraftRow): { label: string; tone: OpsTone }
 export const isDraftRowLocked = (row: DraftRow, draftStatus: string) =>
   draftStatus !== "DRAFT" || row.status !== "DRAFT";
 
+// Se abre en el editor lateral (49): un borrador abierto, e-Factura o
+// e-Ticket, en pesos o dólares (lo que admite el formulario de Nueva factura).
+export const canEditDraftRow = (row: DraftRow, draftStatus: string) =>
+  !isDraftRowLocked(row, draftStatus) && (row.cfeType === 101 || row.cfeType === 111) && (row.currency === "UYU" || row.currency === "USD");
+
 // Lo que sale al tocar "Emitir": marcadas y todavía en borrador.
 export const getMarkedRows = (rows: DraftRow[]) => rows.filter((row) => row.selected && row.status === "DRAFT");
 

@@ -50,8 +50,8 @@ export const createIssueRunStore = (db: PrismaClient): IssueRunStore => ({
       where: { batchId, id: { notIn: skipIds }, status: "ISSUING" },
       orderBy: [{ createdAt: "asc" }, { id: "asc" }],
       select: {
-        adenda: true, cfeType: true, currency: true, dueDays: true, id: true, internalNumber: true, items: true, paymentForm: true,
-        purchaseOrder: true, receiver: true, sourceInvoice: { select: { dueDate: true, issueDate: true } },
+        adenda: true, cfeType: true, currency: true, dueDate: true, dueDays: true, id: true, internalNumber: true, issueDate: true,
+        items: true, paymentForm: true, period: true, purchaseOrder: true, receiver: true, sourceInvoice: { select: { dueDate: true, issueDate: true } },
       },
     });
     if (!invoice) return null;
@@ -62,10 +62,14 @@ export const createIssueRunStore = (db: PrismaClient): IssueRunStore => ({
       currency: invoice.currency,
       // Una factura nueva guarda sus días de crédito; una repetida, los de su origen.
       dueDays: invoice.dueDays ?? (invoice.sourceInvoice ? getDueDays(invoice.sourceInvoice) : null),
+      // Las fechas elegidas en el editor lateral (49); null: las de por defecto.
+      dueDate: invoice.dueDate,
       id: invoice.id,
+      issueDate: invoice.issueDate,
       internalNumber: invoice.internalNumber,
       items: readStoredItems(invoice.items),
       paymentForm: invoice.paymentForm,
+      period: invoice.period,
       purchaseOrder: invoice.purchaseOrder,
       receiver: readStoredReceiver(invoice.receiver),
     };

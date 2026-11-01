@@ -1529,3 +1529,19 @@
   oculta el filtro.
 - PASS: tsc, ESLint, `init.sh`, `check:billing` (con
   `billing-filter-checks`), `pnpm build` y Chromium a 1440 y 390 px.
+
+## 2026-11-01 - Feature 49: editor lateral del borrador
+
+- En `claude/billing-side-editor-dates`, sobre `main` (`ff1ea63`).
+- Editor lateral de una factura del borrador (derecha en escritorio, hoja en
+  el teléfono) con el formulario de Nueva factura, "Contra octubre", "Quién
+  la cambió", Guardar, Quitar del borrador, Borrar y anterior/siguiente.
+  Reemplaza la página `/dashboard/billing/draft/[id]` del plan.
+- Se abre desde la fila y desde el diálogo de "Emitir", que queda abierto y
+  recalcula cantidad y total con el `updatedAt` nuevo del borrador.
+- Guardar con lock del mes y del lote, compare-and-set y auditoría
+  `invoice.edit` (también en la fila y en `draftInvoices` del agente). Fechas
+  elegidas en `issueDate`/`dueDate` de la fila, sin migración.
+- PASS: tsc, ESLint, `init.sh`, `check:billing` (con
+  `billing-editor-checks`) y Chromium a 1440 y 390 px con Biller test
+  (guardar, siguiente, recargar, conflicto y emitir 2 desde el diálogo).

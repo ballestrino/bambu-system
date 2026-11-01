@@ -7,9 +7,12 @@ import {
   type IssuedCfe,
 } from "@/lib/billing/biller-issue";
 import type { BillerInvoice } from "@/lib/billing/biller-schemas";
+import { PAYMENT_FORM } from "@/lib/billing/draft-repeat";
+import { resolveDraftDates } from "@/lib/billing/invoice-dates";
 import { buildIssuePlan, getIssueDay, type IssueInput, type IssuePayload } from "@/lib/billing/issue-payload";
 
-export type IssueCandidate = IssueInput & { batchId: string; id: string };
+// issueDate y dueDate son los que eligió la persona en el editor (49), o null.
+export type IssueCandidate = IssueInput & { batchId: string; id: string; issueDate: Date | null; period: Date };
 
 export type IssueOutcome =
   | { cfe: IssuedCfe; dueDate: Date | null; issueDate: Date; kind: "issued"; paymentForm: number }
@@ -97,7 +100,14 @@ const issueOne = async (
   deps: IssueRunDeps,
   waitTurn: () => Promise<void>
 ): Promise<IssueOutcome> => {
-  const plan = buildIssuePlan(candidate, getIssueDay(deps.now()));
+  const dates = resolveDraftDates({
+    dueDays: candidate.dueDays,
+    explicitDue: candidate.dueDate ?? null,
+    explicitIssue: candidate.issueDate,
+    paymentForm: candidate.paymentForm ?? PAYMENT_FORM.CASH,
+    today: getIssueDay(deps.now()),
+  });
+  const plan = buildIssuePlan({ ...candidate, dueDate: dates.dueDate }, dates.issueDate);
   if (!plan.ok) return { kind: "failed", message: plan.error };
   const sent = await sendWithLookup(plan.payload, deps, waitTurn);
   return sent.kind === "issued"

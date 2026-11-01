@@ -1,12 +1,13 @@
 "use client";
 
 import { useIsMutating } from "@tanstack/react-query";
-import { Loader2 } from "lucide-react";
+import { Loader2, Pencil } from "lucide-react";
 import { useState } from "react";
 
-import { getDraftTotals, getMarkedRows } from "@/components/billing/billing-draft-model";
+import { canEditDraftRow, getDraftTotals, getMarkedRows } from "@/components/billing/billing-draft-model";
 import { formatLongDate, formatMoney, getShortCfeLabel, pluralInvoices } from "@/components/billing/billing-format";
 import { BillingIssueStatus } from "@/components/billing/billing-issue-status";
+import { BillingDraftEditor } from "@/components/billing/draft-editor/billing-draft-editor";
 import { useIssueBillingBatch } from "@/components/billing/hooks/use-billing-issue";
 import { billingQueryKeys } from "@/components/billing/query-keys";
 import { OpsFormBody, OpsFormDialogContent, OpsFormFooter, OpsFormHeader } from "@/components/ops/shared/ops-form-dialog";
@@ -22,7 +23,10 @@ const isSettled = (row: DraftRow) => row.status !== "ISSUING";
 // "Emitir N" (docs/billing.md, regla 2): lista lo marcado con la cantidad, el
 // total y la fecha de emisión. Al confirmar manda lo que se ve; si el borrador
 // cambió, el servidor lo rechaza y el diálogo muestra el nuevo. Después
-// muestra el avance de cada factura, que llega releyendo el borrador.
+// muestra el avance de cada factura, que llega releyendo el borrador. Cada
+// factura se abre en el editor lateral (49) sin cerrar el diálogo: al
+// guardar, el diálogo recalcula la cantidad y el total y toma el updatedAt
+// nuevo del borrador, así el cambio propio no rechaza la emisión.
 export const BillingIssueDialog = ({
   draft,
   onOpenChange,
@@ -37,6 +41,7 @@ export const BillingIssueDialog = ({
   const issue = useIssueBillingBatch(view.period);
   const editing = useIsMutating({ mutationKey: billingQueryKeys.draftRowMutation }) > 0;
   const [sentIds, setSentIds] = useState<string[] | null>(null);
+  const [editor, setEditor] = useState<{ id: string | null; ids: string[] }>({ id: null, ids: [] });
   const totals = getDraftTotals(draft.rows);
   const issuing = draft.status === "ISSUING";
 
@@ -93,7 +98,19 @@ export const BillingIssueDialog = ({
                     <span className="text-xs text-red-700 dark:text-red-300">{row.error}</span>
                   ) : null}
                 </span>
-                {phase === "confirm" ? null : <BillingIssueStatus pdf={phase === "done"} row={row} />}
+                {phase !== "confirm" ? (
+                  <BillingIssueStatus pdf={phase === "done"} row={row} />
+                ) : canEditDraftRow(row, draft.status) ? (
+                  <button
+                    aria-label={`Editar la factura de ${row.name}`}
+                    className="inline-flex h-9 items-center gap-1.5 rounded-lg border border-ops-border px-2.5 text-[13px] font-medium text-ops-text hover:bg-ops-surface-muted"
+                    onClick={() => setEditor({ id: row.id, ids: rows.map((item) => item.id) })}
+                    type="button"
+                  >
+                    <Pencil aria-hidden className="size-3.5" />
+                    Editar
+                  </button>
+                ) : null}
               </li>
             ))}
           </ul>
@@ -122,6 +139,13 @@ export const BillingIssueDialog = ({
             </Button>
           )}
         </OpsFormFooter>
+        <BillingDraftEditor
+          ids={editor.ids}
+          invoiceId={editor.id}
+          onNavigate={(id) => setEditor((current) => ({ ...current, id }))}
+          periodKey={view.period}
+          rows={draft.rows}
+        />
       </OpsFormDialogContent>
     </Dialog>
   );

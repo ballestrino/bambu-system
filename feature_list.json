@@ -822,7 +822,7 @@
         "A change made elsewhere meanwhile (the agent, another tab) is rejected and the editor shows the new version",
         "tsc, lint, check:billing and a browser smoke on desktop and at 390 px"
       ],
-      "status": "pending"
+      "status": "done"
     },
     {
       "id": 50,

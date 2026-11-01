@@ -24,6 +24,7 @@ export const BillingDraftPhoneRow = ({
   firstSkipped,
   locked,
   onEditLine,
+  onOpen,
   onToggle,
   periodKey,
   prevMonth,
@@ -123,6 +124,18 @@ export const BillingDraftPhoneRow = ({
           >
             Listo
           </button>
+          {onOpen ? (
+            <button
+              className="h-11 rounded-xl border border-ops-border text-[15px] font-semibold text-ops-text active:bg-ops-surface-muted"
+              onClick={() => {
+                setOpen(false);
+                onOpen();
+              }}
+              type="button"
+            >
+              Editar todos los campos
+            </button>
+          ) : null}
           {locked ? null : <BillingDeleteDraft periodKey={periodKey} row={row} variant="sheet" />}
         </SheetContent>
       </Sheet>

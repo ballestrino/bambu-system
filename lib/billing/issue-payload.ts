@@ -25,6 +25,9 @@ export type IssueInput = {
   cfeType: number;
   currency: string;
   dueDays: number | null;
+  // Vencimiento ya resuelto (el elegido o el de por defecto, 49 y 50): gana
+  // sobre dueDays si no queda antes de la emisión.
+  dueDate?: Date | null;
   internalNumber: string | null;
   items: InvoiceItemPayload[] | null;
   paymentForm: number | null;
@@ -92,7 +95,9 @@ export const buildIssuePlan = (input: IssueInput, issueDate: Date): IssuePlan =>
   }
 
   const paymentForm = input.paymentForm ?? PAYMENT_FORM.CASH;
-  const dueDate = paymentForm === PAYMENT_FORM.CREDIT && input.dueDays ? addDays(issueDate, input.dueDays) : null;
+  const explicitDue = input.dueDate && input.dueDate >= issueDate ? input.dueDate : null;
+  const dueDate =
+    paymentForm === PAYMENT_FORM.CREDIT ? explicitDue ?? (input.dueDays ? addDays(issueDate, input.dueDays) : null) : null;
 
   return {
     dueDate,

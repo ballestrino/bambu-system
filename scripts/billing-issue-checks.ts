@@ -116,7 +116,13 @@ const run = async (candidates: IssueCandidate[], script: Script, found: Record<s
   return { finished, result, saved, sends };
 };
 
-const candidate = (id: string, patch: Partial<IssueInput> = {}): IssueCandidate => ({ ...input({ internalNumber: `BAMBU-${id}`, ...patch }), batchId: "batch", id });
+const candidate = (id: string, patch: Partial<IssueInput> = {}): IssueCandidate => ({
+  ...input({ internalNumber: `BAMBU-${id}`, ...patch }),
+  batchId: "batch",
+  id,
+  issueDate: null,
+  period: new Date(Date.UTC(2026, 10, 1)),
+});
 const ok = (number: number) => () => ({ billerId: 900 + number, number, series: "MF" });
 const timeout = () => new BillerError("network", "timeout");
 const duplicateError = new BillerError("validation", "repetido", {

@@ -12,11 +12,14 @@ import type { DraftRow } from "@/lib/billing/billing-month-view";
 
 // "Borrar" de una factura del borrador (47), con confirmación. Solo se ofrece
 // en una fila DRAFT de un borrador abierto; el servidor lo vuelve a decidir.
+// onDeleted: el editor lateral (49) sigue con la próxima factura.
 export const BillingDeleteDraft = ({
+  onDeleted,
   periodKey,
   row,
   variant,
 }: {
+  onDeleted?: () => void;
   periodKey: string;
   row: DraftRow;
   variant: "icon" | "sheet";
@@ -27,6 +30,7 @@ export const BillingDeleteDraft = ({
   const confirm = async () => {
     try {
       await remove.mutateAsync();
+      onDeleted?.();
     } catch {
       // El aviso sale del hook y el mes se relee.
     } finally {

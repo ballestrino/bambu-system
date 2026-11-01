@@ -1,12 +1,15 @@
 "use client";
 
-import { isDraftRowLocked } from "@/components/billing/billing-draft-model";
+import { useState } from "react";
+
+import { canEditDraftRow, isDraftRowLocked } from "@/components/billing/billing-draft-model";
 import { BillingDraftPhoneRow } from "@/components/billing/billing-draft-phone";
 import { BillingDraftRow } from "@/components/billing/billing-draft-row";
 import { getMonthName } from "@/components/billing/billing-format";
 import { BillingIssueBar, BillingIssueNotice } from "@/components/billing/billing-issue-bar";
 import { BillingNoMatches } from "@/components/billing/billing-no-matches";
 import { BillingRepeatNotice } from "@/components/billing/billing-repeat-notice";
+import { BillingDraftEditor } from "@/components/billing/draft-editor/billing-draft-editor";
 import { useDraftRowMutation } from "@/components/billing/hooks/use-billing-draft-mutations";
 import type { BillingMonthView } from "@/data/billing/month";
 import type { DraftRow } from "@/lib/billing/billing-month-view";
@@ -18,6 +21,8 @@ type Draft = NonNullable<BillingMonthView["draft"]>;
 // anuladas, notas), y la barra con lo marcado y "Emitir N". Lo emitido queda
 // en su fila con la serie, el número y el estado ante DGI. Con filtros (48)
 // muestra `rows`; la barra y "Emitir N" cuentan siempre todo el borrador.
+// Tocar una factura de "Para emitir" la abre en el editor lateral (49), con
+// anterior y siguiente sobre las que se ven.
 export const BillingDraft = ({
   draft,
   filtered,
@@ -36,7 +41,9 @@ export const BillingDraft = ({
   const goRows = rows.filter((row) => !row.skip);
   const skipRows = rows.filter((row) => row.skip);
   const prevMonth = getMonthName(view.previousPeriod);
-  const rowProps = { choices: draft.jobChoices, draftStatus: draft.status, periodKey: view.period, prevMonth };
+  const [editorId, setEditorId] = useState<string | null>(null);
+  const editable = [...goRows, ...skipRows].filter((row) => canEditDraftRow(row, draft.status)).map((row) => row.id);
+  const rowProps = { choices: draft.jobChoices, draftStatus: draft.status, onOpen: setEditorId, periodKey: view.period, prevMonth };
 
   return (
     <div className="flex flex-col gap-3.5">
@@ -71,6 +78,7 @@ export const BillingDraft = ({
       ) : null}
 
       <BillingIssueBar draft={draft} view={view} />
+      <BillingDraftEditor ids={editable} invoiceId={editorId} onNavigate={setEditorId} periodKey={view.period} rows={draft.rows} />
     </div>
   );
 };
@@ -91,6 +99,7 @@ const DraftRowContainer = ({
   choices,
   draftStatus,
   firstSkipped = false,
+  onOpen,
   periodKey,
   prevMonth,
   row,
@@ -99,6 +108,7 @@ const DraftRowContainer = ({
   choices: { id: string; name: string }[];
   draftStatus: string;
   firstSkipped?: boolean;
+  onOpen: (rowId: string) => void;
   periodKey: string;
   prevMonth: string;
   row: DraftRow;
@@ -109,6 +119,7 @@ const DraftRowContainer = ({
     choices,
     locked: isDraftRowLocked(row, draftStatus),
     onEditLine: (line: { concepto?: string; index: number; precio?: number }) => mutation.mutate({ lines: [line] }),
+    onOpen: canEditDraftRow(row, draftStatus) ? () => onOpen(row.id) : undefined,
     onToggle: () => mutation.mutate({ selected: !row.selected }),
     periodKey,
     row,

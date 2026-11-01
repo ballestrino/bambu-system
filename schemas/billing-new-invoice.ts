@@ -52,3 +52,13 @@ export const newInvoiceRequestSchema = z.object({
 });
 
 export type NewInvoiceRequest = z.infer<typeof newInvoiceRequestSchema>;
+
+// Guardar una factura del borrador desde el editor lateral (feature 49):
+// updatedAt es el que vio el editor (compare-and-set).
+export const draftInvoiceFormSchema = z.object({
+  form: newInvoiceFormSchema,
+  invoiceId: z.string().trim().min(1),
+  updatedAt: z.string().datetime(),
+});
+
+export type DraftInvoiceFormRequest = z.infer<typeof draftInvoiceFormSchema>;

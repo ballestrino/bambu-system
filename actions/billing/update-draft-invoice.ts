@@ -16,12 +16,12 @@ const ERRORS = {
 // de sus líneas. Rechaza el cambio si la factura cambió desde que se vio.
 export const updateDraftInvoice = async (values: unknown) => {
   try {
-    await requireAdminSession();
+    const session = await requireAdminSession();
 
     const parsed = draftInvoiceEditSchema.safeParse(values);
     if (!parsed.success) return { error: parsed.error.issues[0]?.message ?? "Datos inválidos" };
 
-    const result = await applyDraftUpdate(db, parsed.data);
+    const result = await applyDraftUpdate(db, parsed.data, session.user.id);
     if ("error" in result) return { error: ERRORS[result.error], conflict: result.error === "stale" };
     return { success: "Borrador guardado", updatedAt: result.updatedAt.toISOString() };
   } catch (error) {

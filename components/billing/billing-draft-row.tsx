@@ -21,6 +21,8 @@ export type DraftRowProps = {
   choices: { id: string; name: string }[];
   locked: boolean;
   onEditLine: (line: LineEdit) => void;
+  // Abre la factura entera en el editor lateral (49); sin él no se edita ahí.
+  onOpen?: () => void;
   onToggle: () => void;
   periodKey: string;
   row: DraftRow;
@@ -29,7 +31,7 @@ export type DraftRowProps = {
 // Una fila del borrador en escritorio: casilla, receptor y tipo, detalle
 // editable, monto anterior → monto nuevo y la forma de pago. Una factura de
 // varias líneas abre sus líneas.
-export const BillingDraftRow = ({ choices, locked, onEditLine, onToggle, periodKey, row }: DraftRowProps) => {
+export const BillingDraftRow = ({ choices, locked, onEditLine, onOpen, onToggle, periodKey, row }: DraftRowProps) => {
   const [open, setOpen] = useState(false);
   const chip = getDraftRowChip(row);
   const single = row.lines.length === 1;
@@ -47,7 +49,19 @@ export const BillingDraftRow = ({ choices, locked, onEditLine, onToggle, periodK
       </label>
       <div className="flex min-w-0 flex-[1_1_280px] flex-col gap-0.5">
         <div className="flex flex-wrap items-center gap-2">
-          <span className="text-[15px] font-semibold text-ops-text">{row.name}</span>
+          {onOpen ? (
+            <button
+              aria-label={`Editar la factura de ${row.name}`}
+              className="text-left text-[15px] font-semibold text-ops-text underline-offset-4 hover:text-ops-bamboo-strong hover:underline focus-visible:underline focus-visible:outline-none"
+              onClick={onOpen}
+              title="Abrir la factura entera"
+              type="button"
+            >
+              {row.name}
+            </button>
+          ) : (
+            <span className="text-[15px] font-semibold text-ops-text">{row.name}</span>
+          )}
           <BillingChip className="h-5 text-[11px]">{getShortCfeLabel(row.cfeType)}</BillingChip>
           {row.status !== "DRAFT" || row.error ? (
             <BillingIssueStatus row={row} />
