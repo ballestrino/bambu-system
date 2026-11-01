@@ -44,10 +44,19 @@ Status: active
   defecto del 1 al 10 (50). Plan en `docs/billing.md`; la 50 tiene dos
   decisiones pendientes del usuario.
 
+- 2026-11-01: migraciones de facturación en producción (rama de Neon
+  `production`, `br-sparkling-night-acqea90i`, con el plugin de Neon y
+  autorización del usuario): solo estaba la 39; se aplicaron la 43
+  (`20261101120000_billing_corrections_jobs`), la 45
+  (`20261101180000_billing_new_invoice`) y la 47
+  (`20261101200000_billing_invoice_archive`), cada una en su transacción y
+  registrada en `_prisma_migrations` con la checksum de la rama
+  `feature-39-billing`. Verificado: columnas, `BillingReceiverJob`,
+  `MANUAL` y 23 facturas sin cambios. Después, 47 y 48 a `main` y push.
 - 2026-10-30: facturación con Biller en `docs/billing.md`, feature 44
   pendiente (salida a producción: variables de Biller en Vercel, historial
-  real y el primer lote). Las migraciones de facturación (39, 43 y 45) las
-  aplicó el usuario en producción (según él, el 2026-11-01). Las features 39
+  real y el primer lote). Hasta el 2026-11-01 producción tenía solo la
+  migración de la 39 (la 43 y la 45 se creían aplicadas). Las features 39
   a 46 se mergearon y pushearon a `main` el 2026-11-01 con su autorización.
 - Encontrado en la 46 y fuera de alcance: `check:agent-sheet` falla porque
   busca `components/budgets/create-budget/Header.tsx`, que se quitó en la 36.
