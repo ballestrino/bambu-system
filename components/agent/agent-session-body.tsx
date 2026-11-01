@@ -9,6 +9,7 @@ import type { AgentSession } from "@/components/agent/hooks/use-agent-session";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import type { ProposalResult } from "@/lib/agent/proposals";
+import type { AgentSkillId } from "@/lib/agent/skills";
 import type { AgentBudgetContextInput } from "@/schemas/agent";
 
 function LoadingConversation() {
@@ -32,11 +33,13 @@ export function AgentSessionBody({
   contextLabel,
   getContext,
   onProposalConfirmed,
+  skill,
 }: {
   session: AgentSession;
   contextLabel: string;
   getContext: () => AgentBudgetContextInput | undefined;
   onProposalConfirmed: (result: ProposalResult | null) => void;
+  skill?: AgentSkillId;
 }) {
   const { state } = session;
   if (state.status === "error") {
@@ -66,6 +69,7 @@ export function AgentSessionBody({
       contextLabel={contextLabel}
       getContext={getContext}
       onProposalConfirmed={onProposalConfirmed}
+      skill={skill}
       composerTools={
         <AgentModeSelect
           mode={session.mode}

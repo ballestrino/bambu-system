@@ -1,5 +1,6 @@
 import { consejosSkill } from "@/lib/agent/skills/consejos";
 import { emailsSkill } from "@/lib/agent/skills/emails";
+import { facturacionSkill } from "@/lib/agent/skills/facturacion";
 import { generalSkill } from "@/lib/agent/skills/general";
 import { presupuestosSkill } from "@/lib/agent/skills/presupuestos";
 import {
@@ -16,6 +17,7 @@ export const AGENT_SKILLS: Record<AgentSkillId, AgentSkill> = {
   presupuestos: presupuestosSkill,
   emails: emailsSkill,
   consejos: consejosSkill,
+  facturacion: facturacionSkill,
 };
 
 export const DEFAULT_AGENT_SKILL: AgentSkillId = "general";

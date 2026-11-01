@@ -19,7 +19,7 @@ import type { AgentUIMessage } from "@/components/agent/types";
 import { isSavableBudgetPartType } from "@/lib/agent/budget-draft";
 import { readAgentError } from "@/lib/agent/chat-request";
 import type { ProposalResult } from "@/lib/agent/proposals";
-import { DEFAULT_AGENT_SKILL } from "@/lib/agent/skills";
+import { DEFAULT_AGENT_SKILL, type AgentSkillId } from "@/lib/agent/skills";
 import type { AgentMode } from "@/lib/ai/modes";
 import type { AgentBudgetContextInput } from "@/schemas/agent";
 
@@ -31,8 +31,9 @@ const hasProposalParts = (messages: AgentUIMessage[]) =>
   );
 
 // Una conversación: mensajes con sus tarjetas, aviso de error y composer. Los
-// mensajes van con la habilidad general (todas las tools). No sabe en qué
-// pantalla está: el contexto llega como función.
+// mensajes van con la habilidad general (todas las tools), salvo que el host
+// pida otra (Facturación). No sabe en qué pantalla está: el contexto llega
+// como función.
 export function AgentChat({
   conversationId,
   chat,
@@ -42,6 +43,7 @@ export function AgentChat({
   getContext,
   onProposalConfirmed,
   composerTools,
+  skill = DEFAULT_AGENT_SKILL,
 }: {
   conversationId: string;
   chat: Chat<AgentUIMessage>;
@@ -52,6 +54,7 @@ export function AgentChat({
   onProposalConfirmed?: (result: ProposalResult | null) => void;
   // Lo que va junto al "+" del composer: el modo.
   composerTools?: React.ReactNode;
+  skill?: AgentSkillId;
 }) {
   const view = useAgentChat({ chat, mode, getContext });
   const proposals = useAgentProposals(conversationId, hasProposalParts(view.messages));
@@ -102,7 +105,7 @@ export function AgentChat({
               busy={view.busy}
               tools={composerTools}
               voiceRequest={() => ({ mode, conversationId })}
-              onSend={({ text, files }) => view.send(text, DEFAULT_AGENT_SKILL, files)}
+              onSend={({ text, files }) => view.send(text, skill, files)}
               onStop={view.stop}
             />
           </div>

@@ -16,6 +16,7 @@ export type BillerEnv = Partial<
   Record<
     | "BILLER_ALLOW_LOCAL_PRODUCTION"
     | "BILLER_BASE_URL"
+    | "BILLER_ISSUE_ENABLED"
     | "BILLER_SUCURSAL"
     | "BILLER_TOKEN"
     | "VERCEL_ENV",
@@ -62,3 +63,8 @@ export const resolveBillerConfig = (env: BillerEnv): BillerConfig => {
 
   return { baseUrl, environment, sucursal, token };
 };
+
+// Emitir se apaga con BILLER_ISSUE_ENABLED=false (también "0" u "off") sin
+// tocar la lectura. Sin la variable, emitir está prendido.
+export const isBillerIssueEnabled = (env: Pick<BillerEnv, "BILLER_ISSUE_ENABLED">) =>
+  !/^(false|0|off|no)$/i.test(clean(env.BILLER_ISSUE_ENABLED) ?? "");

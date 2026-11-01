@@ -131,7 +131,7 @@ export function AgentPageHost() {
               />
               <AgentSessionBody
                 session={session}
-                contextLabel={pageContextLabel(budget)}
+                contextLabel={pageContextLabel(budget, session.conversation?.contextKind)}
                 getContext={() => pageBudgetContext(budget)}
                 onProposalConfirmed={handleProposalConfirmed}
               />

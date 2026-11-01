@@ -85,11 +85,12 @@ export const useAgentSession = ({ scope }: { scope: AgentConversationScope }) =>
     }
   };
 
-  // La primera vez que se abre el Sheet: en un presupuesto guardado se retoma
-  // su última conversación; en crear (sin presupuesto) se arranca una nueva.
+  // La primera vez que se abre el Sheet: en un presupuesto guardado (y en
+  // Facturación) se retoma su última conversación; en crear (sin presupuesto)
+  // se arranca una nueva.
   const ensureStarted = async () => {
     if (started) return;
-    if (scope.kind !== "budget") return startNew();
+    if (scope.kind !== "budget" && scope.kind !== "billing") return startNew();
     const request = begin({ status: "loading", id: null });
     const latest = await queryClient
       .fetchQuery(conversationListQuery(scope))

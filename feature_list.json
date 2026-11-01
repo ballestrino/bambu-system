@@ -698,7 +698,7 @@
         "The detail text moves from the previous month to the new one and prices and checks persist after a reload",
         "tsc, lint, check:billing and a browser smoke on desktop and at 390 px"
       ],
-      "status": "pending"
+      "status": "done"
     },
     {
       "id": 41,
@@ -712,7 +712,7 @@
         "Every issued invoice reaches a final DGI status in the test account and its PDF downloads",
         "tsc, lint, check:billing and a smoke on the Biller test account"
       ],
-      "status": "pending"
+      "status": "done"
     },
     {
       "id": 42,
@@ -726,7 +726,7 @@
         "A draft changed by the agent while the page is open shows the change before issuing",
         "tsc, lint, the agent checks, check:billing and a live turn on the Biller test account"
       ],
-      "status": "pending"
+      "status": "done"
     },
     {
       "id": 43,

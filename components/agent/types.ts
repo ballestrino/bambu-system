@@ -56,6 +56,10 @@ export type EmailMessageCardData = AgentToolData<"readEmail">;
 
 export type BudgetRequestsCardData = AgentToolData<"groupBudgetRequests">;
 
+export type BillingDraftCardData = AgentToolData<"draftInvoices">;
+
+export type BillingSummaryCardData = AgentToolData<"getBillingSummary">;
+
 export type AgentConversationItem = Success<
   ReturnType<typeof listAgentConversations>
 >["conversations"][number];

@@ -109,6 +109,15 @@ const KINDS: Record<
     href: () => MEMORY_URL,
     detail: (row) => joined(row.kindLabel, text(row.expiresAt) ? `Vence ${String(row.expiresAt).slice(0, 10)}` : null),
   },
+  invoices: {
+    title: "Facturas",
+    primary: (row) => text(row.name),
+    detail: (row) =>
+      row.section === "draft"
+        ? joined(row.cfe, row.state)
+        : joined(row.cfe, row.number, row.issueDate, row.annulled ? "Anulada" : row.status),
+    amount: (row) => row.total,
+  },
   employeePayments: {
     title: "Pagos a empleadas",
     primary: (row) => text(row.employee),

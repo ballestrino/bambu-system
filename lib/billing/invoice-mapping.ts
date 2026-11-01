@@ -54,7 +54,7 @@ const DOCUMENT_TYPES: Record<string, number> = {
 };
 
 // detalle devuelve "RUT" o "CI"; emitir pide el código (2, 3…).
-export const toDocumentTypeCode = (value: string) =>
+export const toDocumentTypeCode = (value: string): number | null =>
   /^\d+$/.test(value) ? Number(value) : DOCUMENT_TYPES[normalize(value).toUpperCase()] ?? null;
 
 // El receptor y los ítems se guardan con la forma que pide emitir, para que

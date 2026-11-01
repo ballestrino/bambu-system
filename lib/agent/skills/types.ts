@@ -1,6 +1,6 @@
 import type { AgentToolName } from "@/lib/agent/tool-catalog";
 
-export const AGENT_SKILL_IDS = ["general", "presupuestos", "emails", "consejos"] as const;
+export const AGENT_SKILL_IDS = ["general", "presupuestos", "emails", "consejos", "facturacion"] as const;
 
 export type AgentSkillId = (typeof AGENT_SKILL_IDS)[number];
 

@@ -70,6 +70,12 @@ const persistMonthKey = (monthKey: string) => {
   window.dispatchEvent(new Event(STORAGE_EVENT));
 };
 
+// Elige el mes de Operaciones desde afuera del selector (la tarjeta del
+// borrador del agente abre Facturación en el mes del borrador).
+export const selectOpsMonth = (monthKey: string) => {
+  if (parseMonthKey(monthKey)) persistMonthKey(monthKey);
+};
+
 export const OpsSelectedMonthProvider = ({
   children,
 }: {

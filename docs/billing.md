@@ -3,7 +3,9 @@
 Plan del 2026-10-30 para emitir los comprobantes fiscales electrónicos (CFE)
 de Bambú desde la app, con la API de Biller. Son las features 39 a 44 de
 `feature_list.json`. La 39 (leer de Biller, la copia local y el resumen del
-mes) está hecha; lo demás es plan. Este documento pasa a ser el contrato de la
+mes), la 40 (la página con el resumen, lo emitido y el borrador) y la 41
+(emitir el borrador) y la 42 (el agente arma borradores) están hechas; lo
+demás es plan. Este documento pasa a ser el contrato de la
 página a medida que se implementa.
 
 ## Objetivo
@@ -199,6 +201,109 @@ En la empresa de prueba PEPITO 12, con emisiones por la API:
 - Emitir una sola (nueva, del borrador o nota de crédito) sigue la regla 2:
   manda `updatedAt` y el total que se vio.
 
+### Lo hecho en la 40
+
+- Ruta `app/(private)/dashboard/(ops)/billing`, con el selector de mes de
+  Operaciones y "Facturación" en la navegación (`components/ops/nav-items.ts`).
+  La UI está en `components/billing/`.
+- Al abrir un mes la página lo sincroniza con Biller (`syncBillingMonth`, a lo
+  sumo cada 2 minutos por mes, y con el botón de actualizar) y relee la copia.
+  Todo lo que muestra sale de `getBillingMonthView` (`data/billing/month.ts`).
+- `repeatBillingMonth` (`actions/billing/repeat-month.ts`) sincroniza el mes y
+  el anterior y llama a `createRepeatDraft` (`lib/billing/draft-store.ts`):
+  - un `pg_advisory_xact_lock` por mes antes de buscar el borrador abierto
+    (`DRAFT` o `ISSUING`), así que repetir dos veces abre el mismo, sin
+    migración;
+  - `buildRepeatDraft` (`lib/billing/draft-repeat.ts`, puro) arma las filas;
+    `moveMonthInText` pasa "octubre 2026", "octubre de 2026", "octubre" solo y
+    "10/2026" al mes nuevo en el concepto, la descripción y la adenda;
+  - cada factura recibe `internalNumber` `BAMBU-<id>` en la misma transacción.
+- Qué arranca desmarcado se calcula de nuevo al leer (`getRepeatSkip`), así
+  que una anulación o una factura emitida desde el panel después de repetir
+  mueve la fila a "No van este mes" sin cambiar su casilla.
+- `updateDraftInvoice` (`actions/billing/update-draft-invoice.ts`) cambia la
+  casilla o el concepto y el precio de una línea con compare-and-set sobre el
+  `updatedAt` de la factura y toca el del borrador. La página manda los cambios
+  de una fila de a uno (scope de TanStack Query) con el último `updatedAt`.
+- Montos: cada fila muestra el subtotal sin IVA (cantidad por precio, con
+  descuento y recargo) del mes pasado y del nuevo, que es lo que se edita. El
+  total con IVA (`lib/billing/invoice-totals.ts`: indicador 2 al 10 %, 3 al
+  22 %, el resto sin IVA, como el 16 de Literal E) va debajo de la forma de
+  pago y es lo que suma la barra. Con el indicador 16 los dos coinciden.
+- El detalle es el concepto de cada línea: en una factura de una línea se
+  edita en la fila; en una de varias, al abrir sus líneas.
+- La forma de pago y los días de crédito salen de la factura de origen.
+- Quedan para después: el agente y su aviso en la página (42), "Nueva
+  factura", "Agregar factura", "Editar todos los campos" y la nota de crédito
+  (sus páginas no tienen feature todavía, salvo la NC en la 43).
+- Smoke: `pnpm exec tsx scripts/smoke-billing-draft.ts 2026-11` sincroniza,
+  repite tres veces a la vez, edita y prueba el `updatedAt` viejo; borra el
+  borrador salvo con `--keep`.
+
+### Emitir (feature 41)
+
+- **Diálogo.** "Emitir N" abre un diálogo con las facturas marcadas que
+  siguen en borrador, el total, la fecha de emisión (hoy en Montevideo) y si
+  es test o producción. Confirmar manda `batchId`, el `updatedAt` del
+  borrador, la cantidad y el total (`issueBillingBatch`,
+  `actions/billing/issue-batch.ts`, solo admin).
+- **Tomar el borrador** (`claimBatchIssue`, `lib/billing/issue-claim.ts`):
+  con un `pg_advisory_xact_lock` por borrador compara el `updatedAt`, la
+  cantidad y el total; si algo cambió responde "El borrador cambió" y la
+  página relee. Si coincide, pasa esas facturas y el borrador a `ISSUING`.
+  Un doble clic o una segunda pestaña encuentran `ISSUING` y no emiten. Cada
+  cambio de una fila deja su `updatedAt` también en el borrador, y la página
+  lo toma, así un cambio propio no hace fallar el diálogo.
+- **Emitir de a una** (`runBatchIssue`, `lib/billing/issue-run.ts`): sigue
+  después de responder (`after`, la página tiene `maxDuration` 300 s). Una
+  cada 1,1 s, con su `numero_interno`:
+  - `issue-payload` arma el pedido: fecha de emisión de hoy, vencimiento con
+    los mismos días que la factura de origen (crédito), sin nulls y `"-"`
+    como cliente de un e-Ticket sin receptor. Antes de llamar a Biller
+    frena una e-Factura sin RUT de 12 dígitos, sin ítems o sin montos, y una
+    nota de crédito o débito marcada (necesita la factura que corrige: eso es
+    la nota de crédito de la 43);
+  - `biller-issue.ts` es el único POST (`/v3/comprobantes/emitir`) y
+    reintenta solo un 429;
+  - un timeout, un 5xx o una respuesta ilegible: espera 1,5 s y busca por
+    `numero_interno` (`obtener` con la ventana de creación, porque sin
+    `desde` toma solo hoy). Si está, se toma ese; si no, se reenvía una
+    sola vez; si sigue sin saberse, queda `UNKNOWN`;
+  - un 422 de `numero_interno` repetido también se busca y se toma;
+  - un rechazo de datos vuelve la factura al borrador con el error (la fila
+    lo muestra) y sigue con las demás; sin token o sin permiso se frena todo.
+  - Al terminar, el borrador queda `DONE` si se emitió todo, `DRAFT` si
+    quedó algo sin emitir o sin confirmar, o `ISSUING` si algo quedó a medio
+    (la función se cortó).
+- **Avance.** Mientras el borrador está en `ISSUING` la página lo relee cada
+  1,5 s y el diálogo muestra cada factura: "Emitiendo", su serie y número con
+  el estado ante DGI, o por qué no salió. Se puede cerrar: sigue emitiendo.
+  Cada fila emitida queda bloqueada con su número, su estado y el PDF.
+- **Cortada o sin confirmar.** Si el borrador lleva 3 minutos en `ISSUING`
+  sin novedades, o hay facturas `UNKNOWN`, la página ofrece "Continuar" o
+  "Reintentar" (`resumeBillingIssue`): las vuelve a la cola. Reenviar no
+  duplica, porque Biller rechaza el `numero_interno` repetido.
+- **Estado ante DGI.** Se lee del `estado` de `obtener` (el mismo de
+  `detalle`, en un solo llamado) con la sincronización del mes: cada 20 s
+  mientras algo del mes o del borrador está pendiente, al terminar una
+  emisión y con el cron diario `/api/cron/billing-sync` (`vercel.json`,
+  10:00 UTC, `CRON_SECRET`), que copia el mes actual y el anterior. La
+  sincronización encuentra por `numero_interno` lo que quedó `UNKNOWN` y
+  ya no cambia el período de una factura copiada (una del borrador queda en
+  el mes del borrador).
+- **PDF.** `/api/billing/invoices/[id]/pdf` (solo admin) lo pide a Biller
+  (`/v2/comprobantes/pdf`, base64) y lo abre en el navegador. Está en las
+  filas emitidas del borrador y en "Emitidas".
+- **Apagado.** `BILLER_ISSUE_ENABLED=false` (o `0`, `off`) deshabilita el
+  botón y la acción; la lectura sigue.
+- **Fecha.** Se emite con la fecha del día. Un borrador de noviembre emitido
+  el 30 de octubre cuenta en el resumen de octubre, que es por fecha de
+  emisión; en el borrador de noviembre se ve emitido igual.
+- Smoke: `pnpm exec tsx scripts/smoke-billing-issue.ts 2026-11 101` deja
+  marcadas solo las de ese tipo, prueba el `updatedAt` viejo, otra cantidad
+  y el doble clic, emite, simula una respuesta perdida (reintento sin
+  duplicar), espera el estado final y baja el PDF. Emite en Biller test.
+
 ### Formulario de factura
 
 Los campos de `POST /v3/comprobantes/emitir` que usa Bambú, por sección:
@@ -229,6 +334,72 @@ Los campos de `POST /v3/comprobantes/emitir` que usa Bambú, por sección:
   precio, la razón de una nota), el número interno y la sucursal.
 
 ## Agente
+
+### Lo hecho en la 42
+
+- **Habilidad Facturación** (`lib/agent/skills/facturacion.ts`): la usa el
+  panel del agente de Facturación (`components/billing/billing-agent.tsx`). Las
+  tools de facturación también están en General, con la misma regla.
+- **Historial propio:** las conversaciones del panel se crean con
+  `contextKind` `billing` (sin migración) y el historial las filtra con el
+  scope `billing`; las "sin presupuesto" del Sheet de crear ya no las
+  muestran. El panel retoma la última, como el Sheet de un presupuesto. En la
+  página del agente se ven todas, con "Facturación" como contexto.
+- **Contexto del turno:** `{ kind: "billing", month }`, el mes del selector.
+  Las tools toman ese mes cuando el pedido no dice otro.
+- **Lecturas** (`lib/agent/tools/billing.ts`): `getBillingSummary` y
+  `listInvoices` leen `getBillingMonthView`, lo mismo que la página, después
+  de copiar el mes de Biller (a lo sumo cada 2 minutos por mes; si Biller no
+  responde, avisan y leen la copia). `listInvoices` trae el id de cada factura
+  y sus líneas con `index`. `getInvoice` lee una factura entera de la copia
+  (`data/billing/invoice.ts`) y `lookupRut`, `datos-entidad`.
+- **`draftInvoices`** (`lib/agent/tools/billing-draft.ts`), sin tarjeta de
+  confirmación:
+  - `repeatPreviousMonth` usa `createRepeatDraft` (con `origin` AGENT y la
+    conversación), así que repetir con un borrador abierto abre ese;
+  - `changes` marca o desmarca y cambia detalle o precio sin IVA por línea;
+  - `newInvoices` suma una e-Factura al contado con el RUT pedido y la razón
+    social y el domicilio de DGI, con el indicador de la última emitida. Un
+    RUT que ya está en el borrador se rechaza.
+  - `applyAgentDraft` (`lib/billing/agent-draft-store.ts`, con el plan puro en
+    `agent-draft-plan.ts`) toma el lock del mes y el del lote (el mismo de
+    "Emitir"), rechaza un lote en `ISSUING` o `DONE` y una factura que ya no
+    es borrador, y mueve el `updatedAt` del lote. Un diálogo de "Emitir"
+    abierto antes del cambio recibe "El borrador cambió" y la página relee.
+  - Audita `invoice_draft.create` (lote nuevo) e `invoice_draft.update`
+    (cambios) en `AgentAuditEvent`.
+- `listInvoices` dice en `state` si una fila del borrador sale al emitir,
+  está desmarcada o ya se emitió (con su serie y número), y manda `selected`
+  solo en las que siguen en borrador: en la prueba real el modelo leía como
+  "marcadas" las ya emitidas.
+- **Tarjetas del chat** (`components/agent/cards/agent-billing-card.tsx`):
+  "Borrador de noviembre · N facturas · $ X" con lo que cambió y "Abrir en
+  Facturación" (elige el mes del borrador en el selector), sin botón de
+  emitir; y el resumen del mes. `listInvoices` usa la tarjeta de listas.
+- **La página ve el cambio:** al terminar cada turno `refreshAfterTurn`
+  relee el mes de Facturación.
+- **Panel:** en escritorio, "Agente" en la cabecera abre un panel flotante
+  arriba a la derecha (400 px, hasta 640 px de alto) que no tapa la página ni
+  se cierra al tocarla; en el teléfono, un botón flotante abre una hoja de
+  92 % del alto.
+- **`BILLING_RULE`** (`lib/agent/billing-rule.ts`) entra al prompt de toda
+  habilidad con `draftInvoices`.
+- **La garantía es el código:** `check:billing` recorre los imports (también
+  los indirectos) de `lib/agent/**`, `app/api/agent/**`,
+  `components/agent/**` y el panel, y falla si alguno llega a
+  `biller-issue`, `biller-issue-server`, `issue-run` o
+  `actions/billing/issue-*`; una cadena de prueba confirma que el chequeo la
+  encuentra.
+- Smoke sin modelo: `pnpm exec tsx scripts/smoke-billing-agent.ts 2026-11`
+  repite (abre el mismo), cambia precio y casilla, suma un RUT, prueba lo
+  emitido, el RUT repetido, un lote en `ISSUING` y "Emitir" con el
+  `updatedAt` de antes del cambio, y restaura salvo con `--keep`. No emite.
+- Turno real (2026-10-30, Haiku 5.5 Alto, Biller test): pedirle que emita
+  termina sin ninguna factura en Biller y con el borrador en Facturación;
+  la tarjeta del borrador no tiene botón de emitir y la página muestra el
+  cambio al terminar el turno.
+
+### Plan
 
 - Es el agente de siempre, con todas sus tools (visitas, trabajos, finanzas,
   presupuestos), más la habilidad nueva Facturación
@@ -301,7 +472,7 @@ referencia. Los colores, radios y la letra son los de Operaciones
 | `BILLER_SUCURSAL` | ID de la sucursal emisora (panel › Ajustes › Sucursales) |
 | `BILLER_ISSUE_ENABLED` | `false` apaga la emisión sin tocar la lectura |
 | `BILLER_ALLOW_LOCAL_PRODUCTION` | `1` permite la URL de producción en local |
-| `CRON_SECRET` | Protege `/api/cron/billing-sync` |
+| `CRON_SECRET` | Protege `/api/cron/billing-sync`; Vercel lo manda como `Bearer` en su cron |
 
 ## Pendiente del usuario
 

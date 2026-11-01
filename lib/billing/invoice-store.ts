@@ -7,13 +7,13 @@ const json = (value: unknown) => (value === null || value === undefined ? Prisma
 
 // Lo que puede cambiar en Biller después de emitir: el estado ante DGI. Los
 // datos del comprobante no cambian, pero se reescriben por si una lectura
-// anterior quedó incompleta.
+// anterior quedó incompleta. El período no se toca: una factura de un
+// borrador queda en el mes del borrador aunque se emita antes o después.
 const toUpdate = (record: BillerInvoiceRecord, syncedAt: Date): Prisma.InvoiceUpdateInput => ({
   billerId: record.billerId,
   status: record.status,
   billerStatus: record.billerStatus,
   cfeType: record.cfeType,
-  period: record.period,
   issueDate: record.issueDate,
   dueDate: record.dueDate,
   currency: record.currency,
@@ -40,6 +40,7 @@ const toUpdate = (record: BillerInvoiceRecord, syncedAt: Date): Prisma.InvoiceUp
 const toCreate = (record: BillerInvoiceRecord, syncedAt: Date): Prisma.InvoiceCreateInput => ({
   ...(toUpdate(record, syncedAt) as Prisma.InvoiceCreateInput),
   origin: "BILLER",
+  period: record.period,
   internalNumber: record.internalNumber,
 });
 

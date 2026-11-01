@@ -1,7 +1,7 @@
 import "server-only";
 
 import { fromDbAgentMode } from "@/lib/agent/conversation-mode";
-import { conversationListLimit } from "@/lib/agent/conversation-scope";
+import { BILLING_CONTEXT_KIND, conversationListLimit } from "@/lib/agent/conversation-scope";
 import { rowToAgentMessage } from "@/lib/agent/messages";
 import { db } from "@/lib/db";
 import { requireAdminSession } from "@/lib/require-admin-session";
@@ -45,15 +45,27 @@ const serializeConversation = (row: ConversationRow) => ({
 
 export type AgentConversationDto = ReturnType<typeof serializeConversation>;
 
+// Las de Facturación quedan fuera de las "sin presupuesto": tienen su propio
+// historial. contextKind null no cuenta como distinto en SQL, por eso el OR.
+const scopeFilter = ({ budgetId, contextKind, all }: { budgetId?: string | null; contextKind?: string; all?: boolean }) => {
+  if (all) return {};
+  if (contextKind) return { contextKind };
+  if (budgetId) return { budgetId };
+  return { budgetId: null, OR: [{ contextKind: null }, { contextKind: { not: BILLING_CONTEXT_KIND } }] };
+};
+
 // Las conversaciones son de cada usuario: las del presupuesto abierto, las que
-// no tienen presupuesto (la pantalla de crear) o, con all, todas (la página).
-// Las fijadas van primero: así entran en el tope aunque sean viejas.
+// no tienen presupuesto (la pantalla de crear), las de Facturación o, con all,
+// todas (la página). Las fijadas van primero: así entran en el tope aunque
+// sean viejas.
 export const getAgentConversations = async ({
   budgetId,
+  contextKind,
   all,
   query,
 }: {
   budgetId?: string | null;
+  contextKind?: string;
   all?: boolean;
   query?: string;
 }) => {
@@ -61,7 +73,7 @@ export const getAgentConversations = async ({
   const rows = await db.agentConversation.findMany({
     where: {
       userId: session.user.id,
-      ...(all ? {} : { budgetId: budgetId ?? null }),
+      ...scopeFilter({ budgetId, contextKind, all }),
       title: query ? { contains: query, mode: "insensitive" } : undefined,
     },
     orderBy: [{ pinnedAt: { sort: "desc", nulls: "last" } }, { updatedAt: "desc" }],

@@ -1305,3 +1305,99 @@
   `scripts/smoke-billing-sync.ts 2026-10`: dos sincronizaciones, 3 creadas y
   después 3 actualizadas, sin duplicados, neto $ 14.640 como en el panel de
   Biller. `init.ps1` falla solo en ESLint por `.claude/worktrees` (entorno).
+
+
+## 2026-10-30 - Facturación: página con el resumen, lo emitido y el borrador (40)
+
+- Página `/dashboard/billing` en Operaciones (selector de mes global y
+  "Facturación" en la navegación), diseño B de claude-design en escritorio y
+  teléfono: resumen del mes contra el anterior, pestañas "Borrador N/M" y
+  "Emitidas N", y un distintivo Test o Producción. Al abrir un mes lo
+  sincroniza con Biller. UI en `components/billing/`.
+- "Repetir <mes anterior>" (`repeatBillingMonth`) sincroniza y crea el borrador
+  con tipo, receptor, ítems con su indicador, adenda y forma de pago; el mes
+  del texto pasa al nuevo; las ya facturadas, las anuladas y las notas arrancan
+  desmarcadas. Un solo borrador abierto por mes con `pg_advisory_xact_lock`,
+  sin migración. `numero_interno` `BAMBU-<id>` al crearlo.
+- Casilla, concepto y precio por línea con compare-and-set sobre `updatedAt`
+  (`updateDraftInvoice`); la página manda los cambios de una fila de a uno.
+- Sin emitir (botón deshabilitado hasta la 41), sin agente (42) y sin las
+  páginas del formulario.
+- PASS: tsc, ESLint sin `.claude/worktrees`, `next build`, `check:billing` con
+  los checks del borrador y `scripts/smoke-billing-draft.ts 2026-11` (tres
+  repeticiones a la vez dan un borrador, `updatedAt` viejo rechazado). Smoke en
+  el Chrome del usuario: octubre da $ 14.640 neto como Biller (e-Factura más
+  e-Ticket menos su NC), doble clic en "Repetir octubre" crea un solo
+  borrador, precio y detalle siguen después de recargar, casillas suman bien,
+  y a 390 px (en un iframe: Chrome no achicó la ventana) sin scroll horizontal
+  con la hoja de edición guardando el monto. La comparación es contra lo que
+  devuelve la API de Biller; no se emitió nada desde su panel para probar eso.
+- El borrador de noviembre del smoke queda en la rama de Neon
+  `feature-39-billing` (precio vuelto a $ 12.000).
+
+## 2026-10-30 - Facturación: emitir el borrador (41)
+
+- "Emitir N" abre un diálogo con lo marcado, el total, la fecha de emisión y
+  si es test o producción. `issueBillingBatch` (solo admin) toma el borrador
+  con `pg_advisory_xact_lock` y compara `updatedAt`, cantidad y total; si
+  cambió lo rechaza y la página relee. Un doble clic encuentra `ISSUING`.
+- `runBatchIssue` emite de a una cada 1,1 s después de responder (`after`,
+  `maxDuration` 300 s). `biller-issue.ts` es el único POST a Biller. Ante un
+  timeout o 5xx busca por `numero_interno` antes de reenviar una vez; si no
+  se sabe, `UNKNOWN`. Un 422 de número interno repetido toma el existente.
+  Un rechazo de datos vuelve la fila al borrador con el error. Las notas de
+  crédito o débito marcadas no salen del borrador.
+- La página muestra el avance (relee cada 1,5 s), cada fila emitida con serie,
+  número, estado DGI y PDF, y "Continuar/Reintentar" para una emisión cortada
+  o sin confirmar. Estado DGI por sondeo cada 20 s mientras hay pendientes y
+  cron diario `/api/cron/billing-sync` (`vercel.json`, `CRON_SECRET`). PDF por
+  `/api/billing/invoices/[id]/pdf`. `BILLER_ISSUE_ENABLED=false` lo apaga.
+  La sincronización ya no cambia el período de una fila copiada.
+- PASS: tsc, ESLint sin `.claude/**`, `next build` (sin `prisma generate`,
+  DLL tomado por el dev server), `check:billing` con los checks de emisión,
+  `scripts/smoke-billing-issue.ts 2026-11 101` contra Biller test (rechazos,
+  doble clic con un solo envío, e-Ticket MT 964496, reintento sin duplicar,
+  "Envío no corresponde", PDF). En el Chrome del usuario: rechazo con el
+  borrador cambiado por fuera, e-Factura MF 673184 emitida desde la página
+  (PDF con vencimiento 30/11), "Aceptado DGI" a los ~11 minutos tomado solo
+  por el sondeo, y 390 px en un iframe. Cron sin secreto: 401.
+- En el borrador de noviembre de la rama `feature-39-billing` quedó marcada la
+  NC del e-Ticket con precio $ 6.400, cambio hecho desde el navegador durante
+  el smoke (no por el script); no se tocó.
+
+## 2026-10-30 - Facturación: el agente arma borradores y nunca emite (42)
+
+- Habilidad Facturación en un panel de `/dashboard/billing` (flotante arriba a
+  la derecha en escritorio, botón flotante con hoja de 92 % en el teléfono),
+  con historial propio (`contextKind` billing, sin migración) y el mes del
+  selector como contexto (`{ kind: "billing", month }`).
+- Tools `getBillingSummary`, `listInvoices`, `getInvoice`, `lookupRut` (las
+  mismas lecturas que la página, después de copiar el mes de Biller) y
+  `draftInvoices`: repetir el mes anterior, marcar o desmarcar, detalle y
+  precio sin IVA por línea, e-Factura nueva por RUT con los datos de DGI.
+  `applyAgentDraft` toma el lock del mes y el del lote (el de "Emitir"),
+  rechaza `ISSUING`, `DONE` y lo ya emitido, y mueve el `updatedAt` del lote.
+  Audita `invoice_draft.create` e `invoice_draft.update`. Sin tarjeta de
+  confirmación: la confirmación es emitir desde la página.
+- Tarjeta del borrador ("Borrador de noviembre · N facturas · $ X", lo que
+  cambió, "Abrir en Facturación") sin botón de emitir, y del resumen.
+  `refreshAfterTurn` relee el mes de Facturación. `BILLING_RULE` en el prompt.
+- `check:billing` recorre los imports del agente (también indirectos) y falla
+  si llega a la emisión; probado con un import directo a `issue-run` y uno
+  indirecto por `issue-store`.
+- PASS: tsc, ESLint sin `.claude/**`, `check:billing`, `check:agent-tools`,
+  `check:agent-page` y los demás `check:agent-*`; `check:agent-sheet` falla
+  igual sin estos cambios (lee `create-budget/Header.tsx`, borrado en la 36).
+  `scripts/smoke-billing-agent.ts 2026-11` contra Biller test (repetir abre el
+  mismo, precio, casilla, RUT nuevo, rechazos y "Emitir" con el `updatedAt`
+  viejo da `stale`; restaurado). En el Chrome del usuario, con Haiku 5.5
+  Alto: "subí ... y emití las facturas de noviembre" no emitió nada y lo dijo
+  (US$ 0,0036); "desmarcá la nota de crédito" mostró la tarjeta y la página
+  pasó a "0 marcadas · $ 0" al terminar el turno; volver a marcarla la dejó
+  como estaba (US$ 0,0038). El modelo leía como "marcadas" las filas ya
+  emitidas del borrador: `listInvoices` ahora manda `state` ("Ya emitida MF
+  673184 …: no se cambia") y `selected` solo en los borradores. 390 px en un
+  iframe: el botón queda sobre la barra de emitir y la hoja retoma la última
+  conversación de Facturación.
+- `init.ps1` falla solo en ESLint por `.claude/worktrees/.../.next`, como
+  antes. Sin commitear, en la rama `feature/39-billing-biller-history`.

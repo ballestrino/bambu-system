@@ -15,6 +15,8 @@ export type AgentToolContext = {
   mode: AgentMode;
   budgetId: string | null;
   formValues: BudgetFormValues | null;
+  // El mes de Facturación en contexto (AAAA-MM), o null.
+  billingMonth: string | null;
   grounding: Grounding;
   usage: AgentUsageCollector;
   // Las instrucciones del equipo y la memoria del turno: draftEmail redacta

@@ -1,3 +1,4 @@
+import { AgentBillingDraftCard, AgentBillingSummaryCard } from "@/components/agent/cards/agent-billing-card";
 import { AgentBudgetRequestsCard } from "@/components/agent/cards/agent-budget-requests-card";
 import { AgentBudgetTotalsCard } from "@/components/agent/cards/agent-budget-totals-card";
 import { AgentEmailCard } from "@/components/agent/cards/agent-email-card";
@@ -38,6 +39,10 @@ export function AgentToolCard({ data, toolCallId }: { data: AgentToolData<AgentT
       return <AgentOfficialSearchCard data={data} />;
     case "official-budget":
       return <AgentOfficialBudgetCard data={data} />;
+    case "billing-draft":
+      return <AgentBillingDraftCard data={data} />;
+    case "billing-summary":
+      return <AgentBillingSummaryCard data={data} />;
     case "list":
       return <AgentListCard data={data as ListCardData} />;
     default:

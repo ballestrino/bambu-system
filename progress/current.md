@@ -37,14 +37,37 @@ Status: active
 
 ## Queue
 
-- 2026-10-30: facturación con Biller en `docs/billing.md`, features 40 a 44
-  pendientes. Antes de la 40: el diseño en claude-design. El agente arma
-  borradores y nunca emite.
+- 2026-10-30: facturación con Biller en `docs/billing.md`, features 43 y 44
+  pendientes (notas de crédito y trabajos; salida a producción).
 - `feature_list.json` se renumeró el 2026-09-24: las ids 1–10 son contexto
   terminado y la cola va de la 11 a la 20, en orden de prioridad. La tabla de
   equivalencias con los ids viejos está en `progress/history.md`.
 
 ## Last Closed Work
+
+- 2026-10-30: facturación, el agente arma borradores y nunca emite (42):
+  habilidad Facturación en un panel de la página con historial propio,
+  `getBillingSummary`, `listInvoices`, `getInvoice`, `lookupRut` y
+  `draftInvoices` (lock del mes y del lote, rechaza lo emitido y lo que se
+  emite, audita `invoice_draft.*`), tarjeta sin emitir y `check:billing` que
+  sigue los imports del agente. Sin migración. Turno real en el Chrome del
+  usuario con Haiku 5.5 y smoke en Biller test. Sin commitear, en la rama
+  `feature/39-billing-biller-history`, sobre la 41.
+
+- 2026-10-30: facturación, emitir el borrador (41): diálogo "Emitir N" con
+  compare-and-set, emisión de a una con `after` y `numero_interno`
+  (timeout o 5xx: se busca antes de reintentar, si no se sabe queda
+  `UNKNOWN`), "Continuar/Reintentar", estado DGI por sondeo y cron diario,
+  PDF por ruta de admin, `BILLER_ISSUE_ENABLED`. Sin migración. Smoke en
+  Biller test por script y en el Chrome del usuario. Sin commitear, en la rama
+  `feature/39-billing-biller-history`, sobre la 40. Falta `CRON_SECRET` en
+  Vercel.
+
+- 2026-10-30: facturación, página con el resumen, lo emitido y el borrador
+  (40): diseño B, "Repetir <mes>" con un solo borrador por mes, casillas,
+  precio y detalle con compare-and-set. Sin migración. Smoke en el Chrome del
+  usuario (escritorio y 390 px). Sin commitear, en la rama
+  `feature/39-billing-biller-history`, sobre la 39.
 
 - 2026-10-30: facturación, lectura de Biller y resumen del mes (39): modelos
   `InvoiceBatch` e `Invoice`, GET de solo lectura con guarda de producción,

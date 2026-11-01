@@ -68,3 +68,13 @@ export const getSyncCreationWindow = (period: Date, now: Date) => {
     to: formatBillerDateTime(to),
   };
 };
+
+// Para buscar por numero_interno lo que Bambú pudo haber emitido: lo creado
+// desde el primer día de hace tres meses hasta mañana.
+export const getLookupCreationWindow = (now: Date) => {
+  const local = getLocalDateTime(now, BILLING_TIME_ZONE);
+  const from = new Date(Date.UTC(local.year, local.month - 4, 1));
+  const to = new Date(Date.UTC(local.year, local.month - 1, local.day + 1));
+  const day = (date: Date) => ({ year: date.getUTCFullYear(), month: date.getUTCMonth() + 1, day: date.getUTCDate() });
+  return { from: formatBillerDateTime(day(from)), to: formatBillerDateTime(day(to)) };
+};

@@ -46,6 +46,12 @@ assert.doesNotMatch(
   /ensureJobOccurrencesForRange|\.(create|update|upsert|delete)(Many)?\(/
 );
 
+// --- draftInvoices is the one tool that writes without a proposal card: a
+// billing draft, only through lib/billing/agent-draft-server (check:billing
+// proves the agent never reaches the issue code).
+assert.match(toolSources["billing-draft.ts"], /from "@\/lib\/billing\/agent-draft-server"/);
+assert.doesNotMatch(toolSources["billing.ts"], /agent-draft-server|draft-store|draft-update/);
+
 // --- draftEmail drafts; it never sends.
 assert.doesNotMatch(toolSources["email.ts"], /smtp|nodemailer/);
 

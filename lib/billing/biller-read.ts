@@ -17,6 +17,9 @@ export type BillerRutData = {
 };
 
 export type BillerReader = {
+  // numero_interno es único en Biller. obtener toma como desde el día de hoy
+  // si no se le pasa, así que se manda la ventana de creación.
+  findByInternalNumber: (internalNumber: string, window: { from: string; to: string }) => Promise<BillerInvoice | null>;
   getInvoiceDetail: (id: number) => Promise<BillerInvoiceDetail>;
   // Fechas de creación en hora de Montevideo, "aaaa-mm-dd hh:mm:ss".
   listInvoices: (window: { from: string; to: string }) => Promise<BillerInvoice[]>;
@@ -36,6 +39,15 @@ const parseOrThrow = <T>(
 };
 
 export const createBillerReader = (get: BillerGet): BillerReader => ({
+  findByInternalNumber: async (internalNumber, { from, to }) => {
+    const rows = parseOrThrow(
+      billerInvoiceListSchema,
+      await get("/v2/comprobantes/obtener", { desde: from, hasta: to, numero_interno: internalNumber }),
+      "la lista de comprobantes"
+    );
+    return rows.find((row) => row.numero_interno === internalNumber) ?? null;
+  },
+
   getInvoiceDetail: async (id) =>
     parseOrThrow(billerInvoiceDetailSchema, await get("/v3/comprobantes/detalle", { id }), "un comprobante"),
 

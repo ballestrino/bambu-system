@@ -1,7 +1,8 @@
 import "server-only";
 
-import { resolveBillerConfig } from "@/lib/billing/biller-config";
-import { createBillerGet } from "@/lib/billing/biller-http";
+import { isBillerIssueEnabled, resolveBillerConfig } from "@/lib/billing/biller-config";
+import { BillerError, describeBillerError } from "@/lib/billing/biller-errors";
+import { createBillerGet, createBillerGetText } from "@/lib/billing/biller-http";
 import { createBillerReader } from "@/lib/billing/biller-read";
 import { createInvoiceSyncStore } from "@/lib/billing/invoice-store";
 import { syncBillerPeriod } from "@/lib/billing/invoice-sync-core";
@@ -26,3 +27,26 @@ export const syncBillingPeriod = (period: Date) =>
     reader: getBillerReader(),
     store: createInvoiceSyncStore(db),
   });
+
+// El PDF de un comprobante: Biller lo devuelve en base64 (a veces como string JSON).
+export const getBillerInvoicePdf = async (billerId: number) => {
+  const text = (await createBillerGetText(getBillerConfig())("/v2/comprobantes/pdf", { id: billerId })).trim();
+  const base64 = text.startsWith('"') ? String(JSON.parse(text)) : text;
+  const pdf = Buffer.from(base64, "base64");
+  if (pdf.subarray(0, 5).toString("latin1") !== "%PDF-") {
+    throw new BillerError("invalid_response", "Biller no devolvió un PDF");
+  }
+  return pdf;
+};
+
+export const isIssueEnabled = () => isBillerIssueEnabled({ BILLER_ISSUE_ENABLED: process.env.BILLER_ISSUE_ENABLED });
+
+// Para la página: si Biller está configurado, si es test o producción y si
+// se puede emitir (BILLER_ISSUE_ENABLED).
+export const getBillerStatus = () => {
+  try {
+    return { configured: true, environment: getBillerConfig().environment, issueEnabled: isIssueEnabled(), message: null };
+  } catch (error) {
+    return { configured: false, environment: null, issueEnabled: false, message: describeBillerError(error) };
+  }
+};
