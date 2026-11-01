@@ -15,8 +15,7 @@ export type IssuePayload = {
   moneda: string;
   montos_brutos: 0;
   numero_interno: string;
-  razon_referencia?: string;
-  referencias?: Record<string, unknown>[];
+  referencias?: (number | Record<string, unknown>)[];
   tipo_comprobante: number;
 };
 

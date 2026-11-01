@@ -71,11 +71,12 @@ const noteInput: CreditNoteInput = {
 };
 const day = new Date("2026-11-20T00:00:00Z");
 assert.deepEqual(buildCreditNotePayload(noteInput, day), {
+  adenda: "Dos visitas no realizadas",
   cliente: { tipo_documento: 2, documento: "211186720014", razon_social: "Colegio Los Pinos S.A.", sucursal: { pais: "UY" } },
   fecha_emision: "20/11/2026", forma_pago: 2,
   items: [{ cantidad: 1, concepto: "Limpieza noviembre", indicador_facturacion: 3, precio: 2500 }],
-  moneda: "UYU", montos_brutos: 0, numero_interno: "BAMBU-n1", razon_referencia: "Dos visitas no realizadas",
-  referencias: [{ tipo_comprobante: 111, serie: "A", numero: 1043, fecha_emision: "03/11/2026" }],
+  moneda: "UYU", montos_brutos: 0, numero_interno: "BAMBU-n1",
+  referencias: [500],
   tipo_comprobante: 112,
 });
 

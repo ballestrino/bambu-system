@@ -90,7 +90,7 @@ export const prepareCreditNoteInputSchema = z.object({
     .max(200)
     .nullable()
     .describe("Solo con partial: el monto sin IVA a acreditar de cada línea; null con full"),
-  reason: z.string().trim().min(1).max(90).describe("La razón de la nota, que va a DGI (hasta 90 caracteres)"),
+  reason: z.string().trim().min(1).max(90).describe("La razón de la nota, que sale en la adenda del PDF (hasta 90 caracteres)"),
 });
 
 export type PrepareCreditNoteInput = z.infer<typeof prepareCreditNoteInputSchema>;

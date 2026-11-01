@@ -310,7 +310,7 @@ En la empresa de prueba PEPITO 12, con emisiones por la API:
 
 - **Nota de crédito** (`/dashboard/billing/[id]/credit-note`, diseño B del
   lienzo): "Comprobante que corrige" con la factura, "Por el total" o
-  "Parcial", la razón (hasta 90, va a DGI), las líneas y el resumen fijo con
+  "Parcial", la razón (hasta 90, sale en la adenda), las líneas y el resumen fijo con
   lo que falta y "Emitir nota de crédito". Se llega desde "Nota de crédito"
   en cada fila de "Emitidas" que la admite (e-Factura o e-Ticket emitido, sin
   anular ni con una nota en curso).
@@ -329,13 +329,22 @@ En la empresa de prueba PEPITO 12, con emisiones por la API:
     creó nada en Biller), una respuesta dudosa busca por `numero_interno` y
     si no aparece queda `UNKNOWN` con "Reintentar" en la página de la nota.
   - Se emite con `POST /v3/comprobantes/emitir` (tipo 102 o 112), por el
-    total y parcial; `anular` no se usa. **Sin probar en Biller:** la
-    documentación no se pudo leer desde el entorno de la sesión, así que
-    `referencias` va con la forma en que `detalle` las devuelve
-    (`tipo_comprobante`, `serie`, `numero`, `fecha_emision`) y
-    `razon_referencia` arriba (`toBillerReference`,
-    `lib/billing/credit-note-payload.ts`). Si Biller la rechaza, el 422
-    dice el campo y se corrige solo esa función.
+    total y parcial; `anular` no se usa. `referencias` va con el ID de la
+    factura en Biller (`[445804]`, la forma más simple de la documentación;
+    también acepta `{ tipo, serie, numero }` y `fecha` para comprobantes de
+    fuera de Biller). La forma de lectura de `detalle` (`tipo_comprobante`,
+    `fecha_emision`) no sirve para emitir. `razon_referencia` es de la
+    referencia global: con referencias puntuales Biller responde "Referencia
+    Global no puede estar vacío" y no acepta `referencia_global: 0`, así que
+    la razón va en `adenda` y sale en el PDF (`buildCreditNotePayload`,
+    `lib/billing/credit-note-payload.ts`).
+  - Probado en Biller test el 2026-11-01 (`scripts/smoke-billing-credit-note.ts
+    101` y `111`, sin base): dos e-Tickets y dos e-Facturas con una nota
+    parcial y una por el total cada par. `detalle` devuelve la referencia en
+    la nota y `referenciado_por` en la factura; `linkCreditNotes` marca la
+    parcial (acreditado 1220 de 3660) y la anulada, y el resumen da neto
+    7320 − 4880 = 2440. Las notas de e-Ticket quedan en "Envío no
+    corresponde"; las de e-Factura, en "Pendiente DGI" como sus facturas.
   - "Emitidas" muestra "Anulada · NC A 18" (la primera nota emitida), "NC
     parcial $ X", "NC emitiéndose" o "NC sin confirmar · Reintentar"
     (`linkCreditNotes`). Una nota que referencia varias facturas las anula
@@ -541,9 +550,9 @@ referencia. Los colores, radios y la letra son los de Operaciones
 ## Pendiente del usuario
 
 - Feature 43: aplicar la migración `20261101120000_billing_corrections_jobs`
-  en la rama de Neon `feature-39-billing` y probar en Biller test una nota
-  parcial y una por el total (la forma de `referencias` no está confirmada),
-  vincular un receptor y ver los avisos.
+  en la rama de Neon `feature-39-billing` (desde la nube no se llega a Neon)
+  y probar en la página una nota y el vínculo de un receptor con sus avisos.
+  El envío a Biller test ya está probado por script.
 - Confirmar que hoy facturan desde el panel de Biller y con qué plan.
 - Acceso a la API en producción: el panel de test dice que "fuera del ambiente
   de test, el uso de la API es exclusivo del plan Estándar". En la web el plan

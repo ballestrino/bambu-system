@@ -739,7 +739,7 @@
         "The draft warns when the linked job's price differs from the repeated invoice",
         "tsc, lint, check:billing and a smoke on the Biller test account"
       ],
-      "status": "in_progress"
+      "status": "done"
     },
     {
       "id": 44,

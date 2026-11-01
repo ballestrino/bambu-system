@@ -11,7 +11,7 @@ import { cn } from "@/lib/utils";
 const cardClass = "flex flex-col gap-4 rounded-[var(--ops-radius-panel)] border border-ops-border bg-ops-surface p-4 md:p-5";
 
 // "Comprobante que corrige" (diseño B): la factura emitida, el alcance de la
-// nota (por el total o parcial) y la razón, que va a DGI y sale en el PDF.
+// nota (por el total o parcial) y la razón, que sale en la adenda del PDF.
 export const CreditNoteSource = ({
   disabled,
   draft,
@@ -77,7 +77,7 @@ export const CreditNoteSource = ({
       </div>
       <label className="flex flex-col gap-1.5 text-[13px] font-semibold text-ops-text">
         <span>
-          Razón de la nota <span className="font-normal text-ops-text-muted">Se manda a DGI y sale en el PDF.</span>
+          Razón de la nota <span className="font-normal text-ops-text-muted">Sale en la adenda del PDF.</span>
         </span>
         <input
           className="h-11 rounded-[10px] border border-ops-border bg-ops-surface px-3 text-[15px] font-normal text-ops-text outline-none focus:border-ops-bamboo focus:ring-3 focus:ring-ops-bamboo/20 disabled:opacity-60"

@@ -4,42 +4,7 @@ Status: active
 
 ## Active Feature
 
-- 43 `billing_corrections_jobs`, en curso (sesión en la nube del
-  2026-11-01, rama `claude/beautiful-clarke-ywhsz6`). Implementada; falta la
-  prueba en Biller test y la migración en Neon, que no se pueden hacer desde
-  el entorno de la nube (sin `.env`, sin Neon y con `biller-labs.github.io`
-  bloqueado por la red).
-  - Hecho: nota de crédito por el total o parcial desde
-    `/dashboard/billing/[id]/credit-note` (diseño B del lienzo), con lock por
-    factura, compare-and-set, envío con búsqueda por `numero_interno`,
-    `UNKNOWN` con "Reintentar" y rechazo que borra la nota; "Anulada · NC …",
-    "NC parcial" y "Nota de crédito" en Emitidas; repetir deja afuera solo lo
-    anulado por el total. Vínculo receptor → trabajo (`BillingReceiverJob`,
-    migración aditiva `20261101120000_billing_corrections_jobs`) con
-    sugerencia por nombre y avisos de precio, visitas canceladas o
-    salteadas y trabajo pausado o terminado en el borrador. Agente:
-    `prepareCreditNote` (tarjeta "Abrir para emitir") y
-    `suggestReceiverJobs`, sin escribir. Detalle en `docs/billing.md`.
-  - Verificado: tsc, ESLint, `check:billing` (con
-    `scripts/billing-correction-checks.ts`), los demás `check:*` salvo
-    `check:agent-sheet`, `check:budget-auth` y
-    `check:official-budget-workspace`, que fallan igual en `HEAD` (leen
-    archivos de presupuestos borrados en la 36–38), y `next build`. Con un
-    Postgres 16 local descartable: la migración aplica sobre el esquema
-    anterior; dos tomas a la vez dejan una sola nota; total o acreditado
-    viejos dan conflicto; sin respuesta → `UNKNOWN` → reintento → emitida;
-    un 422 borra la nota; parcial no anula al repetir y el resto sí; avisos
-    con el vínculo (con la frontera de mes en hora de Montevideo). Smoke en
-    Chromium con sesión y `next start` (Biller sin configurar): sugerencia y
-    vínculo, chips de aviso, Emitidas con "Anulada · NC A 18" y "Nota de
-    crédito", la página de la nota a 1440 y 390 px sin desborde ni errores.
-  - Sin probar: el envío real a Biller test (`referencias` va con la forma de
-    `detalle`, sin confirmar en la documentación), las tools del agente con un
-    modelo y la migración en Neon.
-  - Encontrado y fuera de alcance: en producción los envoltorios de
-    Facturación que tiran `ValidationError` (sincronizar, repetir, editar el
-    borrador, emitir el lote) muestran "Minified React error #441" en vez del
-    mensaje. Los nuevos de la 43 devuelven el error y lo tira el cliente.
+- Ninguna. La 32 sigue bloqueada (abajo).
 - Entorno de facturación: `.env` apunta a la rama de Neon `feature-39-billing`
   (copia de producción); la URL de producción quedó comentada en la línea 2.
   Biller test: empresa PEPITO 12, sucursal 928, variables `BILLER_*` en `.env`.
@@ -72,13 +37,28 @@ Status: active
 
 ## Queue
 
-- 2026-10-30: facturación con Biller en `docs/billing.md`, features 43 y 44
-  pendientes (notas de crédito y trabajos; salida a producción).
+- 2026-10-30: facturación con Biller en `docs/billing.md`, feature 44
+  pendiente (salida a producción). Antes de la 44: aplicar en la rama de Neon
+  `feature-39-billing` la migración `20261101120000_billing_corrections_jobs`
+  de la 43 (desde la nube no se llega a Neon).
+- Encontrado en la 43 y fuera de alcance: en producción los envoltorios de
+  Facturación que tiran `ValidationError` (sincronizar, repetir, editar el
+  borrador, emitir el lote) muestran "Minified React error #441" en vez del
+  mensaje. Los de la 43 devuelven el error y lo tira el cliente.
 - `feature_list.json` se renumeró el 2026-09-24: las ids 1–10 son contexto
   terminado y la cola va de la 11 a la 20, en orden de prioridad. La tabla de
   equivalencias con los ids viejos está en `progress/history.md`.
 
 ## Last Closed Work
+
+- 2026-11-01: facturación, notas de crédito y receptores vinculados a
+  trabajos (43): nota por el total o parcial desde
+  `/dashboard/billing/[id]/credit-note` con lock y compare-and-set,
+  "Anulada · NC …" y "NC parcial" en Emitidas, vínculo receptor → trabajo con
+  avisos en el borrador y el agente que solo prepara. `referencias` va con el
+  ID de Biller y la razón en la adenda (probado en Biller test). Migración
+  aditiva sin aplicar en Neon. Ramas `claude/beautiful-clarke-ywhsz6` y
+  `claude/feature-43-continuation-5ht481`, sin merge.
 
 - 2026-10-30: facturación, el agente arma borradores y nunca emite (42):
   habilidad Facturación en un panel de la página con historial propio,

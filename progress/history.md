@@ -1401,3 +1401,37 @@
   conversación de Facturación.
 - `init.ps1` falla solo en ESLint por `.claude/worktrees/.../.next`, como
   antes. Sin commitear, en la rama `feature/39-billing-biller-history`.
+
+## 2026-11-01 - Facturación: notas de crédito y receptores vinculados a trabajos (43)
+
+- Nota de crédito por el total o parcial desde
+  `/dashboard/billing/[id]/credit-note` (diseño B): lock por factura,
+  compare-and-set de lo que vio la página, envío con búsqueda por
+  `numero_interno`, `UNKNOWN` con "Reintentar" y rechazo que borra la nota.
+  Emitidas muestra "Anulada · NC …", "NC parcial" y el enlace; repetir el mes
+  deja afuera solo lo anulado por el total.
+- `BillingReceiverJob` (migración aditiva
+  `20261101120000_billing_corrections_jobs`) con sugerencia por nombre y
+  avisos en el borrador: precio distinto, visitas canceladas o salteadas y
+  trabajo pausado o terminado. El agente solo prepara: `prepareCreditNote`
+  (tarjeta "Abrir para emitir") y `suggestReceiverJobs`.
+- Continuación en la nube: con la documentación de Biller, `referencias` va
+  con el ID de la factura en Biller (la forma de lectura de `detalle` no sirve
+  para emitir) y la razón va en `adenda`: con referencias puntuales,
+  `razon_referencia` hace que Biller pida `referencia_global`, que no acepta
+  en 0. El campo de la página dice "Sale en la adenda del PDF".
+- PASS: tsc, ESLint, `check:billing`, `init.sh`, `next build`.
+  `scripts/smoke-billing-credit-note.ts 101` y `111` contra Biller test, sin
+  base: dos e-Tickets y dos e-Facturas con una nota parcial y una por el
+  total cada par; `detalle` devuelve `referencias` y `referenciado_por`,
+  Emitidas marca la parcial y la anulada y el neto da 7320 − 4880 = 2440;
+  las e-Facturas y sus notas 112 llegaron a "Aceptado DGI". Con un Postgres 16
+  local descartable y Biller test: total viejo da conflicto, doble clic deja
+  una sola nota, parcial y resto emitidos por el store real, la
+  sincronización une la copia de Biller con las notas de Bambú sin duplicar y
+  la fila queda anulada. Sesión anterior: avisos del vínculo y smoke en
+  Chromium con sesión a 1440 y 390 px.
+- Comprobantes de prueba en Biller test (PEPITO 12): e-Tickets MT 964935–964939,
+  e-Facturas MF 673310–673311 y notas MA 120677–120681 y A 208055–208056.
+- Queda: aplicar la migración en la rama de Neon `feature-39-billing` (desde
+  la nube no se llega a Neon) y decidir el merge.
