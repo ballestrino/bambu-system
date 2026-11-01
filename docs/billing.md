@@ -393,7 +393,8 @@ En la empresa de prueba PEPITO 12, con emisiones por la API:
   El indicador por defecto es el de la última factura emitida (16 si Bambú
   factura con IVA mínimo: no suma IVA).
 - **Emitir ahora:** diálogo con cliente, total y ambiente; se emite en el
-  momento con `emitir`. La página genera un `requestId` al abrir: la factura
+  momento con `emitir`. Al elegir crédito el vencimiento arranca a 10 días
+  de la emisión. La página genera un `requestId` al abrir: la factura
   se crea con ese id y `numero_interno` `BAMBU-<id>`, así un doble clic o un
   reintento encuentran la misma (regla 3). Una respuesta dudosa busca por
   `numero_interno`; si no aparece queda `UNKNOWN` y "Reintentar" la manda de
