@@ -14,6 +14,8 @@ export const getBillerConfig = () =>
   resolveBillerConfig({
     BILLER_ALLOW_LOCAL_PRODUCTION: process.env.BILLER_ALLOW_LOCAL_PRODUCTION,
     BILLER_BASE_URL: process.env.BILLER_BASE_URL,
+    BILLER_CAE_CAUSAL: process.env.BILLER_CAE_CAUSAL,
+    BILLER_CAE_ESPECIAL: process.env.BILLER_CAE_ESPECIAL,
     BILLER_SUCURSAL: process.env.BILLER_SUCURSAL,
     BILLER_TOKEN: process.env.BILLER_TOKEN,
     VERCEL_ENV: process.env.VERCEL_ENV,

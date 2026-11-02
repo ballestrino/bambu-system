@@ -69,6 +69,19 @@ const issuerChecks = (async () => {
   assert.equal(calls[0].url, "https://test.biller.uy/v3/comprobantes/emitir");
   assert.equal(calls[0].init?.method, "POST");
   assert.equal(JSON.parse(String(calls[0].init?.body)).sucursal, 928);
+  assert.equal(JSON.parse(String(calls[0].init?.body)).cae, undefined, "régimen general: sin cae");
+
+  // Con CAE de IVA mínimo (BILLER_CAE_ESPECIAL=2) el pedido lleva cae.especial.
+  const minimumCalls: string[] = [];
+  const minimum = createBillerIssuer({ ...config, cae: { especial: 2 } }, {
+    fetch: async (_url, init) => {
+      minimumCalls.push(String(init?.body));
+      return new Response(JSON.stringify({ id: 1, serie: "A", numero: "198" }), { status: 201 });
+    },
+    sleep: async () => undefined,
+  });
+  await minimum.issue(plan.ok ? plan.payload : (null as never));
+  assert.deepEqual(JSON.parse(minimumCalls[0]).cae, { especial: 2 });
 
   const failing = createBillerIssuer(config, { fetch: async () => { throw new TypeError("timeout"); }, sleep: async () => undefined });
   await assert.rejects(failing.issue({} as never), (error: BillerError) => error.kind === "network");

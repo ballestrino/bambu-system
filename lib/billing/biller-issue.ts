@@ -40,7 +40,7 @@ export const createBillerIssuer = (config: BillerConfig, deps: HttpDeps = defaul
             Authorization: `Bearer ${config.token}`,
             "Content-Type": "application/json",
           },
-          body: JSON.stringify({ ...payload, sucursal: config.sucursal }),
+          body: JSON.stringify({ ...payload, sucursal: config.sucursal, ...(config.cae ? { cae: config.cae } : {}) }),
           signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS),
           cache: "no-store",
         });

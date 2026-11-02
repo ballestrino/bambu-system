@@ -96,6 +96,17 @@ En la empresa de prueba PEPITO 12, con emisiones por la API:
 - **Indicador 16:** la empresa de prueba no es de IVA mínimo y lo rechaza
   ("Indicador Facturación es inválido"). El indicador depende del régimen del
   emisor; en test se usa 3.
+- **CAE especial (2026-11-02, producción):** Bambú es IVA mínimo y sus CAE
+  son "especiales" (panel › Ajustes › CAEs, régimen "IVA mínimo", causal
+  "-"). Sin `cae` en el pedido, Biller arma un CFE de régimen general y
+  responde "No existe CAE para el tipo de comprobantes e-Factura Indicador
+  Facturación es inválido.". DGI (Formato CFE v25.2, zona G, campos 5 y 6;
+  Formato CAE v05, 7.1 y 7.2): 1 exonerado (con causal obligatoria), 2 IVA
+  mínimo, 3 Monotributo, 4 Monotributo Social MIDES; con 2, 3 o 4 el CFE va
+  con montos brutos 3 y solo así se acepta el indicador 16. Biller lo recibe
+  como `"cae": { "especial": 2 }` (su ejemplo `especial: 1, causal_especial:
+  1` es el de una exonerada). Se configura con `BILLER_CAE_ESPECIAL` y lo
+  agrega el emisor, como la sucursal.
 - **Vacíos:** llegan como `[]` (por ejemplo `descripcion: []`): se pasan a
   null antes de validar.
 - **`datos-entidad`:** en test devuelve siempre la misma entidad de prueba,
@@ -781,6 +792,8 @@ referencia. Los colores, radios y la letra son los de Operaciones
 | `BILLER_SUCURSAL` | ID de la sucursal emisora (panel › Ajustes › Sucursales) |
 | `BILLER_ISSUE_ENABLED` | `false` apaga la emisión sin tocar la lectura |
 | `BILLER_ALLOW_LOCAL_PRODUCTION` | `1` permite la URL de producción en local |
+| `BILLER_CAE_ESPECIAL` | CAE especial de DGI al emitir: `2` IVA mínimo (Bambú, en producción); vacío en test (PEPITO 12 es régimen general) |
+| `BILLER_CAE_CAUSAL` | Solo con `BILLER_CAE_ESPECIAL=1` (exonerado): la causal de la exoneración |
 | `CRON_SECRET` | Protege `/api/cron/billing-sync`; Vercel lo manda como `Bearer` en su cron |
 
 ## Pendiente del usuario

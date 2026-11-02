@@ -1564,3 +1564,14 @@
 
 - `claude/billing-side-editor-dates` a `main` por fast-forward y push, con
   autorización del usuario. Sin migraciones.
+
+## 2026-11-02 - Fix: CAE especial de IVA mínimo al emitir
+
+- Emitir en producción daba "No existe CAE para el tipo de comprobantes
+  e-Factura Indicador Facturación es inválido.": los CAE de Bambú son de IVA
+  mínimo (CAE especial) y el pedido no lo decía.
+- `BILLER_CAE_ESPECIAL` (y `BILLER_CAE_CAUSAL` para exoneradas) en
+  `lib/billing/biller-config.ts`; `biller-issue.ts` manda `cae` junto con la
+  sucursal. Códigos de DGI en `docs/billing.md`.
+- PASS: tsc, ESLint, `check:billing` (config e issuer). Falta la prueba real:
+  `BILLER_CAE_ESPECIAL=2` en Vercel y emitir una.

@@ -27,6 +27,15 @@ assert.equal(kindOf(() => resolveBillerConfig({ ...production, VERCEL_ENV: "prev
 assert.equal(resolveBillerConfig({ ...production, VERCEL_ENV: "production" }).environment, "production");
 assert.equal(resolveBillerConfig({ ...production, BILLER_ALLOW_LOCAL_PRODUCTION: "1" }).environment, "production");
 
+// --- CAE especial (DGI, zona G): 2 es IVA mínimo, sin causal; la causal va solo con el 1.
+assert.deepEqual(resolveBillerConfig({ ...test, BILLER_CAE_ESPECIAL: " 2 " }).cae, { especial: 2 });
+assert.deepEqual(resolveBillerConfig({ ...test, BILLER_CAE_ESPECIAL: "1", BILLER_CAE_CAUSAL: "93" }).cae, { causal_especial: 93, especial: 1 });
+assert.equal(resolveBillerConfig({ ...test, BILLER_CAE_ESPECIAL: "" }).cae, undefined);
+assert.equal(kindOf(() => resolveBillerConfig({ ...test, BILLER_CAE_ESPECIAL: "5" })), "invalid_config");
+assert.equal(kindOf(() => resolveBillerConfig({ ...test, BILLER_CAE_ESPECIAL: "1" })), "invalid_config");
+assert.equal(kindOf(() => resolveBillerConfig({ ...test, BILLER_CAE_ESPECIAL: "2", BILLER_CAE_CAUSAL: "1" })), "invalid_config");
+assert.equal(kindOf(() => resolveBillerConfig({ ...test, BILLER_CAE_CAUSAL: "1" })), "invalid_config");
+
 // --- HTTP: solo GET, solo rutas de lectura, reintento ante 429 y errores tipados.
 type Call = { url: string; init?: RequestInit };
 const fakeFetch = (responses: Array<() => Response>, calls: Call[]) =>
