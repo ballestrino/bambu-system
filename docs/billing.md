@@ -565,68 +565,41 @@ Pedido del usuario del 2026-11-01. Las cuatro están implementadas
     minutos. Puede que Biller o DGI la procesen recién el día de emisión; la
     página la sigue sondeando como cualquier pendiente.
 
-### Título de consumidor final (feature 51, plan)
+### Título de consumidor final (feature 51)
 
-**Problema.** Un e-Ticket a consumidor final no tiene receptor: en el
-borrador de noviembre de 2026 hay 16 y todos dicen "Consumidor final"; solo
-la adenda ("Godoy 4548") da una pista. Tampoco se pueden vincular a un
-trabajo: `getReceiverKey` devuelve null y `setReceiverJob` responde "Un
-consumidor final sin datos no se vincula a un trabajo".
+Un e-Ticket a consumidor final no tiene receptor: en noviembre de 2026 había
+16 y todos decían "Consumidor final", sin poder vincularse a un trabajo.
+Decisiones del usuario (2026-11-02): el título es solo interno, se edita
+también en lo emitido, mismo título es mismo cliente (y mismo trabajo) y el
+campo sugiere la dirección de la adenda.
 
-**Qué se agrega.** Un título interno por factura, por ejemplo "Daniela
-hogar".
-
-- **Datos.** `Invoice.label String?` (migración aditiva). Es de Bambú: no
-  va a Biller ni al PDF, y `issue-payload` no cambia. La sincronización no
-  lo toca, porque `invoice-store` arma su `update` solo con lo que viene de
-  Biller.
-- **Repetir.** `buildRepeatDraft` lo copia de la factura de origen, como la
-  adenda. Así, con ponerlo una vez queda para los meses siguientes.
-- **Nombre que se muestra.** `getReceiverName` pasa a recibir el título:
-  razón social, nombre de fantasía, título o "Consumidor final". Las filas
-  con título muestran la etiqueta "Consumidor final" al lado. Aplica al
-  borrador, "Emitidas", el editor lateral, el diálogo de "Emitir", la
-  búsqueda del toolbar (48) y lo que lee el agente.
-- **Editar.**
-  - En la fila: "Ponerle un título" cuando no tiene, o el lápiz al lado
-    del título.
-  - En el editor lateral (49) y en Nueva factura (45): un campo "Título
-    (solo para Bambú)" que aparece con "Consumidor final".
-  - En "Emitidas" también se puede, porque no cambia el comprobante. Así
-    se nombra lo de meses anteriores.
-  - Acción `setInvoiceLabel` (solo admin), con el compare-and-set del
-    `updatedAt` de la fila como `updateDraftInvoice`. Hasta 60 caracteres;
-    vacío lo quita.
-- **Vínculo con el trabajo.** Sin documento ni nombre, la clave es
-  `titulo:` más el título normalizado (`getReceiverKey` recibe el título).
-  - Con eso funcionan sin cambios "Vincular trabajo", la sugerencia por
-    nombre (`suggestJobs`: "Daniela hogar" contra el trabajo "Daniela") y
-    los avisos de precio y visitas.
-  - Cambiar el título mueve el vínculo de la clave vieja a la nueva en la
-    misma transacción, salvo que la nueva ya tenga otro trabajo.
-  - Dos facturas con el mismo título son el mismo cliente y comparten
-    trabajo.
-- **Agente.** Solo lee: ve el título en el borrador y en
-  `suggestReceiverJobs`. No lo escribe; `check:billing` verifica que nada
-  del agente llegue a `setInvoiceLabel`.
-
-**Decisiones a confirmar antes de implementar:**
-
-1. Que el título no salga en el PDF ni en Biller. La alternativa es
-   mandarlo como nombre del receptor, pero entonces deja de ser consumidor
-   final.
-2. Que se pueda editar también en lo emitido, que es lo que permite nombrar
-   lo de octubre.
-3. Que dos facturas con el mismo título compartan trabajo.
-4. Si se sugiere un título a partir de la última línea de la adenda (la
-   dirección), como texto de ayuda en el campo, sin guardarlo solo.
-
-**Archivos.** `prisma/schema.prisma` y la migración;
-`lib/billing/invoice-json.ts`, `receiver-job.ts`, `receiver-job-store.ts`,
-`draft-repeat.ts`, `draft-store.ts` y `billing-month-view.ts`;
-`data/billing/*`; `actions/billing/invoice-label.ts` y
-`receiver-job.ts`; `schemas/billing`; las filas, el editor y Nueva factura
-en `components/billing/`; `scripts/billing-*-checks.ts`.
+- **Datos.** `Invoice.label VARCHAR(60)`, migración
+  `20261102120000_billing_invoice_label` (aditiva). No va a Biller ni al
+  PDF: `check:billing` verifica que `issue-payload`, `credit-note-payload`,
+  `biller-issue` e `issue-store` no lo mencionen. La sincronización no lo
+  toca (su `update` solo lleva lo que viene de Biller).
+- **Nombre.** `getReceiverName(receiver, label)`: razón social, fantasía,
+  título o "Consumidor final". `getReceiverDisplay` (`invoice-label.ts`)
+  arma `consumer`, `label`, `labelHint` y `name` para las filas del borrador
+  y de "Emitidas"; la búsqueda (48) y lo que lee el agente usan ese nombre.
+- **Pista.** `getLabelHint`: la última parte de la adenda (por renglón o
+  " - ") que no habla del mes; suele ser la dirección. Solo se ofrece con
+  "Usar «…», de la adenda".
+- **Editar.** "Ponerle un título" (o el lápiz) en la fila del borrador, en la
+  hoja del teléfono y en "Emitidas". `setInvoiceLabel`
+  (`actions/billing/invoice-label.ts`, solo admin) →
+  `saveInvoiceLabel` (`lib/billing/invoice-label-store.ts`): compare-and-set
+  sobre el `updatedAt` de la fila y solo para consumidor final. El editor
+  lateral y Nueva factura no lo editan: se pone desde la fila.
+- **Vínculo.** Sin documento ni nombre, la clave es `titulo:` y el título
+  normalizado. Renombrar mueve el vínculo de la clave vieja a la nueva si la
+  nueva no tiene otro trabajo. La sugerencia compara también el título.
+- **Repetir.** `buildRepeatDraft` copia el título de la factura de origen.
+  Lo emitido desde el panel de Biller no lo trae: se pone en la fila.
+- **Agente.** Lo lee (borrador, `suggestReceiverJobs`) y no lo escribe.
+- Smoke (2026-11-02, Postgres 16 local con las migraciones, sin Biller):
+  título con la pista, "¿Es Daniela? Vincular", renombrar con el vínculo
+  intacto, búsqueda por título y título en "Emitidas".
 
 ### Formulario de factura
 
@@ -860,6 +833,11 @@ referencia. Los colores, radios y la letra son los de Operaciones
 | `CRON_SECRET` | Protege `/api/cron/billing-sync`; Vercel lo manda como `Bearer` en su cron |
 
 ## Pendiente del usuario
+
+- Feature 51: aplicar `20261102120000_billing_invoice_label` (aditiva:
+  `Invoice.label`) en producción con `prisma migrate deploy` antes de
+  mergear la 51 a `main`. La rama de Neon `feature-51-label` (copia de
+  producción del 2026-11-02) quedó sin cambios.
 
 - Feature 43: la migración `20261101120000_billing_corrections_jobs` está en
   la rama de Neon `feature-39-billing` (2026-11-01). En producción va con la

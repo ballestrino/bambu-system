@@ -4,21 +4,7 @@ Status: active
 
 ## Active Feature
 
-- 51 `billing_consumer_label`, en `claude/emision-factura-d3k7c8` (sin
-  mergear a `main`). Decisiones del usuario: título solo interno, editable
-  también en lo emitido, mismo título = mismo trabajo, pista desde la adenda.
-  - Hecho: `Invoice.label` (migración `20261102120000_billing_invoice_label`),
-    `lib/billing/invoice-label*.ts`, `setInvoiceLabel`, clave `titulo:` del
-    vínculo (se mueve al renombrar), repetir copia el título, filas del
-    borrador (escritorio y teléfono) y de "Emitidas" con "Ponerle un título".
-    El editor lateral y Nueva factura no lo editan: se pone desde la fila.
-  - PASS: tsc, `pnpm lint`, `prisma validate`, `check:billing` (con
-    `billing-label-checks`), `pnpm harness`.
-  - Falta: smoke en el navegador. El contenedor bloquea el 5432 de Neon; las
-    migraciones se aplicaron en un Postgres 16 local (con pgvector), que se
-    apagó con un reinicio. Producción sin tocar (sin columna `label`).
-  - Rama de Neon `feature-51-label` creada desde producción, sin cambios.
-  - Después: aplicar la migración en producción con permiso del usuario.
+- 51 hecha (ver history); falta su migración en producción.
 - Siguiente: 52, revisión de adendas con IA (botón en el borrador que
   sugiere corregir el mes de la adenda y sacar los servicios puntuales).
 - La 32 sigue bloqueada (abajo).

@@ -1575,3 +1575,15 @@
   sucursal. Códigos de DGI en `docs/billing.md`.
 - PASS: tsc, ESLint, `check:billing` (config e issuer). Falta la prueba real:
   `BILLER_CAE_ESPECIAL=2` en Vercel y emitir una.
+
+## 2026-11-02 - Feature 51: título de consumidor final
+
+- En `claude/emision-factura-d3k7c8`, sin mergear a `main`.
+- `Invoice.label` (migración aditiva), nombre y clave del vínculo con el
+  título, pista desde la adenda, `setInvoiceLabel`, repetir copia el título,
+  filas del borrador, del teléfono y de "Emitidas".
+- PASS: tsc, `pnpm lint`, `prisma validate`, `check:billing` (con
+  `billing-label-checks`), `pnpm harness` y smoke en Chromium contra un
+  Postgres 16 local con todas las migraciones (el contenedor no llega al
+  5432 de Neon). Producción sin tocar.
+- Pendiente del usuario: la migración en producción antes del merge.

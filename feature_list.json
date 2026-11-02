@@ -845,14 +845,14 @@
       "area": "billing",
       "description": "An e-Ticket to consumidor final has no receiver data, so every one shows as 'Consumidor final' and cannot be linked to a job (getReceiverKey returns null). Add Invoice.label: a title that only lives in Bambú (never sent to Biller, not on the PDF), editable on drafts and issued invoices, copied when repeating the month. The receiver-job link uses the key 'titulo:<normalized title>' when the receiver has no document or name, so linking once keeps working every month. Plan and decisions in docs/billing.md, 'Título de consumidor final (feature 51)'.",
       "acceptance": [
-        "A consumidor final row in the draft, Emitidas, the side editor and the issue dialog shows its title with a 'Consumidor final' tag, and the search finds it",
-        "The title is edited from the row and from the side editor; Biller never receives it (issue payload unchanged)",
+        "A consumidor final row in the draft and Emitidas shows its title with a 'Consumidor final' tag, and the search finds it",
+        "The title is edited from the draft row, the phone sheet and Emitidas (not the side editor or Nueva factura); Biller never receives it (issue payload unchanged)",
         "With a title the row offers 'Vincular trabajo' and the job suggestion; the link survives repeating the month and renaming the title",
         "Repeating the month copies the title; syncing with Biller does not erase it",
         "Pending decisions in docs/billing.md answered before implementing",
         "Additive migration applied to the Neon branch first; tsc, lint, check:billing and a browser check of the draft"
       ],
-      "status": "in_progress"
+      "status": "done"
     }
   ]
 }
