@@ -6,7 +6,8 @@ import { CREDIT_NOTE_TYPE } from "@/lib/billing/credit-note-plan";
 import { canArchiveInvoice } from "@/lib/billing/invoice-remove";
 import { getPaymentForm, getRepeatSkip, PAYMENT_FORM, type RepeatContext, type RepeatSkip, type RepeatSource } from "@/lib/billing/draft-repeat";
 import { resolveDraftDates } from "@/lib/billing/invoice-dates";
-import { getReceiverName, readStoredItems, readStoredReceiver } from "@/lib/billing/invoice-json";
+import { readStoredItems, readStoredReceiver } from "@/lib/billing/invoice-json";
+import { getReceiverDisplay } from "@/lib/billing/invoice-label";
 import { classifyCfe, getCfeLabel } from "@/lib/billing/invoice-mapping";
 import { getItemsSubtotal, getLineSubtotal, hasTaxedItems } from "@/lib/billing/invoice-totals";
 
@@ -22,6 +23,8 @@ export type IssuedInvoiceRow = {
   canArchive: boolean;
   // Si admite una nota de crédito ahora (emitida, sin anular ni una en curso).
   canCredit: boolean;
+  // Sin receptor con nombre (51): se le puede poner un título interno.
+  consumer: boolean;
   // Las notas que la corrigen: lo acreditado, la primera nota y una sin confirmar.
   credit: { credited: number; inFlight: boolean; noteLabel: string | null; unknownNoteId: string | null } | null;
   billerStatus: string | null;
@@ -35,22 +38,27 @@ export type IssuedInvoiceRow = {
   id: string;
   isNote: boolean;
   issueDate: string | null;
+  label: string | null;
+  // Pista para el título: la dirección de la adenda (no se guarda sola).
+  labelHint: string | null;
   name: string;
   number: number | null;
   series: string | null;
   status: InvoiceStatus;
   total: number;
+  updatedAt: string;
 };
 
 export const toIssuedRow = (
   invoice: {
-    archivedAt?: Date | null; billerId: number | null; billerStatus: string | null; cfeType: number; currency: string; id: string;
-    issueDate: Date | null; items: unknown; number: number | null; receiver: unknown; series: string | null;
-    status: InvoiceStatus; total: Amount;
+    adenda?: string | null; archivedAt?: Date | null; billerId: number | null; billerStatus: string | null; cfeType: number;
+    currency: string; id: string; issueDate: Date | null; items: unknown; label?: string | null; number: number | null;
+    receiver: unknown; series: string | null; status: InvoiceStatus; total: Amount; updatedAt: Date;
   },
   credits: Map<number, InvoiceCredit>
 ): IssuedInvoiceRow => {
   const credit = invoice.billerId === null ? undefined : credits.get(invoice.billerId);
+  const receiver = readStoredReceiver(invoice.receiver);
   return {
     annulled: credit?.fully ?? false,
     archivedAt: invoice.archivedAt?.toISOString() ?? null,
@@ -58,6 +66,7 @@ export const toIssuedRow = (
     canCredit:
       Boolean(CREDIT_NOTE_TYPE[invoice.cfeType]) && invoice.billerId !== null &&
       (invoice.status === "ISSUED" || invoice.status === "ACCEPTED") && !credit?.fully && !credit?.inFlight,
+    ...getReceiverDisplay(receiver, invoice.label, invoice.adenda),
     credit: credit
       ? { credited: credit.credited, inFlight: credit.inFlight, noteLabel: credit.note?.label ?? null, unknownNoteId: credit.unknownNoteId }
       : null,
@@ -66,16 +75,16 @@ export const toIssuedRow = (
     cfeType: invoice.cfeType,
     currency: invoice.currency,
     detail: readStoredItems(invoice.items)?.[0]?.concepto ?? null,
-    document: readStoredReceiver(invoice.receiver)?.documento ?? null,
+    document: receiver?.documento ?? null,
     hasPdf: invoice.billerId !== null,
     id: invoice.id,
     isNote: classifyCfe(invoice.cfeType) !== "invoice",
     issueDate: isoDate(invoice.issueDate),
-    name: getReceiverName(readStoredReceiver(invoice.receiver)),
     number: invoice.number,
     series: invoice.series,
     status: invoice.status,
     total: toNumber(invoice.total),
+    updatedAt: invoice.updatedAt.toISOString(),
   };
 };
 
@@ -95,6 +104,7 @@ export type DraftRow = {
   billerStatus: string | null;
   cfeLabel: string;
   cfeType: number;
+  consumer: boolean;
   currency: string;
   document: string | null;
   error: string | null;
@@ -103,6 +113,9 @@ export type DraftRow = {
   // El trabajo vinculado al receptor con sus avisos, o el que se le parece
   // (feature 43). Lo completa getBillingMonthView.
   jobLink: DraftJobInfo | null;
+  // Título interno de un consumidor final (51) y la pista de la adenda.
+  label: string | null;
+  labelHint: string | null;
   lines: DraftLine[];
   name: string;
   number: number | null;
@@ -127,8 +140,8 @@ export const getPaymentLabel = (paymentForm: number, dueDate: Date | null) =>
 
 export const toDraftRow = (
   invoice: {
-    billerId: number | null; billerStatus: string | null; cfeType: number; currency: string; dueDate?: Date | null;
-    error: string | null; id: string; issueDate?: Date | null; items: unknown; number: number | null;
+    adenda?: string | null; billerId: number | null; billerStatus: string | null; cfeType: number; currency: string;
+    dueDate?: Date | null; error: string | null; id: string; issueDate?: Date | null; items: unknown; label?: string | null; number: number | null;
     paymentForm: number | null; receiver: unknown; selected: boolean; series: string | null; status: InvoiceStatus;
     total: Amount; updatedAt: Date;
   },
@@ -138,6 +151,7 @@ export const toDraftRow = (
   today: Date
 ): DraftRow => {
   const items = readStoredItems(invoice.items) ?? [];
+  const receiver = readStoredReceiver(invoice.receiver);
   const prevItems = source?.items ?? null;
   const lines = items.map((item, index) => {
     const prev = prevItems?.[index];
@@ -160,14 +174,14 @@ export const toDraftRow = (
     billerStatus: invoice.billerStatus,
     cfeLabel: getCfeLabel(invoice.cfeType),
     cfeType: invoice.cfeType,
+    ...getReceiverDisplay(receiver, invoice.label, invoice.adenda),
     currency: invoice.currency,
-    document: readStoredReceiver(invoice.receiver)?.documento ?? null,
+    document: receiver?.documento ?? null,
     error: invoice.error,
     hasPdf: invoice.billerId !== null,
     id: invoice.id,
     jobLink: null,
     lines,
-    name: getReceiverName(readStoredReceiver(invoice.receiver)),
     number: invoice.number,
     paymentLabel: getPaymentLabel(paymentForm, dueDate),
     prevSubtotal: prevItems ? getItemsSubtotal(prevItems) : null,

@@ -15,11 +15,11 @@ export const setReceiverJob = async (values: unknown) => {
     const parsed = receiverJobLinkSchema.safeParse(values);
     if (!parsed.success) return { error: parsed.error.issues[0]?.message ?? "Datos inválidos" };
 
-    const invoice = await db.invoice.findUnique({ where: { id: parsed.data.invoiceId }, select: { receiver: true } });
+    const invoice = await db.invoice.findUnique({ where: { id: parsed.data.invoiceId }, select: { label: true, receiver: true } });
     if (!invoice) return { error: "La factura ya no existe" };
     const receiver = readStoredReceiver(invoice.receiver);
-    const receiverKey = getReceiverKey(receiver);
-    if (!receiverKey) return { error: "Un consumidor final sin datos no se vincula a un trabajo" };
+    const receiverKey = getReceiverKey(receiver, invoice.label);
+    if (!receiverKey) return { error: "Ponele un título a este consumidor final para vincularlo a un trabajo" };
 
     if (parsed.data.jobId === null) {
       await db.billingReceiverJob.deleteMany({ where: { receiverKey } });
@@ -31,7 +31,7 @@ export const setReceiverJob = async (values: unknown) => {
     });
     if (!job) return { error: "El trabajo no existe o está archivado" };
 
-    const receiverName = getReceiverName(receiver);
+    const receiverName = getReceiverName(receiver, invoice.label);
     await db.billingReceiverJob.upsert({
       where: { receiverKey },
       create: { createdById: session.user.id, jobId: job.id, receiverKey, receiverName },

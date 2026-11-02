@@ -87,7 +87,7 @@ export const applyAgentDraft = async (db: PrismaClient, input: AgentDraftInput):
       const invoices = (
         await tx.invoice.findMany({
           where: { batchId },
-          select: { id: true, items: true, receiver: true, receiverDocument: true, selected: true, status: true },
+          select: { id: true, items: true, label: true, receiver: true, receiverDocument: true, selected: true, status: true },
         })
       ).map((row) => ({ ...row, items: readStoredItems(row.items), receiver: readStoredReceiver(row.receiver) }));
 

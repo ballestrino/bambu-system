@@ -64,7 +64,7 @@ assert.match(read("data/billing/month.ts"), /^import "server-only";[\s\S]*requir
 assert.match(read("data/billing/invoice.ts"), /^import "server-only";[\s\S]*requireAdminSession\(\)/);
 assert.match(read("data/billing/credit-note.ts"), /^import "server-only";[\s\S]*requireAdminSession\(\)/);
 assert.match(read("data/billing/new-invoice.ts"), /^import "server-only";[\s\S]*requireAdminSession\(\)/);
-for (const action of ["sync-month", "repeat-month", "update-draft-invoice", "issue-batch", "credit-note", "receiver-job", "new-invoice", "billing-clients", "invoice-remove"]) {
+for (const action of ["sync-month", "repeat-month", "update-draft-invoice", "issue-batch", "credit-note", "receiver-job", "new-invoice", "billing-clients", "invoice-remove", "invoice-label"]) {
   assert.match(read(`actions/billing/${action}.ts`), /^"use server";[\s\S]*requireAdminSession\(\)/, `${action} requires admin`);
 }
 
@@ -96,6 +96,14 @@ assert.match(read("lib/billing/credit-note-store.ts"), /lockInvoiceCredit\(tx, f
 for (const file of [...listFiles("lib/agent"), "lib/billing/agent-corrections-read.ts"]) {
   assert.doesNotMatch(read(file), /billingReceiverJob\.(create|upsert|update|delete)/, `${file} writes receiver links`);
 }
+// --- El título interno (51) no va a Biller y el agente no lo escribe.
+for (const file of ["lib/billing/issue-payload.ts", "lib/billing/credit-note-payload.ts", "lib/billing/biller-issue.ts", "lib/billing/issue-store.ts"]) {
+  assert.doesNotMatch(read(file), /\blabel\b/, `${file} sends the internal label`);
+}
+for (const file of listFiles("lib/agent")) {
+  assert.doesNotMatch(read(file), /invoice-label-store|actions\/billing\/invoice-label/, `${file} writes invoice labels`);
+}
+assert.match(read("lib/billing/invoice-label-store.ts"), /updatedAt\.getTime\(\) !== input\.updatedAt\.getTime\(\)[\s\S]*isConsumerReceiver/);
 assert.match(read("app/api/billing/invoices/[id]/pdf/route.ts"), /requireAdminSession\(\)/);
 assert.match(read("app/api/cron/billing-sync/route.ts"), /CRON_SECRET[\s\S]*Bearer/);
 assert.doesNotMatch(read("app/api/cron/billing-sync/route.ts"), /biller-issue|issue-batch/);

@@ -1451,6 +1451,9 @@ model Invoice {
   // Ítems tal cual se mandan a Biller; null hasta leer el detalle.
   items            Json?
   adenda           String?       @db.Text
+  // Título interno (feature 51): nombra a un consumidor final en Bambú y es
+  // la clave de su trabajo. No va a Biller; la sincronización no lo toca.
+  label            String?       @db.VarChar(60)
   purchaseOrder    String?
   // numero_interno: Biller lo rechaza repetido.
   internalNumber   String?       @unique

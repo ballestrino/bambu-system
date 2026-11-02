@@ -55,13 +55,14 @@ export const suggestAgentReceiverJobs = async (period: Date) => {
   const batch = await db.invoiceBatch.findFirst({ where: { period }, orderBy: { createdAt: "desc" }, select: { id: true } });
   const invoices = await db.invoice.findMany({
     where: batch ? { batchId: batch.id } : { period, status: { in: ["ISSUED", "ACCEPTED"] } },
-    select: { receiver: true },
+    select: { label: true, receiver: true },
   });
-  const receivers = new Map<string, ReturnType<typeof readStoredReceiver>>();
+  // Un consumidor final cuenta por su título interno (51).
+  const receivers = new Map<string, { label: string | null; receiver: ReturnType<typeof readStoredReceiver> }>();
   for (const invoice of invoices) {
     const receiver = readStoredReceiver(invoice.receiver);
-    const key = getReceiverKey(receiver);
-    if (key && !receivers.has(key)) receivers.set(key, receiver);
+    const key = getReceiverKey(receiver, invoice.label);
+    if (key && !receivers.has(key)) receivers.set(key, { label: invoice.label, receiver });
   }
   const keys = [...receivers.keys()];
   const [links, choices] = await Promise.all([
@@ -69,12 +70,12 @@ export const suggestAgentReceiverJobs = async (period: Date) => {
     listJobChoices(db),
   ]);
   const rows = keys.map((key) => {
-    const receiver = receivers.get(key) ?? null;
+    const { label = null, receiver = null } = receivers.get(key) ?? {};
     const link = links.find((item) => item.receiverKey === key);
     return {
       job: link?.job.name ?? null,
-      receiver: getReceiverName(receiver),
-      suggestions: link ? [] : suggestJobs(receiver, choices).map((match) => ({ job: match.job.name, score: Math.round(match.score * 100) / 100 })),
+      receiver: getReceiverName(receiver, label),
+      suggestions: link ? [] : suggestJobs(receiver, choices, 3, label).map((match) => ({ job: match.job.name, score: Math.round(match.score * 100) / 100 })),
     };
   });
   return { from: batch ? "draft" as const : "issued" as const, month: getBillingPeriodKey(period), rows };

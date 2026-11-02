@@ -5,6 +5,7 @@ import Link from "next/link";
 
 import { BillingChip } from "@/components/billing/billing-chip";
 import { formatCfeNumber, formatMoney, formatShortDate, getDgiChip, getShortCfeLabel } from "@/components/billing/billing-format";
+import { BillingInvoiceLabel } from "@/components/billing/billing-invoice-label";
 import { BillingPdfLink } from "@/components/billing/billing-issue-status";
 import type { IssuedInvoiceRow } from "@/lib/billing/billing-month-view";
 import { cn } from "@/lib/utils";
@@ -18,10 +19,12 @@ const actionClass =
 export const BillingIssuedRow = ({
   busy,
   onArchive,
+  periodKey,
   row,
 }: {
   busy: boolean;
   onArchive: (archived: boolean) => void;
+  periodKey: string;
   row: IssuedInvoiceRow;
 }) => {
   const dgi = getDgiChip(row.status, row.billerStatus);
@@ -38,6 +41,7 @@ export const BillingIssuedRow = ({
       <div className="flex min-w-0 flex-[1_1_240px] flex-col gap-0.5">
         <div className="flex flex-wrap items-center gap-2">
           <span className="text-[15px] font-semibold text-ops-text">{row.name}</span>
+          <BillingInvoiceLabel periodKey={periodKey} row={row} />
           <CreditChip row={row} />
         </div>
         <span className="text-[13px] text-ops-text-muted tabular-nums">

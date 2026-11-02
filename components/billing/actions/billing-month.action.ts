@@ -1,5 +1,6 @@
 "use server";
 
+import { setInvoiceLabel } from "@/actions/billing/invoice-label";
 import { deleteDraftInvoice, setInvoiceArchived } from "@/actions/billing/invoice-remove";
 import { issueBillingBatch, resumeBillingIssue } from "@/actions/billing/issue-batch";
 import { setReceiverJob } from "@/actions/billing/receiver-job";
@@ -8,7 +9,7 @@ import { syncBillingMonth } from "@/actions/billing/sync-month";
 import { updateDraftInvoice } from "@/actions/billing/update-draft-invoice";
 import { getBillingMonthView } from "@/data/billing/month";
 import ValidationError from "@/instances/validation-error";
-import type { DraftInvoiceDelete, DraftInvoiceEdit, InvoiceArchive, IssueBatchRequest, ReceiverJobLink } from "@/schemas/billing";
+import type { DraftInvoiceDelete, DraftInvoiceEdit, InvoiceArchive, InvoiceLabelEdit, IssueBatchRequest, ReceiverJobLink } from "@/schemas/billing";
 
 // Envoltorios de la página Facturación: un { error } pasa a ValidationError
 // para que TanStack Query lo trate como error.
@@ -59,3 +60,6 @@ export const setReceiverJobAction = async (link: ReceiverJobLink): Promise<{ err
 export const deleteDraftInvoiceAction = async (values: DraftInvoiceDelete) => deleteDraftInvoice(values);
 
 export const setInvoiceArchivedAction = async (values: InvoiceArchive) => setInvoiceArchived(values);
+
+// El título de un consumidor final (51): devuelve el { error }, como los de arriba.
+export const setInvoiceLabelAction = async (values: InvoiceLabelEdit) => setInvoiceLabel(values);

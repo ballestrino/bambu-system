@@ -24,6 +24,7 @@ export type AgentDraftAddition = {
 export type AgentDraftInvoice = {
   id: string;
   items: InvoiceItemPayload[] | null;
+  label?: string | null;
   receiver: InvoiceReceiverPayload | null;
   receiverDocument: string | null;
   selected: boolean;
@@ -61,7 +62,7 @@ export const planDraftChanges = (invoices: AgentDraftInvoice[], changes: AgentDr
   for (const change of changes) {
     const invoice = byId.get(change.invoiceId);
     if (!invoice) return { error: `La factura ${change.invoiceId} no está en el borrador de este mes`, ok: false };
-    const name = getReceiverName(invoice.receiver);
+    const name = getReceiverName(invoice.receiver, invoice.label);
     if (invoice.status !== "DRAFT") {
       return { error: `La factura de ${name} ya está emitida (o emitiéndose): no se cambia desde el borrador`, ok: false };
     }

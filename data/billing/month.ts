@@ -18,12 +18,12 @@ import { billingPeriodSchema } from "@/schemas/billing";
 
 const sourceSelect = {
   adenda: true, billerId: true, cfeType: true, currency: true, dueDate: true, id: true, issueDate: true,
-  items: true, number: true, paymentForm: true, receiver: true, receiverDocument: true, status: true, total: true,
+  items: true, label: true, number: true, paymentForm: true, receiver: true, receiverDocument: true, status: true, total: true,
 } as const;
 
 const issuedSelect = {
-  archivedAt: true, billerId: true, billerStatus: true, cfeType: true, currency: true, id: true, issueDate: true, items: true,
-  number: true, receiver: true, series: true, status: true, total: true,
+  adenda: true, archivedAt: true, billerId: true, billerStatus: true, cfeType: true, currency: true, id: true, issueDate: true, items: true,
+  label: true, number: true, receiver: true, series: true, status: true, total: true, updatedAt: true,
 } as const;
 
 // Todo lo de la página Facturación para un mes, desde la copia local
@@ -44,7 +44,7 @@ export const getBillingMonthView = async (periodKey: unknown) => {
       createdAt: true, id: true, origin: true, status: true, updatedAt: true,
       invoices: {
         select: {
-          archivedAt: true, billerId: true, billerStatus: true, cfeType: true, currency: true, dueDate: true, error: true, id: true, issueDate: true, items: true, number: true, paymentForm: true,
+          adenda: true, archivedAt: true, billerId: true, billerStatus: true, cfeType: true, currency: true, dueDate: true, error: true, id: true, issueDate: true, items: true, label: true, number: true, paymentForm: true,
           receiver: true, selected: true, series: true, status: true, total: true, updatedAt: true,
           sourceInvoice: { select: sourceSelect },
         },
@@ -91,7 +91,9 @@ export const getBillingMonthView = async (periodKey: unknown) => {
   const jobs = await loadDraftJobs(
     db,
     period,
-    draftRows.map((row) => ({ currency: row.currency, id: row.id, receiver: receivers.get(row.id) ?? null, subtotal: row.subtotal }))
+    draftRows.map((row) => ({
+      currency: row.currency, id: row.id, label: row.label, receiver: receivers.get(row.id) ?? null, subtotal: row.subtotal,
+    }))
   );
   for (const row of draftRows) row.jobLink = jobs.byInvoice.get(row.id) ?? null;
 

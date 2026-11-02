@@ -6,6 +6,7 @@ import { BillingDeleteDraft } from "@/components/billing/billing-delete-draft";
 import { getDraftRowChip } from "@/components/billing/billing-draft-model";
 import type { DraftRowProps } from "@/components/billing/billing-draft-row";
 import { formatMoney, getShortCfeLabel } from "@/components/billing/billing-format";
+import { BillingInvoiceLabel } from "@/components/billing/billing-invoice-label";
 import { BillingJobLink } from "@/components/billing/billing-job-link";
 import { AmountInput, CommitInput } from "@/components/billing/billing-inputs";
 import { BillingIssueStatus, BillingPdfLink } from "@/components/billing/billing-issue-status";
@@ -83,6 +84,7 @@ export const BillingDraftPhoneRow = ({
           </SheetHeader>
           {row.error ? <p className="text-sm text-red-700 dark:text-red-300">{row.error}</p> : null}
           {row.hasPdf ? <BillingPdfLink className="self-start" id={row.id} label="Ver PDF" /> : null}
+          <BillingInvoiceLabel periodKey={periodKey} row={row} />
           <BillingJobLink choices={choices} periodKey={periodKey} row={row} />
           {row.lines.map((line, index) => (
             <div className="flex flex-col gap-2" key={index}>

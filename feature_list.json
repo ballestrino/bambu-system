@@ -852,7 +852,7 @@
         "Pending decisions in docs/billing.md answered before implementing",
         "Additive migration applied to the Neon branch first; tsc, lint, check:billing and a browser check of the draft"
       ],
-      "status": "pending"
+      "status": "in_progress"
     }
   ]
 }

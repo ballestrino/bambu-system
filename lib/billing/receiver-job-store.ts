@@ -39,13 +39,13 @@ export type DraftJobInfo = {
   warnings: JobWarning[];
 };
 
-type DraftJobRow = { currency: string; id: string; receiver: InvoiceReceiverPayload | null; subtotal: number };
+type DraftJobRow = { currency: string; id: string; label?: string | null; receiver: InvoiceReceiverPayload | null; subtotal: number };
 
 // Para cada factura del borrador de `period`: su trabajo vinculado y los
 // avisos (precio, visitas canceladas o salteadas en el mes, trabajo pausado o
 // terminado), o el trabajo que se le parece para sugerir el vínculo.
 export const loadDraftJobs = async (db: Db, period: Date, rows: DraftJobRow[]) => {
-  const keys = [...new Set(rows.flatMap((row) => getReceiverKey(row.receiver) ?? []))];
+  const keys = [...new Set(rows.flatMap((row) => getReceiverKey(row.receiver, row.label) ?? []))];
   const links = keys.length
     ? await db.billingReceiverJob.findMany({
         where: { receiverKey: { in: keys } },
@@ -68,7 +68,7 @@ export const loadDraftJobs = async (db: Db, period: Date, rows: DraftJobRow[]) =
 
   const byInvoice = new Map<string, DraftJobInfo>();
   for (const row of rows) {
-    const receiverKey = getReceiverKey(row.receiver);
+    const receiverKey = getReceiverKey(row.receiver, row.label);
     const link = receiverKey ? links.find((item) => item.receiverKey === receiverKey) : undefined;
     if (link) {
       const job = {
@@ -86,7 +86,7 @@ export const loadDraftJobs = async (db: Db, period: Date, rows: DraftJobRow[]) =
       });
       continue;
     }
-    const best = receiverKey ? suggestJobs(row.receiver, choices, 1)[0] : undefined;
+    const best = receiverKey ? suggestJobs(row.receiver, choices, 1, row.label)[0] : undefined;
     byInvoice.set(row.id, {
       job: null,
       receiverKey,

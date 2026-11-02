@@ -9,12 +9,14 @@ const normalize = (value: string) =>
   value.normalize("NFD").replace(/\p{Diacritic}/gu, "").toLowerCase().replace(/[^a-z0-9]+/g, " ").trim();
 
 // El documento sin puntos ni guiones o, sin documento, el nombre normalizado.
-// Un consumidor final sin datos no se vincula.
-export const getReceiverKey = (receiver: InvoiceReceiverPayload | null) => {
+// Un consumidor final se vincula por su título interno (51); sin título, no.
+export const getReceiverKey = (receiver: InvoiceReceiverPayload | null, label?: string | null) => {
   const document = receiver?.documento?.replace(/\D/g, "") ?? "";
   if (document.length >= 6) return document;
   const name = normalize(receiver?.razon_social || receiver?.nombre_fantasia || "");
-  return name ? `nombre:${name}` : null;
+  if (name) return `nombre:${name}`;
+  const title = normalize(label ?? "");
+  return title ? `titulo:${title}` : null;
 };
 
 // Palabras que no distinguen a un cliente de otro.
@@ -44,8 +46,8 @@ export const scoreJobMatch = (receiverNames: string[], job: JobChoice) => {
 const MIN_SCORE = 0.6;
 
 // Los trabajos que más se parecen al receptor (hasta 3), para sugerir el vínculo.
-export const suggestJobs = (receiver: InvoiceReceiverPayload | null, jobs: JobChoice[], limit = 3) => {
-  const names = [receiver?.razon_social, receiver?.nombre_fantasia].filter((name): name is string => Boolean(name));
+export const suggestJobs = (receiver: InvoiceReceiverPayload | null, jobs: JobChoice[], limit = 3, label?: string | null) => {
+  const names = [receiver?.razon_social, receiver?.nombre_fantasia, label].filter((name): name is string => Boolean(name));
   return jobs
     .map((job) => ({ job, score: scoreJobMatch(names, job) }))
     .filter((match) => match.score >= MIN_SCORE)

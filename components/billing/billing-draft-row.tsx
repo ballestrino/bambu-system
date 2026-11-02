@@ -8,6 +8,7 @@ import { BillingDeleteDraft } from "@/components/billing/billing-delete-draft";
 import { getDraftRowChip } from "@/components/billing/billing-draft-model";
 import { BillingDraftLines, type LineEdit } from "@/components/billing/billing-draft-lines";
 import { formatMoney, getShortCfeLabel } from "@/components/billing/billing-format";
+import { BillingInvoiceLabel } from "@/components/billing/billing-invoice-label";
 import { BillingJobLink } from "@/components/billing/billing-job-link";
 import { AmountInput, CommitInput, detailInputClass } from "@/components/billing/billing-inputs";
 import { BillingIssueStatus } from "@/components/billing/billing-issue-status";
@@ -63,6 +64,7 @@ export const BillingDraftRow = ({ choices, locked, onEditLine, onOpen, onToggle,
             <span className="text-[15px] font-semibold text-ops-text">{row.name}</span>
           )}
           <BillingChip className="h-5 text-[11px]">{getShortCfeLabel(row.cfeType)}</BillingChip>
+          <BillingInvoiceLabel periodKey={periodKey} row={row} />
           {row.status !== "DRAFT" || row.error ? (
             <BillingIssueStatus row={row} />
           ) : chip ? (

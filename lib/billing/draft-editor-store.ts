@@ -14,7 +14,7 @@ type Reader = Pick<Prisma.TransactionClient, "invoice">;
 
 const sourceSelect = {
   adenda: true, billerId: true, cfeType: true, currency: true, dueDate: true, id: true, issueDate: true,
-  items: true, paymentForm: true, receiver: true, receiverDocument: true, status: true, total: true,
+  items: true, label: true, paymentForm: true, receiver: true, receiverDocument: true, status: true, total: true,
 } as const;
 
 export const draftEditorSelect = {

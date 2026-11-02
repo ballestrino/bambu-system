@@ -74,6 +74,16 @@ export const receiverJobLinkSchema = z.object({
 
 export type ReceiverJobLink = z.infer<typeof receiverJobLinkSchema>;
 
+// El título interno de un consumidor final (51); vacío o null lo quita.
+// updatedAt es el que vio la página.
+export const invoiceLabelSchema = z.object({
+  invoiceId: z.string().trim().min(1),
+  label: z.string().max(200).nullable(),
+  updatedAt: z.string().datetime(),
+});
+
+export type InvoiceLabelEdit = z.infer<typeof invoiceLabelSchema>;
+
 // Borrar una factura del borrador (47): updatedAt es el que vio la página.
 export const draftInvoiceDeleteSchema = z.object({
   invoiceId: z.string().trim().min(1),

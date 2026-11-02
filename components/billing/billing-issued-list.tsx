@@ -51,6 +51,7 @@ export const BillingIssuedList = ({
             busy={busyId === row.id}
             key={row.id}
             onArchive={(next) => archive.mutate({ archived: next, invoiceId: row.id })}
+            periodKey={periodKey}
             row={row}
           />
         ))}

@@ -46,6 +46,11 @@ export const readStoredReceiver = (value: unknown): InvoiceReceiverPayload | nul
   return parsed.success ? parsed.data : null;
 };
 
-// El nombre que se muestra: razón social, nombre de fantasía o consumidor final.
-export const getReceiverName = (receiver: InvoiceReceiverPayload | null) =>
-  receiver?.razon_social || receiver?.nombre_fantasia || "Consumidor final";
+// Sin razón social ni nombre de fantasía: un consumidor final.
+export const isConsumerReceiver = (receiver: InvoiceReceiverPayload | null) =>
+  !receiver?.razon_social?.trim() && !receiver?.nombre_fantasia?.trim();
+
+// El nombre que se muestra: razón social, nombre de fantasía, el título
+// interno de un consumidor final (51) o "Consumidor final".
+export const getReceiverName = (receiver: InvoiceReceiverPayload | null, label?: string | null) =>
+  receiver?.razon_social || receiver?.nombre_fantasia || label?.trim() || "Consumidor final";

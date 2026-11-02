@@ -18,6 +18,8 @@ export type RepeatSource = {
   id: string;
   issueDate: Date | null;
   items: InvoiceItemPayload[] | null;
+  // Título interno (51): pasa al mes nuevo, así el vínculo con el trabajo sigue.
+  label?: string | null;
   paymentForm: number | null;
   receiver: InvoiceReceiverPayload | null;
   receiverDocument: string | null;
@@ -86,6 +88,7 @@ export type RepeatDraftInvoice = {
   cfeType: number;
   currency: string;
   items: InvoiceItemPayload[];
+  label: string | null;
   paymentForm: number;
   receiver: InvoiceReceiverPayload | null;
   receiverDocument: string | null;
@@ -105,6 +108,7 @@ export const buildRepeatDraft = (sources: RepeatSource[], context: RepeatContext
       cfeType: source.cfeType,
       currency: source.currency,
       items,
+      label: source.label ?? null,
       // Se factura a crédito, con vencimiento el 10 (feature 50): también las
       // que el mes pasado fueron de contado.
       paymentForm: PAYMENT_FORM.CREDIT,
