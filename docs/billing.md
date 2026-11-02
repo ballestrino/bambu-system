@@ -565,6 +565,69 @@ Pedido del usuario del 2026-11-01. Las cuatro están implementadas
     minutos. Puede que Biller o DGI la procesen recién el día de emisión; la
     página la sigue sondeando como cualquier pendiente.
 
+### Título de consumidor final (feature 51, plan)
+
+**Problema.** Un e-Ticket a consumidor final no tiene receptor: en el
+borrador de noviembre de 2026 hay 16 y todos dicen "Consumidor final"; solo
+la adenda ("Godoy 4548") da una pista. Tampoco se pueden vincular a un
+trabajo: `getReceiverKey` devuelve null y `setReceiverJob` responde "Un
+consumidor final sin datos no se vincula a un trabajo".
+
+**Qué se agrega.** Un título interno por factura, por ejemplo "Daniela
+hogar".
+
+- **Datos.** `Invoice.label String?` (migración aditiva). Es de Bambú: no
+  va a Biller ni al PDF, y `issue-payload` no cambia. La sincronización no
+  lo toca, porque `invoice-store` arma su `update` solo con lo que viene de
+  Biller.
+- **Repetir.** `buildRepeatDraft` lo copia de la factura de origen, como la
+  adenda. Así, con ponerlo una vez queda para los meses siguientes.
+- **Nombre que se muestra.** `getReceiverName` pasa a recibir el título:
+  razón social, nombre de fantasía, título o "Consumidor final". Las filas
+  con título muestran la etiqueta "Consumidor final" al lado. Aplica al
+  borrador, "Emitidas", el editor lateral, el diálogo de "Emitir", la
+  búsqueda del toolbar (48) y lo que lee el agente.
+- **Editar.**
+  - En la fila: "Ponerle un título" cuando no tiene, o el lápiz al lado
+    del título.
+  - En el editor lateral (49) y en Nueva factura (45): un campo "Título
+    (solo para Bambú)" que aparece con "Consumidor final".
+  - En "Emitidas" también se puede, porque no cambia el comprobante. Así
+    se nombra lo de meses anteriores.
+  - Acción `setInvoiceLabel` (solo admin), con el compare-and-set del
+    `updatedAt` de la fila como `updateDraftInvoice`. Hasta 60 caracteres;
+    vacío lo quita.
+- **Vínculo con el trabajo.** Sin documento ni nombre, la clave es
+  `titulo:` más el título normalizado (`getReceiverKey` recibe el título).
+  - Con eso funcionan sin cambios "Vincular trabajo", la sugerencia por
+    nombre (`suggestJobs`: "Daniela hogar" contra el trabajo "Daniela") y
+    los avisos de precio y visitas.
+  - Cambiar el título mueve el vínculo de la clave vieja a la nueva en la
+    misma transacción, salvo que la nueva ya tenga otro trabajo.
+  - Dos facturas con el mismo título son el mismo cliente y comparten
+    trabajo.
+- **Agente.** Solo lee: ve el título en el borrador y en
+  `suggestReceiverJobs`. No lo escribe; `check:billing` verifica que nada
+  del agente llegue a `setInvoiceLabel`.
+
+**Decisiones a confirmar antes de implementar:**
+
+1. Que el título no salga en el PDF ni en Biller. La alternativa es
+   mandarlo como nombre del receptor, pero entonces deja de ser consumidor
+   final.
+2. Que se pueda editar también en lo emitido, que es lo que permite nombrar
+   lo de octubre.
+3. Que dos facturas con el mismo título compartan trabajo.
+4. Si se sugiere un título a partir de la última línea de la adenda (la
+   dirección), como texto de ayuda en el campo, sin guardarlo solo.
+
+**Archivos.** `prisma/schema.prisma` y la migración;
+`lib/billing/invoice-json.ts`, `receiver-job.ts`, `receiver-job-store.ts`,
+`draft-repeat.ts`, `draft-store.ts` y `billing-month-view.ts`;
+`data/billing/*`; `actions/billing/invoice-label.ts` y
+`receiver-job.ts`; `schemas/billing`; las filas, el editor y Nueva factura
+en `components/billing/`; `scripts/billing-*-checks.ts`.
+
 ### Formulario de factura
 
 Los campos de `POST /v3/comprobantes/emitir` que usa Bambú, por sección:
