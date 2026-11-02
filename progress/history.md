@@ -1587,3 +1587,15 @@
   Postgres 16 local con todas las migraciones (el contenedor no llega al
   5432 de Neon). Producción sin tocar.
 - Pendiente del usuario: la migración en producción antes del merge.
+
+## 2026-11-02 - Feature 52: revisión del borrador con IA
+
+- En `claude/emision-factura-d3k7c8`, sin mergear a `main`. Sin migración.
+- "Revisar con IA" en el borrador: una llamada con el modo por defecto
+  sugiere corregir el mes de adendas y conceptos, sacar servicios puntuales
+  o mirar algo a mano. Se valida contra el borrador y se aplica de a una con
+  `updateDraftInvoice` (ahora con `adenda`) y `deleteDraftInvoice`.
+- PASS: tsc, `pnpm lint`, `check:billing` (con `billing-review-checks`),
+  `check:agent-tools`, `check:agent-cost-estimate`, `check:agent-page`,
+  `check:ai-gateway`, `pnpm harness` y smoke en Chromium con Luna 6 contra
+  el Postgres local (US$ 0,0008 por revisión de 8 facturas).

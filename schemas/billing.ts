@@ -8,9 +8,12 @@ export const billingPeriodSchema = z
 
 // DGI admite hasta 80 caracteres en el nombre de un ítem.
 export const BILLING_ITEM_CONCEPT_MAX = 80;
+// La adenda, como en Nueva factura (45).
+export const BILLING_ADENDA_MAX = 1000;
 
-// Un cambio a una factura del borrador: la casilla, o el concepto y el precio
-// de sus líneas. updatedAt es el que vio la página (compare-and-set).
+// Un cambio a una factura del borrador: la casilla, el concepto y el precio
+// de sus líneas o la adenda (la revisión con IA, 52; vacía la quita).
+// updatedAt es el que vio la página (compare-and-set).
 export const draftInvoiceEditSchema = z
   .object({
     invoiceId: z.string().trim().min(1),
@@ -26,8 +29,9 @@ export const draftInvoiceEditSchema = z
       )
       .max(200)
       .optional(),
+    adenda: z.string().max(BILLING_ADENDA_MAX, `Hasta ${BILLING_ADENDA_MAX} caracteres`).nullable().optional(),
   })
-  .refine((value) => value.selected !== undefined || value.lines?.length, "No hay cambios");
+  .refine((value) => value.selected !== undefined || value.lines?.length || value.adenda !== undefined, "No hay cambios");
 
 export type DraftInvoiceEdit = z.infer<typeof draftInvoiceEditSchema>;
 

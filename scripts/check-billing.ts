@@ -6,7 +6,7 @@
 // la factura nueva (45), el agente que la completa sin emitir (46), borrar
 // del borrador y archivar lo emitido (47), las vistas con filtros (48) y el
 // editor lateral del borrador (49), las fechas por defecto del 1 al 10 (50)
-// y el título interno de un consumidor final (51).
+// el título interno de un consumidor final (51) y la revisión con IA (52).
 import "./billing-agent-checks";
 import { billingConfigChecks } from "./billing-config-checks";
 import { billingCorrectionChecks } from "./billing-correction-checks";
@@ -17,6 +17,7 @@ import "./billing-draft-checks";
 import "./billing-invoice-form-checks";
 import { billingIssueChecks } from "./billing-issue-checks";
 import "./billing-label-checks";
+import "./billing-review-checks";
 import { billingNewInvoiceChecks } from "./billing-new-invoice-checks";
 import { billingRemoveChecks } from "./billing-remove-checks";
 import "./billing-source-checks";

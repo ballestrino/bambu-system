@@ -1,5 +1,6 @@
 "use server";
 
+import { reviewBillingDraft } from "@/actions/billing/draft-review";
 import { setInvoiceLabel } from "@/actions/billing/invoice-label";
 import { deleteDraftInvoice, setInvoiceArchived } from "@/actions/billing/invoice-remove";
 import { issueBillingBatch, resumeBillingIssue } from "@/actions/billing/issue-batch";
@@ -63,3 +64,6 @@ export const setInvoiceArchivedAction = async (values: InvoiceArchive) => setInv
 
 // El título de un consumidor final (51): devuelve el { error }, como los de arriba.
 export const setInvoiceLabelAction = async (values: InvoiceLabelEdit) => setInvoiceLabel(values);
+
+// "Revisar con IA" (52): devuelve las sugerencias o el { error }.
+export const reviewBillingDraftAction = async (periodKey: string) => reviewBillingDraft(periodKey);

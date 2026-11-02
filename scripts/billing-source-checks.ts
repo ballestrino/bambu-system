@@ -64,7 +64,7 @@ assert.match(read("data/billing/month.ts"), /^import "server-only";[\s\S]*requir
 assert.match(read("data/billing/invoice.ts"), /^import "server-only";[\s\S]*requireAdminSession\(\)/);
 assert.match(read("data/billing/credit-note.ts"), /^import "server-only";[\s\S]*requireAdminSession\(\)/);
 assert.match(read("data/billing/new-invoice.ts"), /^import "server-only";[\s\S]*requireAdminSession\(\)/);
-for (const action of ["sync-month", "repeat-month", "update-draft-invoice", "issue-batch", "credit-note", "receiver-job", "new-invoice", "billing-clients", "invoice-remove", "invoice-label"]) {
+for (const action of ["sync-month", "repeat-month", "update-draft-invoice", "issue-batch", "credit-note", "receiver-job", "new-invoice", "billing-clients", "invoice-remove", "invoice-label", "draft-review"]) {
   assert.match(read(`actions/billing/${action}.ts`), /^"use server";[\s\S]*requireAdminSession\(\)/, `${action} requires admin`);
 }
 
@@ -102,6 +102,11 @@ for (const file of ["lib/billing/issue-payload.ts", "lib/billing/credit-note-pay
 }
 for (const file of listFiles("lib/agent")) {
   assert.doesNotMatch(read(file), /invoice-label-store|actions\/billing\/invoice-label/, `${file} writes invoice labels`);
+}
+// --- La revisión con IA (52) solo lee el borrador: no emite ni escribe facturas.
+for (const file of ["lib/billing/draft-review.ts", "lib/billing/draft-review-server.ts", "actions/billing/draft-review.ts"]) {
+  assert.ok(!ISSUE_IMPORT.test(read(file)), `${file} imports the Biller issue code`);
+  assert.doesNotMatch(read(file), /\b(invoice|invoiceBatch|billingReceiverJob)\.(create|createMany|update|updateMany|upsert|delete|deleteMany)\(/, `${file} writes billing data`);
 }
 assert.match(read("lib/billing/invoice-label-store.ts"), /updatedAt\.getTime\(\) !== input\.updatedAt\.getTime\(\)[\s\S]*isConsumerReceiver/);
 assert.match(read("app/api/billing/invoices/[id]/pdf/route.ts"), /requireAdminSession\(\)/);

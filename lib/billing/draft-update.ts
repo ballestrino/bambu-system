@@ -19,7 +19,7 @@ export const updateDraftInvoice = (db: PrismaClient, edit: DraftInvoiceEdit, act
   db.$transaction<DraftUpdateResult>(async (tx) => {
     const invoice = await tx.invoice.findUnique({
       where: { id: edit.invoiceId },
-      select: { batch: { select: { id: true, status: true } }, currency: true, items: true, status: true, updatedAt: true },
+      select: { adenda: true, batch: { select: { id: true, status: true } }, currency: true, items: true, status: true, updatedAt: true },
     });
     if (!invoice) return { error: "not_found" };
     if (invoice.status !== "DRAFT" || !invoice.batch || invoice.batch.status !== "DRAFT") {
@@ -36,11 +36,18 @@ export const updateDraftInvoice = (db: PrismaClient, edit: DraftInvoiceEdit, act
       itemsUpdate = { items: items as Prisma.InputJsonValue, total: getItemsTotal(items) };
       changes = describeItemChanges(before, items, invoice.currency);
     }
+    const adenda = edit.adenda === undefined ? undefined : edit.adenda?.trim() || null;
+    if (adenda !== undefined && adenda !== invoice.adenda) changes.push(adenda ? "Adenda cambiada" : "Sin adenda");
 
     const updatedAt = new Date();
     const { count } = await tx.invoice.updateMany({
       where: { id: edit.invoiceId, status: "DRAFT", updatedAt: invoice.updatedAt },
-      data: { ...itemsUpdate, ...(edit.selected !== undefined ? { selected: edit.selected } : {}), updatedAt },
+      data: {
+        ...itemsUpdate,
+        ...(edit.selected !== undefined ? { selected: edit.selected } : {}),
+        ...(adenda !== undefined ? { adenda } : {}),
+        updatedAt,
+      },
     });
     if (!count) return { error: "stale" };
 

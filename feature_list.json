@@ -853,6 +853,21 @@
         "Additive migration applied to the Neon branch first; tsc, lint, check:billing and a browser check of the draft"
       ],
       "status": "done"
+    },
+    {
+      "id": 52,
+      "name": "billing_ai_draft_review",
+      "title": "AI review of the billing draft: month in adendas and one-off services",
+      "area": "billing",
+      "description": "A 'Revisar con IA' button on the draft runs one model call over the DRAFT invoices (adenda, lines, the source invoice text and how many of the last 6 months the client was billed) and returns suggestions: fix the month in an adenda or concept (Bambú bills the previous month), remove a one-off service from the draft, or a note to check by hand. Suggestions are validated against the draft (no new numbers, no unknown invoices or lines) and applied one by one by a person with the existing draft actions (compare-and-set). The review itself writes nothing. Plan and smoke in docs/billing.md, 'Revisión con IA (feature 52)'.",
+      "acceptance": [
+        "The button opens a panel with the suggestions, the model and the cost",
+        "Applying an adenda or concept fix uses updateDraftInvoice with the current updatedAt and is audited; removing uses deleteDraftInvoice",
+        "Invalid suggestions (unknown invoice or line, unchanged text, new numbers) are dropped",
+        "check:billing proves the review modules do not issue or write billing data",
+        "tsc, lint, check:billing and a browser smoke with a real model"
+      ],
+      "status": "done"
     }
   ]
 }

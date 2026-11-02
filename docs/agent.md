@@ -58,6 +58,9 @@ este documento describe lo que ya existe y se actualiza con cada feature.
   trabaja dentro de Nueva factura con la habilidad Nueva factura: completa el
   formulario con `fillInvoiceForm` (y busca clientes con
   `findBillingClient`) y la persona la emite con los botones de la página.
+  Desde la 52, "Revisar con IA" en el borrador sugiere corregir el mes de
+  las adendas y sacar los servicios puntuales, sin escribir (fuera del chat:
+  su consumo queda como `SKILL` sin conversación).
 - Instrucciones del equipo (feature 35): el agente propone agregar, cambiar o
   quitar una regla de cómo trabaja, un admin confirma el antes y el después y
   queda una versión nueva; las reglas fijas no se tocan. Versiones y

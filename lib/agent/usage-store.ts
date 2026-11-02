@@ -15,7 +15,9 @@ export const persistUsageEntries = async ({
   mode,
   entries,
 }: {
-  conversationId: string;
+  // null: un consumo fuera del chat (la revisión del borrador, 52), que
+  // queda solo en el gasto del mes.
+  conversationId: string | null;
   messageId: string | null;
   mode: AgentMode;
   entries: UsageEntry[];

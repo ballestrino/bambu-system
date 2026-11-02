@@ -4,6 +4,7 @@ import { useState } from "react";
 
 import { canEditDraftRow, isDraftRowLocked } from "@/components/billing/billing-draft-model";
 import { BillingDraftPhoneRow } from "@/components/billing/billing-draft-phone";
+import { BillingDraftReview } from "@/components/billing/billing-draft-review";
 import { BillingDraftRow } from "@/components/billing/billing-draft-row";
 import { getMonthName } from "@/components/billing/billing-format";
 import { BillingIssueBar, BillingIssueNotice } from "@/components/billing/billing-issue-bar";
@@ -49,6 +50,11 @@ export const BillingDraft = ({
     <div className="flex flex-col gap-3.5">
       <BillingIssueNotice draft={draft} periodKey={view.period} />
       <BillingRepeatNotice draft={draft} view={view} />
+      {draft.status === "DRAFT" ? (
+        <div className="flex justify-end">
+          <BillingDraftReview disabled={!draft.rows.some((row) => row.status === "DRAFT")} periodKey={view.period} />
+        </div>
+      ) : null}
       {hiddenMarked ? (
         <p className="rounded-[var(--ops-radius-control)] bg-ops-surface-muted px-3.5 py-2.5 text-[13px] text-ops-text-muted">
           El filtro oculta {hiddenMarked} {hiddenMarked === 1 ? "marcada" : "marcadas"}: &quot;Emitir&quot; las incluye igual.

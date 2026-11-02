@@ -601,6 +601,46 @@ campo sugiere la dirección de la adenda.
   título con la pista, "¿Es Daniela? Vincular", renombrar con el vínculo
   intacto, búsqueda por título y título en "Emitidas".
 
+### Revisión con IA (feature 52)
+
+Pedido del usuario (2026-11-02): un botón que revise las adendas, por
+ejemplo "correspondiente al mes de septiembre" en el borrador de noviembre
+(Bambú factura a mes vencido: noviembre cobra octubre), y que sugiera sacar
+los servicios puntuales (final de obra, único servicio, armado de un
+evento). Repetir el mes ya corre el mes del texto (`moveMonthInText`), pero
+las adendas que nombran otro mes o dos meses quedan mal.
+
+- **Botón.** "Revisar con IA" arriba del borrador, mientras está en
+  `DRAFT`. Abre el panel "Revisión con IA" con lo revisado, el modelo y el
+  costo.
+- **Qué lee.** `reviewDraftWithAi` (`lib/billing/draft-review-server.ts`) lee
+  las facturas en `DRAFT` del borrador: nombre (con el título de la 51),
+  tipo, adenda, líneas con su subtotal, la adenda y los conceptos de la
+  factura de origen y `monthsBilled`, en cuántos de los últimos 6 meses se
+  le facturó al cliente (por la clave del vínculo; null sin clave).
+- **Modelo.** El modo por defecto (`resolveDefaultMode`: Haiku 5.5 Alto, o
+  Luna 6 Extra alto sin clave de Anthropic), con `Output.object`. El consumo
+  queda como `SKILL` sin conversación, en el gasto del mes.
+- **Sugerencias** (`lib/billing/draft-review.ts`, puro):
+  - `adenda` y `concepto` traen el texto completo corregido;
+  - `remove` propone sacar la factura del borrador;
+  - `note` es algo para mirar a mano.
+  - `validateReviewSuggestions` descarta una factura o línea que no está, un
+    texto igual al actual o largo de más, uno con números nuevos (salvo el
+    año) y las repetidas.
+- **Aplicar.** La revisión no escribe nada del borrador (`check:billing`).
+  - Cada tarjeta se aplica o se descarta. "Aplicar los N textos" hace las de
+    texto juntas; sacar del borrador se confirma de a una.
+  - Se aplica con las acciones de siempre y el `updatedAt` actual de la
+    fila: `updateDraftInvoice` (que ahora acepta `adenda` y la audita como
+    "Adenda cambiada") y `deleteDraftInvoice` (47).
+- Smoke (2026-11-02, Postgres local, Luna 6 Extra alto, US$ 0,0008 a
+  0,0011 por revisión de 8 facturas):
+  - corrigió "septiembre" → "octubre";
+  - marcó la adenda "septiembre y noviembre";
+  - propuso sacar el final de obra y el armado del evento;
+  - aplicar dejó la adenda nueva con su auditoría y borró la fila.
+
 ### Formulario de factura
 
 Los campos de `POST /v3/comprobantes/emitir` que usa Bambú, por sección:
