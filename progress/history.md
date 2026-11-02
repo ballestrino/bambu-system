@@ -1599,3 +1599,11 @@
   `check:agent-tools`, `check:agent-cost-estimate`, `check:agent-page`,
   `check:ai-gateway`, `pnpm harness` y smoke en Chromium con Luna 6 contra
   el Postgres local (US$ 0,0008 por revisión de 8 facturas).
+
+## 2026-11-02 - Merge de facturación a `main` (51 y 52)
+
+- Con autorización del usuario: la migración
+  `20261102120000_billing_invoice_label` se aplicó en producción (columna y
+  registro en `_prisma_migrations`, en una transacción) y después
+  `claude/emision-factura-d3k7c8` pasó a `main` por fast-forward.
+- Se borró la rama de Neon `feature-51-label`, que no se usó.

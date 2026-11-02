@@ -597,6 +597,8 @@ campo sugiere la dirección de la adenda.
 - **Repetir.** `buildRepeatDraft` copia el título de la factura de origen.
   Lo emitido desde el panel de Biller no lo trae: se pone en la fila.
 - **Agente.** Lo lee (borrador, `suggestReceiverJobs`) y no lo escribe.
+- La migración está en producción desde el 2026-11-02 (aplicada con el
+  MCP de Neon, registrada en `_prisma_migrations` con su checksum).
 - Smoke (2026-11-02, Postgres 16 local con las migraciones, sin Biller):
   título con la pista, "¿Es Daniela? Vincular", renombrar con el vínculo
   intacto, búsqueda por título y título en "Emitidas".
@@ -873,11 +875,6 @@ referencia. Los colores, radios y la letra son los de Operaciones
 | `CRON_SECRET` | Protege `/api/cron/billing-sync`; Vercel lo manda como `Bearer` en su cron |
 
 ## Pendiente del usuario
-
-- Feature 51: aplicar `20261102120000_billing_invoice_label` (aditiva:
-  `Invoice.label`) en producción con `prisma migrate deploy` antes de
-  mergear la 51 a `main`. La rama de Neon `feature-51-label` (copia de
-  producción del 2026-11-02) quedó sin cambios.
 
 - Feature 43: la migración `20261101120000_billing_corrections_jobs` está en
   la rama de Neon `feature-39-billing` (2026-11-01). En producción va con la

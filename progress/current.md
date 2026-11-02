@@ -4,9 +4,7 @@ Status: active
 
 ## Active Feature
 
-- 51 y 52 hechas en `claude/emision-factura-d3k7c8` (ver history), sin
-  mergear a `main`. Falta aplicar en producción la migración de la 51
-  (`20261102120000_billing_invoice_label`) antes del merge.
+- Ninguna activa. 51 y 52 hechas y mergeadas a `main` (ver history).
 - La 32 sigue bloqueada (abajo).
 - Entorno de facturación: `.env` apunta a la rama de Neon `feature-39-billing`
   (copia de producción); la URL de producción quedó comentada en la línea 2.
