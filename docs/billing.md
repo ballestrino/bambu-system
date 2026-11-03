@@ -707,6 +707,9 @@ respuestas llegan a esa casilla), con asunto y mensaje editables.
     anotar y quitar, envío real a `delivered@resend.dev` (buzón de prueba de
     Resend) que quedó como fila `SYSTEM` con su id, el error de una factura
     que Biller no tiene y un correo inválido. Sin errores de consola.
+- La migración está en producción desde el 2026-11-03 (aplicada con el MCP
+  de Neon en la rama `production`, registrada en `_prisma_migrations` con su
+  checksum).
 
 ### Formulario de factura
 
@@ -941,8 +944,6 @@ referencia. Los colores, radios y la letra son los de Operaciones
 
 ## Pendiente del usuario
 
-- Feature 53: aplicar en producción la migración aditiva
-  `20261103120000_billing_invoice_deliveries` antes de mergear.
 
 - Feature 43: la migración `20261101120000_billing_corrections_jobs` está en
   la rama de Neon `feature-39-billing` (2026-11-01). En producción va con la

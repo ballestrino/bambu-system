@@ -1629,6 +1629,15 @@
 - Después, a pedido del usuario: copia oculta a facturacion@ en cada envío
   (`getInvoiceMailBcc`, sin duplicar si ya es destinatario). Probado con un
   envío real a `delivered@resend.dev` con la copia: Resend lo aceptó.
-- Pendiente del usuario: la migración en producción antes del merge, y
-  confirmar que la copia llega a la casilla de contacto@.
+- Pendiente del usuario: confirmar que la copia llega a la casilla de
+  contacto@.
+
+## 2026-11-03 - Merge de la 53 a `main`
+
+- Con autorización del usuario: la migración
+  `20261103120000_billing_invoice_deliveries` se aplicó en producción (rama
+  de Neon `production`, `br-sparkling-night-acqea90i`) en una transacción,
+  con su registro en `_prisma_migrations` y la checksum del archivo.
+  Verificado: 9 columnas, 4 índices, 2 claves foráneas y 134 facturas sin
+  cambios. Después, `claude/kind-hopper-64i6j1` pasó a `main`.
 
