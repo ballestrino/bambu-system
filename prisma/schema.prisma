@@ -78,6 +78,7 @@ model User {
   createdInvoiceBatches            InvoiceBatch[]             @relation("InvoiceBatchCreatedBy")
   createdInvoices                  Invoice[]                  @relation("InvoiceCreatedBy")
   archivedInvoices                 Invoice[]                  @relation("InvoiceArchivedBy")
+  invoiceDeliveries                InvoiceDelivery[]          @relation("InvoiceDeliveryCreatedBy")
   createdBillingReceiverJobs       BillingReceiverJob[]       @relation("BillingReceiverJobCreatedBy")
 }
 
@@ -1489,6 +1490,9 @@ model Invoice {
   archivedAt       DateTime?
   archivedById     String?
   archivedBy       User?         @relation("InvoiceArchivedBy", fields: [archivedById], references: [id], onDelete: SetNull)
+  // A dónde se mandó (feature 53): correos enviados desde Bambú y lo que una
+  // persona anotó (correo o WhatsApp). Solo Bambú: la sincronización no lo toca.
+  deliveries       InvoiceDelivery[]
   createdAt        DateTime      @default(now())
   updatedAt        DateTime      @updatedAt
 
@@ -1501,6 +1505,40 @@ model Invoice {
   @@index([receiverDocument, period])
   @@index([createdById])
   @@index([archivedById])
+}
+
+// Un envío de una factura emitida (feature 53): una fila por destinatario.
+// SYSTEM lo mandó Bambú por correo (desde facturacion@, con el PDF adjunto);
+// MANUAL lo anotó una persona (un correo o un WhatsApp mandado por fuera).
+enum InvoiceDeliveryChannel {
+  EMAIL
+  WHATSAPP
+}
+
+enum InvoiceDeliverySource {
+  SYSTEM
+  MANUAL
+}
+
+model InvoiceDelivery {
+  id          String                 @id @default(cuid())
+  invoiceId   String
+  invoice     Invoice                @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+  channel     InvoiceDeliveryChannel
+  // Correo en minúsculas o teléfono sin espacios.
+  recipient   String                 @db.VarChar(254)
+  source      InvoiceDeliverySource
+  // El pedido del diálogo de enviar y el id del correo en Resend (SYSTEM).
+  requestId   String?
+  messageId   String?
+  sentAt      DateTime               @default(now())
+  createdById String?
+  createdBy   User?                  @relation("InvoiceDeliveryCreatedBy", fields: [createdById], references: [id], onDelete: SetNull)
+
+  // Repetir el mismo pedido no duplica filas.
+  @@unique([requestId, recipient])
+  @@index([invoiceId])
+  @@index([createdById])
 }
 
 // Un receptor de Biller vinculado a su trabajo de Bambú (feature 43). Lo

@@ -79,7 +79,7 @@ export const parseDecimal = (text: string) => {
 
 const toDay = (text: string) => (/^\d{4}-\d{2}-\d{2}$/.test(text) ? new Date(`${text}T00:00:00Z`) : null);
 const isBlankItem = (item: NewInvoiceItem) => !item.concepto.trim() && !item.precio.trim();
-const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+export const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 const toItemPayload = (item: NewInvoiceItem): InvoiceItemPayload => {
   const discount = parseDecimal(item.descuento) ?? 0;
@@ -158,7 +158,7 @@ export const getNewInvoiceProblems = (form: NewInvoiceForm, today: string) => {
     problems.push("La e-Factura va solo con un RUT de 12 dígitos.");
   }
   if (!(form.consumer && form.cfeType === 101) && !form.name.trim()) problems.push("Falta el nombre del cliente.");
-  if (form.emails.some((email) => !EMAIL.test(email))) problems.push("Hay un email que no es válido.");
+  if (form.emails.some((email) => !EMAIL_PATTERN.test(email))) problems.push("Hay un email que no es válido.");
   const items = form.items.filter((item) => !isBlankItem(item));
   if (items.some((item) => !item.concepto.trim())) problems.push("Hay un ítem con precio y sin concepto.");
   if (items.some((item) => !((parseDecimal(item.cantidad) ?? 0) > 0) || (parseDecimal(item.precio) ?? -1) < 0)) {

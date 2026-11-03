@@ -1,5 +1,5 @@
 import type { InvoiceStatus } from "@prisma/client";
-import { FileText, Loader2 } from "lucide-react";
+import { Download, FileText, Loader2 } from "lucide-react";
 
 import { BillingChip } from "@/components/billing/billing-chip";
 import { formatCfeNumber, getDgiChip, getPdfHref } from "@/components/billing/billing-format";
@@ -28,6 +28,22 @@ export const BillingPdfLink = ({ className, id, label = "PDF" }: { className?: s
   >
     <FileText aria-hidden className="size-3.5" />
     {label}
+  </a>
+);
+
+// Descargar el PDF con un clic, sin abrirlo (feature 53).
+export const BillingPdfDownload = ({ className, id, name }: { className?: string; id: string; name: string }) => (
+  <a
+    aria-label={`Descargar el PDF de ${name}`}
+    className={cn(
+      "inline-flex size-8 items-center justify-center rounded-lg text-ops-bamboo-strong hover:bg-ops-surface-muted focus-visible:ring-2 focus-visible:ring-ops-bamboo/40 focus-visible:outline-none",
+      className
+    )}
+    download
+    href={getPdfHref(id, { download: true })}
+    title="Descargar PDF"
+  >
+    <Download aria-hidden className="size-4" />
   </a>
 );
 

@@ -4,7 +4,10 @@ Status: active
 
 ## Active Feature
 
-- Ninguna activa. 51 y 52 hechas y mergeadas a `main` (ver history).
+- Ninguna activa. 53 (enviar, descargar y marcar como enviada) hecha en
+  `claude/kind-hopper-64i6j1`, sin mergear: falta aplicar en producción la
+  migración `20261103120000_billing_invoice_deliveries` (con el OK del
+  usuario). 51 y 52 hechas y mergeadas a `main` (ver history).
 - La 32 sigue bloqueada (abajo).
 - Entorno de facturación: `.env` apunta a la rama de Neon `feature-39-billing`
   (copia de producción); la URL de producción quedó comentada en la línea 2.

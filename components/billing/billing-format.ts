@@ -66,4 +66,6 @@ export const formatCfeNumber = (series: string | null, number: number | null) =>
 export const formatLongDate = (isoDate: string) =>
   `${isoDate.slice(8, 10)}/${isoDate.slice(5, 7)}/${isoDate.slice(0, 4)}`;
 
-export const getPdfHref = (invoiceId: string) => `/api/billing/invoices/${invoiceId}/pdf`;
+// Con download la ruta responde "attachment": se descarga sin abrirse (53).
+export const getPdfHref = (invoiceId: string, options?: { download?: boolean }) =>
+  `/api/billing/invoices/${invoiceId}/pdf${options?.download ? "?download=1" : ""}`;

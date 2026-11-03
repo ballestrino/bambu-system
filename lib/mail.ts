@@ -4,7 +4,7 @@ let resend: Resend | null = null
 
 // Created with the first email, so a missing key breaks sending mail and not
 // every action that imports this file (login, register, settings).
-const getResend = () => {
+export const getResend = () => {
   if (resend) return resend
   const apiKey = process.env.RESEND_API_KEY
   if (!apiKey) throw new Error("Falta RESEND_API_KEY: no se pueden enviar correos")

@@ -2,7 +2,8 @@ import "server-only";
 
 import { getBillerStatus } from "@/lib/billing/biller-server";
 import { addBillingMonths, getBillingPeriodKey, getIssueDateRange, parseBillingPeriod } from "@/lib/billing/billing-month";
-import { toDraftRow, toIssuedRow } from "@/lib/billing/billing-month-view";
+import { toIssuedRow } from "@/lib/billing/billing-issued-view";
+import { toDraftRow } from "@/lib/billing/billing-month-view";
 import { summarizeBillingMonth } from "@/lib/billing/billing-summary";
 import { linkCreditNotes } from "@/lib/billing/credit-note-links";
 import { readStoredReceiver } from "@/lib/billing/invoice-json";
@@ -24,6 +25,11 @@ const sourceSelect = {
 const issuedSelect = {
   adenda: true, archivedAt: true, billerId: true, billerStatus: true, cfeType: true, currency: true, id: true, issueDate: true, items: true,
   label: true, number: true, receiver: true, series: true, status: true, total: true, updatedAt: true,
+  // A dónde se mandó (53).
+  deliveries: {
+    select: { channel: true, createdBy: { select: { name: true } }, id: true, recipient: true, sentAt: true, source: true },
+    orderBy: { sentAt: "asc" },
+  },
 } as const;
 
 // Todo lo de la página Facturación para un mes, desde la copia local

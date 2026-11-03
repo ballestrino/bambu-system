@@ -2,13 +2,15 @@ import { NextResponse } from "next/server";
 
 import { describeBillerError } from "@/lib/billing/biller-errors";
 import { getBillerInvoicePdf } from "@/lib/billing/biller-server";
+import { getInvoicePdfName } from "@/lib/billing/invoice-delivery";
 import { db } from "@/lib/db";
 import { AdminAuthorizationError, requireAdminSession } from "@/lib/require-admin-session";
 
 export const runtime = "nodejs";
 
 // El PDF de un comprobante emitido, pedido a Biller en el momento. Solo admin.
-export async function GET(_request: Request, { params }: { params: Promise<{ id: string }> }) {
+// Con ?download=1 se descarga sin abrirlo (feature 53).
+export async function GET(request: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
     await requireAdminSession();
     const { id } = await params;
@@ -19,11 +21,12 @@ export async function GET(_request: Request, { params }: { params: Promise<{ id:
     if (!invoice?.billerId) return NextResponse.json({ error: "El comprobante no está emitido" }, { status: 404 });
 
     const pdf = await getBillerInvoicePdf(invoice.billerId);
-    const name = `CFE-${invoice.cfeType}-${invoice.series ?? ""}${invoice.number ?? invoice.billerId}.pdf`;
+    const name = getInvoicePdfName(invoice);
+    const disposition = new URL(request.url).searchParams.get("download") === "1" ? "attachment" : "inline";
     return new Response(new Uint8Array(pdf), {
       headers: {
         "Cache-Control": "private, no-store",
-        "Content-Disposition": `inline; filename="${name}"`,
+        "Content-Disposition": `${disposition}; filename="${name}"`,
         "Content-Type": "application/pdf",
       },
     });

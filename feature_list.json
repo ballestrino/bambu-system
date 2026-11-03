@@ -868,6 +868,22 @@
         "tsc, lint, check:billing and a browser smoke with a real model"
       ],
       "status": "done"
+    },
+    {
+      "id": 53,
+      "name": "billing_invoice_delivery",
+      "title": "Send an issued invoice by email, one-click PDF download and a sent log (email and WhatsApp)",
+      "area": "billing",
+      "description": "From Facturación > Emitidas: send the invoice PDF by email from facturacion@bambu-servicios.com (alias of contacto@) through Resend to any address, with an editable subject and message; download the PDF with one click (Content-Disposition attachment); and a per-invoice log of where it was sent (Correo - address, WhatsApp - phone), with one SYSTEM row per address sent from the app and MANUAL rows added by a person. Rows show a green mail-check and message-check icon (dark green in light theme, light green in dark). The agent never sends. Plan and smoke in docs/billing.md, \"Enviar, descargar y marcar como enviada (feature 53)\".",
+      "acceptance": [
+        "Sending emails the PDF from facturacion@ and records one SYSTEM delivery per recipient; the same requestId never sends or records twice",
+        "One-click download returns the PDF as an attachment without opening it",
+        "Manual rows (email or WhatsApp) can be added and removed; SYSTEM rows cannot be removed",
+        "Issued rows show the mail-check and message-check icons in the theme green when sent by each channel",
+        "check:billing proves the agent cannot reach the send or delivery modules",
+        "tsc, lint, check:billing, a local Postgres smoke and a browser smoke at 1440 and 390 px"
+      ],
+      "status": "done"
     }
   ]
 }

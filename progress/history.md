@@ -1607,3 +1607,26 @@
   registro en `_prisma_migrations`, en una transacción) y después
   `claude/emision-factura-d3k7c8` pasó a `main` por fast-forward.
 - Se borró la rama de Neon `feature-51-label`, que no se usó.
+
+## 2026-11-03 - Feature 53: enviar, descargar y marcar como enviada una factura
+
+- En `claude/kind-hopper-64i6j1`, sin mergear a `main`.
+- "Enviar" en "Emitidas": el PDF de Biller por correo con Resend desde
+  facturacion@bambu-servicios.com (decidido por el usuario), asunto y mensaje
+  editables, idempotente por `requestId`. Descargar con un clic
+  (`?download=1`). Registro "Marcar como enviada" (Correo o WhatsApp, una fila
+  por destinatario; lo mandado por Bambú aparece solo y no se quita) e íconos
+  verdes con check en la fila.
+- `InvoiceDelivery`, migración aditiva
+  `20261103120000_billing_invoice_deliveries`.
+- PASS: tsc, `pnpm lint`, `prisma validate`, `pnpm build`, `check:billing`
+  (con `billing-delivery-checks`), el resto de `check:*` salvo
+  `check:agent-sheet`, `check:budget-auth` y
+  `check:official-budget-workspace`, que ya fallaban por archivos de
+  `components/budgets` que no existen. Smoke `smoke-billing-delivery.ts` y
+  Chromium a 1440 y 390 px, claro y oscuro, contra un Postgres 16 local y
+  Biller test, con un envío real a `delivered@resend.dev`.
+- Pendiente del usuario: la migración en producción antes del merge, y
+  confirmar que facturacion@ está habilitado como remitente en Resend (el
+  dominio ya está verificado: el envío de prueba salió).
+

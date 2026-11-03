@@ -202,7 +202,7 @@ En la empresa de prueba PEPITO 12, con emisiones por la API:
   - **Emitir N:** un diálogo con la cantidad y el total. Las facturas salen de
     a una y cada fila muestra su serie y número, después su estado y el PDF.
   - Los mails los manda Biller a los que tiene guardados para cada cliente,
-    como hoy.
+    como hoy. Para mandarla a otro, "Enviar" en "Emitidas" (53).
 - **Nueva factura** (`/dashboard/billing/new`): el formulario entero. Se
   guarda en el borrador del mes o se emite sola en el momento.
 - **Editar una factura del borrador**: el editor lateral de la 49 (reemplazó
@@ -643,6 +643,67 @@ las adendas que nombran otro mes o dos meses quedan mal.
   - propuso sacar el final de obra y el armado del evento;
   - aplicar dejó la adenda nueva con su auditoría y borró la fila.
 
+### Enviar, descargar y marcar como enviada (feature 53)
+
+Pedido del usuario (2026-11-03): mandar la factura a otro correo desde la
+app, descargarla con un clic y anotar a dónde se mandó (correo o WhatsApp),
+con un ícono verde en la fila. Decidido por el usuario: sale por **Resend**
+desde **facturacion@bambu-servicios.com** (alias de contacto@: las
+respuestas llegan a esa casilla), con asunto y mensaje editables.
+
+- **Datos.** `InvoiceDelivery` (migración aditiva
+  `20261103120000_billing_invoice_deliveries`): una fila por destinatario con
+  `channel` `EMAIL` o `WHATSAPP`, `recipient` (correo en minúsculas o teléfono
+  sin espacios), `source` `SYSTEM` (lo mandó Bambú) o `MANUAL` (lo anotó una
+  persona), `requestId` y `messageId` (Resend), `sentAt` y quién. Único por
+  (`requestId`, `recipient`). La sincronización no la toca.
+- **Descargar.** `/api/billing/invoices/[id]/pdf?download=1` responde
+  `attachment` (sin el parámetro sigue `inline`); el nombre sale de
+  `getInvoicePdfName`, el mismo del adjunto. Ícono de descarga junto a "PDF"
+  en cada fila de "Emitidas" y "Archivadas".
+- **Enviar por correo** (`sendInvoiceEmail`, `actions/billing/invoice-send.ts`,
+  solo admin): "Enviar" en la fila abre "Envíos" en la pestaña "Enviar por
+  correo": destinatarios como chips (sugiere los correos que Biller tiene del
+  cliente, que ya reciben la factura de Biller), asunto ("e-Factura A 123 ·
+  Bambú Servicios") y mensaje ya escritos, y el adjunto. Hasta 10 correos en
+  un mismo mail.
+  - `sendInvoiceMail` (`lib/billing/invoice-mail.ts`, server-only) pide el PDF
+    a Biller y lo manda con `getResend()` (`lib/mail.ts`) y la clave de
+    idempotencia `invoice-send/<requestId>`; revisa el `{ error }` de Resend.
+  - El `requestId` nace con el formulario y cambia al editarlo: un doble clic
+    o un reintento sin cambios no mandan dos correos (Resend lo frena 24 h y
+    la acción ve que ese pedido ya está registrado).
+  - Cada correo queda como una fila `SYSTEM` y se audita `invoice.send`.
+  - Solo una factura emitida y no rechazada, con id de Biller
+    (`canSendInvoice`).
+- **Marcar como enviada** (pestaña del mismo diálogo, o tocando los íconos):
+  la lista "Correo - cliente@ejemplo.com", "WhatsApp - 099888777" con fecha y
+  "Enviado desde Bambú" o "Anotado por". Se agrega una fila eligiendo Correo o
+  WhatsApp; una repetida (también +598 contra 0) se rechaza. Se quita solo una
+  manual: lo que mandó Bambú queda como constancia. Se audita
+  `invoice.delivery.add` y `invoice.delivery.remove`.
+- **Íconos.** Al lado del nombre: correo con check (`MailCheck`) y globo con
+  check (`MessageCircleCheck`, propio con `createLucideIcon`), en
+  `--ops-bamboo-strong`: verde oscuro (#244c2d) en el tema claro y verde claro
+  (#d4e3b8) en el oscuro. El título lista los destinatarios.
+- **Agente.** No envía ni anota. `check:billing`
+  (`scripts/billing-delivery-checks.ts`) prueba lo puro y que nada del agente
+  llegue, ni por el medio, a `invoice-mail`, `invoice-delivery-store` ni a las
+  acciones; `listInvoices` no copia los envíos.
+- `IssuedInvoiceRow` y `toIssuedRow` pasaron a
+  `lib/billing/billing-issued-view.ts` (suman `canSend`, `deliveries` y
+  `receiverEmails`).
+- Probado el 2026-11-03 contra un Postgres 16 local con todas las migraciones
+  y Biller test:
+  - `pnpm exec tsx scripts/smoke-billing-delivery.ts`: lo de Bambú dos veces
+    con el mismo pedido sin duplicar, anotaciones, repetidas, rechazada, quitar
+    manual y no la de Bambú, la fila de "Emitidas" y la auditoría; borra todo.
+  - Chromium con `next start` a 1440 y 390 px, claro y oscuro: íconos con su
+    verde, descarga real de `CFE-101-MT965049.pdf` sin salir de la página,
+    anotar y quitar, envío real a `delivered@resend.dev` (buzón de prueba de
+    Resend) que quedó como fila `SYSTEM` con su id, el error de una factura
+    que Biller no tiene y un correo inválido. Sin errores de consola.
+
 ### Formulario de factura
 
 Los campos de `POST /v3/comprobantes/emitir` que usa Bambú, por sección:
@@ -875,6 +936,9 @@ referencia. Los colores, radios y la letra son los de Operaciones
 | `CRON_SECRET` | Protege `/api/cron/billing-sync`; Vercel lo manda como `Bearer` en su cron |
 
 ## Pendiente del usuario
+
+- Feature 53: aplicar en producción la migración aditiva
+  `20261103120000_billing_invoice_deliveries` antes de mergear.
 
 - Feature 43: la migración `20261101120000_billing_corrections_jobs` está en
   la rama de Neon `feature-39-billing` (2026-11-01). En producción va con la

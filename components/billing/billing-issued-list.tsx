@@ -1,10 +1,13 @@
 "use client";
 
+import { useState } from "react";
+
 import { getMonthName } from "@/components/billing/billing-format";
+import { BillingDeliveryDialog, type DeliveryTab } from "@/components/billing/delivery/billing-delivery-dialog";
 import { BillingIssuedRow } from "@/components/billing/billing-issued-row";
 import { BillingNoMatches } from "@/components/billing/billing-no-matches";
 import { useArchiveInvoice } from "@/components/billing/hooks/use-invoice-remove";
-import type { IssuedInvoiceRow } from "@/lib/billing/billing-month-view";
+import type { IssuedInvoiceRow } from "@/lib/billing/billing-issued-view";
 import { cn } from "@/lib/utils";
 
 const panelClass = "overflow-hidden rounded-[var(--ops-radius-panel)] border border-ops-border bg-ops-surface";
@@ -28,6 +31,9 @@ export const BillingIssuedList = ({
 }) => {
   const archive = useArchiveInvoice(periodKey);
   const busyId = archive.isPending ? archive.variables?.invoiceId : undefined;
+  // El diálogo de envíos (53) toma la fila de la lista: se ve al día al releer el mes.
+  const [delivery, setDelivery] = useState<{ id: string; tab: DeliveryTab } | null>(null);
+  const deliveryRow = delivery ? rows.find((row) => row.id === delivery.id) ?? null : null;
 
   if (!rows.length) {
     if (filtered) return <BillingNoMatches onClear={onClearFilters} />;
@@ -51,11 +57,19 @@ export const BillingIssuedList = ({
             busy={busyId === row.id}
             key={row.id}
             onArchive={(next) => archive.mutate({ archived: next, invoiceId: row.id })}
+            onDeliveries={(tab) => setDelivery({ id: row.id, tab })}
             periodKey={periodKey}
             row={row}
           />
         ))}
       </section>
+      <BillingDeliveryDialog
+        onOpenChange={(open) => (open ? undefined : setDelivery(null))}
+        onTabChange={(tab) => setDelivery((current) => (current ? { ...current, tab } : current))}
+        periodKey={periodKey}
+        row={deliveryRow}
+        tab={delivery?.tab ?? "send"}
+      />
     </div>
   );
 };

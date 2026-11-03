@@ -1,29 +1,33 @@
 "use client";
 
-import { Archive, ArchiveRestore, Loader2 } from "lucide-react";
+import { Archive, ArchiveRestore, Loader2, Send } from "lucide-react";
 import Link from "next/link";
 
 import { BillingChip } from "@/components/billing/billing-chip";
 import { formatCfeNumber, formatMoney, formatShortDate, getDgiChip, getShortCfeLabel } from "@/components/billing/billing-format";
 import { BillingInvoiceLabel } from "@/components/billing/billing-invoice-label";
-import { BillingPdfLink } from "@/components/billing/billing-issue-status";
-import type { IssuedInvoiceRow } from "@/lib/billing/billing-month-view";
+import { BillingPdfDownload, BillingPdfLink } from "@/components/billing/billing-issue-status";
+import { BillingDeliveryIcons } from "@/components/billing/delivery/billing-delivery-icons";
+import type { DeliveryTab } from "@/components/billing/delivery/billing-delivery-dialog";
+import type { IssuedInvoiceRow } from "@/lib/billing/billing-issued-view";
 import { cn } from "@/lib/utils";
 
 const actionClass =
   "inline-flex h-8 items-center gap-1.5 rounded-lg px-2 text-[13px] font-semibold text-ops-text-muted hover:bg-ops-surface-muted hover:text-ops-text focus-visible:ring-2 focus-visible:ring-ops-bamboo/40 focus-visible:outline-none disabled:opacity-60";
 
 // Una fila de "Emitidas" (o de "Archivadas"): receptor, comprobante, total,
-// estado ante DGI, nota de crédito, PDF y archivar o desarchivar (47). Una
-// emitida nunca se borra.
+// estado ante DGI, nota de crédito, PDF, descargar, enviar y a dónde se mandó
+// (53), y archivar o desarchivar (47). Una emitida nunca se borra.
 export const BillingIssuedRow = ({
   busy,
   onArchive,
+  onDeliveries,
   periodKey,
   row,
 }: {
   busy: boolean;
   onArchive: (archived: boolean) => void;
+  onDeliveries: (tab: DeliveryTab) => void;
   periodKey: string;
   row: IssuedInvoiceRow;
 }) => {
@@ -43,6 +47,7 @@ export const BillingIssuedRow = ({
           <span className="text-[15px] font-semibold text-ops-text">{row.name}</span>
           <BillingInvoiceLabel periodKey={periodKey} row={row} />
           <CreditChip row={row} />
+          <BillingDeliveryIcons deliveries={row.deliveries} onOpen={() => onDeliveries("log")} />
         </div>
         <span className="text-[13px] text-ops-text-muted tabular-nums">
           {getShortCfeLabel(row.cfeType)} {number} · {formatShortDate(row.issueDate)}
@@ -56,7 +61,7 @@ export const BillingIssuedRow = ({
       <span className="md:w-[130px]">
         <BillingChip tone={dgi.tone}>{dgi.label}</BillingChip>
       </span>
-      <span className="flex items-center gap-1 md:w-[220px] md:justify-end">
+      <span className="flex flex-wrap items-center gap-1 md:w-[350px] md:flex-nowrap md:justify-end">
         {row.canCredit ? (
           <Link
             className="inline-flex h-8 items-center rounded-lg px-2 text-[13px] font-semibold text-ops-bamboo-strong hover:bg-ops-surface-muted"
@@ -66,6 +71,19 @@ export const BillingIssuedRow = ({
           </Link>
         ) : null}
         {row.hasPdf ? <BillingPdfLink id={row.id} /> : null}
+        {row.hasPdf ? <BillingPdfDownload id={row.id} name={row.name} /> : null}
+        {row.canSend ? (
+          <button
+            aria-label={`Enviar la factura de ${row.name}`}
+            className={cn(actionClass, "text-ops-bamboo-strong")}
+            onClick={() => onDeliveries("send")}
+            title="Enviar por correo o marcar como enviada"
+            type="button"
+          >
+            <Send aria-hidden className="size-3.5" />
+            Enviar
+          </button>
+        ) : null}
         {archived ? (
           <button className={actionClass} disabled={busy} onClick={() => onArchive(false)} type="button">
             {busy ? <Loader2 aria-hidden className="size-3.5 animate-spin" /> : <ArchiveRestore aria-hidden className="size-3.5" />}
