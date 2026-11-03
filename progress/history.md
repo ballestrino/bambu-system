@@ -1626,7 +1626,9 @@
   `components/budgets` que no existen. Smoke `smoke-billing-delivery.ts` y
   Chromium a 1440 y 390 px, claro y oscuro, contra un Postgres 16 local y
   Biller test, con un envío real a `delivered@resend.dev`.
+- Después, a pedido del usuario: copia oculta a facturacion@ en cada envío
+  (`getInvoiceMailBcc`, sin duplicar si ya es destinatario). Probado con un
+  envío real a `delivered@resend.dev` con la copia: Resend lo aceptó.
 - Pendiente del usuario: la migración en producción antes del merge, y
-  confirmar que facturacion@ está habilitado como remitente en Resend (el
-  dominio ya está verificado: el envío de prueba salió).
+  confirmar que la copia llega a la casilla de contacto@.
 

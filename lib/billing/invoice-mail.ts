@@ -1,7 +1,7 @@
 import "server-only";
 
 import { getBillerInvoicePdf } from "@/lib/billing/biller-server";
-import { buildInvoiceEmailHtml, INVOICE_MAIL_ADDRESS, INVOICE_MAIL_FROM } from "@/lib/billing/invoice-delivery";
+import { buildInvoiceEmailHtml, getInvoiceMailBcc, INVOICE_MAIL_ADDRESS, INVOICE_MAIL_FROM } from "@/lib/billing/invoice-delivery";
 import { getResend } from "@/lib/mail";
 
 // Manda una factura emitida por correo con su PDF (feature 53), por Resend y
@@ -25,6 +25,7 @@ export const sendInvoiceMail = async (input: {
         from: INVOICE_MAIL_FROM,
         replyTo: INVOICE_MAIL_ADDRESS,
         to: input.to,
+        ...getInvoiceMailBcc(input.to),
         subject: input.subject,
         text: input.message,
         html: buildInvoiceEmailHtml(input.message),

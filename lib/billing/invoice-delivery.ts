@@ -13,6 +13,10 @@ export const DELIVERY_CHANNEL_LABEL: Record<InvoiceDeliveryChannel, string> = { 
 export const INVOICE_MAIL_ADDRESS = "facturacion@bambu-servicios.com";
 export const INVOICE_MAIL_FROM = `Bambú Servicios <${INVOICE_MAIL_ADDRESS}>`;
 
+// La copia oculta a facturacion@, salvo que ya vaya como destinatario.
+export const getInvoiceMailBcc = (to: string[]) =>
+  to.some((email) => email.toLowerCase() === INVOICE_MAIL_ADDRESS) ? {} : { bcc: [INVOICE_MAIL_ADDRESS] };
+
 export const MAX_DELIVERY_RECIPIENTS = 10;
 export const INVOICE_MAIL_SUBJECT_MAX = 150;
 export const INVOICE_MAIL_MESSAGE_MAX = 2000;

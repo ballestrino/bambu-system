@@ -72,7 +72,8 @@ export const BillingSendEmailForm = ({
     <>
       <OpsFormBody className="flex flex-col gap-4">
         <p className="text-[13px] text-ops-text-muted">
-          De <span className="font-semibold text-ops-text">{INVOICE_MAIL_ADDRESS}</span> · las respuestas llegan a contacto@.
+          De <span className="font-semibold text-ops-text">{INVOICE_MAIL_ADDRESS}</span>, con copia oculta a esa casilla · las
+          respuestas llegan a contacto@.
         </p>
         <div className={labelClass}>
           <span>Para</span>

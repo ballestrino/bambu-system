@@ -670,6 +670,10 @@ respuestas llegan a esa casilla), con asunto y mensaje editables.
   - `sendInvoiceMail` (`lib/billing/invoice-mail.ts`, server-only) pide el PDF
     a Biller y lo manda con `getResend()` (`lib/mail.ts`) y la clave de
     idempotencia `invoice-send/<requestId>`; revisa el `{ error }` de Resend.
+  - Va con copia oculta a facturacion@ (pedido del usuario el 2026-11-03):
+    como sale por Resend no queda en Enviados de Hostinger, así la copia
+    llega a la casilla. Si facturacion@ ya es destinatario, no se duplica
+    (`getInvoiceMailBcc`).
   - El `requestId` nace con el formulario y cambia al editarlo: un doble clic
     o un reintento sin cambios no mandan dos correos (Resend lo frena 24 h y
     la acción ve que ese pedido ya está registrado).

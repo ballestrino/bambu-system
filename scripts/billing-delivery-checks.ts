@@ -8,6 +8,7 @@ import {
   canSendInvoice,
   getDeliveryKey,
   getDeliverySummary,
+  getInvoiceMailBcc,
   getInvoicePdfName,
   INVOICE_MAIL_FROM,
   normalizeDeliveryRecipient,
@@ -65,6 +66,9 @@ assert.equal(getInvoicePdfName({ billerId: 9, cfeType: 101, number: null, series
 
 // --- El correo: remitente, asunto y mensaje por defecto, HTML escapado.
 assert.equal(INVOICE_MAIL_FROM, "Bambú Servicios <facturacion@bambu-servicios.com>");
+// Copia oculta a facturacion@, salvo que ya sea destinatario.
+assert.deepEqual(getInvoiceMailBcc(["cliente@ejemplo.com"]), { bcc: ["facturacion@bambu-servicios.com"] });
+assert.deepEqual(getInvoiceMailBcc(["cliente@ejemplo.com", "Facturacion@bambu-servicios.com"]), {});
 const defaults = buildInvoiceEmailDefaults({ cfeType: 111, currency: "UYU", issueDate: "2026-11-03", number: 123, series: "A", total: 3660 });
 assert.equal(defaults.subject, "e-Factura A 123 · Bambú Servicios");
 assert.match(defaults.message, /e-Factura A 123 del 03\/11\/2026 por \$ 3\.660\./);
@@ -85,6 +89,7 @@ assert.ok(!invoiceSendSchema.safeParse({ ...request, subject: " " }).success);
 // del PDF descarga con ?download=1; lo de Bambú no se borra.
 assert.match(read("lib/billing/invoice-mail.ts"), /^import "server-only";[\s\S]*idempotencyKey: `invoice-send\/\$\{input\.requestId\}`/);
 assert.match(read("lib/billing/invoice-mail.ts"), /response\.error/);
+assert.match(read("lib/billing/invoice-mail.ts"), /\.\.\.getInvoiceMailBcc\(input\.to\)/);
 for (const action of ["invoice-send", "invoice-delivery"]) {
   assert.match(read(`actions/billing/${action}.ts`), /^"use server";[\s\S]*requireAdminSession\(\)/, `${action} requires admin`);
 }
