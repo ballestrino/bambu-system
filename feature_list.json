@@ -884,6 +884,22 @@
         "tsc, lint, check:billing, a local Postgres smoke and a browser smoke at 1440 and 390 px"
       ],
       "status": "done"
+    },
+    {
+      "id": 54,
+      "name": "budget_bse",
+      "title": "BSE (5.2% of the nominal payroll) as a budget cost, Calcular BSE that keeps the price for old budgets, and agent access to extras and BSE",
+      "area": "budgets",
+      "description": "New BudgetOption.bse_contribution (Float?, null on every budget saved before it). New budgets start at 5.2% of the nominal payroll (hours x nominal hour) and it adds to the contributions and the service cost. A budget with null shows Calcular BSE in the editor: it sets 5.2% and lowers the service margin so the net service price stays exactly the same. The agent sees extras and BSE broken down in getBudget/calculateBudget and the budget context, and can change extras, the BSE percent or calculate the BSE keeping the price through its proposals.",
+      "acceptance": [
+        "Old budgets read bse_contribution null and their prices and profits do not change",
+        "Calcular BSE sets 5.2% and keeps the final price to the cent, lowering only the margin",
+        "New budgets save 5.2% BSE by default and the editor lets you change it",
+        "The agent can add, change or remove extras and set or calculate the BSE in calculateBudget and its create/update proposals",
+        "Choosing Ganancia in the price mode selector releases a fixed target price",
+        "Focused checks for the calculation, prisma validate, tsc, lint and a browser smoke of the editor"
+      ],
+      "status": "in_progress"
     }
   ]
 }

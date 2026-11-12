@@ -4,7 +4,40 @@ Status: active
 
 ## Active Feature
 
-- Ninguna activa. 51, 52 y 53 hechas y mergeadas a `main` (ver history).
+- 54 `budget_bse` (2026-11-12): mergeada a `main` y pusheada con autorización
+  del usuario el 2026-11-12. Sigue en progreso hasta el smoke en la app.
+  - Revisión pedida: el agente veía los extras (getBudget, calculateBudget)
+    pero no podía agregarlos, cambiarlos ni quitarlos, y el contexto del
+    presupuesto no los nombraba. Ahora `budgetChangesSchema` trae `extras`
+    (la lista completa), `bse_contribution` y `calculateBse`; el cálculo
+    desglosa `extras` y `bse`; `formatBudgetForAI` agrega "COSTOS EXTRA".
+  - BSE: `BudgetOption.bse_contribution` (Float?, % del sueldo nominal, suma
+    a las cargas y al costo). null = presupuesto anterior al BSE (las 378
+    opciones de la rama de Neon). Nuevos: 5,2 % (el usuario: ~$ 6.000–7.000
+    sobre $ 118.000–130.000 nominales), sobre horas × hora nominal completa. "Calcular BSE" en el editor
+    (aportes) y un aviso en la página del presupuesto que lleva ahí
+    (`?seccion=aportes`): pone 5,2 % y baja solo el margen, el precio queda
+    igual al centavo (`lib/budget-bse.ts`).
+  - Crear y editar comparten `lib/budget-option-rows.ts`.
+  - Arreglo pedido: con un precio objetivo fijado, pasar el selector a
+    "Ganancia" no soltaba el precio (el hook seguía en modo objetivo). Ahora
+    `selectMode` lo suelta, y entre precio total y precio hora pasa el
+    objetivo al otro sin mover el precio. Sin probar en pantalla (login).
+  - Migración aditiva `20261112120000_budget_bse` aplicada en producción
+    (`migrate deploy`, antes del push) y en la rama de Neon
+    `feature-39-billing` (con `db execute` + `migrate resolve`). `next build`
+    verde antes del push. Esa rama sigue sin las de la 51 y la 53 y con la
+    `billing_invoice_edited` del intento viejo de la 49 (stash
+    "feature-49 intento local viejo").
+  - Verificado: `check:budget-bse` (nuevo), verify-budget-calculations,
+    check-agent-pricing/proposals/budget-editor/tools, check-official-budgets,
+    tsc, ESLint de lo tocado, `pnpm harness`. Falla de antes, en main:
+    `check:budget-auth`, `check:agent-sheet` y
+    `check:official-budget-workspace` buscan archivos borrados.
+  - Falta: smoke en el navegador con sesión (el dev server del 3000 tiene el
+    cliente de Prisma viejo en memoria: hay que reiniciarlo para guardar) y
+    un turno real del agente con extras y calculateBse.
+- 51, 52 y 53 hechas y mergeadas a `main` (ver history).
 - La 32 sigue bloqueada (abajo).
 - Entorno de facturación: `.env` apunta a la rama de Neon `feature-39-billing`
   (copia de producción); la URL de producción quedó comentada en la línea 2.
