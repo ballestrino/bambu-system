@@ -3,7 +3,7 @@
 import { getBudgetAdminSession } from "@/lib/budget-admin";
 import { db } from "@/lib/db";
 import { BudgetIdSchema, BudgetSchema, BudgetSlugSchema, BudgetFormValues } from "@/schemas/BudgetSchema";
-import { calculateBudgetTotals } from "@/lib/budget-calculations";
+import { buildBudgetOptionRows } from "@/lib/budget-option-rows";
 import { revalidatePath } from "next/cache";
 import { BudgetChangedError } from "@/lib/budget-errors";
 import { appendLinkedOfficialBudgetVersion } from "@/lib/official-budgets/versioning";
@@ -34,35 +34,8 @@ export const updateBudget = async (
         return { error: validatedSlug.error.issues[0]?.message ?? "URL inválida" };
     }
 
-    const {
-        name,
-        description,
-        visits,
-        visit_type,
-        hours_per_visit,
-        nominal_hour,
-        nominal_salary,
-        employees,
-        incidence_contribution,
-        incidence_enabled,
-        company_contribution,
-        company_enabled,
-        personal_contribution,
-        personal_enabled,
-        transportation_cost,
-        products_price,
-        products_iva,
-        extras,
-        products_revenue_percent,
-        revenue_percent,
-        price,
-        iva,
-        categoryIds,
-    } = validatedFields.data;
-
-    // Calculate totals to derive the price without products
-    const totals = calculateBudgetTotals(validatedFields.data);
-    const { priceNoTaxService, revenueAmountService, revenueAmountProducts } = totals;
+    const { name, description, categoryIds } = validatedFields.data;
+    const optionRows = buildBudgetOptionRows(validatedFields.data);
 
     try {
         const existingBudget = await db.budget.findUnique({
@@ -119,54 +92,7 @@ export const updateBudget = async (
 
             // 3. Create new options
             await tx.budgetOption.createMany({
-                data: [
-                    // Option 1: With Products (Only if products exist)
-                    ...(products_price > 0 ? [{
-                        budgetId: id,
-                        has_products: true,
-                        visits,
-                        visit_type,
-                        hours_per_visit,
-                        nominal_hour,
-                        nominal_salary,
-                        employees,
-                        incidence_contribution: incidence_enabled ? incidence_contribution : 0,
-                        company_contribution: company_enabled ? company_contribution : 0,
-                        personal_contribution: personal_enabled ? personal_contribution : 0,
-                        transportation_cost,
-                        products_price,
-                        products_iva,
-                        extras,
-                        products_revenue_percent,
-                        revenue_percent,
-                        price,
-                        profit: revenueAmountService + revenueAmountProducts,
-                        iva,
-                    }] : []),
-                    // Option 2: Without Products (Always created as base option)
-                    {
-                        budgetId: id,
-                        has_products: false,
-                        visits,
-                        visit_type,
-                        hours_per_visit,
-                        nominal_hour,
-                        nominal_salary,
-                        employees,
-                        incidence_contribution: incidence_enabled ? incidence_contribution : 0,
-                        company_contribution: company_enabled ? company_contribution : 0,
-                        personal_contribution: personal_enabled ? personal_contribution : 0,
-                        transportation_cost,
-                        products_price: 0,
-                        products_iva: 0,
-                        extras,
-                        products_revenue_percent: 0,
-                        revenue_percent,
-                        price: priceNoTaxService + (priceNoTaxService * (iva / 100)), // Calculated price without products
-                        profit: revenueAmountService,
-                        iva,
-                    }
-                ]
+                data: optionRows.map((option) => ({ ...option, budgetId: id })),
             });
 
             await appendLinkedOfficialBudgetVersion(tx, id, actorId);

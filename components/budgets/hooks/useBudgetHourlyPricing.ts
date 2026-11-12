@@ -10,11 +10,15 @@ import {
 } from "@/lib/budget-calculations";
 import type { BudgetFormValues } from "@/schemas/BudgetSchema";
 
-type PricingMode = "margin" | "hourly-target" | "service-target";
+type TargetMode = "hourly-target" | "service-target";
+type PricingMode = "margin" | TargetMode;
 type PricingSelection = {
     mode: PricingMode;
     requestedValue: number;
 };
+
+// Lo que muestra el selector "Definir el precio por".
+export type PriceModeChoice = "margin" | "service" | "hourly";
 
 export type BudgetHourlyPricingState = {
     canCalculate: boolean;
@@ -23,14 +27,25 @@ export type BudgetHourlyPricingState = {
     targetHourlyPrice: number;
     targetServicePrice: number;
     wasClamped: boolean;
+    selectMode: (mode: PriceModeChoice) => void;
     setRevenuePercent: (value: number) => void;
     setTargetHourlyPrice: (value: number) => void;
     setTargetServicePrice: (value: number) => void;
 };
 
+const setOptions = { shouldDirty: true, shouldValidate: true } as const;
+
 const valuesDiffer = (left: number, right: number) =>
     Math.abs(left - right) > 0.000001;
 
+const solveTarget = (mode: PricingMode, value: number, hours: number, cost: number) =>
+    mode === "service-target"
+        ? calculateRevenuePercentForServiceTarget(value, hours, cost)
+        : calculateRevenuePercentForHourlyTarget(value, hours, cost);
+
+// Con un precio objetivo fijado, la ganancia se recalcula cuando cambian los
+// costos para que el precio no se mueva. En "margin" manda la ganancia y los
+// costos mueven el precio.
 export const useBudgetHourlyPricing = (
     form: UseFormReturn<BudgetFormValues>
 ): BudgetHourlyPricingState => {
@@ -45,61 +60,36 @@ export const useBudgetHourlyPricing = (
     });
     const currentRevenuePercent = Number(values.revenue_percent) || 0;
     const targetResult = useMemo(
-        () => {
-            if (selection.mode === "service-target") {
-                return calculateRevenuePercentForServiceTarget(
-                    selection.requestedValue,
-                    totals.totalHours,
-                    totals.costBasisNoProducts
-                );
-            }
-
-            return calculateRevenuePercentForHourlyTarget(
+        () =>
+            solveTarget(
+                selection.mode,
                 selection.requestedValue,
                 totals.totalHours,
                 totals.costBasisNoProducts
-            );
-        },
-        [
-            selection.mode,
-            selection.requestedValue,
-            totals.costBasisNoProducts,
-            totals.totalHours,
-        ]
+            ),
+        [selection.mode, selection.requestedValue, totals.costBasisNoProducts, totals.totalHours]
     );
-    const targetHourlyPrice =
-        selection.mode === "margin"
-            ? totals.hourlyPriceNoTaxService
-            : targetResult.normalizedHourlyPrice;
-    const targetServicePrice =
-        selection.mode === "margin"
-            ? totals.priceNoTaxService
-            : targetResult.normalizedServicePrice;
     const isTargetMode = selection.mode !== "margin";
-    const wasClamped =
-        isTargetMode && targetResult.wasClamped;
+    const targetHourlyPrice = isTargetMode
+        ? targetResult.normalizedHourlyPrice
+        : totals.hourlyPriceNoTaxService;
+    const targetServicePrice = isTargetMode
+        ? targetResult.normalizedServicePrice
+        : totals.priceNoTaxService;
+    const wasClamped = isTargetMode && targetResult.wasClamped;
 
     useEffect(() => {
         if (!isTargetMode) return;
 
         if (!targetResult.canCalculate) {
             if (currentRevenuePercent !== 0) {
-                form.setValue("revenue_percent", 0, {
-                    shouldDirty: true,
-                    shouldValidate: true,
-                });
+                form.setValue("revenue_percent", 0, setOptions);
             }
             return;
         }
 
-        if (valuesDiffer(
-            currentRevenuePercent,
-            targetResult.revenuePercent
-        )) {
-            form.setValue("revenue_percent", targetResult.revenuePercent, {
-                shouldDirty: true,
-                shouldValidate: true,
-            });
+        if (valuesDiffer(currentRevenuePercent, targetResult.revenuePercent)) {
+            form.setValue("revenue_percent", targetResult.revenuePercent, setOptions);
         }
     }, [
         currentRevenuePercent,
@@ -109,74 +99,49 @@ export const useBudgetHourlyPricing = (
         targetResult.revenuePercent,
     ]);
 
-    const setTargetHourlyPrice = useCallback(
-        (value: number) => {
-            const requestedHourlyPrice = Math.max(0, value);
-            const result = calculateRevenuePercentForHourlyTarget(
-                requestedHourlyPrice,
-                totals.totalHours,
-                totals.costBasisNoProducts
-            );
-
-            setSelection({
-                mode: "hourly-target",
-                requestedValue: requestedHourlyPrice,
-            });
-
+    const setTarget = useCallback(
+        (mode: TargetMode, value: number) => {
+            const requestedValue = Math.max(0, value);
+            const result = solveTarget(mode, requestedValue, totals.totalHours, totals.costBasisNoProducts);
+            setSelection({ mode, requestedValue });
             if (result.canCalculate) {
-                form.setValue(
-                    "revenue_percent",
-                    result.revenuePercent,
-                    {
-                        shouldDirty: true,
-                        shouldValidate: true,
-                    }
-                );
+                form.setValue("revenue_percent", result.revenuePercent, setOptions);
             }
         },
         [form, totals.costBasisNoProducts, totals.totalHours]
     );
 
+    const setTargetHourlyPrice = useCallback(
+        (value: number) => setTarget("hourly-target", value),
+        [setTarget]
+    );
     const setTargetServicePrice = useCallback(
-        (value: number) => {
-            const requestedServicePrice = Math.max(0, value);
-            const result = calculateRevenuePercentForServiceTarget(
-                requestedServicePrice,
-                totals.totalHours,
-                totals.costBasisNoProducts
-            );
-
-            setSelection({
-                mode: "service-target",
-                requestedValue: requestedServicePrice,
-            });
-
-            if (result.canCalculate) {
-                form.setValue(
-                    "revenue_percent",
-                    result.revenuePercent,
-                    {
-                        shouldDirty: true,
-                        shouldValidate: true,
-                    }
-                );
-            }
-        },
-        [form, totals.costBasisNoProducts, totals.totalHours]
+        (value: number) => setTarget("service-target", value),
+        [setTarget]
     );
 
     const setRevenuePercent = useCallback(
         (value: number) => {
-            setSelection((current) => ({
-                ...current,
-                mode: "margin",
-            }));
-            form.setValue("revenue_percent", Math.max(0, value), {
-                shouldDirty: true,
-                shouldValidate: true,
-            });
+            setSelection((current) => ({ ...current, mode: "margin" }));
+            form.setValue("revenue_percent", Math.max(0, value), setOptions);
         },
         [form]
+    );
+
+    // Pasar a "Ganancia" suelta el precio fijado. Entre precio total y precio
+    // hora, un precio ya fijado pasa al otro con el valor que se ve: el precio
+    // no salta, y desde ahí queda fijo el que dice "Lo fijás vos".
+    const selectMode = useCallback(
+        (mode: PriceModeChoice) => {
+            if (mode === "margin") {
+                setSelection((current) => ({ ...current, mode: "margin" }));
+                return;
+            }
+            if (!isTargetMode) return;
+            if (mode === "service") setTarget("service-target", targetServicePrice);
+            else setTarget("hourly-target", targetHourlyPrice);
+        },
+        [isTargetMode, setTarget, targetHourlyPrice, targetServicePrice]
     );
 
     return {
@@ -186,6 +151,7 @@ export const useBudgetHourlyPricing = (
         targetHourlyPrice,
         targetServicePrice,
         wasClamped,
+        selectMode,
         setRevenuePercent,
         setTargetHourlyPrice,
         setTargetServicePrice,

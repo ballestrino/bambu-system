@@ -5,6 +5,7 @@ import { officialBudgetSearchCriteriaSchema } from "@/schemas/official-budget-se
 import { jobStatusSchema } from "@/schemas/ops/job";
 import { occurrenceStatusSchema } from "@/schemas/ops/job-occurrence";
 import { operationalCostCategoryKindSchema } from "@/schemas/ops/operational-cost";
+import { BSE_DEFAULT_PERCENT, MAX_BUDGET_EXTRAS } from "@/schemas/BudgetSchema";
 
 // Entradas de las tools del agente. Las descripciones son para el modelo.
 // Cada campo es obligatorio y nullable, como la tool del agente de correo:
@@ -35,6 +36,24 @@ export const budgetChangesSchema = z.object({
   products_price: z.number().min(0).nullable().describe(`Costo mensual de productos, 0 es sin productos${keep}`),
   products_revenue_percent: z.number().min(0).nullable().describe(`Margen de productos en %${keep}`),
   transportation_cost: z.number().min(0).nullable().describe(`Costo mensual de transporte${keep}`),
+  extras: z
+    .array(z.object({ name: z.string().trim().min(1).max(80), amount: z.number().min(0) }))
+    .max(MAX_BUDGET_EXTRAS)
+    .nullable()
+    .describe(
+      `Extras del mes: costos puntuales con nombre (un camión, un permiso) que suman al costo del servicio y llevan su margen. Es la lista completa que queda: para agregar uno mandá los que ya tiene más el nuevo; [] los quita todos${keep}`
+    ),
+  bse_contribution: z
+    .number()
+    .min(0)
+    .nullable()
+    .describe(`BSE (seguro de accidentes) en % del sueldo nominal; los presupuestos nuevos llevan ${BSE_DEFAULT_PERCENT}. Sube el costo y el precio${keep}`),
+  calculateBse: z
+    .boolean()
+    .nullable()
+    .describe(
+      `true solo en un presupuesto sin BSE (bsePercent null): pone el ${BSE_DEFAULT_PERCENT} % y lo saca del margen del servicio, el precio queda exactamente igual. null si no`
+    ),
   // El cálculo toma un IVA 0 como 22 (`|| 22`): aceptarlo mostraría importes
   // con IVA rotulados como sin IVA.
   iva: z

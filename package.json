@@ -21,6 +21,7 @@
     "check:agent-instructions": "tsx scripts/check-agent-instructions.ts",
     "check:billing": "tsx scripts/check-billing.ts",
     "check:budget-auth": "tsx scripts/check-budget-auth.ts",
+    "check:budget-bse": "tsx scripts/check-budget-bse.ts",
     "check:budget-cache": "tsx scripts/check-budget-cache.ts",
     "check:employee-accruals": "tsx scripts/check-employee-accruals.ts",
     "check:finance": "tsx scripts/check-finance.ts",

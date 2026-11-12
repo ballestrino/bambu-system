@@ -77,6 +77,8 @@ export const valuesFromInputs = (inputs: BudgetInputs, name: string): BudgetForm
     transportation_cost: inputs.transportationCost,
     // Las salidas viejas no traen extras.
     extras: inputs.extras ?? [],
+    // Ni BSE: se calcularon sin él.
+    bse_contribution: inputs.bsePercent ?? null,
     iva: inputs.ivaPercent,
     incidence_enabled: incidence.enabled,
     incidence_contribution: incidence.percent,

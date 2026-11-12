@@ -6,7 +6,9 @@ import {
   type BudgetOptionRow,
 } from "@/lib/agent/budget-calculation";
 import { storedOptionProfit } from "@/lib/agent/budget-profit";
-import type { ProposalChange, ProposalSummary, StoredOptionPrice } from "@/lib/agent/proposals";
+import type { ProposalChange, ProposalSummary, ProposalValue, StoredOptionPrice } from "@/lib/agent/proposals";
+import { hasBse } from "@/lib/budget-bse";
+import { readBudgetExtras, sumBudgetExtras } from "@/lib/budget-extras";
 import type { BudgetFormValues } from "@/schemas/BudgetSchema";
 
 // Piezas del resumen que muestra la tarjeta de una propuesta: qué cambia,
@@ -35,6 +37,8 @@ export const FIELD_LABELS: Record<"name" | "description" | (typeof CHANGEABLE_FI
   products_price: "Productos",
   products_revenue_percent: "Margen de productos",
   transportation_cost: "Transporte",
+  extras: "Extras",
+  bse_contribution: "BSE (%)",
   iva: "IVA",
   incidence_enabled: "Incidencia",
   company_enabled: "Aportes patronales",
@@ -46,14 +50,25 @@ export const FIELD_LABELS: Record<"name" | "description" | (typeof CHANGEABLE_FI
 
 const DIFF_FIELDS = ["name", "description", ...CHANGEABLE_FIELDS] as const;
 
-// Una descripción vacía y una ausente son lo mismo.
-const comparable = (value: string | number | boolean | undefined) =>
-  value === undefined || value === "" ? null : value;
+// Una descripción vacía y una ausente son lo mismo. Los extras van como texto
+// ("2 extras · $ 3.000") y un BSE null es "sin calcular".
+const comparable = (field: (typeof DIFF_FIELDS)[number], value: unknown): ProposalValue => {
+  if (field === "extras") return describeExtras(value);
+  if (field === "bse_contribution" && !hasBse(value)) return "sin calcular";
+  return value === undefined || value === "" ? null : (value as ProposalValue);
+};
+
+const describeExtras = (value: unknown) => {
+  const extras = readBudgetExtras(value);
+  if (!extras.length) return "sin extras";
+  const total = sumBudgetExtras(extras).toLocaleString("es-UY", { maximumFractionDigits: 2 });
+  return `${extras.map((extra) => extra.name).join(", ")} · $ ${total}`;
+};
 
 export const describeChanges = (before: BudgetFormValues, after: BudgetFormValues): ProposalChange[] =>
   DIFF_FIELDS.flatMap((field) => {
-    const from = comparable(before[field]);
-    const to = comparable(after[field]);
+    const from = comparable(field, before[field]);
+    const to = comparable(field, after[field]);
     return from === to ? [] : [{ field, label: FIELD_LABELS[field], before: from, after: to }];
   });
 

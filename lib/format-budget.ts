@@ -1,3 +1,6 @@
+import { hasBse } from "@/lib/budget-bse";
+import { readBudgetExtras } from "@/lib/budget-extras";
+
 
 interface BudgetOption {
     has_products: boolean;
@@ -7,6 +10,8 @@ interface BudgetOption {
     visits?: number;
     visit_type?: string;
     hours_per_visit?: number;
+    extras?: unknown;
+    bse_contribution?: number | null;
 }
 
 export interface BudgetContext {
@@ -21,6 +26,19 @@ export interface BudgetContext {
     visit_type?: string;
     hours_per_visit?: number;
     [key: string]: unknown;
+}
+
+// Los extras y el BSE: el modelo los puede cambiar (extras, bse_contribution,
+// calculateBse) y tiene que saber que están.
+function formatExtraCosts(source: { extras?: unknown; bse_contribution?: number | null }): string {
+    const extras = readBudgetExtras(source.extras);
+    const extrasText = extras.length
+        ? extras.map((extra) => `     - ${extra.name}: $${extra.amount.toFixed(2)}`).join('\n')
+        : '     - Sin extras';
+    const bseText = hasBse(source.bse_contribution)
+        ? `${source.bse_contribution}% del sueldo nominal`
+        : 'sin calcular (presupuesto anterior al BSE; calculateBse lo agrega sacándolo del margen, con el mismo precio)';
+    return `   Extras del mes:\n${extrasText}\n   BSE: ${bseText}`;
 }
 
 function formatScope(visits?: number, visitType?: string, hours?: number): string {
@@ -43,6 +61,7 @@ export function formatBudgetForAI(budget: BudgetContext): string {
 
     let optionsText = "";
     let scopeText = "";
+    let extraCostsText = "";
 
     // Helper to calculate prices from Total + Rate
     const calculatePrices = (totalPrice: number, ivaRate: number) => {
@@ -58,6 +77,7 @@ export function formatBudgetForAI(budget: BudgetContext): string {
         // (In this domain, products usually don't change the visit frequency)
         const firstOpt = budget.budgetOptions[0];
         scopeText = formatScope(firstOpt.visits, firstOpt.visit_type, firstOpt.hours_per_visit);
+        extraCostsText = formatExtraCosts(firstOpt);
         
         optionsText = budget.budgetOptions.map((opt, index) => {
             const type = opt.has_products ? "Con Productos" : "Sin Productos";
@@ -77,6 +97,10 @@ export function formatBudgetForAI(budget: BudgetContext): string {
     } 
     else {
         scopeText = formatScope(budget.visits, budget.visit_type, budget.hours_per_visit);
+        extraCostsText = formatExtraCosts({
+            extras: budget.extras,
+            bse_contribution: budget.bse_contribution as number | null | undefined,
+        });
         
         // Form Data case: `price` is Final Price. `iva` is Rate.
         const rawPrice = Number(budget.price || 0);
@@ -101,6 +125,9 @@ Descripción: ${budget.description || 'Sin descripción'}
 
 DETALLE DEL ALCANCE (Horarios y Frecuencia):
 ${scopeText}
+
+COSTOS EXTRA:
+${extraCostsText}
 
 DETALLE DE PRECIOS:
 ${optionsText}

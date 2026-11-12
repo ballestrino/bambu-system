@@ -14,6 +14,7 @@ type GeneratorOption = {
   incidence_contribution: number;
   company_contribution: number;
   personal_contribution: number;
+  bse_contribution?: number | null;
   transportation_cost: number;
   products_price: number;
   products_iva: number;
@@ -100,6 +101,7 @@ const snapshotOption = (option: GeneratorOption, position: number) => {
     calculatedPersonalContribution: money(calculation.personalVal),
     calculatedIncidenceContribution: money(calculation.incidenceVal),
     calculatedCompanyContribution: money(calculation.companyVal),
+    // Con el BSE: va dentro de las cargas y del costo del servicio.
     calculatedContributionsTotal: money(calculation.totalContribsExtra),
     calculatedServiceCostBasis: money(calculation.costBasisNoProducts),
     calculatedServiceRevenue: money(calculation.revenueAmountService),

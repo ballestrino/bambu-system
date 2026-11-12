@@ -9,6 +9,8 @@ export interface BudgetOption {
     incidence_contribution: number;
     company_contribution: number;
     personal_contribution: number;
+    // null: presupuesto anterior al BSE.
+    bse_contribution?: number | null;
     transportation_cost: number;
     products_price: number;
     products_iva: number;

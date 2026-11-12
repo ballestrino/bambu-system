@@ -3,6 +3,7 @@ import {
   formatBudgetNumber,
 } from "@/components/budgets/create-budget/budget-summary-model";
 import type { CreatorStepId } from "@/components/budgets/create-budget/creator-steps";
+import { hasBse } from "@/lib/budget-bse";
 import { sumBudgetExtras } from "@/lib/budget-extras";
 import type { BudgetFormValues } from "@/schemas/BudgetSchema";
 
@@ -20,6 +21,7 @@ export type BudgetEditChange = {
 const money = (value: unknown) => formatBudgetMoney(Number(value) || 0);
 const percent = (value: unknown) => `${formatBudgetNumber(Number(value) || 0)}%`;
 const number = (value: unknown) => formatBudgetNumber(Number(value) || 0);
+const bsePercent = (value: unknown) => (hasBse(value) ? percent(value) : "sin calcular");
 const onOff = (value: unknown) => (value ? "prendido" : "apagado");
 const FREQUENCY: Record<string, string> = { days: "Por día", month: "Mensual", week: "Semanal" };
 
@@ -70,6 +72,7 @@ const TRACKED: Tracked[] = [
   { field: "company_contribution", format: percent, label: "Aportes patronales (%)", section: "aportes" },
   { field: "incidence_enabled", format: onOff, label: "Aguinaldo y vacacional", section: "aportes" },
   { field: "incidence_contribution", format: percent, label: "Aguinaldo y vacacional (%)", section: "aportes" },
+  { field: "bse_contribution", format: bsePercent, label: "BSE (%)", section: "aportes" },
 ];
 
 // Lo que cambió respecto de lo guardado, comparado como se muestra: una

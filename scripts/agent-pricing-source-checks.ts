@@ -19,7 +19,9 @@ const declaration = (text: string, start: string, end: string) => {
 // --- calculateBudget and the create and update proposals go through the same
 // price rules; solveForTargetPrice estimates a new budget but never rounds.
 const calculations = read("lib/agent/tools/calculations.ts");
-assert.match(calculations, /const \{ values, changedFields, rounding \} = applyAgentChanges\(base, input\.changes \?\? \{\}\);/);
+assert.match(calculations, /const \{ values, changedFields, rounding, bseError \} = applyAgentChanges\(base, input\.changes \?\? \{\}\);/);
+// calculateBse que no se puede aplicar vuelve como error, nunca como cálculo.
+assert.equal(calculations.match(/if \(bseError\) return toolError\("cannot_calculate_bse", bseError\);/g)?.length, 2);
 assert.match(calculations, /applyAgentChanges\(base, \{ \.\.\.input\.changes, roundPrice: false \}\)/);
 assert.match(calculations, /changedFields,\n\s+rounding,\n/);
 assert.doesNotMatch(calculations, /applyBudgetChanges/);

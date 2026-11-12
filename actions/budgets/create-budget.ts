@@ -3,7 +3,7 @@
 import { getBudgetAdminSession } from "@/lib/budget-admin";
 import { db } from "@/lib/db";
 import { BudgetSchema, BudgetFormValues } from "@/schemas/BudgetSchema";
-import { calculateBudgetTotals } from "@/lib/budget-calculations";
+import { buildBudgetOptionRows } from "@/lib/budget-option-rows";
 import { slugifyBudgetName } from "@/lib/budget-slug";
 
 export const createBudget = async (values: BudgetFormValues) => {
@@ -19,35 +19,8 @@ export const createBudget = async (values: BudgetFormValues) => {
         return { error: "Campos inválidos" };
     }
 
-    const {
-        name,
-        description,
-        visits,
-        visit_type,
-        hours_per_visit,
-        nominal_hour,
-        nominal_salary,
-        employees,
-        incidence_contribution,
-        incidence_enabled,
-        company_contribution,
-        company_enabled,
-        personal_contribution,
-        personal_enabled,
-        transportation_cost,
-        products_price,
-        products_iva,
-        extras,
-        products_revenue_percent,
-        revenue_percent,
-        price,
-        iva,
-        categoryIds,
-    } = validatedFields.data;
-
-    // Calculate totals to derive the price without products
-    const totals = calculateBudgetTotals(validatedFields.data);
-    const { priceNoTaxService, revenueAmountService, revenueAmountProducts } = totals;
+    const { name, description, categoryIds } = validatedFields.data;
+    const optionRows = buildBudgetOptionRows(validatedFields.data);
 
     try {
         // Generate Slug
@@ -69,54 +42,7 @@ export const createBudget = async (values: BudgetFormValues) => {
                 budgetCategory: categoryIds && categoryIds.length > 0 ? {
                     connect: categoryIds.map((id) => ({ id }))
                 } : undefined,
-                budgetOptions: {
-                    create: [
-                        // Option 1: With Products (Only if products exist)
-                        ...(products_price > 0 ? [{
-                            has_products: true,
-                            visits,
-                            visit_type,
-                            hours_per_visit,
-                            nominal_hour,
-                            nominal_salary,
-                            employees,
-                            incidence_contribution: incidence_enabled ? incidence_contribution : 0,
-                            company_contribution: company_enabled ? company_contribution : 0,
-                            personal_contribution: personal_enabled ? personal_contribution : 0,
-                            transportation_cost,
-                            products_price,
-                            products_iva,
-                            extras,
-                            products_revenue_percent,
-                            revenue_percent,
-                            price,
-                            profit: revenueAmountService + revenueAmountProducts,
-                            iva,
-                        }] : []),
-                        // Option 2: Without Products (Always created as base option)
-                        {
-                            has_products: false,
-                            visits,
-                            visit_type,
-                            hours_per_visit,
-                            nominal_hour,
-                            nominal_salary,
-                            employees,
-                            incidence_contribution: incidence_enabled ? incidence_contribution : 0,
-                            company_contribution: company_enabled ? company_contribution : 0,
-                            personal_contribution: personal_enabled ? personal_contribution : 0,
-                            transportation_cost,
-                            products_price: 0,
-                            products_iva: 0,
-                            extras,
-                            products_revenue_percent: 0,
-                            revenue_percent,
-                            price: priceNoTaxService + (priceNoTaxService * (iva / 100)), // Calculated price without products
-                            profit: revenueAmountService,
-                            iva,
-                        }
-                    ]
-                }
+                budgetOptions: { create: optionRows },
             }
         });
 

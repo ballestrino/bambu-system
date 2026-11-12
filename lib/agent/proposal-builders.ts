@@ -68,7 +68,8 @@ export const buildCreateBudgetProposal = (input: {
   const slug = slugifyBudgetName(name);
   if (!slug) return refuse("invalid_name", INVALID_NAME);
 
-  const { values, rounding } = applyAgentChanges(base, input.changes);
+  const { values, rounding, bseError } = applyAgentChanges(base, input.changes);
+  if (bseError) return refuse("cannot_calculate_bse", bseError);
   const parsed = proposalBudgetValuesSchema.safeParse(withText(values, name, input.description));
   if (!parsed.success) return refuseInvalid(parsed.error.issues);
   const after = runBudgetCalculation(parsed.data);
@@ -101,7 +102,8 @@ export const buildUpdateBudgetProposal = (input: {
   const { budget } = input;
   const existing = budgetOptionToFormValues(budget);
   const name = input.name?.trim() || budget.name;
-  const { values, rounding } = applyAgentChanges({ source: "budget", values: existing }, input.changes);
+  const { values, rounding, bseError } = applyAgentChanges({ source: "budget", values: existing }, input.changes);
+  if (bseError) return refuse("cannot_calculate_bse", bseError);
   const parsed = proposalBudgetValuesSchema.safeParse(withText(values, name, input.description));
   if (!parsed.success) return refuseInvalid(parsed.error.issues);
   const changes = describeChanges(existing, parsed.data);

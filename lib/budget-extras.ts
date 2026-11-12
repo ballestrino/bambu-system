@@ -21,3 +21,8 @@ export const sumBudgetExtras = (value: unknown) => {
     return Number.isFinite(amount) && amount > 0 ? total + amount : total;
   }, 0);
 };
+
+// Un campo del presupuesto igual a otro; los extras son una lista y cuentan
+// como cambio solo si cambia su contenido.
+export const isSameBudgetValue = (a: unknown, b: unknown) =>
+  Array.isArray(a) || Array.isArray(b) ? JSON.stringify(a ?? []) === JSON.stringify(b ?? []) : a === b;

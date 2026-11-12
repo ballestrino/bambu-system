@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useSearchParams } from "next/navigation";
 import { FormProvider, type FieldErrors } from "react-hook-form";
 import { toast } from "sonner";
 
@@ -17,7 +18,9 @@ import type { BudgetFormValues } from "@/schemas/BudgetSchema";
 export const BudgetEditor = ({ budget }: { budget: ExistingBudget }) => {
   const editor = useBudgetEditor(budget);
   const isPhone = useIsPhone();
-  const [step, setStep] = useState<CreatorStepId>("detalle");
+  // "Calcular BSE" de la página del presupuesto abre el editor en los aportes.
+  const openAportes = useSearchParams().get("seccion") === "aportes";
+  const [step, setStep] = useState<CreatorStepId>(openAportes ? "aportes" : "detalle");
 
   const onInvalid = (errors: FieldErrors<BudgetFormValues>) => {
     const stepWithError = findStepWithError(errors);
@@ -47,7 +50,7 @@ export const BudgetEditor = ({ budget }: { budget: ExistingBudget }) => {
           top={budget.officialBudget ? <BudgetOfficialNotice currentVersion={budget.officialBudget.currentVersion} /> : null}
         />
       ) : (
-        <BudgetEditorDesktop budget={budget} editor={editor} onSave={save} />
+        <BudgetEditorDesktop budget={budget} editor={editor} onSave={save} openAportes={openAportes} />
       )}
     </FormProvider>
   );

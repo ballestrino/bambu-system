@@ -3,6 +3,7 @@ import {
   formatBudgetNumber,
 } from "@/components/budgets/create-budget/budget-summary-model";
 import type { CreatorStepId } from "@/components/budgets/create-budget/creator-steps";
+import { hasBse } from "@/lib/budget-bse";
 import { sumBudgetExtras } from "@/lib/budget-extras";
 import type { BudgetFormValues } from "@/schemas/BudgetSchema";
 
@@ -42,6 +43,7 @@ export const summarizeSection = (step: CreatorStepId, values: Values, slug: stri
         contribution("Personales", values.personal_enabled, values.personal_contribution),
         contribution("patronales", values.company_enabled, values.company_contribution),
         contribution("aguinaldo", values.incidence_enabled, values.incidence_contribution),
+        hasBse(values.bse_contribution) ? contribution("BSE", true, values.bse_contribution) : "BSE sin calcular",
       ].join(" · ");
   }
 };
