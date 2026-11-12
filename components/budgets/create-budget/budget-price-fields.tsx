@@ -11,11 +11,11 @@ import {
   formatBudgetNumber,
 } from "@/components/budgets/create-budget/budget-summary-model";
 import { CreatorAffixInput, CreatorSegmented } from "@/components/budgets/create-budget/creator-ui";
-import { useBudgetHourlyPricing } from "@/components/budgets/hooks/useBudgetHourlyPricing";
+import { useBudgetHourlyPricing, type PriceModeChoice } from "@/components/budgets/hooks/useBudgetHourlyPricing";
 import { cn } from "@/lib/utils";
 import type { BudgetFormValues } from "@/schemas/BudgetSchema";
 
-type PriceMode = "margin" | "service" | "hourly";
+type PriceMode = PriceModeChoice;
 
 const MODES: { label: string; value: PriceMode }[] = [
   { label: "Ganancia", value: "margin" },
@@ -27,6 +27,12 @@ export const BudgetPriceFields = () => {
   const form = useFormContext<BudgetFormValues>();
   const pricing = useBudgetHourlyPricing(form);
   const [mode, setMode] = useState<PriceMode>("margin");
+  // El selector también le dice al cálculo qué manda: "Ganancia" suelta un
+  // precio objetivo ya fijado.
+  const selectMode = (next: PriceMode) => {
+    setMode(next);
+    pricing.selectMode(next);
+  };
   const revenue = Number(useWatch({ control: form.control, name: "revenue_percent" })) || 0;
   const cards = [
     { commit: pricing.setRevenuePercent, display: formatBudgetNumber(revenue), label: "Ganancia del servicio", prefix: "", suffix: "%", value: revenue, mode: "margin" as const },
@@ -36,7 +42,7 @@ export const BudgetPriceFields = () => {
 
   return (
     <div className="flex flex-col gap-[18px]">
-      <CreatorSegmented label="Definir el precio por" onChange={setMode} options={MODES} value={mode} />
+      <CreatorSegmented label="Definir el precio por" onChange={selectMode} options={MODES} value={mode} />
       <div className="grid gap-3 sm:grid-cols-3">
         {cards.map((card) => {
           const active = card.mode === mode;

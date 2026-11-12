@@ -13,6 +13,9 @@ export type BudgetExtra = z.infer<typeof BudgetExtraSchema>;
 
 export const MAX_BUDGET_EXTRAS = 30;
 
+// El BSE que llevan los presupuestos nuevos y el que pone "Calcular BSE".
+export const BSE_DEFAULT_PERCENT = 5.2;
+
 export const BudgetSchema = z.object({
   // Info
   name: z.string().min(1, "Name is required"),
@@ -32,6 +35,8 @@ export const BudgetSchema = z.object({
   company_enabled: z.boolean().default(true),
   personal_contribution: z.coerce.number().min(0),
   personal_enabled: z.boolean().default(true),
+  // BSE en % del sueldo nominal. null: presupuesto anterior al BSE, sin calcular.
+  bse_contribution: z.coerce.number().min(0).nullable().default(null),
 
   // Extra costs
   transportation_cost: z.coerce.number().min(0),
@@ -74,6 +79,7 @@ export const defaultBudgetValues: BudgetFormValues = {
   company_enabled: true,
   personal_contribution: 18.1,
   personal_enabled: true,
+  bse_contribution: BSE_DEFAULT_PERCENT,
 
   transportation_cost: 224.64,
   products_price: 756,

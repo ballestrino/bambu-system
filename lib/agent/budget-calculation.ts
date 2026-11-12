@@ -7,14 +7,15 @@ import {
 import { roundProductsPrice } from "@/lib/agent/price-rounding";
 import { roundMoney } from "@/lib/agent/tool-result";
 import { defaultBudgetValues, type BudgetFormValues } from "@/schemas/BudgetSchema";
-import { readBudgetExtras } from "@/lib/budget-extras";
+import { isSameBudgetValue, readBudgetExtras } from "@/lib/budget-extras";
 import type { AgentBudgetChanges } from "@/schemas/agent-tools";
 
 // Cálculos del agente sobre las funciones del formulario. Puro: nunca
 // persiste, así "¿y si…?" no toca ningún presupuesto.
 export type BudgetOptionRow = Omit<BudgetFormValues,
-  "name" | "description" | "categoryIds" | "incidence_enabled" | "company_enabled" | "personal_enabled" | "extras"
-> & { has_products: boolean; extras?: unknown };
+  | "name" | "description" | "categoryIds" | "incidence_enabled" | "company_enabled" | "personal_enabled"
+  | "extras" | "bse_contribution"
+> & { has_products: boolean; extras?: unknown; bse_contribution?: number | null };
 
 type BudgetRow = {
   name: string;
@@ -37,21 +38,16 @@ export const budgetOptionToFormValues = (budget: BudgetRow): BudgetFormValues =>
   const base = option ?? defaultBudgetValues;
   return withEffectiveIva({
     ...defaultBudgetValues,
-    visits: base.visits, visit_type: base.visit_type,
-    hours_per_visit: base.hours_per_visit,
-    nominal_hour: base.nominal_hour, nominal_salary: base.nominal_salary,
-    employees: base.employees,
-    incidence_contribution: base.incidence_contribution,
-    company_contribution: base.company_contribution,
+    visits: base.visits, visit_type: base.visit_type, hours_per_visit: base.hours_per_visit,
+    nominal_hour: base.nominal_hour, nominal_salary: base.nominal_salary, employees: base.employees,
+    incidence_contribution: base.incidence_contribution, company_contribution: base.company_contribution,
     personal_contribution: base.personal_contribution,
-    transportation_cost: base.transportation_cost,
-    products_price: base.products_price,
-    products_iva: base.products_iva,
-    products_revenue_percent: base.products_revenue_percent,
+    // Una opción guardada sin BSE queda sin BSE (null), no con el 5% por defecto.
+    bse_contribution: option ? option.bse_contribution ?? null : defaultBudgetValues.bse_contribution,
+    transportation_cost: base.transportation_cost, products_price: base.products_price,
+    products_iva: base.products_iva, products_revenue_percent: base.products_revenue_percent,
     extras: readBudgetExtras(base.extras), // el JSON guardado, leído sin confiar en su forma
-    revenue_percent: base.revenue_percent,
-    price: base.price,
-    iva: base.iva,
+    revenue_percent: base.revenue_percent, price: base.price, iva: base.iva,
     name: budget.name,
     description: budget.description ?? undefined,
     categoryIds: budget.budgetCategory?.map((category) => category.id) ?? [],
@@ -78,6 +74,9 @@ export const runBudgetCalculation = (values: BudgetFormValues) => {
     laborCost: roundMoney(totals.laborCost),
     contributions: roundMoney(totals.totalContribsExtra),
     transport: roundMoney(totals.transport),
+    extras: roundMoney(totals.extrasCost),
+    // Dentro de contributions y de serviceCost; aparte para poder explicarlo.
+    bse: roundMoney(totals.bseVal),
     products: roundMoney(totals.products),
     serviceCost: roundMoney(totals.costBasisNoProducts),
     serviceRevenue: roundMoney(totals.revenueAmountService),
@@ -136,6 +135,8 @@ export const describeBudgetInputs = (values: BudgetFormValues) => ({
   productsRevenuePercent: values.products_revenue_percent,
   transportationCost: values.transportation_cost,
   extras: values.extras,
+  // null: presupuesto anterior al BSE, sin calcular (se calcula con calculateBse).
+  bsePercent: values.bse_contribution ?? null,
   ivaPercent: values.iva,
   contributions: {
     incidence: values.incidence_enabled ? values.incidence_contribution : 0,
@@ -146,7 +147,7 @@ export const describeBudgetInputs = (values: BudgetFormValues) => ({
 
 export const CHANGEABLE_FIELDS = [
   "visits", "visit_type", "hours_per_visit", "employees", "nominal_hour", "revenue_percent",
-  "products_price", "products_revenue_percent", "transportation_cost", "iva",
+  "products_price", "products_revenue_percent", "transportation_cost", "extras", "bse_contribution", "iva",
   "incidence_enabled", "company_enabled", "personal_enabled",
   "incidence_contribution", "company_contribution", "personal_contribution",
 ] as const;
@@ -159,19 +160,18 @@ export const applyBudgetChanges = (values: BudgetFormValues, changes: AgentBudge
   const { estimateTransport, estimateProducts, ...fields } = changes;
   const next: BudgetFormValues = { ...values };
   Object.entries(fields).forEach(([key, value]) => {
-    if (key !== "roundPrice" && value !== undefined && value !== null) (next as Record<string, unknown>)[key] = value;
+    if (key === "roundPrice" || key === "calculateBse" || value === undefined || value === null) return;
+    (next as Record<string, unknown>)[key] = value;
   });
   CONTRIBUTIONS.forEach(([enabledKey, percentKey]) => {
-    if (next[enabledKey] && !(Number(next[percentKey]) > 0)) {
-      next[percentKey] = defaultBudgetValues[percentKey];
-    }
+    if (next[enabledKey] && !(Number(next[percentKey]) > 0)) next[percentKey] = defaultBudgetValues[percentKey];
   });
   const estimates = calculateEstimates(next);
   if (estimateTransport) next.transportation_cost = estimates.transportation_cost;
   if (estimateProducts) next.products_price = roundProductsPrice(estimates.products_price);
   next.price = Number(calculateBudgetTotals(next).totalFinalWithProducts.toFixed(2));
 
-  const changedFields = CHANGEABLE_FIELDS.filter((key) => next[key] !== values[key]);
+  const changedFields = CHANGEABLE_FIELDS.filter((key) => !isSameBudgetValue(next[key], values[key]));
   return { values: next, changedFields };
 };
 
@@ -183,9 +183,7 @@ export const solveTargetPrice = (
 ) => {
   const totals = calculateBudgetTotals(values);
   const solve =
-    target.kind === "hourly"
-      ? calculateRevenuePercentForHourlyTarget
-      : calculateRevenuePercentForServiceTarget;
+    target.kind === "hourly" ? calculateRevenuePercentForHourlyTarget : calculateRevenuePercentForServiceTarget;
   const result = solve(target.amount, totals.totalHours, totals.costBasisNoProducts);
   if (!result.canCalculate) return null;
 

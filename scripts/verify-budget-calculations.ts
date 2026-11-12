@@ -10,10 +10,12 @@ import { defaultBudgetValues } from "../schemas/BudgetSchema";
 const noProductMargin = calculateBudgetTotals(defaultBudgetValues);
 assert.equal(noProductMargin.productRevenuePct, 0);
 assert.equal(noProductMargin.revenueAmountProducts, 0);
-assert.equal(
-    noProductMargin.totalPreTaxWithProducts -
-        noProductMargin.priceNoTaxService,
-    defaultBudgetValues.products_price
+assert.ok(
+    Math.abs(
+        noProductMargin.totalPreTaxWithProducts -
+            noProductMargin.priceNoTaxService -
+            defaultBudgetValues.products_price
+    ) < 1e-9
 );
 
 const withProductMargin = calculateBudgetTotals({
@@ -31,9 +33,8 @@ const withExtras = calculateBudgetTotals({
     extras: [{ name: "Camión cisterna", amount: 2_500 }, { name: "Permiso", amount: 500 }],
 });
 assert.equal(withExtras.extrasCost, 3_000);
-assert.equal(
-    withExtras.costBasisNoProducts - noProductMargin.costBasisNoProducts,
-    3_000
+assert.ok(
+    Math.abs(withExtras.costBasisNoProducts - noProductMargin.costBasisNoProducts - 3_000) < 1e-6
 );
 assert.ok(
     Math.abs(

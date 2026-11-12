@@ -2,6 +2,7 @@
 
 import { Controller, useFormContext, useWatch } from "react-hook-form";
 
+import { BudgetBseRow } from "@/components/budgets/create-budget/budget-bse-row";
 import { formatBudgetMoney } from "@/components/budgets/create-budget/budget-summary-model";
 import { CreatorAffixInput, CreatorSwitch } from "@/components/budgets/create-budget/creator-ui";
 import { calculateBudgetTotals } from "@/lib/budget-calculations";
@@ -66,6 +67,7 @@ export const BudgetContributionsFields = () => {
           </span>
         </div>
       ))}
+      <BudgetBseRow amount={totals.bseVal} />
       <div className="flex items-center justify-between gap-3 border-t border-ops-border px-3.5 py-3">
         <span className="text-[13.5px] font-semibold text-ops-text">Costo extra por cargas</span>
         <span className="text-sm font-bold tabular-nums text-ops-text">{formatBudgetMoney(totals.totalContribsExtra)}</span>

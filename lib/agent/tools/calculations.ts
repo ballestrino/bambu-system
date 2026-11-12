@@ -35,14 +35,15 @@ const describeBase = (base: BudgetBase) => ({
 export const createCalculationTools = (ctx: AgentToolContext) => ({
   calculateBudget: tool({
     description:
-      "Calcula un presupuesto con las fórmulas del formulario: parte del presupuesto en contexto (u otro por slug, o de los valores por defecto) y aplica cambios de margen, horas, visitas, empleadas, productos o transporte. En changes, null en todo salvo lo que el usuario pidió cambiar: el resto sale de la base, no copies valores. changedFields dice qué cambió de verdad. Un presupuesto nuevo estima transporte y productos. Si el precio cambia, sube el total sin IVA al próximo múltiplo de $ 100 ajustando el margen, y rounding dice de cuánto a cuánto. Devuelve totales sin y con productos, IVA y precio por hora. No guarda nada.",
+      "Calcula un presupuesto con las fórmulas del formulario: parte del presupuesto en contexto (u otro por slug, o de los valores por defecto) y aplica cambios de margen, horas, visitas, empleadas, productos, transporte, extras o BSE (calculateBse lo agrega a un presupuesto sin BSE sacándolo del margen, con el mismo precio). En changes, null en todo salvo lo que el usuario pidió cambiar: el resto sale de la base, no copies valores. changedFields dice qué cambió de verdad. Un presupuesto nuevo estima transporte y productos. Si el precio cambia, sube el total sin IVA al próximo múltiplo de $ 100 ajustando el margen, y rounding dice de cuánto a cuánto. Devuelve totales sin y con productos, IVA y precio por hora. No guarda nada.",
     inputSchema: calculateBudgetInputSchema,
     execute: (input) =>
       runTool("calculateBudget", async () => {
         const base = await resolveBudgetBase(ctx, input);
         if ("error" in base) return toolError("not_found", base.error);
 
-        const { values, changedFields, rounding } = applyAgentChanges(base, input.changes ?? {});
+        const { values, changedFields, rounding, bseError } = applyAgentChanges(base, input.changes ?? {});
+        if (bseError) return toolError("cannot_calculate_bse", bseError);
         const calculation = runBudgetCalculation(values);
         const grounding = { amounts: getCalculationAmounts(calculation) };
         addToolGrounding(ctx.grounding, grounding);
@@ -72,7 +73,8 @@ export const createCalculationTools = (ctx: AgentToolContext) => ({
 
         // El objetivo es el precio pedido: se estima un presupuesto nuevo,
         // pero no se redondea.
-        const { values } = applyAgentChanges(base, { ...input.changes, roundPrice: false });
+        const { values, bseError } = applyAgentChanges(base, { ...input.changes, roundPrice: false });
+        if (bseError) return toolError("cannot_calculate_bse", bseError);
         const solved = solveTargetPrice(values, { kind: input.target, amount: input.amount });
         if (!solved) {
           return toolError(

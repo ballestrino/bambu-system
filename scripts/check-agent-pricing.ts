@@ -68,7 +68,8 @@ assert.deepEqual(applyNicePrice(fresh.values), { values: fresh.values, rounding:
 assert.equal(applyNicePrice({ ...defaultBudgetValues, visits: 0 }).rounding, null);
 // Above about $ 1.000.000 of monthly cost the 6-decimal margin can miss the
 // hundred: then the price is not touched, never rounded to something else.
-const huge = applyBudgetChanges(defaultBudgetValues, {
+// (Sin BSE: el caso depende de este costo exacto.)
+const huge = applyBudgetChanges({ ...defaultBudgetValues, bse_contribution: null }, {
   visits: 12, visit_type: "days", hours_per_visit: 7.25, employees: 41, estimateTransport: true, estimateProducts: true,
 }).values;
 assert.ok(runBudgetCalculation(huge).serviceCost > 1_000_000);

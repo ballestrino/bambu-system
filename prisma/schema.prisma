@@ -211,6 +211,8 @@ model BudgetOption {
   incidence_contribution Float
   company_contribution   Float
   personal_contribution  Float
+  // BSE en % del sueldo nominal. null: guardado antes del BSE (sin calcular).
+  bse_contribution       Float?
 
   // Extra costs
   transportation_cost Float

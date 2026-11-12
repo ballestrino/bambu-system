@@ -139,8 +139,12 @@ export const calculateBudgetTotals = (values: BudgetCalculationValues) => {
 
     const incidenceVal = laborCost * incidencePct;
     const companyVal = laborCost * companyPct;
+    // BSE: % del sueldo nominal (horas × hora nominal), sin el descuento de
+    // los aportes personales apagados. null (presupuesto anterior al BSE) no suma.
+    const bsePct = (Number(values.bse_contribution) || 0) / 100;
+    const bseVal = totalHours * rate * bsePct;
 
-    const totalContribsExtra = incidenceVal + companyVal;
+    const totalContribsExtra = incidenceVal + companyVal + bseVal;
 
     // 4. Service Cost Basis
     const costBasisNoProducts = laborCost + totalContribsExtra + transport + extrasCost;
@@ -171,6 +175,7 @@ export const calculateBudgetTotals = (values: BudgetCalculationValues) => {
         personalVal,
         incidenceVal,
         companyVal,
+        bseVal,
         totalContribsExtra,
         costBasisNoProducts,
         revenueAmountService,

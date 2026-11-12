@@ -1,5 +1,6 @@
 import { applyBudgetChanges, type CHANGEABLE_FIELDS } from "@/lib/agent/budget-calculation";
 import { BUSINESS_PROFILE } from "@/lib/agent/business-profile";
+import { applyBseKeepingPrice, BSE_KEEP_PRICE_ERRORS } from "@/lib/budget-bse";
 import { roundUpToPriceStep } from "@/lib/agent/price-rounding";
 import { roundMoney } from "@/lib/agent/tool-result";
 import {
@@ -70,11 +71,34 @@ const shouldRoundPrice = (
   return isNew || serviceNet(after) !== serviceNet(before);
 };
 
+type ChangedFields = (typeof CHANGEABLE_FIELDS)[number][];
+
+export type AgentChangesResult = {
+  values: BudgetFormValues;
+  changedFields: ChangedFields;
+  rounding: PriceRounding | null;
+  // calculateBse que no se pudo aplicar: la tool lo devuelve como error.
+  bseError: string | null;
+};
+
+// calculateBse después de los demás cambios: el BSE sale del margen y el
+// precio sin IVA queda igual, así que no se redondea.
+const withBseKeepingPrice = (applied: { values: BudgetFormValues; changedFields: ChangedFields }) => {
+  const result = applyBseKeepingPrice(applied.values);
+  if (!result.ok) return { ...applied, bseError: BSE_KEEP_PRICE_ERRORS[result.reason] };
+  const values = {
+    ...result.values,
+    price: Number(calculateBudgetTotals(result.values).totalFinalWithProducts.toFixed(2)),
+  };
+  const fields = new Set<ChangedFields[number]>([...applied.changedFields, "bse_contribution", "revenue_percent"]);
+  return { values, changedFields: [...fields], bseError: null };
+};
+
 // Lo que se tipeó en el editor de la 43 ("edited") se guarda como en el
 // generador: sin cambios, estimados ni redondeo, y un aporte habilitado en 0
 // queda en 0. Solo se recalcula el precio final, como hace el formulario.
 const asEdited = (values: BudgetFormValues) => {
-  const changedFields: (typeof CHANGEABLE_FIELDS)[number][] = [];
+  const changedFields: ChangedFields = [];
   const price = Number(calculateBudgetTotals(values).totalFinalWithProducts.toFixed(2));
   return { values: { ...values, price }, changedFields, rounding: null };
 };
@@ -84,13 +108,16 @@ const asEdited = (values: BudgetFormValues) => {
 export const applyAgentChanges = (
   base: { source: string; values: BudgetFormValues },
   changes: AgentBudgetChanges
-) => {
-  if (base.source === "edited") return asEdited(base.values);
+): AgentChangesResult => {
+  if (base.source === "edited") return { ...asEdited(base.values), bseError: null };
   const isNew = base.source === "defaults";
-  const applied = applyBudgetChanges(base.values, isNew ? withNewBudgetEstimates(changes) : changes);
-  if (!shouldRoundPrice(changes, isNew, base.values, applied.values)) return { ...applied, rounding: null };
+  const changed = applyBudgetChanges(base.values, isNew ? withNewBudgetEstimates(changes) : changes);
+  const withBse = changes.calculateBse ? withBseKeepingPrice(changed) : { ...changed, bseError: null };
+  if (withBse.bseError) return { values: base.values, changedFields: [], rounding: null, bseError: withBse.bseError };
+  const applied = { values: withBse.values, changedFields: withBse.changedFields };
+  if (!shouldRoundPrice(changes, isNew, base.values, applied.values)) return { ...applied, rounding: null, bseError: null };
   const nice = applyNicePrice(applied.values);
-  return { values: nice.values, changedFields: applied.changedFields, rounding: nice.rounding };
+  return { values: nice.values, changedFields: applied.changedFields, rounding: nice.rounding, bseError: null };
 };
 
 const money = new Intl.NumberFormat("es-UY", {

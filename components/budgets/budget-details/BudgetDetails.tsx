@@ -6,6 +6,7 @@ import { cn } from "@/lib/utils";
 import { calculateBudgetTotals } from "@/lib/budget-calculations";
 import { BudgetFormValues, defaultBudgetValues } from "@/schemas/BudgetSchema";
 import { BudgetProductProfitRow } from "@/components/budgets/common/BudgetProductProfitRow";
+import { hasBse } from "@/lib/budget-bse";
 import { readBudgetExtras } from "@/lib/budget-extras";
 
 type BudgetDetailsOption = Partial<Omit<BudgetFormValues, "extras">> & {
@@ -23,6 +24,8 @@ export const BudgetDetails = ({ option, title }: BudgetDetailsProps) => {
         ...defaultBudgetValues,
         ...option,
         extras: readBudgetExtras(option.extras),
+        // Sin el campo (una opción vieja) es un presupuesto sin BSE, no el 5% por defecto.
+        bse_contribution: option.bse_contribution ?? null,
     };
 
     const totals = calculateBudgetTotals(values);
@@ -35,6 +38,7 @@ export const BudgetDetails = ({ option, title }: BudgetDetailsProps) => {
         personalVal,
         incidenceVal,
         companyVal,
+        bseVal,
         totalContribsExtra,
         costBasisNoProducts,
         revenueAmountService,
@@ -123,6 +127,12 @@ export const BudgetDetails = ({ option, title }: BudgetDetailsProps) => {
                         <div className={cn("flex justify-between", !values.incidence_enabled && "text-muted-foreground")}>
                             <span className="text-muted-foreground">Aguinaldo y salario vacacional</span>
                             <span>${incidenceVal.toFixed(2)}</span>
+                        </div>
+                        <div className="flex justify-between">
+                            <span className="text-muted-foreground">
+                                {hasBse(values.bse_contribution) ? `BSE (${values.bse_contribution}%)` : "BSE (sin calcular)"}
+                            </span>
+                            <span>${bseVal.toFixed(2)}</span>
                         </div>
                     </div>
                     <div className="flex justify-between text-sm font-medium pt-1 border-t">

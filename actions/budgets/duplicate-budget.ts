@@ -70,6 +70,7 @@ export const duplicateBudget = async (budgetId: string) => {
                         incidence_contribution: option.incidence_contribution,
                         company_contribution: option.company_contribution,
                         personal_contribution: option.personal_contribution,
+                        bse_contribution: option.bse_contribution,
                         transportation_cost: option.transportation_cost,
                         products_price: option.products_price,
                         products_iva: option.products_iva,

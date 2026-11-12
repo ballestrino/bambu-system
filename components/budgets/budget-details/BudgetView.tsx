@@ -5,6 +5,8 @@ import { AgentSheetHost } from "@/components/agent/agent-sheet-host";
 import { BudgetDetails } from "@/components/budgets/budget-details/BudgetDetails";
 import useBudget from "../hooks/useBudget";
 import type { BudgetOption } from "@prisma/client";
+import { hasBse } from "@/lib/budget-bse";
+import { BudgetBseNotice } from "@/components/budgets/budget-details/budget-bse-notice";
 import { GeneratorOfficialControl } from "@/components/official-budgets/official-budget-controls";
 
 export default function BudgetDetailView({
@@ -53,6 +55,8 @@ export default function BudgetDetailView({
                     )}
                 </div>
             </div>
+
+            {budgetOptions.some((option) => !hasBse(option.bse_contribution)) && <BudgetBseNotice slug={budget.slug} />}
 
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
                 {/* Left Column: Without Products (if available) or Service Only view */}

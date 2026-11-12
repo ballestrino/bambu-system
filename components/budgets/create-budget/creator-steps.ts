@@ -32,7 +32,7 @@ export const CREATOR_STEPS = [
     id: "aportes",
     label: "Aportes y cargas",
     description: "Porcentajes sobre la mano de obra. Vienen con los valores de siempre.",
-    fields: ["incidence_contribution", "company_contribution", "personal_contribution"],
+    fields: ["incidence_contribution", "company_contribution", "personal_contribution", "bse_contribution"],
   },
 ] as const satisfies ReadonlyArray<{
   description: string;

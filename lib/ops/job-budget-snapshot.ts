@@ -46,6 +46,7 @@ export const buildJobBudgetSnapshot = (
     incidenceContribution: budgetOption.incidence_contribution,
     companyContribution: budgetOption.company_contribution,
     personalContribution: budgetOption.personal_contribution,
+    bseContribution: budgetOption.bse_contribution,
     transportationCost: budgetOption.transportation_cost,
     extras: readBudgetExtras(budgetOption.extras),
     productsPrice: budgetOption.products_price,

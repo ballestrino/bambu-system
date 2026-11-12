@@ -23,14 +23,17 @@ type BudgetEditorDesktopProps = {
   budget: ExistingBudget;
   editor: BudgetEditorState;
   onSave: () => void;
+  openAportes?: boolean;
 };
 
 // Escritorio: secciones que se abren de a una o varias, con un resumen de una
 // línea cerradas, y a la derecha los cambios sin guardar y el resumen en vivo.
-export const BudgetEditorDesktop = ({ budget, editor, onSave }: BudgetEditorDesktopProps) => {
+export const BudgetEditorDesktop = ({ budget, editor, onSave, openAportes = false }: BudgetEditorDesktopProps) => {
   const form = useFormContext<BudgetFormValues>();
   const values = useWatch({ control: form.control });
-  const [open, setOpen] = useState<CreatorStepId[]>(["equipo", "precio"]);
+  const [open, setOpen] = useState<CreatorStepId[]>(() =>
+    openAportes ? ["aportes", "precio"] : ["equipo", "precio"]
+  );
   const changedSections = new Set(editor.changes.map((change) => change.section));
   const hasChanges = editor.changes.length > 0;
   const toggle = (step: CreatorStepId) =>
