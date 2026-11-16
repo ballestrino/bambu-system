@@ -14,6 +14,9 @@ export const useOpsPersistedState = <T extends Record<string, unknown>>(
       const storedValue = window.localStorage.getItem(key);
 
       if (storedValue) {
+        // localStorage solo existe en el navegador: leerlo en el render rompe
+        // la hidratación, por eso se aplica después de montar.
+        // eslint-disable-next-line react-hooks/set-state-in-effect
         setValue({ ...defaultValue, ...JSON.parse(storedValue) });
       }
     } catch {

@@ -2,7 +2,7 @@
 
 import { Input } from "@/components/ui/input"
 import { cn } from "@/lib/utils"
-import { useEffect, useState } from "react"
+import { useState } from "react"
 
 interface ColorPickerProps {
     value?: string
@@ -18,10 +18,13 @@ export function ColorPicker({
     className,
 }: ColorPickerProps) {
     const [localValue, setLocalValue] = useState(value)
+    const [syncedValue, setSyncedValue] = useState(value)
 
-    useEffect(() => {
+    // Si el valor cambia desde afuera, lo copia al estado local en el render.
+    if (value !== syncedValue) {
+        setSyncedValue(value)
         setLocalValue(value)
-    }, [value])
+    }
 
     const handleChange = (newValue: string) => {
         setLocalValue(newValue)

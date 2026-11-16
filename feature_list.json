@@ -899,6 +899,21 @@
         "Choosing Ganancia in the price mode selector releases a fixed target price",
         "Focused checks for the calculation, prisma validate, tsc, lint and a browser smoke of the editor"
       ],
+      "status": "blocked"
+    },
+    {
+      "id": 55,
+      "name": "next_16_4_upgrade",
+      "title": "Upgrade Next.js from 16.3.6 to 16.4.6",
+      "area": "tooling",
+      "description": "Bump next and eslint-config-next to 16.4.6 (exact pins). React 19.3 and next-auth 5.0.0-beta.32 already satisfy the peer ranges. No code changes expected; Next 16.4 also manages AGENTS.md from next dev, so check it stays untouched.",
+      "acceptance": [
+        "next and eslint-config-next are 16.4.6 in package.json and the lockfile",
+        "pnpm build and pnpm lint pass",
+        "init.ps1 (harness, prisma validate, lint) passes",
+        "Browser smoke: login page, dashboard, budgets and billing render without console errors",
+        "AGENTS.md is not rewritten by next dev"
+      ],
       "status": "in_progress"
     }
   ]
