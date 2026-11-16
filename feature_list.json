@@ -915,6 +915,37 @@
         "AGENTS.md is not rewritten by next dev"
       ],
       "status": "done"
+    },
+    {
+      "id": 56,
+      "name": "billing_general_regime",
+      "title": "Billing after leaving IVA mínimo: régimen general, indicator 3 and IVA on every invoice",
+      "area": "billing",
+      "description": "Plan in docs/billing-general-regime.md. Bambú left IVA mínimo (Literal E): CFEs no longer use the special CAE or indicator 16. User decisions (2026-11-16): general regime applies from 2026-11-16 inclusive; 22% is added to the current price (Bambú does not absorb IVA, e-Tickets included); the app supports a single regime, anything else is done in the Biller panel; the accountant uploads the new CAEs. Remove BILLER_CAE_ESPECIAL/BILLER_CAE_CAUSAL and the cae field; the default indicator is a fixed 3 instead of the last issued invoice; Repetir converts 16 to 3 keeping the price without IVA; buildIssuePlan stops a line with 16 and an issue date before 2026-11-16 before calling Biller; the form stops offering 16; a credit note of an invoice issued with IVA mínimo is blocked (done in the Biller panel); and the month summary shows without IVA, IVA and total (the comparison uses without IVA). No migration.",
+      "acceptance": [
+        "No issue request sends cae, and new invoices (page and agent) default to indicator 3; 16 is not offered",
+        "Repeating a month issued with indicator 16 creates the draft at 22% with the same price without IVA and a notice with the IVA added",
+        "A line with indicator 16 or an issue date before 2026-11-16 is rejected before calling Biller with a clear message",
+        "A credit note of an invoice with indicator 16 is blocked and points to the Biller panel; one of a 22% invoice works",
+        "Invoices issued with indicator 16 still read, list, archive and send as before",
+        "The summary shows without IVA, IVA and total and compares months without IVA",
+        "check:billing with the new regime checks, tsc, lint, a Biller test smoke (repeat, issue, Aceptado DGI, PDF) and a browser smoke at 1440 and 390 px"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": 57,
+      "name": "literal_e_retirement",
+      "title": "Retire the Literal E note from the agent, quotes and budget texts",
+      "area": "agent",
+      "description": "Plan in docs/billing-general-regime.md. The note 'Mientras la empresa continúe bajo régimen Literal E, se aplicará el monto sin IVA' is no longer true. Remove LITERAL_E_NOTE, the missing_literal_e grounding failure, the literal_e protected rule and the prompt lines, and show client prices as the user decides (proposal: '$ X + IVA ($ Y IVA incluido)', both amounts from the calculation). Review saved team instructions and agent memories that mention Literal E.",
+      "acceptance": [
+        "draftEmail no longer requires or writes the Literal E note and still rejects amounts without a source",
+        "Client prices follow the format chosen by the user, with both amounts grounded in the calculation",
+        "No prompt, rule, check or doc mentions Literal E as current",
+        "The agent checks, tsc and lint pass, and one real turn drafts a quote email"
+      ],
+      "status": "pending"
     }
   ]
 }

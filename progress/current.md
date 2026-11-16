@@ -72,6 +72,14 @@ Status: active
 
 ## Queue
 
+- 2026-11-16: Bambú pasó de IVA mínimo a régimen general. Plan en
+  `docs/billing-general-regime.md`, features 56 (facturación, antes del lote
+  del 1 al 10 de diciembre) y 57 (nota de Literal E del agente), pendientes.
+  Sin código todavía. Decidido por el usuario el 2026-11-16: vale desde el
+  16/11 inclusive; se suma el 22 % al precio actual (Bambú no absorbe el IVA); la app
+  queda con un solo régimen y lo demás (la nota de crédito de una factura de
+  IVA mínimo) se hace en el panel de Biller; los CAE nuevos los sube el
+  contador.
 - 2026-11-01: facturación, pedidas por el usuario y anotadas en
   `feature_list.json` (en este orden): borrar las del borrador y archivar
   las emitidas (47), filtros en lugar de las pestañas (48), editor lateral

@@ -30,6 +30,7 @@ map, not a complete rule book: read the referenced file when the task needs it.
 | `docs/agent.md` | Agent contract: modes, models, environment, costs | Before touching `lib/ai/` or the agent |
 | `docs/visits.md` | Visits page: views, desktop/phone switch, dates and data | Before touching `components/ops/visits/` or the schedule |
 | `docs/billing.md` | Billing with Biller: plan, fixed rules (the agent never issues), data and page | Before features 39–44 or touching `lib/billing/` |
+| `docs/billing-general-regime.md` | Paso de IVA mínimo a régimen general: qué cambia, decisiones y corte | Before features 56–57 or touching the IVA indicator |
 | `CHECKPOINTS.md` | Reviewer checklist | During review |
 | `.codex/agents/` | Codex leader, implementer, reviewer roles | When orchestrating |
 | `scripts/harness-validate.mjs` | Machine checks for harness health | When init fails |
