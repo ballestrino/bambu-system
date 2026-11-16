@@ -5,7 +5,8 @@ Status: active
 ## Active Feature
 
 - 54 `budget_bse` (2026-11-12): mergeada a `main` y pusheada con autorización
-  del usuario el 2026-11-12. Sigue en progreso hasta el smoke en la app.
+  del usuario el 2026-11-12. Sigue en progreso hasta el smoke en la app
+  (estuvo en `blocked` mientras se hizo la 55, Next 16.4.6, el 2026-11-16).
   - Revisión pedida: el agente veía los extras (getBudget, calculateBudget)
     pero no podía agregarlos, cambiarlos ni quitarlos, y el contexto del
     presupuesto no los nombraba. Ahora `budgetChangesSchema` trae `extras`
@@ -106,6 +107,10 @@ Status: active
   equivalencias con los ids viejos está en `progress/history.md`.
 
 ## Last Closed Work
+
+- 2026-11-16: Next.js 16.4.6 (55). Lint con las reglas de hooks nuevas en
+  tres archivos; build, lint y tsc verdes. Sin smoke con sesión por decisión
+  del usuario. Mergeada a `main` sin push.
 
 - 2026-11-01: facturación, fechas por defecto del 1 al 10 (50). Decisiones
   del usuario: después del 10 vence a los 5 días; lo de contado pasa a
