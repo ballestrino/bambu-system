@@ -4,24 +4,9 @@ Status: active
 
 ## Active Feature
 
-- 55 `next_16_4_upgrade` (2026-11-16), rama `feature/55-next-16-4`, pedida
-  por el usuario: `next` y `eslint-config-next` de 16.3.6 a 16.4.6 (fijas).
-  React 19.3 y next-auth beta.32 ya cumplen los peer. Las notas de 16.4.x no
-  traen cambios que rompan lo nuestro.
-  - `eslint-plugin-react-hooks` subió a 7.1.1 y marcó `set-state-in-effect`
-    en tres archivos: `color-picker` copia el valor en el render,
-    `use-mobile` pasa a `useSyncExternalStore` (falso en el servidor, como
-    antes) y `use-ops-persisted-state` queda igual con un disable explicado
-    (localStorage solo después de hidratar).
-  - Verificado: `init.ps1` con `HARNESS_FULL=1` (harness, prisma validate,
-    `next build`), ESLint y tsc en verde. `next dev` 16.4.6 arranca, el login
-    se ve sin errores en consola, `/dashboard/billing` redirige al login y
-    `AGENTS.md` no se reescribió.
-  - Falta: smoke con sesión (barra lateral, Visitas, Trabajos, Empleados,
-    categorías de presupuestos con el selector de color, a 1440 y 390 px).
-- 54 `budget_bse` (2026-11-12): pasada a `blocked` el 2026-11-16 para hacer
-  la 55; solo falta el smoke del usuario en la app (ver abajo). Mergeada a
-  `main` y pusheada con autorización del usuario el 2026-11-12.
+- 54 `budget_bse` (2026-11-12): mergeada a `main` y pusheada con autorización
+  del usuario el 2026-11-12. Sigue en progreso hasta el smoke en la app
+  (estuvo en `blocked` mientras se hizo la 55, Next 16.4.6, el 2026-11-16).
   - Revisión pedida: el agente veía los extras (getBudget, calculateBudget)
     pero no podía agregarlos, cambiarlos ni quitarlos, y el contexto del
     presupuesto no los nombraba. Ahora `budgetChangesSchema` trae `extras`
@@ -122,6 +107,10 @@ Status: active
   equivalencias con los ids viejos está en `progress/history.md`.
 
 ## Last Closed Work
+
+- 2026-11-16: Next.js 16.4.6 (55). Lint con las reglas de hooks nuevas en
+  tres archivos; build, lint y tsc verdes. Sin smoke con sesión por decisión
+  del usuario. Mergeada a `main` sin push.
 
 - 2026-11-01: facturación, fechas por defecto del 1 al 10 (50). Decisiones
   del usuario: después del 10 vence a los 5 días; lo de contado pasa a

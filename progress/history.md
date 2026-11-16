@@ -1641,3 +1641,18 @@
   Verificado: 9 columnas, 4 índices, 2 claves foráneas y 134 facturas sin
   cambios. Después, `claude/kind-hopper-64i6j1` pasó a `main`.
 
+
+## 2026-11-16 - next_16_4_upgrade (55)
+
+- `next` y `eslint-config-next` de 16.3.6 a 16.4.6 (fijas). React 19.3 y
+  next-auth 5.0.0-beta.32 ya cumplían los peer.
+- `eslint-plugin-react-hooks` 7.1.1 marcó `set-state-in-effect`:
+  `color-picker` copia el valor en el render, `use-mobile` usa
+  `useSyncExternalStore` y `use-ops-persisted-state` documenta la excepción
+  (localStorage solo después de hidratar).
+- PASS: `init.ps1` con `HARNESS_FULL=1` (harness, prisma validate,
+  `next build`), ESLint, tsc. `next dev` 16.4.6 arranca, el login se ve sin
+  errores en consola, el proxy redirige `/dashboard/billing` al login y
+  `AGENTS.md` no se reescribió.
+- Sin smoke con sesión por decisión del usuario (barra lateral, Visitas,
+  Trabajos, Empleados, selector de color). Mergeada a `main` sin push.

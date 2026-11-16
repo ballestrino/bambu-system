@@ -899,7 +899,7 @@
         "Choosing Ganancia in the price mode selector releases a fixed target price",
         "Focused checks for the calculation, prisma validate, tsc, lint and a browser smoke of the editor"
       ],
-      "status": "blocked"
+      "status": "in_progress"
     },
     {
       "id": 55,
@@ -914,7 +914,7 @@
         "Browser smoke: login page, dashboard, budgets and billing render without console errors",
         "AGENTS.md is not rewritten by next dev"
       ],
-      "status": "in_progress"
+      "status": "done"
     }
   ]
 }
