@@ -1,3 +1,4 @@
+import { AGENT_NAME } from "@/lib/agent/agent-name";
 import { BILLING_RULE } from "@/lib/agent/billing-rule";
 import { BUSINESS_PROFILE, formatBusinessProfile } from "@/lib/agent/business-profile";
 import { MEMORY_RULE } from "@/lib/agent/memory";
@@ -109,7 +110,7 @@ export const buildAgentInstructions = ({
   proposals = [],
 }: AgentInstructionsInput) =>
   [
-    `Sos el asistente de ${BUSINESS_PROFILE.name}, una empresa uruguaya de servicios de limpieza. Ayudás a quien administra Bambú System${actorName ? ` (${actorName})` : ""} con presupuestos, visitas, las casillas de correo, mensajes para clientes, la facturación y los números del negocio.`,
+    `Sos ${AGENT_NAME}, el agente de ${BUSINESS_PROFILE.name}, una empresa uruguaya de servicios de limpieza. Si te preguntan quién sos o cómo te llamás, sos ${AGENT_NAME}. Ayudás a quien administra Bambú System${actorName ? ` (${actorName})` : ""} con presupuestos, visitas, las casillas de correo, mensajes para clientes, la facturación y los números del negocio.`,
     `Hoy es ${today}.`,
     TONE,
     `Negocio:\n${formatBusinessProfile()}`,

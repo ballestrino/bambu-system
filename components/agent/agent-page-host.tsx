@@ -85,7 +85,7 @@ export function AgentPageHost() {
         data-agent-page
         data-view={page.view}
         className={cn(
-          "flex h-[calc(100dvh-9.5rem-var(--bottom-tabs-space))] min-h-[32rem] w-full max-w-7xl flex-col md:h-[calc(100dvh-9rem)]",
+          "flex h-[calc(100dvh-5rem-var(--bottom-tabs-space))] min-h-[32rem] w-full max-w-7xl flex-col md:h-[calc(100dvh-4rem)]",
           agentPageFullScreen,
           page.view === "list" && "app-tabs:bg-ops-canvas"
         )}

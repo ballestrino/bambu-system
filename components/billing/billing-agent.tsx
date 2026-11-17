@@ -134,7 +134,7 @@ export function BillingAgent({
             data-agent-sheet
             onInteractOutside={(event) => event.preventDefault()}
             onOpenAutoFocus={(event) => event.preventDefault()}
-            className="fixed top-20 right-4 z-40 flex h-[min(640px,calc(100dvh-6rem))] w-[400px] flex-col overflow-hidden rounded-2xl border border-ops-border bg-ops-surface shadow-2xl data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:animate-in data-[state=open]:fade-in-0"
+            className="fixed top-4 right-4 z-40 flex h-[min(640px,calc(100dvh-2rem))] w-[400px] flex-col overflow-hidden rounded-2xl border border-ops-border bg-ops-surface shadow-2xl data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:animate-in data-[state=open]:fade-in-0"
           >
             {body}
           </DialogPrimitive.Content>
