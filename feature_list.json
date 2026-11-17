@@ -979,6 +979,22 @@
         "check:official-budget-workspace updated and green, tsc, lint without .claude/worktrees and a browser smoke on desktop and at 390 px"
       ],
       "status": "done"
+    },
+    {
+      "id": 60,
+      "name": "dashboard_panel_redesign",
+      "title": "Dashboard panel without the top nav: open and compact sidebar, Panda agent button and a settings dialog",
+      "area": "dashboard",
+      "description": "Apply the canvas design \"Panel Bambú — sidebar y configuración\": the dashboard loses the top nav (the header stays outside /dashboard; the iOS bottom tabs stay). The sidebar has two formats, open and compact (icons only with tooltips, Ctrl+B, cookie state): the brand, a highlighted agent button named Panda, Operaciones, Precios and Herramientas (Calculadora and Conversor nominal), and a footer with the initials circle, the name and role, and a settings button. Settings is a dialog in the style of the Claude app driven by ?config=<section>: General (theme Claro, Oscuro, Sistema and the shortcut), Cuenta (name, email, password, two-step verification, sign out), and Agente: Memoria and Instrucciones (they leave the sidebar; their pages stay). The agent prompt says it is Panda, the Bambú agent.",
+      "acceptance": [
+        "/dashboard pages render without the top header and with no empty band where it was; the header still shows on / and /settings",
+        "The sidebar toggles between open and compact with the button and Ctrl+B and keeps the state after a reload; compact shows tooltips",
+        "The settings dialog opens from the gear and from the user row, switches sections, closes with Escape and the back button, and the More sheet of the installed app opens it",
+        "Theme, name, email, password, 2FA and sign out work from the dialog; Memoria and Instrucciones show the same data as their pages",
+        "The agent introduces itself as Panda",
+        "tsc, lint and a browser smoke at 1440 and 390 px, light and dark"
+      ],
+      "status": "done"
     }
   ]
 }

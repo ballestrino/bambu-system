@@ -24,17 +24,18 @@ const HEADING = "text-sm font-semibold";
 
 // Las reglas del equipo que el agente sigue en todas las conversaciones, las
 // fijas que nadie cambia y el historial de versiones, con restaurar.
-export function AgentInstructionsView() {
+// embedded: dentro de Configuración, sin el título ni el margen de página.
+export function AgentInstructionsView({ embedded = false }: { embedded?: boolean }) {
   const { query, restore } = useAgentInstructions();
   const [restoring, setRestoring] = useState<AgentInstructionVersionRow | null>(null);
   const versions = query.data ?? [];
   const latest = versions[0];
 
   return (
-    <div className="mx-auto w-full max-w-4xl space-y-5 px-4 pb-8">
+    <div className={cn("w-full space-y-5", !embedded && "mx-auto max-w-4xl px-4 pb-8")}>
       <header className="flex items-start justify-between gap-3">
         <div className="space-y-1">
-          <h1 className="flex items-center gap-2 text-xl font-semibold tracking-tight">
+          <h1 className={cn("flex items-center gap-2 text-xl font-semibold tracking-tight", embedded && "sr-only")}>
             <ScrollText className="size-5 text-ops-bamboo-strong" aria-hidden />
             Instrucciones del agente
           </h1>

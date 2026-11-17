@@ -29,7 +29,8 @@ const matches = (filter: Filter, memory: AgentMemoryRow, now: Date) => {
 // Lo que el agente recuerda en todas las conversaciones. Se suma desde el chat
 // (el agente lo propone y un admin lo confirma); acá se edita, se vence o se
 // elimina.
-export function AgentMemoryView() {
+// embedded: dentro de Configuración, sin el título ni el margen de página.
+export function AgentMemoryView({ embedded = false }: { embedded?: boolean }) {
   const { query, update, expire, remove } = useAgentMemories();
   const [filter, setFilter] = useState<Filter>("ALL");
   const [editing, setEditing] = useState<AgentMemoryRow | null>(null);
@@ -46,10 +47,10 @@ export function AgentMemoryView() {
   };
 
   return (
-    <div className="mx-auto w-full max-w-4xl space-y-4 px-4 pb-8">
+    <div className={cn("w-full space-y-4", !embedded && "mx-auto max-w-4xl px-4 pb-8")}>
       <header className="flex items-start justify-between gap-3">
         <div className="space-y-1">
-          <h1 className="flex items-center gap-2 text-xl font-semibold tracking-tight">
+          <h1 className={cn("flex items-center gap-2 text-xl font-semibold tracking-tight", embedded && "sr-only")}>
             <Brain className="size-5 text-ops-bamboo-strong" aria-hidden />
             Memoria del agente
           </h1>
@@ -70,7 +71,7 @@ export function AgentMemoryView() {
         </Button>
       </header>
 
-      <div className="-mx-4 flex gap-1.5 overflow-x-auto px-4 pb-1" role="tablist" aria-label="Filtrar memorias">
+      <div className={cn("flex gap-1.5 overflow-x-auto pb-1", embedded ? "flex-wrap" : "-mx-4 px-4")} role="tablist" aria-label="Filtrar memorias">
         {FILTERS.map((option) => (
           <button
             key={option.id}

@@ -5,6 +5,7 @@ import NavTools from "./NavTools";
 import NavLogo from "./NavLogo";
 import NavUser from "./NavUser";
 import { auth } from "@/auth";
+import { HideOnDashboard } from "./hide-on-dashboard";
 
 import { ThemeToggle } from "../ui/theme-toggle";
 
@@ -14,36 +15,39 @@ export default async function Nav() {
     const admin = session?.user.role === 'ADMIN'
 
     // BottomTabs va como hermano del header: el backdrop-blur del header
-    // volvería relativo a él cualquier hijo con position: fixed.
+    // volvería relativo a él cualquier hijo con position: fixed. El header no
+    // se muestra en /dashboard (navega con la barra lateral); los tabs sí.
     return (
         <>
-            <div className="sticky flex bg-background/95 backdrop-blur supports-backdrop-filter:bg-background/60 top-0 z-40 w-full items-center py-3 justify-center h-20 px-4 pr-(--removed-body-scroll-bar-size) border-b">
-                <div className="flex items-center container justify-between h-full">
+            <HideOnDashboard>
+                <div className="sticky flex bg-background/95 backdrop-blur supports-backdrop-filter:bg-background/60 top-0 z-40 w-full items-center py-3 justify-center h-20 px-4 pr-(--removed-body-scroll-bar-size) border-b">
+                    <div className="flex items-center container justify-between h-full">
 
-                    <div className="flex items-center gap-2 h-14">
-                        <NavLogo />
-                    </div>
-
-
-                    <div className="flex items-center gap-4">
-                        <div className="hidden md:flex items-center gap-4">
-                            <ThemeToggle />
-                            {admin && (
-                                <div className="flex items-center gap-6">
-                                    <NavDashboard />
-                                    <NavTools />
-                                </div>
-                            )}
-                            <NavUser />
+                        <div className="flex items-center gap-2 h-14">
+                            <NavLogo />
                         </div>
 
-                        {/* Mobile Nav */}
-                        <div className="md:hidden app-tabs:hidden">
-                            <MobileNav admin={admin} user={session?.user} />
+
+                        <div className="flex items-center gap-4">
+                            <div className="hidden md:flex items-center gap-4">
+                                <ThemeToggle />
+                                {admin && (
+                                    <div className="flex items-center gap-6">
+                                        <NavDashboard />
+                                        <NavTools />
+                                    </div>
+                                )}
+                                <NavUser />
+                            </div>
+
+                            {/* Mobile Nav */}
+                            <div className="md:hidden app-tabs:hidden">
+                                <MobileNav admin={admin} user={session?.user} />
+                            </div>
                         </div>
                     </div>
                 </div>
-            </div>
+            </HideOnDashboard>
             {admin && <BottomTabs user={session?.user} />}
         </>
     )

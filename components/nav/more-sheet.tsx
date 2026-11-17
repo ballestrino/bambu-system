@@ -1,14 +1,14 @@
 "use client";
 
 import Link from "next/link";
-import { Calculator, CircleDollarSign, Settings } from "lucide-react";
-import { usePathname } from "next/navigation";
+import { Settings } from "lucide-react";
+import { usePathname, useRouter } from "next/navigation";
 import { useState, type ReactNode } from "react";
 
 import { moreNavGroups } from "@/components/dashboard/dashboard-nav";
+import { dashboardTools } from "@/components/dashboard/dashboard-tools";
+import { openSettings, settingsPath } from "@/components/settings/dialog/settings-url";
 import { SignOutButton } from "@/components/settings/sign-out-button";
-import { CalculatorTool } from "@/components/tools/Calculator";
-import { NominalRateConverter } from "@/components/tools/NominalRateConverter";
 import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
 import {
   Sheet,
@@ -18,7 +18,6 @@ import {
   SheetTitle,
   SheetTrigger,
 } from "@/components/ui/sheet";
-import { ThemeToggle } from "@/components/ui/theme-toggle";
 import { cn } from "@/lib/utils";
 import type { ExtendedUser } from "@/next-auth";
 
@@ -29,11 +28,6 @@ const activeItemClass =
 const sectionTitleClass =
   "mb-2 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground";
 
-const tools = [
-  { title: "Conversor Nominal", icon: CircleDollarSign, content: <NominalRateConverter /> },
-  { title: "Calculadora", icon: Calculator, content: <CalculatorTool /> },
-];
-
 type MoreSheetProps = {
   children: ReactNode;
   user?: ExtendedUser;
@@ -42,7 +36,15 @@ type MoreSheetProps = {
 export function MoreSheet({ children, user }: MoreSheetProps) {
   const [open, setOpen] = useState(false);
   const pathname = usePathname();
+  const router = useRouter();
   const close = () => setOpen(false);
+  // Configuración es el diálogo del dashboard (tema, cuenta, memoria e
+  // instrucciones); fuera del dashboard se entra a él con el diálogo abierto.
+  const openConfig = () => {
+    close();
+    if (pathname.startsWith("/dashboard")) openSettings("general");
+    else router.push(settingsPath("/dashboard"));
+  };
 
   return (
     <Sheet open={open} onOpenChange={setOpen}>
@@ -81,7 +83,7 @@ export function MoreSheet({ children, user }: MoreSheetProps) {
           <section>
             <h3 className={sectionTitleClass}>Herramientas</h3>
             <div className="grid grid-cols-2 gap-2">
-              {tools.map((tool) => (
+              {dashboardTools.map((tool) => (
                 <Dialog key={tool.title}>
                   <DialogTrigger asChild>
                     <button type="button" className={itemClass}>
@@ -96,22 +98,15 @@ export function MoreSheet({ children, user }: MoreSheetProps) {
           </section>
 
           <section className="space-y-3 border-t pt-4">
-            <div className="flex items-center justify-between gap-2">
-              <div className="min-w-0">
-                <p className="truncate text-sm font-medium">{user?.name || "Usuario"}</p>
-                <p className="truncate text-xs text-muted-foreground">{user?.email}</p>
-              </div>
-              <ThemeToggle />
+            <div className="min-w-0">
+              <p className="truncate text-sm font-medium">{user?.name || "Usuario"}</p>
+              <p className="truncate text-xs text-muted-foreground">{user?.email}</p>
             </div>
             <div className="grid grid-cols-2 gap-2">
-              <Link
-                href="/settings"
-                onClick={close}
-                className={cn(itemClass, pathname === "/settings" && activeItemClass)}
-              >
+              <button type="button" onClick={openConfig} className={itemClass}>
                 <Settings className="size-4 shrink-0" />
-                Ajustes
-              </Link>
+                Configuración
+              </button>
               <SignOutButton />
             </div>
           </section>

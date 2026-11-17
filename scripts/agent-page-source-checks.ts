@@ -25,12 +25,13 @@ const page = read(pagePath);
 assert.match(page, /<Suspense fallback=\{<AgentPageFallback \/>\}>\s*<AgentPageHost \/>\s*<\/Suspense>/);
 assert.match(read("app/(private)/layout.tsx"), /session\?\.user\.role !== 'ADMIN'/);
 
-// --- Sidebar entry and bottom tab, active on the route (the sidebar, the
-// tabs and "Más" share components/dashboard/dashboard-nav.ts).
+// --- One agent entry (named AGENT_NAME), active on the route: the sidebar
+// shows it highlighted above the groups and the bottom tabs reuse it.
 const nav = read("components/dashboard/dashboard-nav.ts");
-const agentEntry = /title: "Agente",[\s\S]*?url: AGENT_PAGE_PATH,[\s\S]*?match: \(pathname: string\) => pathname\.startsWith\(AGENT_PAGE_PATH\)/g;
-assert.equal(nav.match(agentEntry)?.length, 2);
-assert.match(read("components/dashboard/dashboard-sidebar.tsx"), /dashboardNavGroups\.map/);
+assert.match(nav, /export const agentNavItem: DashboardNavItem = \{\s*title: AGENT_NAME,\s*url: AGENT_PAGE_PATH,[\s\S]*?match: \(pathname: string\) => pathname\.startsWith\(AGENT_PAGE_PATH\)/);
+assert.match(nav, /bottomTabItems[\s\S]*?agentNavItem,\s*\];/);
+assert.match(read("components/dashboard/sidebar/sidebar-agent-button.tsx"), /agentNavItem\.match\(pathname\)/);
+assert.match(read("components/dashboard/sidebar/sidebar-nav.tsx"), /dashboardNavGroups\.map/);
 // The sidebar is on every page: the path comes from a module without zod.
 assert.doesNotMatch(read("lib/agent/page-url.ts"), /from "@\/schemas\//);
 assert.doesNotMatch(read("lib/agent/client-id.ts"), /^import /m);

@@ -1,19 +1,16 @@
 import {
   BadgeDollarSign,
-  Brain,
   Calculator,
   CalendarDays,
   LayoutDashboard,
   List,
-  ScrollText,
   Sparkles,
   type LucideIcon,
 } from "lucide-react";
 
 import { isOpsNavItemActive, opsNavItems } from "@/components/ops/nav-items";
-import { MEMORY_URL } from "@/lib/agent/memory";
+import { AGENT_NAME } from "@/lib/agent/agent-name";
 import { AGENT_PAGE_PATH } from "@/lib/agent/page-url";
-import { INSTRUCTIONS_URL } from "@/lib/agent/team-instructions";
 
 export type DashboardNavItem = {
   title: string;
@@ -49,11 +46,16 @@ const budgetNavItems = [
   },
 ] satisfies DashboardNavItem[];
 
+// El agente va aparte, destacado arriba de los grupos (barra lateral).
+export const agentNavItem: DashboardNavItem = {
+  title: AGENT_NAME,
+  url: AGENT_PAGE_PATH,
+  icon: Sparkles,
+  match: (pathname: string) => pathname.startsWith(AGENT_PAGE_PATH),
+};
+
+// Memoria e Instrucciones salieron de acá: viven en Configuración (Agente).
 export const dashboardNavGroups: { label: string; items: DashboardNavItem[] }[] = [
-  {
-    label: "Precios",
-    items: budgetNavItems,
-  },
   {
     label: "Operaciones",
     items: opsNavItems.map((item) => ({
@@ -62,27 +64,8 @@ export const dashboardNavGroups: { label: string; items: DashboardNavItem[] }[] 
     })),
   },
   {
-    label: "Asistente",
-    items: [
-      {
-        title: "Agente",
-        url: AGENT_PAGE_PATH,
-        icon: Sparkles,
-        match: (pathname: string) => pathname.startsWith(AGENT_PAGE_PATH),
-      },
-      {
-        title: "Memoria",
-        url: MEMORY_URL,
-        icon: Brain,
-        match: (pathname: string) => pathname.startsWith(MEMORY_URL),
-      },
-      {
-        title: "Instrucciones",
-        url: INSTRUCTIONS_URL,
-        icon: ScrollText,
-        match: (pathname: string) => pathname.startsWith(INSTRUCTIONS_URL),
-      },
-    ],
+    label: "Precios",
+    items: budgetNavItems,
   },
 ];
 
@@ -108,12 +91,7 @@ export const bottomTabItems: DashboardNavItem[] = [
       pathname.startsWith("/dashboard/budgets") ||
       pathname.startsWith("/dashboard/official-budgets"),
   },
-  {
-    title: "Agente",
-    url: AGENT_PAGE_PATH,
-    icon: Sparkles,
-    match: (pathname: string) => pathname.startsWith(AGENT_PAGE_PATH),
-  },
+  agentNavItem,
 ];
 
 export const moreNavGroups = dashboardNavGroups

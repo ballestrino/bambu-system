@@ -5,12 +5,14 @@ import { Switch } from "@/components/ui/switch"
 import { Label } from "@/components/ui/label"
 import { enable2FA, disable2FA } from "@/actions/settings/security"
 import DeleteDialog from "@/components/ui/delete-dialog"
+import { cn } from "@/lib/utils"
 
 interface TwoFactorToggleProps {
     initialEnabled?: boolean
+    className?: string
 }
 
-export function TwoFactorToggle({ initialEnabled = false }: TwoFactorToggleProps) {
+export function TwoFactorToggle({ initialEnabled = false, className }: TwoFactorToggleProps) {
     const [isEnabled, setIsEnabled] = useState(initialEnabled)
     const [isPending, startTransition] = useTransition()
     const [message, setMessage] = useState<{ type: "success" | "error"; text: string } | null>(null)
@@ -46,7 +48,7 @@ export function TwoFactorToggle({ initialEnabled = false }: TwoFactorToggleProps
     }
 
     return (
-        <div className="flex flex-col gap-4 p-4 rounded-lg border border-border bg-card">
+        <div className={cn("flex flex-col gap-4 p-4 rounded-lg border border-border bg-card", className)}>
             <div className="flex items-center justify-between gap-4">
                 <div className="flex flex-col gap-1">
                     <Label htmlFor="two-factor-switch" className="text-foreground font-medium">

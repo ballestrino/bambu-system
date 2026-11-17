@@ -1,86 +1,50 @@
 "use client";
 
-import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { SidebarAccount } from "@/components/dashboard/sidebar/sidebar-account";
+import { SidebarAgentButton } from "@/components/dashboard/sidebar/sidebar-agent-button";
+import { SidebarBrand } from "@/components/dashboard/sidebar/sidebar-brand";
+import { SidebarNav } from "@/components/dashboard/sidebar/sidebar-nav";
+import { Sidebar, SidebarContent, SidebarTrigger, useSidebar } from "@/components/ui/sidebar";
 
-import { dashboardNavGroups } from "@/components/dashboard/dashboard-nav";
-import {
-  Sidebar,
-  SidebarContent,
-  SidebarGroup,
-  SidebarGroupContent,
-  SidebarGroupLabel,
-  SidebarMenu,
-  SidebarMenuButton,
-  SidebarMenuItem,
-  SidebarTrigger,
-  useSidebar,
-} from "@/components/ui/sidebar";
-
+// Dos formatos en escritorio: abierta (16,5 rem) y compacta, solo iconos con
+// su nombre al pasar el mouse (4,5 rem). Se alterna con el botón de arriba o
+// Ctrl+B y la cookie sidebar_state la recuerda. En el celular es una hoja.
 export function DashboardSidebar() {
-  const pathname = usePathname();
   const { isMobile, setOpenMobile } = useSidebar();
+  const closeOnPhone = () => {
+    if (isMobile) setOpenMobile(false);
+  };
 
   return (
-    <Sidebar className="z-20 border-r border-[#53985E]/15 bg-[#F7FBF7]/90 backdrop-blur-xl dark:bg-[#121811]/90">
-      <SidebarContent className={isMobile ? "pb-[100px]" : "pt-16 pb-[100px]"}>
-        <SidebarGroup>
-          <div className="mb-3 flex items-center justify-between px-2 py-4">
-            <div className="min-w-0">
-              <SidebarGroupLabel className="h-auto px-0 text-xs font-bold uppercase tracking-wider text-[#53985E]">
-                Bambu Dashboard
-              </SidebarGroupLabel>
-              <p className="mt-1 truncate text-xs text-[#244C2D]/70 dark:text-[#D4E3B8]/70">
-                Presupuestos y operaciones
-              </p>
-            </div>
-            <SidebarTrigger className="text-[#244C2D] hover:bg-[#EAF5EC] dark:text-[#D4E3B8] dark:hover:bg-[#2B3A28]" />
-          </div>
-        </SidebarGroup>
-
-        {dashboardNavGroups.map((group) => (
-          <SidebarGroup key={group.label} className="pt-0">
-            <SidebarGroupLabel className="px-2 text-[11px] font-semibold uppercase tracking-wider text-[#244C2D]/55 dark:text-[#D4E3B8]/55">
-              {group.label}
-            </SidebarGroupLabel>
-            <SidebarGroupContent>
-              <SidebarMenu className="gap-2 px-2">
-                {group.items.map((item) => (
-                  <SidebarMenuItem key={item.title}>
-                    <SidebarMenuButton
-                      asChild
-                      isActive={item.match(pathname)}
-                      onClick={() => isMobile && setOpenMobile(false)}
-                      tooltip={item.title}
-                      className="h-11 font-medium text-[#244C2D] transition-all duration-200 hover:bg-[#EAF5EC] hover:text-[#244C2D] data-[active=true]:bg-[#244C2D] data-[active=true]:text-white data-[active=true]:shadow-md data-[active=true]:shadow-[#244C2D]/20 dark:text-[#E1EAD3] dark:hover:bg-[#2B3A28] dark:data-[active=true]:bg-[#4C653F]"
-                    >
-                      <Link href={item.url}>
-                        <item.icon className="size-5!" />
-                        <span>{item.title}</span>
-                      </Link>
-                    </SidebarMenuButton>
-                  </SidebarMenuItem>
-                ))}
-              </SidebarMenu>
-            </SidebarGroupContent>
-          </SidebarGroup>
-        ))}
+    <Sidebar
+      collapsible="icon"
+      className="z-20 border-r border-ops-border bg-[#FAFCF9] dark:bg-[#151C14] [&>[data-sidebar=sidebar]]:bg-transparent"
+    >
+      <SidebarBrand />
+      <SidebarAgentButton onNavigate={closeOnPhone} />
+      <SidebarContent className="gap-1 pb-3 group-data-[collapsible=icon]:overflow-y-auto">
+        <SidebarNav onNavigate={closeOnPhone} />
       </SidebarContent>
+      <SidebarAccount />
     </Sidebar>
   );
 }
 
+// Sin la barra de arriba, en el celular (navegador) este botón abre la hoja.
+// En la app instalada navegan los tabs de abajo.
 export function DashboardSidebarFloatingTrigger() {
-  const { isMobile, openMobile, state } = useSidebar();
-  const shouldHide = isMobile ? openMobile : state === "expanded";
+  const { isMobile, openMobile } = useSidebar();
 
-  if (shouldHide) {
+  if (!isMobile || openMobile) {
     return null;
   }
 
   return (
-    <div className="fixed left-3 top-24 z-30 md:left-4 app-tabs:hidden">
-      <SidebarTrigger className="border border-[#53985E]/20 bg-background/90 text-[#244C2D] shadow-sm hover:bg-[#EAF5EC] dark:text-[#D4E3B8]" />
+    <div className="fixed top-[max(0.75rem,env(safe-area-inset-top))] left-3 z-30 app-tabs:hidden">
+      <SidebarTrigger
+        aria-label="Abrir menú"
+        className="size-9 border border-ops-border bg-ops-surface/90 text-ops-text shadow-sm backdrop-blur hover:bg-ops-bamboo-soft"
+      />
     </div>
   );
 }

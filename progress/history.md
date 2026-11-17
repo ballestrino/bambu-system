@@ -1733,3 +1733,36 @@
   un iframe sin desborde. Sin probar: archivar de verdad y elegir otra
   versión (ningún oficial de la base tiene más de una).
 - Rama `feature/59-official-budgets-redesign`, sin commitear.
+
+## 2026-11-17 - Panel sin barra de arriba, sidebar compacto y Configuración (60)
+
+- Diseño: lienzo "Panel Bambú — sidebar y configuración"
+  (https://claude.ai/artifact/BmgfbVXQM7yyAAjLQVoZi7).
+- `/dashboard` ya no muestra la barra de arriba (`HideOnDashboard` en
+  `components/nav/Nav.tsx`); sigue en el inicio, el login y `/settings`, y los
+  tabs de la app instalada no cambian. Altos ajustados: layout del
+  dashboard, página del agente y el panel del agente de Facturación.
+- Barra lateral `collapsible="icon"` (`components/dashboard/sidebar/`):
+  abierta 16,5 rem y compacta 4,5 rem con tooltips, Ctrl+B y la cookie
+  `sidebar_state` leída en el layout. Marca, el agente destacado ("Panda",
+  `lib/agent/agent-name.ts`, también en los tabs), Operaciones, Precios y
+  Herramientas (Conversor nominal y Calculadora, compartidas con "Más" en
+  `dashboard-tools.tsx`), y abajo iniciales, nombre, rol y engranaje. En el
+  celular, botón flotante arriba a la izquierda y la hoja.
+- Configuración (`components/settings/dialog/`): diálogo con `?config=`
+  (pushState; atrás y Escape cierran, el enlace lo abre): General (tema con
+  miniaturas y Ctrl+B), Cuenta (componentes de `/settings`; `TwoFactorToggle`
+  acepta `className`), Memoria e Instrucciones (las vistas con `embedded`;
+  sus páginas siguen). La hoja "Más" abre el diálogo. Memoria e
+  Instrucciones salieron de la barra.
+- El prompt del agente dice que es Panda. La nota de Literal E queda para
+  la 57.
+- `check:agent-page` mira `agentNavItem` en lugar de las dos entradas
+  "Agente".
+- PASS: tsc, ESLint, `check:agent-page/pricing/memory/instructions/tools/
+  proposals`, `pnpm harness`. Smoke en el Chrome del usuario con sesión:
+  abierta y compacta, recarga, diálogo y sus secciones, Escape, atrás,
+  enlace directo, oscuro (vuelto a Sistema), página de Panda y 390 px en un
+  iframe. Sin probar: "Más" en el iPhone y los cambios de cuenta desde el
+  diálogo.
+- Mergeada y pusheada a `main` con autorización del usuario (2026-11-17).
