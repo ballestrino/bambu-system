@@ -30,15 +30,21 @@ import { jobStatusValues } from "@/schemas/ops";
 // Con `open` y `onOpenChange` el diálogo es controlado y no dibuja su botón
 // (la tabla de Trabajos lo abre desde el menú de cada fila, con `key` por
 // trabajo para que el formulario arranque con sus datos).
+// Un trabajo nuevo puede venir con su presupuesto elegido (`defaultSourceBudgetId`,
+// desde la página del presupuesto) y avisar cuando se creó (`onCreated`).
 export const JobFormDialog = ({
+  defaultSourceBudgetId,
   job,
+  onCreated,
   onOpenChange,
   open: controlledOpen,
   triggerClassName,
   triggerLabel,
   triggerVariant,
 }: JobFormTriggerProps & {
+  defaultSourceBudgetId?: string;
   job?: JobFormJob;
+  onCreated?: () => void;
   onOpenChange?: (open: boolean) => void;
   open?: boolean;
 }) => {
@@ -48,7 +54,11 @@ export const JobFormDialog = ({
     setUncontrolledOpen(nextOpen);
     onOpenChange?.(nextOpen);
   };
-  const [formState, setFormState] = useState(getInitialJobFormState(job));
+  const initialState = () =>
+    job || !defaultSourceBudgetId
+      ? getInitialJobFormState(job)
+      : { ...getInitialJobFormState(), sourceBudgetId: defaultSourceBudgetId };
+  const [formState, setFormState] = useState(initialState);
   const { createJobAsync, updateJobAsync, isCreating, isUpdating } = useJobMutations();
 
   const isPending = isCreating || isUpdating;
@@ -88,7 +98,9 @@ export const JobFormDialog = ({
       void createJobAsync({
         ...payload,
         onErrorAction: () => setOpen(true),
-      }).catch(() => undefined);
+      })
+        .then(() => onCreated?.())
+        .catch(() => undefined);
     }
   };
 
@@ -97,7 +109,7 @@ export const JobFormDialog = ({
       open={open}
       onOpenChange={(nextOpen) => {
         if (nextOpen) {
-          setFormState(getInitialJobFormState(job));
+          setFormState(initialState());
         }
 
         setOpen(nextOpen);

@@ -1656,3 +1656,42 @@
   `AGENTS.md` no se reescribió.
 - Sin smoke con sesión por decisión del usuario (barra lateral, Visitas,
   Trabajos, Empleados, selector de color). Mergeada a `main` sin push.
+
+## 2026-11-17 - Detalle del presupuesto rediseñado (58)
+
+- Diseño "Detalle · escritorio" del canvas "Presupuestos rediseño" en
+  `/dashboard/budgets/budget/[slug]`, con la barra de composición del precio
+  en cada opción (pedido del usuario; en el canvas se probó también una
+  alternativa B y el usuario eligió esta).
+- `BudgetView` partido en `budget-detail-*`: cabecera con volver, estado
+  (Oficial vN o Borrador), descripción, fecha, categorías y Asistente,
+  Duplicar, Editar y menú con Eliminar (vuelve a la lista; un oficial
+  vinculado no se elimina); cuatro números; franja oficial con la versión,
+  su fecha y Ver versiones, o de borrador con Publicar como oficial; aviso
+  del BSE; opciones con Sin/Con IVA, precio, precio hora, barra y desglose;
+  Datos del servicio; Aportes y cargas con BSE; trabajos del presupuesto con
+  Crear trabajo.
+- Cada opción usa `buildBudgetSummary` del creador sobre
+  `budgetOptionToFormValues`; con IVA el IVA es un tramo y los porcentajes van
+  sobre el precio con IVA. La barra pasó a
+  `components/budgets/common/budget-composition-bar.tsx` (también la usa el
+  resumen del creador).
+- `data/budget-detail.ts` (+ `readBudgetDetailExtras`, `useBudgetDetailExtras`,
+  clave `budgetKeys.detailExtras`): trabajos no archivados del presupuesto con
+  su imagen y precio, y la fecha de la versión oficial. Aparte de
+  `getBudgetBySlug`, que lee el agente. `JobFormDialog` acepta
+  `defaultSourceBudgetId` y `onCreated`.
+- `check:official-budget-workspace` apunta a los archivos nuevos y a la fila
+  de la lista (ya no a `BudgetCard.tsx`, borrado en la 37) y pasa;
+  `check:agent-sheet` mira las acciones del detalle y sigue fallando más
+  adelante por `create-budget/Header.tsx` (borrado en la 36, de antes).
+- PASS: tsc, ESLint de lo tocado, `check:budget-cache`,
+  `check:official-budget-workspace`, script de prueba (los tramos suman el
+  precio en las 4 vistas). Smoke en el Chrome del usuario sin escribir datos,
+  contra la rama de Neon `feature-39-billing`: un oficial (franja con versión
+  y fecha, Con IVA con el tramo de IVA) y un borrador con trabajo (franja de
+  Publicar, trabajo con estado e imagen, Crear trabajo con el presupuesto ya
+  elegido, menú y confirmación de Eliminar cancelados); 390 px en un iframe
+  sin desborde. Sin probar porque escriben: eliminar de verdad, publicar y
+  crear un trabajo (refresco de la lista).
+- Rama `feature/58-budget-detail-redesign`, sin commitear.

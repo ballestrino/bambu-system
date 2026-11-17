@@ -21,8 +21,8 @@ const [
   read("app/(private)/dashboard/official-budgets/[id]/page.tsx"),
   read("components/dashboard/dashboard-nav.ts"),
   read("components/nav/MobileNav.tsx"),
-  read("components/budgets/BudgetCard.tsx"),
-  read("components/budgets/budget-details/BudgetView.tsx"),
+  read("components/budgets/list/budget-row-actions.tsx"),
+  read("components/budgets/budget-details/budget-detail-official.tsx"),
   read("data/official-budgets.ts"),
   read("components/official-budgets/hooks/use-official-budget-mutations.ts"),
   read("actions/official-budgets/official-budget-actions.ts"),
@@ -36,8 +36,9 @@ assert.match(detailPage, /OfficialOptionBreakdown/);
 assert.match(detailPage, /ArchiveOfficialBudgetButton/);
 assert.match(sidebar, /Generador[\s\S]*Presupuestos oficiales/);
 assert.match(mobileNav, /Generador de presupuestos[\s\S]*Presupuestos oficiales/);
-assert.match(generatorCard, /GeneratorOfficialControl/);
-assert.match(generatorDetail, /no puede eliminarse hasta archivarlo/);
+assert.match(generatorCard, /publish\.mutate\(budget\.id\)/);
+assert.match(generatorDetail, /Para eliminarlo, primero archivalo/);
+assert.match(generatorDetail, /publish\.mutate\(budgetId\)/);
 assert.match(reads, /requireAdminSession/);
 assert.match(reads, /contains: query/);
 assert.match(serverActions, /requireAdminSession/);
