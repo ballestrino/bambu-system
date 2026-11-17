@@ -6,10 +6,14 @@ Status: active
 
 - 54 `budget_bse` (2026-11-12): mergeada a `main` y pusheada con autorización
   del usuario el 2026-11-12. Sigue en progreso hasta el smoke en la app
-  (estuvo en `blocked` mientras se hicieron la 55, la 58, la 59 y la 60).
+  (estuvo en `blocked` mientras se hicieron la 55 y de la 57 a la 60).
 - 58, 59 y 60 mergeadas a `main` y pusheadas el 2026-11-17 con autorización
   del usuario (ver history). Pendiente de la 60: probar la hoja "Más" en el
-  iPhone. Lo que sigue del agente: la 57 (quitar Literal E).
+  iPhone. La 57 (sin Literal E) también, el mismo día (ver history).
+- Entorno local: `ANTHROPIC_API_KEY` de `.env` da 401 (invalid x-api-key);
+  hasta cambiarla, Panda no responde en el dev server.
+- Fuera de alcance: `check:agent-visits` falla en `main` porque
+  `schemas/agent-tools.ts` tiene 217 líneas (el check pide 200).
 - Detalle de la 54:
   - Revisión pedida: el agente veía los extras (getBudget, calculateBudget)
     pero no podía agregarlos, cambiarlos ni quitarlos, y el contexto del
@@ -119,6 +123,10 @@ Status: active
   equivalencias con los ids viejos está en `progress/history.md`.
 
 ## Last Closed Work
+
+- 2026-11-17: sin la nota de Literal E (57): precios "$ X + IVA" sin nota,
+  validador sin `missing_literal_e`, 5 reglas fijas. Turno real en
+  producción sin la nota. Mergeada y pusheada a `main`.
 
 - 2026-11-17: panel sin barra de arriba (60): barra lateral abierta y
   compacta, agente destacado "Panda" y Configuración en un diálogo (tema,

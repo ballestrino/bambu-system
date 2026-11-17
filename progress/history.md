@@ -1766,3 +1766,30 @@
   iframe. Sin probar: "Más" en el iPhone y los cambios de cuenta desde el
   diálogo.
 - Mergeada y pusheada a `main` con autorización del usuario (2026-11-17).
+
+## 2026-11-17 - Sin la nota de Literal E (57)
+
+- Bambú pasó a régimen general el 16/11/2026. Decisión del usuario: el precio
+  para un cliente sigue "$ X + IVA", sin nota debajo; el importe con IVA solo
+  si lo piden.
+- Se quitaron `LITERAL_E_NOTE`, la regla del prompt, la nota del esquema de
+  correo y de WhatsApp, `missing_literal_e` de `validateEmailDraft`, la regla
+  fija `literal_e` (quedan 5) y las menciones en la habilidad de correos, las
+  tools, `schemas/agent-tools.ts`, `lib/format-budget.ts`, la tarjeta y
+  `docs/agent.md`. El perfil del negocio dice régimen general y que no copie
+  la nota de conversaciones viejas. Decisión anotada en
+  `docs/billing-general-regime.md`.
+- Checks: grounding, formato de precio, instrucciones (una regla del equipo
+  puede volver a nombrar Literal E), pricing y tools, que además aseguran
+  que ningún prompt lleve la nota.
+- Base de producción (solo lectura): instrucciones v1 y 5 memorias sin
+  Literal E. La skill del PDF ya no la usaba.
+- PASS: tsc, ESLint, `pnpm harness`, los `check:agent-*` (salvo
+  `check:agent-visits`, que falla igual en `main` por el largo de
+  `schemas/agent-tools.ts`) y `check:billing`. Turno real en producción
+  (gestion.bambu-servicios.com, sesión de Romina, Haiku 5.5, US$ 0,01):
+  cálculo de 1 empleada, 2 visitas de 4 h → correo con "Precio: $ 15.200 +
+  IVA" y "$ 440 + IVA por hora", sin nota, validado. La conversación de
+  prueba ("Presupuesto de servicio de limpieza") quedó en el historial.
+- Local no se pudo: `ANTHROPIC_API_KEY` de `.env` da 401.
+- Mergeada y pusheada a `main` con autorización del usuario (2026-11-17).

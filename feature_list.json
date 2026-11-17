@@ -938,14 +938,14 @@
       "name": "literal_e_retirement",
       "title": "Retire the Literal E note from the agent, quotes and budget texts",
       "area": "agent",
-      "description": "Plan in docs/billing-general-regime.md. The note 'Mientras la empresa continúe bajo régimen Literal E, se aplicará el monto sin IVA' is no longer true. Remove LITERAL_E_NOTE, the missing_literal_e grounding failure, the literal_e protected rule and the prompt lines, and show client prices as the user decides (proposal: '$ X + IVA ($ Y IVA incluido)', both amounts from the calculation). Review saved team instructions and agent memories that mention Literal E.",
+      "description": "Plan in docs/billing-general-regime.md. The note 'Mientras la empresa continúe bajo régimen Literal E, se aplicará el monto sin IVA' is no longer true. Remove LITERAL_E_NOTE, the missing_literal_e grounding failure, the literal_e protected rule and the prompt lines, and keep showing client prices as '$ X + IVA' (decided by the user on 2026-11-17: the IVA-included amount only when asked). Review saved team instructions and agent memories that mention Literal E.",
       "acceptance": [
         "draftEmail no longer requires or writes the Literal E note and still rejects amounts without a source",
-        "Client prices follow the format chosen by the user, with both amounts grounded in the calculation",
+        "Client prices keep the $ X + IVA format chosen by the user, with no note under them",
         "No prompt, rule, check or doc mentions Literal E as current",
         "The agent checks, tsc and lint pass, and one real turn drafts a quote email"
       ],
-      "status": "pending"
+      "status": "done"
     },
     {
       "id": 58,
