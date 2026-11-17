@@ -52,7 +52,7 @@ const OptionCard = ({ option, withIva }: { option: DetailOption; withIva: boolea
         <span className="text-xs font-medium tracking-[0.04em] text-ops-text-muted uppercase">Qué paga el precio</span>
         <BudgetCompositionBar segments={option.segments} />
       </div>
-      <BudgetSummaryRows rows={option.summary.rows} />
+      <BudgetSummaryRows rows={option.rows} />
     </article>
   );
 };

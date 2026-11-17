@@ -49,6 +49,7 @@ export type OfficialBudgetVersionDto = {
   publishedAt: string;
   sourceBudgetUpdatedAt: string;
   publishedBy: { name: string | null; email: string | null };
+  serviceCategories: { name: string }[];
   options: OfficialBudgetOptionDto[];
 };
 
@@ -61,6 +62,30 @@ export type OfficialBudgetListItemDto = {
   publishedAt: string;
   archivedAt: string | null;
   sourceBudget: { name: string; slug: string } | null;
+};
+
+export type OfficialBudgetRowOptionDto = {
+  hasProducts: boolean;
+  visits: number;
+  visitType: "days" | "week" | "month";
+  hoursPerVisit: number;
+  employees: number;
+  productsCost: number;
+  netPrice: number;
+  ivaAmount: number;
+  finalPrice: number;
+  hourlyPrice: number;
+};
+
+// Una fila de la lista: el oficial con su versión vigente.
+export type OfficialBudgetRowDto = OfficialBudgetListItemDto & {
+  versionPublishedAt: string;
+  options: OfficialBudgetRowOptionDto[];
+};
+
+export type OfficialBudgetListDto = {
+  rows: OfficialBudgetRowDto[];
+  counts: Record<OfficialBudgetStatus, number>;
 };
 
 export type OfficialBudgetDetailDto = OfficialBudgetListItemDto & {
