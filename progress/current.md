@@ -6,10 +6,11 @@ Status: active
 
 - 54 `budget_bse` (2026-11-12): mergeada a `main` y pusheada con autorización
   del usuario el 2026-11-12. Sigue en progreso hasta el smoke en la app
-  (estuvo en `blocked` mientras se hicieron la 55, la 58 y la 59).
-- 58 (detalle del presupuesto) mergeada a `main` sin push el 2026-11-17.
-- 59 (oficiales como lista y detalle) cerrada el 2026-11-17 en la rama
-  `feature/59-official-budgets-redesign`, sin commitear (ver history).
+  (estuvo en `blocked` mientras se hicieron la 55, la 58, la 59 y la 60).
+- 58, 59 y 60 mergeadas a `main` y pusheadas el 2026-11-17 con autorización
+  del usuario (ver history). Pendiente de la 60: probar la hoja "Más" en el
+  iPhone. Lo que sigue del agente: la 57 (quitar Literal E).
+- Detalle de la 54:
   - Revisión pedida: el agente veía los extras (getBudget, calculateBudget)
     pero no podía agregarlos, cambiarlos ni quitarlos, y el contexto del
     presupuesto no los nombraba. Ahora `budgetChangesSchema` trae `extras`
@@ -118,6 +119,11 @@ Status: active
   equivalencias con los ids viejos está en `progress/history.md`.
 
 ## Last Closed Work
+
+- 2026-11-17: panel sin barra de arriba (60): barra lateral abierta y
+  compacta, agente destacado "Panda" y Configuración en un diálogo (tema,
+  cuenta, memoria e instrucciones). Smoke en el Chrome del usuario. Mergeada
+  y pusheada a `main` con autorización del usuario.
 
 - 2026-11-16: Next.js 16.4.6 (55). Lint con las reglas de hooks nuevas en
   tres archivos; build, lint y tsc verdes. Sin smoke con sesión por decisión
