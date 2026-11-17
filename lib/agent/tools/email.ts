@@ -53,13 +53,12 @@ const describeReply = (email: MailboxEmail) => ({
 });
 
 // Redacta con el modelo del modo actual y valida antes de devolver: solo
-// importes con fuente en esta conversación y la nota de Literal E debajo de
-// los precios. Con replyToRef responde ese correo. No envía nada ni toca las
+// importes con fuente en esta conversación. Con replyToRef responde ese correo. No envía nada ni toca las
 // casillas.
 export const createEmailTools = (ctx: AgentToolContext) => ({
   draftEmail: tool({
     description:
-      "Redacta un correo o un WhatsApp para un cliente a partir de un brief. Para responder un correo de la casilla, mandá su ref en replyToRef: el borrador lo contesta y toma de él el destinatario y el asunto. Una llamada por respuesta: para varias respuestas o versiones, llamala varias veces. Solo acepta importes que salieron de una tool en esta conversación (presupuesto, precio oficial o cálculo) y exige la nota de Literal E debajo de los precios. Conseguí los importes antes de llamarla. No envía nada.",
+      "Redacta un correo o un WhatsApp para un cliente a partir de un brief. Para responder un correo de la casilla, mandá su ref en replyToRef: el borrador lo contesta y toma de él el destinatario y el asunto. Una llamada por respuesta: para varias respuestas o versiones, llamala varias veces. Solo acepta importes que salieron de una tool en esta conversación (presupuesto, precio oficial o cálculo). Conseguí los importes antes de llamarla. No envía nada.",
     inputSchema: draftEmailInputSchema,
     execute: (input, { abortSignal }) =>
       runTool("draftEmail", async () => {

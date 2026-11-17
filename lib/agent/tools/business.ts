@@ -10,7 +10,7 @@ import { emptyInputSchema } from "@/schemas/agent-tools";
 export const createBusinessTools = () => ({
   getBusinessProfile: tool({
     description:
-      "Datos fijos del negocio (contacto, IVA, Literal E, aportes BPS, transporte, multiplicador semanal, valores por defecto) y la fecha y el mes actuales en Montevideo. Ya están en tus instrucciones: usala si necesitás la fecha o el detalle completo.",
+      "Datos fijos del negocio (contacto, IVA, aportes BPS, transporte, multiplicador semanal, valores por defecto) y la fecha y el mes actuales en Montevideo. Ya están en tus instrucciones: usala si necesitás la fecha o el detalle completo.",
     inputSchema: emptyInputSchema,
     execute: async () => {
       const month = getCurrentMonthKey();

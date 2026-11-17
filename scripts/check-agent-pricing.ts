@@ -10,7 +10,7 @@ import {
   getCalculationAmounts,
   runBudgetCalculation,
 } from "../lib/agent/budget-calculation";
-import { BUSINESS_PROFILE, formatBusinessProfile, LITERAL_E_NOTE } from "../lib/agent/business-profile";
+import { BUSINESS_PROFILE, formatBusinessProfile } from "../lib/agent/business-profile";
 import { addGroundedAmounts, createGrounding, validateEmailDraft } from "../lib/agent/grounding";
 import { roundProductsPrice, roundUpToPriceStep } from "../lib/agent/price-rounding";
 import { buildCreateBudgetProposal, buildUpdateBudgetProposal } from "../lib/agent/proposal-builders";
@@ -144,7 +144,7 @@ assert.equal(describeRounding(null), null);
 const grounding = createGrounding();
 addGroundedAmounts(grounding, getCalculationAmounts(freshCalc));
 const money = new Intl.NumberFormat("es-UY", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-const quote = (amount: number) => `El servicio sale $ ${money.format(amount)} por mes.\n${LITERAL_E_NOTE}`;
+const quote = (amount: number) => `El servicio sale $ ${money.format(amount)} + IVA por mes.`;
 assert.equal(validateEmailDraft(quote(fresh.rounding.from), grounding).ok, false);
 assert.equal(validateEmailDraft(quote(fresh.rounding.to), grounding).ok, true);
 assert.equal(validateEmailDraft(quote(freshCalc.withoutProducts.hourlyNet), grounding).ok, true);

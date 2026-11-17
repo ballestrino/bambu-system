@@ -1,6 +1,5 @@
 import assert from "node:assert/strict";
 
-import { LITERAL_E_NOTE } from "../lib/agent/business-profile";
 import { toAgentErrorMessage } from "../lib/agent/errors";
 import {
   collectGroundingFromMessages,
@@ -54,8 +53,7 @@ assert.deepEqual([...grounding.amounts].sort((a, b) => a - b), [463, 1100, 1760,
 assert.deepEqual([...grounding.evidence.keys()], ["opt_1"]);
 
 // --- The four draft outcomes.
-const draft = (price: string, note = true) =>
-  `Precio sin IVA: $ ${price}\n${note ? LITERAL_E_NOTE : ""}\nSaludos cordiales.`;
+const draft = (price: string) => `Precio: $ ${price} + IVA\nSaludos cordiales.`;
 const failure = (body: string, source = grounding) => {
   const check = validateEmailDraft(body, source);
   return check.ok ? "ok" : check.code;
@@ -66,10 +64,9 @@ assert.deepEqual(validateEmailDraft("Hola, te escribo sin precios.", createGroun
 });
 assert.equal(failure(draft("5.000,00"), createGrounding()), "ungrounded_price");
 assert.equal(failure(draft("5.100,00")), "price_mismatch");
-assert.equal(failure(draft("5.000,00", false)), "missing_literal_e");
+// Régimen general (2026-11-16): a grounded price needs no note under it.
 assert.deepEqual(validateEmailDraft(draft("5.000,00"), grounding), { ok: true, quotedAmounts: [5000] });
-// WhatsApp may bold the note; it still counts.
-assert.equal(failure(`Te paso el precio: $ 9.760\n*${LITERAL_E_NOTE}*`), "ok");
+assert.equal(failure("Te paso el precio: $ 9.760 + IVA"), "ok");
 
 // --- Usage: a turn's steps add up in one row per kind and model, nested calls
 // (draftEmail) count as SKILL, and the gateway cost wins over the estimate.

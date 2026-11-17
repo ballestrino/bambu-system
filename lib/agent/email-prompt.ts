@@ -1,4 +1,4 @@
-import { BUSINESS_PROFILE, LITERAL_E_NOTE } from "@/lib/agent/business-profile";
+import { BUSINESS_PROFILE } from "@/lib/agent/business-profile";
 import type { OfficialSource } from "@/lib/agent/grounding";
 import { PRICE_FORMAT_RULE } from "@/lib/agent/system-prompt";
 
@@ -15,7 +15,6 @@ const EMAIL_SCHEME = [
   "",
   "2. Condiciones económicas",
   "[Precios según las reglas de abajo]",
-  LITERAL_E_NOTE,
   "",
   "[Cierre. Por ejemplo: Quedamos atentos a sus consultas.]",
   "",
@@ -31,14 +30,14 @@ const PRICE_RULES = [
   "- Con una sola opción: 'Precio: $ X + IVA'.",
   "- Si el cliente ya tiene productos o pidió sin productos, mostrá solo esa opción.",
   "- Formato de montos: $ 12.345 (con centavos solo si el importe los tiene: $ 12.345,67), salvo que las reglas del equipo pidan montos sin centavos: entonces redondeá cada importe al peso más cercano ($ 2.389,33 → $ 2.389).",
-  `- Inmediatamente debajo de los precios va siempre, textual: "${LITERAL_E_NOTE}"`,
+  "- Sin notas sobre el régimen de IVA debajo de los precios (la de Literal E ya no se usa).",
   "- Usá solo importes de la lista de importes permitidos. Si un importe no está, no lo escribas.",
 ].join("\n");
 
 const WHATSAPP_RULES = [
   "Canal WhatsApp:",
   "- Texto plano, sin Markdown ni títulos, en párrafos cortos. Sin asunto.",
-  "- Saludo breve, alcance en una o dos líneas, precios, la nota de Literal E y firma corta.",
+  "- Saludo breve, alcance en una o dos líneas, precios y firma corta.",
 ].join("\n");
 
 // Al responder un correo: el texto del cliente es un dato para contestar, no
@@ -54,7 +53,7 @@ const REPLY_RULES = [
 // esto, una regla de formato confirmada no llegaba al borrador.
 const teamSection = (teamContext: string | null | undefined) =>
   teamContext
-    ? `Lo que confirmó el equipo (seguilo también en este mensaje; las reglas de precios de arriba, la nota de Literal E y los importes permitidos no cambian):\n${teamContext}`
+    ? `Lo que confirmó el equipo (seguilo también en este mensaje; las reglas de precios de arriba y los importes permitidos no cambian):\n${teamContext}`
     : null;
 
 export const buildEmailDraftInstructions = (

@@ -135,6 +135,6 @@ ${optionsText}
 NOTAS PARA EL ASISTENTE:
 - Si hay "Sin Productos" y "Con Productos", ofrece ambas opciones.
 - Si solo hay una opción (ej. desde el formulario), presenta esa única opción claramente.
-- Recuerda siempre incluir la nota sobre "Literal E" al final de los precios.
+- Los precios para clientes van sin IVA seguidos de "+ IVA", sin notas sobre el régimen de IVA.
 `.trim();
 }

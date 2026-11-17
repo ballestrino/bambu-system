@@ -9,7 +9,7 @@ import type { EmailCardData } from "@/components/agent/types";
 import { getOfficialBudgetUrl } from "@/lib/agent/proposals";
 
 // Borrador de correo o WhatsApp ya validado: cada importe tiene fuente en la
-// conversación y la nota de Literal E está. Si responde un correo de la
+// conversación. Si responde un correo de la
 // casilla, dice cuál y desde qué dirección. No se envía nada desde acá.
 export function AgentEmailCard({ data }: { data: EmailCardData }) {
   const whatsapp = data.channel === "whatsapp";

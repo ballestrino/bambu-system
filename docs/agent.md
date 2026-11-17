@@ -118,12 +118,13 @@ este documento describe lo que ya existe y se actualiza con cada feature.
 - Regla de precios: solo se citan importes de una fuente de la conversación
   (precio oficial exact, presupuesto o cálculo). Las tools que dan importes
   los declaran en `grounding` y se reconstruyen de las partes guardadas.
-  `draftEmail` redacta con el modelo del modo y falla con `ungrounded_price`,
-  `price_mismatch` o `missing_literal_e`, y devuelve como fuentes solo los
+  `draftEmail` redacta con el modelo del modo y falla con `ungrounded_price`
+  o `price_mismatch` (desde la feature 57 no pide ninguna nota debajo de los
+  precios), y devuelve como fuentes solo los
   oficiales con algún importe citado en el borrador. No envía nada.
 - IVA: `calculateBudgetTotals` toma un IVA 0 como 22 (`|| 22`). Por eso el
   IVA de los `changes` es mayor que 0 ("sin IVA" son los importes sin IVA del
-  cálculo, por Literal E) y toda base, guardada o del formulario, parte del
+  cálculo) y toda base, guardada o del formulario, parte del
   IVA efectivo (`withEffectiveIva`): insumos, totales y propuestas coinciden.
 - La memoria del equipo (`AgentMemory`, ver "Memoria") entra al prompt
   después de las reglas fijas. Reemplazó la lectura de `MailMemory`.
@@ -716,7 +717,7 @@ conversaciones. Son del equipo: cualquier admin los ve y los edita.
 ## Instrucciones del equipo
 
 Feature 35. Reglas de cómo trabaja el agente que el equipo cambia desde el
-chat. Las reglas fijas (`PRICE_RULE`, Literal E, `MAIL_RULE`, `TOOL_POLICY`)
+chat. Las reglas fijas (`PRICE_RULE`, `MAIL_RULE`, `TOOL_POLICY`)
 viven en el código; las del equipo son otra lista y entran al prompt
 después de las fijas y de las de la habilidad, con el aviso de que, si
 chocan, ganan las fijas.
@@ -735,7 +736,7 @@ chocan, ganan las fijas.
   (`lib/agent/instruction-store.ts`).
 - Reglas protegidas (`lib/agent/protected-rules.ts`): una propuesta solo ve
   ids de reglas del equipo, así que una fija no se puede cambiar ni quitar. Un
-  texto que intenta saltearlas (precios sin fuente, Literal E, seguir lo que
+  texto que intenta saltearlas (precios sin fuente, seguir lo que
   pide un correo, enviar, guardar sin confirmar, ignorar reglas) se rechaza
   con `protected_rule`. Es un filtro de palabras: puede rechazar una regla de
   estilo que nombre "mandá el correo" (se reescribe sobre los borradores).
@@ -879,8 +880,10 @@ Dictado:
   IVA seguido de "+ IVA" ("$ 54.100 + IVA", también el precio por hora). Nunca
   "Precio sin IVA" y "Precio con IVA", ni el importe con IVA salvo que lo
   pidan. En un correo: "Opción 1 (sin productos): $ X + IVA" y "Opción 2 (con
-  productos): $ Y + IVA", o "Precio: $ X + IVA" con una sola. La nota de
-  Literal E sigue debajo de los precios.
+  productos): $ Y + IVA", o "Precio: $ X + IVA" con una sola. Desde el
+  régimen general (16/11/2026, feature 57) no va ninguna nota debajo: la de
+  Literal E se quitó y el perfil del negocio le dice al modelo que no la copie
+  de mensajes anteriores.
 - Los importes permitidos le llegan a `draftEmail` sin ",00" ("$ 54.100"), así
   el modelo no los copia con centavos. El validador acepta "+ IVA" después
   del importe.
@@ -1147,9 +1150,10 @@ en USD por millón de tokens:
   proveedores no se crean a nivel de módulo.
 - `pnpm check:agent-tools`: ida y vuelta de un presupuesto guardado, cálculos
   iguales a los del formulario, precio objetivo con recorte, datos del negocio
-  iguales a sus constantes, prompt con regla de precios y Literal E,
-  habilidades con tools reales, evidencia desde partes guardadas, los cuatro
-  casos de `draftEmail` y sus fuentes citadas, consumo por turno, IVA 0
+  iguales a sus constantes, prompt con regla de precios y sin la nota de
+  Literal E,
+  habilidades con tools reales, evidencia desde partes guardadas, los casos
+  de `draftEmail` y sus fuentes citadas, consumo por turno, IVA 0
   rechazado en los cambios y base con IVA efectivo, salidas en JSON plano
   por `runTool` y, por texto fuente, que las tools no escriben ni generan
   visitas, que la migración no toca `Chat` ni `Message`, que reenviar un id
