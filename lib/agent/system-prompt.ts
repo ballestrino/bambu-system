@@ -6,8 +6,8 @@ import { INSTRUCTIONS_RULE } from "@/lib/agent/team-instructions";
 import { formatProposalsForPrompt, type ProposalPromptItem } from "@/lib/agent/proposal-context";
 import type { AgentSkill } from "@/lib/agent/skills";
 
-// Instrucciones del agente. Puro: el check verifica la regla de precios, la
-// nota de Literal E y los datos del negocio sin llamar al modelo.
+// Instrucciones del agente. Puro: el check verifica la regla de precios y los
+// datos del negocio sin llamar al modelo.
 
 // Cómo se escribe un precio de un servicio, en el chat y en draftEmail:
 // el importe sin IVA más " + IVA", nunca con y sin IVA.
@@ -17,7 +17,6 @@ export const PRICE_RULE = [
   "Regla de precios (obligatoria):",
   "- Nunca cites un importe que no venga de una fuente de esta conversación: searchOfficialBudgets con status exact, getOfficialBudget, el presupuesto (getBudget o el contexto), uno guardado igual (findMatchingBudgets) o un cálculo (calculateBudget, solveForTargetPrice).",
   "- Si no hay fuente, decilo y ofrecé calcularlo. No redondees ni ajustes importes a mano; lo único permitido es sacar los centavos, al peso más cercano, si las instrucciones del equipo lo piden.",
-  "- Debajo de cualquier precio para un cliente va la nota de Literal E, textual.",
 ].join("\n");
 
 export const PROPOSALS_HEADING = "Propuestas de esta conversación";

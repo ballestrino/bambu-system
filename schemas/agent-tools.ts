@@ -58,7 +58,7 @@ export const budgetChangesSchema = z.object({
   // con IVA rotulados como sin IVA.
   iva: z
     .number()
-    .positive("El IVA tiene que ser mayor que 0: para cotizar sin IVA (Literal E) usá los importes sin IVA del cálculo")
+    .positive("El IVA tiene que ser mayor que 0: para cotizar sin IVA usá los importes sin IVA del cálculo")
     .nullable()
     .describe(`IVA en %, mayor que 0; nunca 0 para "sin IVA": los importes sin IVA ya vienen en el cálculo${keep}`),
   incidence_enabled: z.boolean().nullable().describe(`Solo si piden habilitar o quitar la incidencia${keep}`),

@@ -11,7 +11,7 @@ import {
   runBudgetCalculation,
   solveTargetPrice,
 } from "../lib/agent/budget-calculation";
-import { BUSINESS_PROFILE, LITERAL_E_NOTE } from "../lib/agent/business-profile";
+import { BUSINESS_PROFILE, formatBusinessProfile } from "../lib/agent/business-profile";
 import { buildEmailDraftInstructions } from "../lib/agent/email-prompt";
 import { AGENT_SKILLS, AGENT_SKILL_IDS, resolveSkillToolNames } from "../lib/agent/skills";
 import { PRICE_RULE, buildAgentInstructions } from "../lib/agent/system-prompt";
@@ -110,12 +110,14 @@ assert.equal(BUSINESS_PROFILE.ivaPercent, 22);
 assert.equal(BUSINESS_PROFILE.productMarginPercent, PRODUCT_MARGIN_PCT);
 assert.equal(BUSINESS_PROFILE.employerBpsPercent, URUGUAY_EMPLOYER_BPS_PERCENT);
 assert.equal(BUSINESS_PROFILE.personalBpsPercent, 18.1);
-// The exact phrase of the retired budget chat prompt (data/ai-system-message.ts,
-// removed when the agent replaced it): clients already receive it word for word.
-assert.equal(LITERAL_E_NOTE, "Nota: Mientras la empresa continúe bajo régimen Literal E, se aplicará el monto sin IVA.");
+// Régimen general since 2026-11-16 (feature 57): the old Literal E note is
+// gone and the profile tells the model not to copy it from older messages.
+const RETIRED_NOTE = /Mientras la empresa continúe bajo régimen Literal E/;
+assert.match(formatBusinessProfile(), /Régimen general de IVA desde el 16\/11\/2026/);
+assert.match(formatBusinessProfile(), /La nota de Literal E ya no se usa: no la escribas/);
 
-// --- The prompt carries the price rule, Literal E, the phone, the skill and
-// the budget in context.
+// --- The prompt carries the price rule, the phone, the skill and the budget
+// in context, and no Literal E note.
 const instructions = buildAgentInstructions({
   today: "jueves, 18 de setiembre de 2026",
   actorName: "Ana",
@@ -123,15 +125,19 @@ const instructions = buildAgentInstructions({
   budgetContextText: "CONTEXTO-DE-PRUEBA",
   memoryBlock: "- Estilo · saludo: cordial",
 });
-[LITERAL_E_NOTE, BUSINESS_PROFILE.phone, PRICE_RULE, AGENT_SKILLS.emails.instructions,
+[BUSINESS_PROFILE.phone, PRICE_RULE, AGENT_SKILLS.emails.instructions,
   "CONTEXTO-DE-PRUEBA", "- Estilo · saludo: cordial", "jueves, 18 de setiembre de 2026"]
   .forEach((text) => assert.ok(instructions.includes(text), text));
+assert.doesNotMatch(instructions, RETIRED_NOTE);
+assert.doesNotMatch(PRICE_RULE, /Literal E/);
 const bare = buildAgentInstructions({
   today: "hoy", actorName: null, skill: AGENT_SKILLS.general, memoryBlock: null,
 });
 assert.ok(bare.includes("No hay un presupuesto en contexto."));
 assert.ok(!bare.includes("Conocimiento aprobado"));
-[LITERAL_E_NOTE, BUSINESS_PROFILE.phone].forEach((text) => assert.ok(buildEmailDraftInstructions("email").includes(text)));
+assert.ok(buildEmailDraftInstructions("email").includes(BUSINESS_PROFILE.phone));
+(["email", "whatsapp"] as const).forEach((channel) =>
+  assert.doesNotMatch(buildEmailDraftInstructions(channel), RETIRED_NOTE, channel));
 assert.match(buildEmailDraftInstructions("whatsapp"), /Texto plano/);
 
 // --- Skills only list real tools, General covers them all, and the business

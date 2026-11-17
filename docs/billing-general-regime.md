@@ -130,9 +130,8 @@ monto sin IVA" deja de ser cierta. Va después de la 56 y no la frena.
   138 de `lib/format-budget.ts`; los checks que la prueban
   (`agent-grounding-checks`, `check-agent-instructions`, `check-agent-tools`,
   `agent-price-format-checks`); `docs/agent.md`.
-- A decidir por el usuario al empezarla: cómo se muestra un precio a un
-  cliente. Propuesta: "$ 54.100 + IVA ($ 66.002 IVA incluido)", con los dos
-  importes del cálculo como fuentes permitidas.
+- Decidido por el usuario el 2026-11-17: el precio para un cliente sigue
+  como "$ 54.100 + IVA", sin nota debajo; el importe con IVA solo si lo piden.
 - Revisar a mano las instrucciones del equipo y la memoria del agente
   guardadas en la base que nombren Literal E, y la skill del PDF de
   presupuestos.

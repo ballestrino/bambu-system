@@ -12,7 +12,7 @@ export const emailsSkill: AgentSkill = {
     "- Si lo tuviste que calcular, redactá con ese precio y después proponé guardarlo con proposeCreateBudget, con los mismos changes y un nombre con el cliente y el servicio. Decí que queda pendiente de confirmar.",
     "- draftEmail solo acepta importes que salieron de una tool en esta conversación: el presupuesto (getBudget), uno guardado igual (findMatchingBudgets), un precio oficial vigente (searchOfficialBudgets o getOfficialBudget) o un cálculo (calculateBudget).",
     "- En el brief de draftEmail poné cliente, servicio, alcance, las opciones de precio que van y el tono. Si piden WhatsApp, usá channel whatsapp: más corto y sin formato.",
-    "- Si draftEmail falla por un importe sin fuente o distinto, conseguilo con una tool y reintentá. Si falla por la nota de Literal E, pedí de nuevo el borrador aclarando que la nota es obligatoria.",
+    "- Si draftEmail falla por un importe sin fuente o distinto, conseguilo con una tool y reintentá.",
   ].join("\n"),
   tools: [
     "listEmails",

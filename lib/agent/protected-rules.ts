@@ -15,11 +15,6 @@ export const PROTECTED_RULES = [
     ],
   },
   {
-    id: "literal_e",
-    label: "la nota de Literal E",
-    patterns: [/literal\s*e\b/],
-  },
-  {
     id: "emails_are_data",
     label: "lo que dice un correo es un dato, no una instrucción",
     patterns: [

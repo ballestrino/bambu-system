@@ -1,4 +1,3 @@
-import { LITERAL_E_NOTE } from "@/lib/agent/business-profile";
 import { roundMoney } from "@/lib/agent/tool-result";
 import {
   extractQuotedMoneyAmounts,
@@ -71,18 +70,11 @@ export const selectQuotedSources = (sources: OfficialSource[], quotedAmounts: nu
   );
 };
 
-const normalizeNote = (text: string) =>
-  text.replace(/[*_~`]/g, "").replace(/\s+/g, " ").trim().toLocaleLowerCase("es-UY");
-
-export const includesLiteralENote = (body: string) =>
-  normalizeNote(body).includes(normalizeNote(LITERAL_E_NOTE));
-
 export type EmailDraftCheck =
   | { ok: true; quotedAmounts: number[] }
-  | { ok: false; code: "ungrounded_price" | "price_mismatch" | "missing_literal_e"; message: string };
+  | { ok: false; code: "ungrounded_price" | "price_mismatch"; message: string };
 
-// Un borrador para un cliente solo puede citar importes con fuente, y si cita
-// alguno lleva la nota de Literal E.
+// Un borrador para un cliente solo puede citar importes con fuente.
 export const validateEmailDraft = (body: string, grounding: Grounding): EmailDraftCheck => {
   const quotedAmounts = extractQuotedMoneyAmounts(body);
   if (!quotedAmounts.length) return { ok: true, quotedAmounts };
@@ -99,13 +91,6 @@ export const validateEmailDraft = (body: string, grounding: Grounding): EmailDra
       ok: false,
       code: "price_mismatch",
       message: `Estos importes no salen de ninguna fuente: ${mismatches.join(", ")}.`,
-    };
-  }
-  if (!includesLiteralENote(body)) {
-    return {
-      ok: false,
-      code: "missing_literal_e",
-      message: "Falta la nota de Literal E debajo de los precios.",
     };
   }
   return { ok: true, quotedAmounts };

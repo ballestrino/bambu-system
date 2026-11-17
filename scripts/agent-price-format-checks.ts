@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 
-import { formatBusinessProfile, LITERAL_E_NOTE } from "../lib/agent/business-profile";
+import { formatBusinessProfile } from "../lib/agent/business-profile";
 import { buildEmailDraftInstructions, buildEmailDraftPrompt } from "../lib/agent/email-prompt";
 import { addGroundedAmounts, createGrounding, validateEmailDraft } from "../lib/agent/grounding";
 import { AGENT_SKILLS } from "../lib/agent/skills";
@@ -29,7 +29,8 @@ assert.doesNotMatch(AGENT_SKILLS.presupuestos.instructions, /precio por hora sin
   assert.match(instructions, /'Opción 1 \(sin productos\): \$ X \+ IVA'/);
   assert.match(instructions, /'Precio: \$ X \+ IVA'/);
   assert.doesNotMatch(instructions, /Precio (sin|con) IVA: \$/, channel);
-  assert.ok(instructions.includes(LITERAL_E_NOTE), channel);
+  // Régimen general: no note about the IVA regime under the prices.
+  assert.doesNotMatch(instructions, /Mientras la empresa continúe|va siempre, textual/, channel);
 });
 // Whole amounts reach the model without ",00", so it writes $ 54.100 + IVA.
 assert.match(
@@ -39,7 +40,7 @@ assert.match(
 // "+ IVA" after an amount does not break the grounding of the draft.
 const grounding = createGrounding();
 addGroundedAmounts(grounding, [54_100, 66_002]);
-const draft = (body: string) => validateEmailDraft(`${body}\n${LITERAL_E_NOTE}`, grounding);
+const draft = (body: string) => validateEmailDraft(body, grounding);
 assert.deepEqual(draft("Opción 1 (sin productos): $ 54.100 + IVA"), { ok: true, quotedAmounts: [54_100] });
 assert.equal(draft("Opción 1 (sin productos): $ 54.200 + IVA").ok, false);
 

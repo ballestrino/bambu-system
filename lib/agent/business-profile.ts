@@ -9,9 +9,6 @@ import { defaultBudgetValues } from "@/schemas/BudgetSchema";
 // Única fuente de los datos del negocio que usa el agente. Lo que ya existe
 // en el código se importa; check:agent-tools asserta el resto contra sus
 // originales (transporte por visita, multiplicador semanal, productos).
-export const LITERAL_E_NOTE =
-  "Nota: Mientras la empresa continúe bajo régimen Literal E, se aplicará el monto sin IVA.";
-
 export const BUSINESS_PROFILE = {
   name: "Bambú Servicios Integrales",
   phone: "096 800 006",
@@ -20,7 +17,6 @@ export const BUSINESS_PROFILE = {
   currency: "UYU",
   timeZone: DEFAULT_OPS_TIMEZONE,
   ivaPercent: defaultBudgetValues.iva,
-  literalENote: LITERAL_E_NOTE,
   weeklyMultiplier: 4.32,
   transportPerVisit: 52,
   productsPricePerFourHours: 175,
@@ -55,7 +51,7 @@ export const formatBusinessProfile = () => {
   return [
     `- Empresa: ${profile.name}. Teléfono ${profile.phone}, web ${profile.website}.`,
     `- Moneda: pesos uruguayos (${profile.currency}). IVA ${percent(profile.ivaPercent)}.`,
-    `- Régimen Literal E: debajo de todo precio para un cliente va, textual: "${profile.literalENote}"`,
+    "- Régimen general de IVA desde el 16/11/2026: el IVA se suma al precio, por eso los precios para clientes van \"+ IVA\". La nota de Literal E ya no se usa: no la escribas, aunque aparezca en mensajes anteriores.",
     `- Visitas semanales: por mes se multiplican por ${profile.weeklyMultiplier.toLocaleString("es-UY")}.`,
     `- Transporte: $ ${profile.transportPerVisit} por visita y por empleada (boletos).`,
     `- Productos: se estiman $ ${profile.productsPricePerFourHours} cada 4 horas de servicio, redondeado al múltiplo de $ ${profile.productsStep} más cercano (mínimo $ ${profile.productsStep}); margen opcional de ${percent(profile.productMarginPercent)}.`,
