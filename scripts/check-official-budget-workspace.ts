@@ -17,8 +17,8 @@ const [
   mutations,
   serverActions,
 ] = await Promise.all([
-  read("app/(private)/dashboard/official-budgets/page.tsx"),
-  read("app/(private)/dashboard/official-budgets/[id]/page.tsx"),
+  read("components/official-budgets/list/official-budgets-page.tsx"),
+  read("components/official-budgets/detail/official-budget-view.tsx"),
   read("components/dashboard/dashboard-nav.ts"),
   read("components/nav/MobileNav.tsx"),
   read("components/budgets/list/budget-row-actions.tsx"),
@@ -30,10 +30,13 @@ const [
 
 assert.match(listPage, /ACTIVE[\s\S]*ARCHIVED/);
 assert.match(listPage, /isLoading[\s\S]*isError[\s\S]*Reintentar/);
-assert.match(listPage, /SearchBar/);
-assert.match(detailPage, /versions\.map/);
-assert.match(detailPage, /OfficialOptionBreakdown/);
-assert.match(detailPage, /ArchiveOfficialBudgetButton/);
+assert.match(listPage, /OfficialBudgetsToolbar/);
+assert.match(detailPage, /OfficialVersionsBand/);
+assert.match(detailPage, /buildOfficialDetailOption/);
+assert.match(detailPage, /OfficialDetailActions/);
+const archiveDialog = await read("components/official-budgets/official-archive-dialog.tsx");
+assert.match(archiveDialog, /archive\.mutate\(id/);
+assert.doesNotMatch(archiveDialog, /window\.confirm/);
 assert.match(sidebar, /Generador[\s\S]*Presupuestos oficiales/);
 assert.match(mobileNav, /Generador de presupuestos[\s\S]*Presupuestos oficiales/);
 assert.match(generatorCard, /publish\.mutate\(budget\.id\)/);

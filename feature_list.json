@@ -963,6 +963,22 @@
         "tsc, lint without .claude/worktrees, check:budget-cache and a browser smoke on desktop and at 390 px"
       ],
       "status": "done"
+    },
+    {
+      "id": 59,
+      "name": "official_budgets_redesign",
+      "title": "Redesign the official budgets list as an ops table and the official detail like the budget detail",
+      "area": "budgets",
+      "description": "/dashboard/official-budgets becomes a table like /dashboard/budgets: Activos and Archivados tabs with counts under the same search, a debounced search, rows with the service, the price without IVA (and with products) and the hourly price of the current version, the version and its date, the generator link or a Generador desvinculado mark, and Abrir generador, Copiar precios and Archivar as row actions; cards on a phone. /dashboard/official-budgets/[id] reuses the budget detail layout: header with Activo or Archivado and the version, actions Abrir generador, Copiar precios and Archivar y desvincular, the four numbers, a versions band to pick any version with its date, author and price change, the option cards with the composition bar and Sin/Con IVA, Datos del servicio and Aportes y cargas. The official cards use the stored authoritative price and the stored calculated costs (extras and BSE derived from them), never a recalculation.",
+      "acceptance": [
+        "The list shows the current version price and hourly price of each official budget and the tab counts follow the search",
+        "Archivar asks for confirmation in a dialog (no window.confirm) and moves the budget to Archivados",
+        "Copiar precios copies each option as net + IVA with the IVA-included amount, from the stored prices",
+        "The official detail shows the selected version: its options with the stored net, IVA and final price, the bar whose segments add up to the stored net price, and the service data and contributions from the snapshot",
+        "Picking an older version marks that it is not the current one",
+        "check:official-budget-workspace updated and green, tsc, lint without .claude/worktrees and a browser smoke on desktop and at 390 px"
+      ],
+      "status": "done"
     }
   ]
 }

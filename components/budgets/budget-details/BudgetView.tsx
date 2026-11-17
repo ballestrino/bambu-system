@@ -7,11 +7,17 @@ import { ArrowLeft } from "lucide-react";
 import { BudgetBseNotice } from "@/components/budgets/budget-details/budget-bse-notice";
 import { BudgetDetailActions } from "@/components/budgets/budget-details/budget-detail-actions";
 import { BudgetDetailContributions } from "@/components/budgets/budget-details/budget-detail-contributions";
-import { BudgetDetailHeader } from "@/components/budgets/budget-details/budget-detail-header";
+import {
+  contributionsFromValues,
+  serviceFactsFromValues,
+  statsFromValues,
+} from "@/components/budgets/budget-details/budget-detail-facts";
+import { BudgetDetailHeader, GeneratorStatusBadge } from "@/components/budgets/budget-details/budget-detail-header";
 import { BudgetDetailJobs } from "@/components/budgets/budget-details/budget-detail-jobs";
 import {
   buildDetailOption,
   detailOptionValues,
+  formatDetailDate,
   pickBudgetOptions,
 } from "@/components/budgets/budget-details/budget-detail-model";
 import { BudgetDetailOfficial } from "@/components/budgets/budget-details/budget-detail-official";
@@ -54,8 +60,16 @@ export default function BudgetDetailView({ slug }: { slug: string }) {
 
   return (
     <div className="container flex w-full flex-col gap-5 pb-12">
-      <BudgetDetailHeader actions={<BudgetDetailActions budget={budget} />} budget={budget}>
-        <BudgetDetailStats base={options[0]} values={baseValues} withIva={withIva} />
+      <BudgetDetailHeader
+        actions={<BudgetDetailActions budget={budget} />}
+        backHref="/dashboard/budgets"
+        backLabel="Presupuestos"
+        badge={<GeneratorStatusBadge official={budget.officialBudget} />}
+        categories={budget.budgetCategory.map((category) => ({ key: category.id, name: category.name }))}
+        subtitle={`${budget.description ? `${budget.description} · ` : ""}actualizado el ${formatDetailDate(budget.updatedAt)}`}
+        title={budget.name}
+      >
+        <BudgetDetailStats base={options[0]} stats={statsFromValues(baseValues)} withIva={withIva} />
       </BudgetDetailHeader>
       <BudgetDetailOfficial
         budgetId={budget.id}
@@ -65,8 +79,8 @@ export default function BudgetDetailView({ slug }: { slug: string }) {
       {budget.budgetOptions.some((option) => !hasBse(option.bse_contribution)) ? <BudgetBseNotice slug={budget.slug} /> : null}
       <BudgetDetailOptions ivaView={ivaView} onIvaViewChange={setIvaView} options={options} />
       <div className="grid grid-cols-[repeat(auto-fit,minmax(min(100%,340px),1fr))] gap-4">
-        <BudgetDetailService productsValues={productsValues} values={baseValues} />
-        <BudgetDetailContributions values={baseValues} />
+        <BudgetDetailService facts={serviceFactsFromValues(baseValues, productsValues)} />
+        <BudgetDetailContributions data={contributionsFromValues(baseValues)} />
       </div>
       <BudgetDetailJobs
         budgetId={budget.id}

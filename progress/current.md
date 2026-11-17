@@ -6,10 +6,10 @@ Status: active
 
 - 54 `budget_bse` (2026-11-12): mergeada a `main` y pusheada con autorización
   del usuario el 2026-11-12. Sigue en progreso hasta el smoke en la app
-  (estuvo en `blocked` mientras se hicieron la 55, el 2026-11-16, y la 58,
-  el 2026-11-17).
-- 58 (detalle del presupuesto) cerrada el 2026-11-17 en la rama
-  `feature/58-budget-detail-redesign`, sin commitear (ver history).
+  (estuvo en `blocked` mientras se hicieron la 55, la 58 y la 59).
+- 58 (detalle del presupuesto) mergeada a `main` sin push el 2026-11-17.
+- 59 (oficiales como lista y detalle) cerrada el 2026-11-17 en la rama
+  `feature/59-official-budgets-redesign`, sin commitear (ver history).
   - Revisión pedida: el agente veía los extras (getBudget, calculateBudget)
     pero no podía agregarlos, cambiarlos ni quitarlos, y el contexto del
     presupuesto no los nombraba. Ahora `budgetChangesSchema` trae `extras`

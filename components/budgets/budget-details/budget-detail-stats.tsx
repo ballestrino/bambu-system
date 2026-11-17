@@ -1,13 +1,12 @@
 import type { LucideIcon } from "lucide-react";
 import { CalendarDays, Clock, ReceiptText, Users } from "lucide-react";
 
-import { formatVisits, type DetailOption } from "@/components/budgets/budget-details/budget-detail-model";
+import type { DetailOption, DetailStats } from "@/components/budgets/budget-details/budget-detail-model";
 import {
   formatBudgetDecimal,
   formatBudgetMoney,
   formatBudgetNumber,
 } from "@/components/budgets/create-budget/budget-summary-model";
-import type { BudgetFormValues } from "@/schemas/BudgetSchema";
 
 const Stat = ({ icon: Icon, label, value, hint }: { icon: LucideIcon; label: string; value: string; hint: string }) => (
   <div className="rounded-xl bg-ops-surface-muted p-3">
@@ -21,35 +20,26 @@ const Stat = ({ icon: Icon, label, value, hint }: { icon: LucideIcon; label: str
 );
 
 // Los cuatro números del servicio solo: precio, precio hora, horas y equipo.
-export const BudgetDetailStats = ({ base, values, withIva }: { base: DetailOption; values: BudgetFormValues; withIva: boolean }) => {
-  const people = Number(values.employees) || 0;
-
-  return (
-    <div className="grid grid-cols-[repeat(auto-fit,minmax(200px,1fr))] gap-3">
-      <Stat
-        hint="servicio sin productos"
-        icon={ReceiptText}
-        label={withIva ? "Precio mensual con IVA" : "Precio mensual sin IVA"}
-        value={formatBudgetMoney(base.price)}
-      />
-      <Stat
-        hint={withIva ? `con IVA ${formatBudgetNumber(base.summary.ivaPct)}%` : "sin IVA"}
-        icon={Clock}
-        label="Precio hora"
-        value={`$ ${formatBudgetDecimal(base.hourly)}`}
-      />
-      <Stat
-        hint={`${formatVisits(Number(values.visits) || 0, values.visit_type)} · ${formatBudgetNumber(Number(values.hours_per_visit) || 0)} hs`}
-        icon={CalendarDays}
-        label="Horas al mes"
-        value={`${formatBudgetNumber(base.summary.totalHours, 1)} hs`}
-      />
-      <Stat
-        hint={`hora nominal ${formatBudgetMoney(Number(values.nominal_hour) || 0)}`}
-        icon={Users}
-        label="Equipo"
-        value={`${people} ${people === 1 ? "persona" : "personas"}`}
-      />
-    </div>
-  );
-};
+export const BudgetDetailStats = ({ base, stats, withIva }: { base: DetailOption; stats: DetailStats; withIva: boolean }) => (
+  <div className="grid grid-cols-[repeat(auto-fit,minmax(200px,1fr))] gap-3">
+    <Stat
+      hint="servicio sin productos"
+      icon={ReceiptText}
+      label={withIva ? "Precio mensual con IVA" : "Precio mensual sin IVA"}
+      value={formatBudgetMoney(base.price)}
+    />
+    <Stat
+      hint={withIva ? `con IVA ${formatBudgetNumber(base.ivaPct)}%` : "sin IVA"}
+      icon={Clock}
+      label="Precio hora"
+      value={`$ ${formatBudgetDecimal(base.hourly)}`}
+    />
+    <Stat hint={stats.visitsHint} icon={CalendarDays} label="Horas al mes" value={`${formatBudgetNumber(base.totalHours, 1)} hs`} />
+    <Stat
+      hint={`hora nominal ${formatBudgetMoney(stats.nominalHour)}`}
+      icon={Users}
+      label="Equipo"
+      value={`${stats.people} ${stats.people === 1 ? "persona" : "personas"}`}
+    />
+  </div>
+);

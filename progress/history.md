@@ -1695,3 +1695,41 @@
   sin desborde. Sin probar porque escriben: eliminar de verdad, publicar y
   crear un trabajo (refresco de la lista).
 - Rama `feature/58-budget-detail-redesign`, sin commitear.
+
+## 2026-11-17 - Presupuestos oficiales como lista y detalle (59)
+
+- Pedido del usuario: `/dashboard/official-budgets` como la lista de
+  `/dashboard/budgets` y el detalle del oficial como el del presupuesto, con
+  acciones propias (en vez del maestro-detalle del canvas).
+- Lista (`components/official-budgets/list/`): pestañas Activos/Archivados
+  con conteo bajo la misma búsqueda, buscador con demora en la URL, tabla con
+  servicio, precio sin IVA (y con productos) y precio hora de la versión
+  vigente, versión y fecha, "Generador desvinculado" y acciones Abrir
+  generador, Copiar precios y, en el menú, Archivar; tarjetas en el celular.
+  Lee `getOfficialBudgetList` / `getOfficialBudgetListAction` (aparte de
+  `getOfficialBudgetsAction`, que usa el agente).
+- Detalle (`components/official-budgets/detail/`): la cabecera, los números,
+  las opciones con Sin/Con IVA y la barra, los datos y los aportes del
+  detalle del generador, más la franja de versiones (elegir cualquiera, autor,
+  cambio de precio, aviso si no es la vigente) y las acciones Copiar precios,
+  Archivar y desvincular (diálogo, ya no `window.confirm`) y Abrir generador.
+  Las tarjetas usan el precio oficial guardado y los costos calculados al
+  publicar; extras y BSE salen por resta (no tienen columna). En todas las
+  opciones oficiales guardadas la barra suma el precio guardado al centavo.
+- Las piezas del detalle reciben datos ya armados (`budget-detail-model` y
+  `budget-detail-facts` para el generador, `official-budget-model` para el
+  oficial) y la cabecera es común.
+- Arreglo de antes: `serializeOption` no convertía
+  `calculatedEffectiveNominalHour` (Decimal) y Next avisaba al pasarlo al
+  cliente; ahora convierte cualquier Decimal.
+- Se quitaron `official-option-breakdown.tsx`, `official-budget-controls.tsx`
+  y `useOfficialBudgets`. `check:official-budget-workspace` mira los archivos
+  nuevos y que archivar no use `window.confirm`.
+- PASS: tsc, ESLint de lo tocado, `check:official-budget-workspace`,
+  `check:official-budgets`, `check:budget-cache`, `check:agent-tools`. Smoke
+  en el Chrome del usuario sin escribir datos (rama de Neon
+  `feature-39-billing`): lista y búsqueda, detalle con dos opciones, Copiar
+  precios, diálogo de Archivar cancelado, sin errores de consola; 390 px en
+  un iframe sin desborde. Sin probar: archivar de verdad y elegir otra
+  versión (ningún oficial de la base tiene más de una).
+- Rama `feature/59-official-budgets-redesign`, sin commitear.
