@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useFormContext, useWatch } from "react-hook-form";
 
+import { BudgetCompositionBar } from "@/components/budgets/common/budget-composition-bar";
 import { buildBudgetSummary, formatBudgetDecimal, formatBudgetMoney, formatBudgetNumber } from "@/components/budgets/create-budget/budget-summary-model";
 import { BudgetSummaryRows } from "@/components/budgets/create-budget/budget-summary-rows";
 import { CreatorSegmented } from "@/components/budgets/create-budget/creator-ui";
@@ -53,27 +54,7 @@ export const BudgetSummaryPanel = () => {
           <p className="mt-0.5 text-xs text-ops-text-muted">{people} {people === 1 ? "persona" : "personas"}</p>
         </div>
       </div>
-      {summary.segments.length ? (
-        <div className="flex flex-col gap-2.5">
-          <div
-            aria-label={`Composición del precio: ${summary.segments.map((segment) => `${segment.label} ${segment.pct}`).join(", ")}`}
-            className="flex h-2.5 gap-0.5 overflow-hidden rounded-full"
-            role="img"
-          >
-            {summary.segments.map((segment) => (
-              <span className={segment.colorClass} key={segment.key} style={{ flex: `${segment.amount} 1 0` }} />
-            ))}
-          </div>
-          <div className="flex flex-wrap gap-x-3.5 gap-y-1.5">
-            {summary.segments.map((segment) => (
-              <span className="inline-flex items-center gap-1.5 text-xs text-ops-text-muted" key={segment.key}>
-                <span className={`size-2 rounded-[2px] ${segment.colorClass}`} />
-                {segment.label} <span className="tabular-nums">{segment.pct}</span>
-              </span>
-            ))}
-          </div>
-        </div>
-      ) : null}
+      <BudgetCompositionBar segments={summary.segments} />
       <BudgetSummaryRows className="border-t border-ops-border" rows={summary.rows} />
       <p className="text-xs leading-relaxed text-ops-text-muted">
         Precio de un mes de servicio. Las visitas semanales se cuentan a 4,32 semanas por mes.

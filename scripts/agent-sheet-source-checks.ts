@@ -34,8 +34,8 @@ const sourceFiles = (dir: string) => walk(dir).filter((path) => /\.tsx?$/.test(p
 // --- Entry points: the detail passes the saved budget; create reads the form
 // when sending, not on every keystroke.
 assert.match(
-  read("components/budgets/budget-details/BudgetView.tsx"),
-  /<AgentSheetHost budgetId=\{budget\.id\} budgetSlug=\{budget\.slug\} budgetName=\{budget\.name\} \/>/
+  read("components/budgets/budget-details/budget-detail-actions.tsx"),
+  /<AgentSheetHost\s+budgetId=\{budget\.id\}\s+budgetName=\{budget\.name\}\s+budgetSlug=\{budget\.slug\}/
 );
 const createHeader = read("components/budgets/create-budget/Header.tsx");
 assert.match(createHeader, /getFormValues=\{\(\) => form\.getValues\(\)\}/);

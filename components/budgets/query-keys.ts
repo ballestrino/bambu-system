@@ -8,6 +8,9 @@ export const budgetKeys = {
   list: (filters: BudgetFilters) => [...budgetKeys.lists(), filters] as const,
   details: () => [...budgetKeys.all, "detail"] as const,
   detail: (slug: string) => [...budgetKeys.details(), slug] as const,
+  // Trabajos y fecha oficial de la página del presupuesto: bajo su detalle,
+  // así lo que invalida el presupuesto también los vuelve a leer.
+  detailExtras: (slug: string) => [...budgetKeys.detail(slug), "extras"] as const,
 };
 
 export const budgetCategoryKeys = {

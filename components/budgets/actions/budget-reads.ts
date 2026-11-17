@@ -1,6 +1,7 @@
 "use server";
 
 import { getBudgetBySlug } from "@/data/budget";
+import { getBudgetDetailExtras } from "@/data/budget-detail";
 import { getBudgets } from "@/data/budgets";
 import type { BudgetFilters } from "@/components/budgets/interfaces/budget-filters";
 
@@ -12,3 +13,5 @@ export const readBudgets = async (filters: BudgetFilters) => {
 };
 
 export const readBudgetBySlug = async (slug: string) => getBudgetBySlug(slug);
+
+export const readBudgetDetailExtras = async (budgetId: string) => getBudgetDetailExtras(budgetId);
