@@ -946,6 +946,23 @@
         "The agent checks, tsc and lint pass, and one real turn drafts a quote email"
       ],
       "status": "pending"
+    },
+    {
+      "id": 58,
+      "name": "budget_detail_redesign",
+      "title": "Redesign the budget detail page in the ops style with the price composition bar",
+      "area": "budgets",
+      "description": "Apply the canvas design \"Detalle · escritorio\" (Presupuestos rediseño) to /dashboard/budgets/budget/[slug]: a header with the back link, the official or draft badge, description, update date and categories, and Asistente, Duplicar, Editar and a menu with Eliminar; four tiles (price, hourly price, hours a month, team); the official band with the published version and Ver versiones, or a draft band with Publicar como oficial; the BSE notice; one card per option (without and with products) with the price, the hourly price, the creator composition bar with its percentages and the breakdown, under a Sin IVA/Con IVA switch that adds IVA as a segment; Datos del servicio; Aportes y cargas with BSE; and the jobs made from the budget with Crear trabajo prefilled with it.",
+      "acceptance": [
+        "Each option card uses buildBudgetSummary from the creator, so its rows, percentages and bar match the creator and the saved calculation",
+        "Con IVA shows the prices with IVA and adds IVA as a bar segment with the percentages over the price with IVA",
+        "A linked official budget shows its version and publication date with a link to the versions; a draft can be published from the page",
+        "Deleting from the menu returns to the list; a linked official cannot be deleted",
+        "The jobs list shows the jobs made from the budget with their status and price; Crear trabajo opens the job form with this budget selected and the list refreshes",
+        "Loading, not found with a way back, and a budget without the products option render",
+        "tsc, lint without .claude/worktrees, check:budget-cache and a browser smoke on desktop and at 390 px"
+      ],
+      "status": "done"
     }
   ]
 }
