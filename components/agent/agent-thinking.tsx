@@ -3,7 +3,7 @@
 import { BookOpen, Calculator, PenLine, Search, Sparkles, type LucideIcon } from "lucide-react";
 import { useEffect, useState } from "react";
 
-import { AgentLogoTile } from "@/components/agent/agent-logo-tile";
+import { AgentBambooGrow } from "@/components/agent/agent-bamboo-grow";
 import type { ThinkingMotion, ThinkingPhrase } from "@/components/agent/agent-thinking-phrases";
 import { cn } from "@/lib/utils";
 
@@ -24,10 +24,10 @@ const SHOW_SECONDS_FROM = 8;
 const phraseAt = (step: number, count: number) =>
   step < count || count < 2 ? step % count : 1 + ((step - 1) % (count - 1));
 
-// Mientras el agente trabaja. Con logo es una fila como las respuestas (el
-// logo con un halo que late); sin logo va dentro de una respuesta, debajo de
-// las tools que terminaron. Quien lo usa le cambia la key al cambiar de fase.
-export function AgentThinking({ phrases, withLogo }: { phrases: ThinkingPhrase[]; withLogo?: boolean }) {
+// Mientras el agente trabaja. Con el bambú (que crece en bucle donde va el
+// logo de las respuestas, también en el teléfono) es una fila propia; sin él
+// va dentro de una respuesta, debajo de las tools que terminaron. Quien lo usa le cambia la key al cambiar de fase.
+export function AgentThinking({ phrases, withBamboo }: { phrases: ThinkingPhrase[]; withBamboo?: boolean }) {
   const [seconds, setSeconds] = useState(0);
 
   useEffect(() => {
@@ -41,11 +41,7 @@ export function AgentThinking({ phrases, withLogo }: { phrases: ThinkingPhrase[]
 
   return (
     <div className="flex items-center gap-3" role="status">
-      {withLogo && (
-        <span className="agent-think-halo hidden rounded-lg @lg/thread:grid">
-          <AgentLogoTile size="sm" />
-        </span>
-      )}
+      {withBamboo && <AgentBambooGrow />}
       <div className="flex h-7 min-w-0 items-center gap-2 text-[13px]" aria-hidden>
         <span
           key={`icon-${step}`}

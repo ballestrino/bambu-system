@@ -1,6 +1,6 @@
 /* El indicador mientras el agente trabaja (components/agent/agent-thinking.tsx):
-   texto con un brillo que lo recorre, un halo que late alrededor del logo y
-   un movimiento propio para cada ícono. Sin animaciones si el sistema pide
+   texto con un brillo que lo recorre, un bambú que crece en bucle y un
+   movimiento propio para cada ícono. Sin animaciones si el sistema pide
    menos movimiento. */
 
 .agent-think-shimmer {
@@ -22,8 +22,8 @@
   .agent-think-shimmer {
     animation: agent-think-shimmer 2.2s linear infinite;
   }
-  .agent-think-halo {
-    animation: agent-think-halo 1.8s ease-out infinite;
+  .agent-bamboo {
+    animation: agent-bamboo 3.2s linear infinite;
   }
   .agent-think-think {
     animation: agent-think-think 1.4s ease-in-out infinite;
@@ -51,13 +51,40 @@
   }
 }
 
-@keyframes agent-think-halo {
-  0% {
-    box-shadow: 0 0 0 0 color-mix(in srgb, var(--ops-bamboo) 45%, transparent);
+/* El bambú (components/agent/agent-bamboo-grow.tsx): --bamboo-t recorre la
+   vuelta de 0 a 1 y cada pieza crece desde su momento --s. Al final todo se
+   desvanece y vuelve a empezar. Quieto, queda crecido. */
+@property --bamboo-t {
+  syntax: "<number>";
+  inherits: true;
+  initial-value: 0.8;
+}
+
+@keyframes agent-bamboo {
+  from {
+    --bamboo-t: 0;
   }
-  100% {
-    box-shadow: 0 0 0 7px color-mix(in srgb, var(--ops-bamboo) 0%, transparent);
+  to {
+    --bamboo-t: 1;
   }
+}
+
+.agent-bamboo-grow,
+.agent-bamboo-leaf {
+  transform-box: fill-box;
+}
+
+.agent-bamboo-grow {
+  transform-origin: 50% 100%;
+  transform: scaleY(clamp(0, (var(--bamboo-t) - var(--s)) * 9, 1));
+}
+
+.agent-bamboo-leaf {
+  transform: scale(clamp(0, (var(--bamboo-t) - var(--s)) * 9, 1));
+}
+
+.agent-bamboo-fade {
+  opacity: clamp(0, (0.96 - var(--bamboo-t)) * 10, 1);
 }
 
 /* Pensar: late y gira un poco, como un destello. */
