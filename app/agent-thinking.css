@@ -1,7 +1,6 @@
 /* El indicador mientras el agente trabaja (components/agent/agent-thinking.tsx):
-   texto con un brillo que lo recorre, un bambú que crece en bucle y un
-   movimiento propio para cada ícono. Sin animaciones si el sistema pide
-   menos movimiento. */
+   la acción con un brillo que la recorre y un bambú que crece en bucle. Sin
+   animaciones si el sistema pide menos movimiento. */
 
 .agent-think-shimmer {
   background-image: linear-gradient(
@@ -23,22 +22,7 @@
     animation: agent-think-shimmer 2.2s linear infinite;
   }
   .agent-bamboo {
-    animation: agent-bamboo 3.2s linear infinite;
-  }
-  .agent-think-think {
-    animation: agent-think-think 1.4s ease-in-out infinite;
-  }
-  .agent-think-calc {
-    animation: agent-think-calc 0.9s ease-in-out infinite;
-  }
-  .agent-think-search {
-    animation: agent-think-search 1.6s ease-in-out infinite;
-  }
-  .agent-think-read {
-    animation: agent-think-read 1.6s ease-in-out infinite;
-  }
-  .agent-think-write {
-    animation: agent-think-write 0.8s ease-in-out infinite;
+    animation: agent-bamboo 1.8s linear infinite;
   }
 }
 
@@ -85,67 +69,4 @@
 
 .agent-bamboo-fade {
   opacity: clamp(0, (0.96 - var(--bamboo-t)) * 10, 1);
-}
-
-/* Pensar: late y gira un poco, como un destello. */
-@keyframes agent-think-think {
-  0%,
-  100% {
-    transform: scale(1) rotate(0deg);
-  }
-  50% {
-    transform: scale(1.2) rotate(15deg);
-  }
-}
-
-/* Calcular: dos toques seguidos, como teclas. */
-@keyframes agent-think-calc {
-  0%,
-  40%,
-  100% {
-    transform: translateY(0);
-  }
-  15%,
-  55% {
-    transform: translateY(1.5px);
-  }
-}
-
-/* Buscar: la lupa recorre un círculo chico. */
-@keyframes agent-think-search {
-  0%,
-  100% {
-    transform: translate(0, 0);
-  }
-  25% {
-    transform: translate(1.5px, -1px);
-  }
-  50% {
-    transform: translate(0, -2px);
-  }
-  75% {
-    transform: translate(-1.5px, -1px);
-  }
-}
-
-/* Leer: se inclina de un lado al otro, como pasando la hoja. */
-@keyframes agent-think-read {
-  0%,
-  100% {
-    transform: rotate(-8deg);
-  }
-  50% {
-    transform: rotate(8deg);
-  }
-}
-
-/* Escribir: el lápiz va y viene sobre la línea. */
-@keyframes agent-think-write {
-  0%,
-  100% {
-    transform: translate(-1px, 1px) rotate(-6deg);
-  }
-  50% {
-    transform: translate(1.5px, -0.5px) rotate(6deg);
-  }
 }

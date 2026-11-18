@@ -76,13 +76,13 @@ export function AgentMessageList({
                 onRetry={message === last && !busy ? onRetry : undefined}
                 pending={
                   message === last && afterTools ? (
-                    <AgentThinking key="after-tools" phrases={getThinkingPhrases("afterTools", skill, afterTools)} />
+                    <AgentThinking key="after-tools" inline phrases={getThinkingPhrases("afterTools", skill, afterTools)} />
                   ) : undefined
                 }
               />
             )
           )}
-          {thinking && <AgentThinking key="start" withBamboo phrases={getThinkingPhrases("start", skill, [])} />}
+          {thinking && <AgentThinking key="start" phrases={getThinkingPhrases("start", skill, [])} />}
         </div>
       )}
     </div>

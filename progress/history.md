@@ -1827,3 +1827,13 @@
   temporal (ya borrada) en claro, oscuro y 390 px: crece, brotan las hojas y
   repite. Sin turno real (API key local con 401).
 - Pusheado a `main` con autorización del usuario (2026-11-18).
+
+## 2026-11-18 - Ajuste de la 61: bambú más rápido, sin íconos ni recuadro
+
+- Pedido del usuario: iba lento, sobraban los íconos de cada frase y el
+  bambú tenía que ir solo, sin recuadro. La vuelta pasó de 3,2 s a 1,8 s, se
+  quitaron los íconos (y sus animaciones) y el fondo del bambú: queda el
+  bambú y la acción. Debajo de las tools terminadas va el mismo bambú, más
+  chico. Las frases son texto (`ThinkingPhrase = string`).
+- PASS: tsc, ESLint de lo tocado, `pnpm harness`. Revisado con una página
+  temporal (ya borrada): sin recuadro ni ícono, animación de 1,8 s.
