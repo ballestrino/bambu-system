@@ -1812,3 +1812,4 @@
   con una página temporal (ya borrada) en claro, oscuro y 390 px: rotación,
   íconos y animaciones. Sin turno real: la `ANTHROPIC_API_KEY` local da 401
   y la app pide sesión.
+- Pusheada a `main` con autorización del usuario (2026-11-18).

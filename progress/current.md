@@ -125,7 +125,8 @@ Status: active
 ## Last Closed Work
 
 - 2026-11-18: indicador de trabajo del agente (61): fila con el logo, frases
-  que rotan según la habilidad y las tools, ícono animado por frase. Ver
+  que rotan según la habilidad y las tools, ícono animado por frase.
+  Pusheada a `main` con autorización del usuario (2026-11-18). Ver
   history.
 
 - 2026-11-17: sin la nota de Literal E (57): precios "$ X + IVA" sin nota,
