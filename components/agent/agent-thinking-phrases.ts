@@ -4,63 +4,59 @@ import type { AgentUIMessage } from "@/components/agent/types";
 import type { AgentSkillId } from "@/lib/agent/skills/types";
 import { AGENT_TOOL_CATALOG, isAgentToolName, type AgentToolKind } from "@/lib/agent/tool-catalog";
 
-// Cada frase trae su ícono y su movimiento: pensar late, calcular tipea,
-// buscar recorre, leer pasa la hoja y escribir va y viene.
-export type ThinkingMotion = "think" | "calc" | "search" | "read" | "write";
-export type ThinkingPhrase = { text: string; motion: ThinkingMotion };
+// Lo que el agente está haciendo, dicho como acción.
+export type ThinkingPhrase = string;
 
 // "start": todavía no hay nada visible. "afterTools": las tools terminaron y
 // el modelo lee sus resultados antes de seguir.
 export type ThinkingPhase = "start" | "afterTools";
 
-const p = (text: string, motion: ThinkingMotion): ThinkingPhrase => ({ text, motion });
-
 const START: Record<AgentSkillId, ThinkingPhrase[]> = {
   general: [
-    p("Pensando", "think"),
-    p("Leyendo tu mensaje", "read"),
-    p("Buscando en los datos", "search"),
-    p("Ordenando las ideas", "think"),
-    p("Armando la respuesta", "write"),
+    "Pensando",
+    "Leyendo tu mensaje",
+    "Buscando en los datos",
+    "Ordenando las ideas",
+    "Armando la respuesta",
   ],
   presupuestos: [
-    p("Pensando", "think"),
-    p("Calculando las horas", "calc"),
-    p("Buscando precios oficiales", "search"),
-    p("Calculando el margen", "calc"),
-    p("Armando el presupuesto", "write"),
+    "Pensando",
+    "Calculando las horas",
+    "Buscando precios oficiales",
+    "Calculando el margen",
+    "Armando el presupuesto",
   ],
   emails: [
-    p("Pensando", "think"),
-    p("Leyendo los correos", "read"),
-    p("Buscando pedidos", "search"),
-    p("Redactando", "write"),
+    "Pensando",
+    "Leyendo los correos",
+    "Buscando pedidos",
+    "Redactando",
   ],
   consejos: [
-    p("Pensando", "think"),
-    p("Revisando los números del mes", "calc"),
-    p("Comparando con meses anteriores", "search"),
-    p("Pensando un consejo", "think"),
+    "Pensando",
+    "Revisando los números del mes",
+    "Comparando con meses anteriores",
+    "Pensando un consejo",
   ],
   facturacion: [
-    p("Pensando", "think"),
-    p("Revisando las facturas", "read"),
-    p("Calculando los totales", "calc"),
-    p("Armando el borrador", "write"),
+    "Pensando",
+    "Revisando las facturas",
+    "Calculando los totales",
+    "Armando el borrador",
   ],
   factura: [
-    p("Pensando", "think"),
-    p("Buscando el cliente", "search"),
-    p("Calculando el IVA", "calc"),
-    p("Completando la factura", "write"),
+    "Pensando",
+    "Buscando el cliente",
+    "Calculando el IVA",
+    "Completando la factura",
   ],
 };
 
 const AFTER_TOOLS: Record<AgentToolKind, ThinkingPhrase[]> = {
-  read: [p("Leyendo los resultados", "read"), p("Sacando conclusiones", "think"), p("Escribiendo", "write")],
-  calc: [p("Revisando los números", "calc"), p("Verificando el cálculo", "calc"), p("Escribiendo", "write")],
-  proposal: [p("Preparando la propuesta", "write"), p("Revisando los detalles", "read")],
-  draft: [p("Revisando el borrador", "read"), p("Puliendo el texto", "write")],
+  read: ["Leyendo los resultados", "Sacando conclusiones", "Escribiendo"],
+  calc: ["Revisando los números", "Verificando el cálculo", "Escribiendo"],
+  proposal: ["Preparando la propuesta", "Revisando los detalles"],
+  draft: ["Revisando el borrador", "Puliendo el texto"],
 };
 
 const ORDER: AgentToolKind[] = ["proposal", "draft", "calc", "read"];

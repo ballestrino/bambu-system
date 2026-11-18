@@ -27,36 +27,32 @@ const LEAVES = [
 
 const start = (s: number, origin?: string) => ({ "--s": s, transformOrigin: origin }) as CSSProperties;
 
+// Sin fondo: solo el bambú, del tamaño del logo de las respuestas.
 export function AgentBambooGrow({ className }: { className?: string }) {
   return (
-    <span
-      className={cn("grid size-7 shrink-0 place-items-center overflow-hidden rounded-lg bg-ops-bamboo-soft", className)}
-      aria-hidden
-    >
-      <svg viewBox="0 0 28 28" className="agent-bamboo size-7">
-        <g className="agent-bamboo-fade">
-          {SEGMENTS.map((segment) => (
-            <rect
-              key={`${segment.x}-${segment.y}`}
-              className="agent-bamboo-grow fill-ops-bamboo"
-              x={segment.x}
-              y={segment.y}
-              width={segment.w}
-              height={segment.h}
-              rx={1}
-              style={start(segment.s)}
-            />
-          ))}
-          {LEAVES.map((leaf) => (
-            <path
-              key={leaf.d}
-              className="agent-bamboo-leaf fill-ops-bamboo-strong/70"
-              d={leaf.d}
-              style={start(leaf.s, leaf.origin)}
-            />
-          ))}
-        </g>
-      </svg>
-    </span>
+    <svg viewBox="0 0 28 28" className={cn("agent-bamboo size-7 shrink-0", className)} aria-hidden>
+      <g className="agent-bamboo-fade">
+        {SEGMENTS.map((segment) => (
+          <rect
+            key={`${segment.x}-${segment.y}`}
+            className="agent-bamboo-grow fill-ops-bamboo"
+            x={segment.x}
+            y={segment.y}
+            width={segment.w}
+            height={segment.h}
+            rx={1}
+            style={start(segment.s)}
+          />
+        ))}
+        {LEAVES.map((leaf) => (
+          <path
+            key={leaf.d}
+            className="agent-bamboo-leaf fill-ops-bamboo-strong/70"
+            d={leaf.d}
+            style={start(leaf.s, leaf.origin)}
+          />
+        ))}
+      </g>
+    </svg>
   );
 }
