@@ -1837,3 +1837,4 @@
   chico. Las frases son texto (`ThinkingPhrase = string`).
 - PASS: tsc, ESLint de lo tocado, `pnpm harness`. Revisado con una página
   temporal (ya borrada): sin recuadro ni ícono, animación de 1,8 s.
+- Pusheado a `main` con autorización del usuario (2026-11-18).
