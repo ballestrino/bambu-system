@@ -1826,3 +1826,4 @@
 - PASS: tsc, ESLint de lo tocado, `pnpm harness`. Revisado con una página
   temporal (ya borrada) en claro, oscuro y 390 px: crece, brotan las hojas y
   repite. Sin turno real (API key local con 401).
+- Pusheado a `main` con autorización del usuario (2026-11-18).
