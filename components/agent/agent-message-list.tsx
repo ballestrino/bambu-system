@@ -4,26 +4,14 @@ import type { ChatStatus } from "ai";
 import { useEffect, useRef } from "react";
 
 import { AgentMessage, hasVisibleContent } from "@/components/agent/agent-message";
+import { AgentThinking } from "@/components/agent/agent-thinking";
+import { getFinishedToolKinds, getThinkingPhrases } from "@/components/agent/agent-thinking-phrases";
 import type { TurnNotice } from "@/components/agent/hooks/use-agent-session";
 import type { AgentUIMessage } from "@/components/agent/types";
 
 // Cerca del final se sigue el stream; si el usuario subió a leer, no se lo
 // mueve.
 const STICK_THRESHOLD_PX = 80;
-
-// Con lugar para el logo, alineado con el texto de las respuestas.
-function Thinking() {
-  return (
-    <div className="flex items-center gap-2 text-xs text-ops-text-muted @lg/thread:pl-10" role="status">
-      <span className="flex gap-1" aria-hidden>
-        <span className="size-1.5 animate-bounce rounded-full bg-ops-bamboo [animation-delay:-0.3s]" />
-        <span className="size-1.5 animate-bounce rounded-full bg-ops-bamboo [animation-delay:-0.15s]" />
-        <span className="size-1.5 animate-bounce rounded-full bg-ops-bamboo" />
-      </span>
-      Pensando…
-    </div>
-  );
-}
 
 export function AgentMessageList({
   messages,
@@ -42,8 +30,12 @@ export function AgentMessageList({
   const stickRef = useRef(true);
   const last = messages.at(-1);
   const busy = status === "submitted" || status === "streaming";
-  const thinking =
-    status === "submitted" || (status === "streaming" && last?.role === "assistant" && !hasVisibleContent(last));
+  const pendingReply = last?.role === "assistant" && busy && !hasVisibleContent(last) ? last : undefined;
+  const thinking = status === "submitted" || pendingReply !== undefined;
+  // Con las tools de la respuesta ya terminadas, el indicador sigue debajo.
+  const afterTools =
+    status === "streaming" && !thinking && last?.role === "assistant" ? getFinishedToolKinds(last) : null;
+  const skill = messages.findLast((message) => message.role === "user")?.metadata?.skill;
 
   useEffect(() => {
     const element = scrollRef.current;
@@ -74,15 +66,23 @@ export function AgentMessageList({
         // En la página la columna es ancha: los mensajes quedan en un ancho de
         // lectura, el mismo del composer (en el Sheet no cambia nada).
         <div className="mx-auto max-w-[720px] space-y-6">
-          {messages.map((message) => (
-            <AgentMessage
-              key={message.id}
-              message={message}
-              notice={notices[message.id]}
-              onRetry={message === last && !busy ? onRetry : undefined}
-            />
-          ))}
-          {thinking && <Thinking />}
+          {/* La respuesta vacía no se dibuja: el indicador ya trae el logo. */}
+          {messages.map((message) =>
+            message === pendingReply ? null : (
+              <AgentMessage
+                key={message.id}
+                message={message}
+                notice={notices[message.id]}
+                onRetry={message === last && !busy ? onRetry : undefined}
+                pending={
+                  message === last && afterTools ? (
+                    <AgentThinking key="after-tools" phrases={getThinkingPhrases("afterTools", skill, afterTools)} />
+                  ) : undefined
+                }
+              />
+            )
+          )}
+          {thinking && <AgentThinking key="start" withLogo phrases={getThinkingPhrases("start", skill, [])} />}
         </div>
       )}
     </div>

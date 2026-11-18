@@ -995,6 +995,19 @@
         "tsc, lint and a browser smoke at 1440 and 390 px, light and dark"
       ],
       "status": "done"
+    },
+    {
+      "id": 61,
+      "name": "agent_thinking_indicator",
+      "title": "Agent working indicator: one row with the logo, rotating phrases and per-icon motion",
+      "area": "agent",
+      "description": "The \"Pensando…\" indicator showed the logo of the empty reply on its own and the text below it. Now the empty reply is not drawn and the indicator is one row with the logo (a halo that pulses), an icon that changes with each phrase (think, calc, search, read, write, each with its own motion) and a shimmer over the text. Phrases rotate every 3 s by the skill of the last user message (presupuestos: Calculando las horas, el margen…) and after finished tools the indicator stays under them (Revisando los números, Leyendo los resultados…). From 8 s it shows the seconds. Reduced motion turns the animations off.",
+      "acceptance": [
+        "No orphan logo above the indicator",
+        "Phrases rotate by skill and after tools",
+        "tsc, lint and a browser check light, dark and 390 px"
+      ],
+      "status": "done"
     }
   ]
 }

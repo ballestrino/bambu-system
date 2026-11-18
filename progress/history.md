@@ -1793,3 +1793,22 @@
   prueba ("Presupuesto de servicio de limpieza") quedó en el historial.
 - Local no se pudo: `ANTHROPIC_API_KEY` de `.env` da 401.
 - Mergeada y pusheada a `main` con autorización del usuario (2026-11-17).
+
+## 2026-11-18 - Indicador de trabajo del agente (61)
+
+- Pedido del usuario: el "Pensando…" dejaba el logo de la respuesta vacía
+  suelto arriba y el texto abajo; mejorar la animación y que diga otras
+  cosas (por ejemplo "Calculando").
+- La respuesta vacía ya no se dibuja: `AgentThinking`
+  (`components/agent/agent-thinking.tsx`) es una fila con el logo (halo que
+  late), un ícono por frase con su propio movimiento (pensar, calcular,
+  buscar, leer, escribir) y un brillo que recorre el texto. Las animaciones
+  están en `app/agent-thinking.css` y se apagan con menos movimiento.
+- Frases en `components/agent/agent-thinking-phrases.ts`: rotan cada 3 s
+  según la habilidad del último mensaje del usuario; con las tools ya
+  terminadas el indicador sigue debajo de ellas ("Revisando los números",
+  "Leyendo los resultados"). Desde los 8 s muestra los segundos.
+- PASS: tsc, ESLint de lo tocado, `pnpm harness`. Revisado en el navegador
+  con una página temporal (ya borrada) en claro, oscuro y 390 px: rotación,
+  íconos y animaciones. Sin turno real: la `ANTHROPIC_API_KEY` local da 401
+  y la app pide sesión.
