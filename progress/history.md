@@ -1813,3 +1813,16 @@
   íconos y animaciones. Sin turno real: la `ANTHROPIC_API_KEY` local da 401
   y la app pide sesión.
 - Pusheada a `main` con autorización del usuario (2026-11-18).
+
+## 2026-11-18 - Ajuste de la 61: bambú que crece en bucle
+
+- Pedido del usuario: una animación de un bambú creciendo en bucle. En el
+  indicador de trabajo, en lugar del logo con el halo, va
+  `AgentBambooGrow` (`components/agent/agent-bamboo-grow.tsx`): tres cañas
+  que crecen tramo por tramo, cuatro hojas que brotan de los nudos y un
+  desvanecido antes de volver a empezar (3,2 s). Se ve también en el
+  teléfono. Un solo `@property --bamboo-t` mueve todas las piezas
+  (`app/agent-thinking.css`); con menos movimiento queda crecido y quieto.
+- PASS: tsc, ESLint de lo tocado, `pnpm harness`. Revisado con una página
+  temporal (ya borrada) en claro, oscuro y 390 px: crece, brotan las hojas y
+  repite. Sin turno real (API key local con 401).

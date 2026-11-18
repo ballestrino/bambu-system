@@ -66,7 +66,7 @@ export function AgentMessageList({
         // En la página la columna es ancha: los mensajes quedan en un ancho de
         // lectura, el mismo del composer (en el Sheet no cambia nada).
         <div className="mx-auto max-w-[720px] space-y-6">
-          {/* La respuesta vacía no se dibuja: el indicador ya trae el logo. */}
+          {/* La respuesta vacía no se dibuja: el indicador va con el bambú. */}
           {messages.map((message) =>
             message === pendingReply ? null : (
               <AgentMessage
@@ -82,7 +82,7 @@ export function AgentMessageList({
               />
             )
           )}
-          {thinking && <AgentThinking key="start" withLogo phrases={getThinkingPhrases("start", skill, [])} />}
+          {thinking && <AgentThinking key="start" withBamboo phrases={getThinkingPhrases("start", skill, [])} />}
         </div>
       )}
     </div>
