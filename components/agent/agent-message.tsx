@@ -77,10 +77,13 @@ export function AgentMessage({
   message,
   notice,
   onRetry,
+  pending,
 }: {
   message: AgentUIMessage;
   notice?: TurnNotice;
   onRetry?: () => void;
+  // El indicador de trabajo cuando la respuesta sigue después de sus tools.
+  pending?: React.ReactNode;
 }) {
   if (message.role === "user") {
     const skill = message.metadata?.skill;
@@ -119,12 +122,14 @@ export function AgentMessage({
             <AgentToolRun key={block.key} parts={block.parts} />
           )
         )}
+        {pending}
         <UsageLine message={message} notice={notice} onRetry={onRetry} />
       </div>
     </div>
   );
 }
 
-// Si hay algo visible del asistente: mientras no, se muestra "Pensando…".
+// Si hay algo visible del asistente: mientras no, se muestra el indicador de
+// trabajo (components/agent/agent-thinking.tsx).
 export const hasVisibleContent = (message: AgentUIMessage) =>
   message.parts.some((part) => (part.type === "text" ? part.text.trim() !== "" : isStaticToolUIPart(part)));
