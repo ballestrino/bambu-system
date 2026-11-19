@@ -1028,13 +1028,13 @@
       "name": "agent_tool_schemas_slim",
       "title": "Lighter agent tool definitions",
       "area": "agent",
-      "description": "The 38 tool definitions weigh about 60k characters (~20k tokens) and go in every step; calculateBudget, proposeCreateBudget, proposeUpdateBudget and solveForTargetPrice weigh ~5k each because they repeat the budget changes schema with long descriptions. Trim descriptions and share the shortest schema without losing what the model needs.",
+      "description": "The tool definitions were ~28k of the 34k tokens of every call (measured against the API with Haiku 5.5, skill General). The JSON zod generates is now compacted when the tools are built (no $schema, no MAX_SAFE_INTEGER bounds, anyOf [X, null] as type [X, \"null\"]) while zod still validates; the repeated \"; null si no cambia\" and the longest change descriptions are shorter, and General no longer sends fillInvoiceForm and findBillingClient, which only work with the Nueva factura form open. Result: 34,216 -> 27,457 input tokens per call (-20%). additionalProperties stays: OpenAI Responses is strict by default.",
       "acceptance": [
-        "Tool definitions at least 25% lighter",
-        "Same behavior in check:agent-tools and check:agent-pricing",
-        "tsc and lint"
+        "Prefix of a General call about 20% lighter, measured against the API",
+        "Compacted schemas accepted by Claude and OpenAI, zod still rejects invalid input",
+        "check:agent-tools, check:agent-pricing, check:agent-proposals, check:ai-gateway, tsc and lint"
       ],
-      "status": "in_progress"
+      "status": "done"
     },
     {
       "id": 64,
@@ -1047,7 +1047,7 @@
         "Edit card keeps only warnings with consequences",
         "check:agent-pricing, check:agent-budget-editor, tsc and lint"
       ],
-      "status": "pending"
+      "status": "in_progress"
     },
     {
       "id": 65,

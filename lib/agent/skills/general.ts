@@ -1,11 +1,16 @@
 import type { AgentSkill } from "@/lib/agent/skills/types";
 import { AGENT_TOOL_NAMES } from "@/lib/agent/tool-catalog";
 
-// Sin chip seleccionado: todas las tools y una sugerencia de cada habilidad.
+// Sin chip seleccionado: todas las tools salvo las de Nueva factura, que solo
+// sirven con su formulario abierto (sus definiciones van en cada paso), y una
+// sugerencia de cada habilidad.
+export const INVOICE_FORM_ONLY_TOOLS = ["fillInvoiceForm", "findBillingClient"] as const;
+const invoiceFormOnly = new Set<string>(INVOICE_FORM_ONLY_TOOLS);
+
 export const generalSkill: AgentSkill = {
   id: "general",
   label: "General",
-  description: "Sin habilidad fija: usa todas las herramientas.",
+  description: "Sin habilidad fija: usa todas las herramientas salvo las de Nueva factura.",
   instructions: [
     "Sin habilidad fija.",
     "- Elegí las tools según el pedido: presupuestos y cálculos, las casillas de correo, mensajes para clientes o números del negocio.",
@@ -14,7 +19,7 @@ export const generalSkill: AgentSkill = {
     "- La facturación se lee con getBillingSummary, listInvoices y getInvoice, y el borrador del mes se arma con draftInvoices: nunca se emite desde acá.",
     "- Agendar visitas nuevas de un trabajo se propone con proposeCreateVisits (hasta 20 por propuesta). Cambiar o eliminar una visita se propone con proposeUpdateVisit o proposeArchiveVisit, y el mismo cambio en varias con una sola proposeUpdateVisits, después de encontrarlas con queryOperations.",
   ].join("\n"),
-  tools: AGENT_TOOL_NAMES,
+  tools: AGENT_TOOL_NAMES.filter((name) => !invoiceFormOnly.has(name)),
   suggestions: [
     "Armá un presupuesto de limpieza de oficina, 2 veces por semana",
     "Redactá el correo con este presupuesto",

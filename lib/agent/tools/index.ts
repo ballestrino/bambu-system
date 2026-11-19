@@ -20,13 +20,15 @@ import { createPayrollTools } from "@/lib/agent/tools/payroll";
 import { createProposalTools } from "@/lib/agent/tools/proposals";
 import { createVisitBatchTools } from "@/lib/agent/tools/visit-batch";
 import { createVisitTools } from "@/lib/agent/tools/visits";
+import { compactToolSchemas } from "@/lib/agent/tool-schema-compact";
 
 export type { AgentToolContext };
 
 // Todas las tools del agente, siempre registradas: la habilidad del turno
 // elige cuáles están activas (activeTools). Los nombres tienen que coincidir
-// con AGENT_TOOL_CATALOG; check:agent-tools lo verifica.
-export const createAgentTools = (ctx: AgentToolContext) => ({
+// con AGENT_TOOL_CATALOG; check:agent-tools lo verifica. Los esquemas van
+// compactados (lib/agent/tool-schema-compact.ts): se mandan en cada paso.
+export const createAgentTools = (ctx: AgentToolContext) => compactToolSchemas({
   ...createBusinessTools(),
   ...createOfficialBudgetTools(ctx),
   ...createBudgetTools(ctx),

@@ -87,7 +87,7 @@ este documento describe lo que ya existe y se actualiza con cada feature.
   primer mensaje (`needsModelTitle`, `lib/agent/conversation-title-rules.ts`).
   Un renombrado nunca se pisa, ni durante el turno ni al regenerar la primera
   respuesta.
-- Habilidades en `lib/agent/skills/**`: General (todas las tools),
+- Habilidades en `lib/agent/skills/**`: General (todas las tools salvo `fillInvoiceForm` y `findBillingClient`, que solo sirven con Nueva factura abierta),
   Presupuestos, Emails, Consejos, Facturación (la del panel de Facturación) y
   Nueva factura (la del panel de Nueva factura). Todas las tools quedan registradas y la
   habilidad elige las activas (`activeTools`), así el historial puede traer
