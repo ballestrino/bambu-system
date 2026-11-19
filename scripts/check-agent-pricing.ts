@@ -111,18 +111,19 @@ assert.equal(moreHours.values.products_price, fixtureBase.products_price);
   assert.deepEqual([products.rounding, products.values.revenue_percent], [null, fixtureBase.revenue_percent], JSON.stringify(change));
 });
 
-// --- Proposals apply the same rules as calculateBudget and say so on the card.
+// --- Proposals apply the same rules as calculateBudget. The rounding is not a
+// card warning (feature 64): it is the known rule and nothing is lost.
 const create = buildCreateBudgetProposal({ base: defaults, name: "Oficina Sur", description: null, changes: office });
 assert.ok(create.ok);
 assert.deepEqual(create.summary.after, freshCalc);
-assert.deepEqual(create.summary.warnings, [describeRounding(fresh.rounding)]);
-assert.match(create.summary.warnings[0], /^El precio sin IVA sube de .+ a .+ \(próximo múltiplo de \$ 100\): el margen del servicio pasa de 45 % a /);
+assert.deepEqual(create.summary.warnings, []);
+assert.match(describeRounding(fresh.rounding) ?? "", /^El precio sin IVA sube de .+ a .+ \(próximo múltiplo de \$ 100\): el margen del servicio pasa de 45 % a /);
 const update = buildUpdateBudgetProposal({ budget, name: null, description: null, changes: { ...noChanges, hours_per_visit: 5 } });
 assert.ok(update.ok);
 const expected = applyAgentChanges({ source: "budget", values: budgetOptionToFormValues(budget) }, { ...noChanges, hours_per_visit: 5 });
 assert.deepEqual(runBudgetCalculation(update.payload.values), runBudgetCalculation(expected.values));
 assert.deepEqual(update.summary.changes.map((change) => change.field), ["hours_per_visit", "revenue_percent"]);
-assert.ok(update.summary.warnings.includes(describeRounding(expected.rounding) ?? ""));
+assert.ok(expected.rounding && !update.summary.warnings.includes(describeRounding(expected.rounding) ?? ""));
 // What the agent budget editor saves is kept as typed: no estimates, no rounding.
 const typed = { ...fixtureBase, name: "Editado", products_price: 1234 };
 const edited = buildCreateBudgetProposal({ base: { source: "edited", values: typed }, name: "Editado", description: null, changes: {} });

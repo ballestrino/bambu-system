@@ -82,7 +82,8 @@ assert.equal(create.summary.slug, "oficina-centro");
 assert.deepEqual([create.payload.values.visits, create.payload.values.categoryIds], [2, ["cat_9"]]);
 // The same price rules as calculateBudget: the change rounds the price.
 assert.deepEqual(create.summary.after, runBudgetCalculation(applyAgentChanges({ source: "form", values: formValues }, { visits: 2 }).values));
-assert.match(create.summary.warnings[0], /formulario abierto no se guarda/);
+// Creating carries no warnings (feature 64): the base not changing is known.
+assert.deepEqual(create.summary.warnings, []);
 const defaults = { source: "defaults" as const, values: defaultBudgetValues };
 const unnamed = buildCreateBudgetProposal({ base: defaults, name: null, description: null, changes: {} });
 assert.equal(unnamed.ok ? null : unnamed.code, "missing_name");

@@ -1047,7 +1047,7 @@
         "Edit card keeps only warnings with consequences",
         "check:agent-pricing, check:agent-budget-editor, tsc and lint"
       ],
-      "status": "in_progress"
+      "status": "done"
     },
     {
       "id": 65,
@@ -1061,7 +1061,7 @@
         "Each result shown, failures do not stop the rest",
         "tsc, lint and a browser check"
       ],
-      "status": "pending"
+      "status": "in_progress"
     },
     {
       "id": 66,

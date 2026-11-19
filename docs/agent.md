@@ -166,11 +166,13 @@ Proponer y confirmar: ninguna tool escribe presupuestos durante el turno.
   y con opciones para publicar. Cualquier admin duplica cualquier presupuesto
   (son compartidos entre admins). El slug solo cambia si
   cambia el nombre.
-- Avisos de guardar cambios: siempre que se recrean las opciones con ids
-  nuevos, y cuántos trabajos vinculados a una opción pierden ese vínculo
-  (`SET NULL`; conservan su copia de precios); la versión oficial N+1 si hay
-  un oficial vigente; la dirección nueva; la opción con productos que se
-  agrega o se quita; y precios guardados que no salen del cálculo actual.
+- Avisos de guardar cambios, solo lo que tiene consecuencias (64): cuántos
+  trabajos vinculados a una opción pierden ese vínculo al recrearse las
+  opciones (`SET NULL`; conservan su copia de precios); la versión oficial
+  N+1 si hay un oficial vigente; la dirección nueva; la opción con productos
+  que se quita; y precios guardados que no salen del cálculo actual. Crear no
+  lleva avisos: que la base no cambia, los ids nuevos sin trabajos, la opción
+  con productos que se agrega y el redondeo a $ 100 ya se saben.
 - `confirmAgentProposal(id)` (`actions/agent/confirm-proposal.ts`): admin,
   propuesta de quien confirma, claim atómico `PENDING` sin vencer →
   `EXECUTING`, re-valida el payload con zod y las precondiciones contra una

@@ -106,13 +106,14 @@ export const hasPriceDrift = (budget: ProposalBudget, calculation: BudgetCalcula
   });
 
 // updateBudget borra y recrea las opciones: un trabajo que apuntaba a una
-// queda sin esa opción (SET NULL) y sigue con su copia de precios.
+// queda sin esa opción (SET NULL) y sigue con su copia de precios. Sin
+// trabajos vinculados no se avisa: los ids nuevos no cambian nada a la vista.
 export const recreatedOptionsWarning = (budget: ProposalBudget) => {
   const linked = budget.budgetOptions.reduce(
     (total, option) => total + (option._count?.sourcedJobs ?? 0),
     0
   );
-  if (!linked) return "Guardar recrea las opciones del presupuesto con ids nuevos.";
+  if (!linked) return null;
   const jobs =
     linked === 1
       ? "1 trabajo vinculado a una opción pierde ese vínculo y conserva"
@@ -125,15 +126,10 @@ export const officialVersionWarning = ({ officialBudget: official }: ProposalBud
     ? `Publica automáticamente la versión oficial ${official.currentVersion + 1} (hoy rige la ${official.currentVersion}): el precio de lista cambia al confirmar.`
     : null;
 
-export const productsWarning = (before: BudgetFormValues, after: BudgetFormValues) => {
-  if (before.products_price > 0 && after.products_price === 0) {
-    return "Se elimina la opción con productos.";
-  }
-  if (before.products_price === 0 && after.products_price > 0) {
-    return "Se agrega la opción con productos.";
-  }
-  return null;
-};
+// Solo se avisa lo que se pierde: agregar la opción con productos ya se ve en
+// los cambios.
+export const productsWarning = (before: BudgetFormValues, after: BudgetFormValues) =>
+  before.products_price > 0 && after.products_price === 0 ? "Se elimina la opción con productos." : null;
 
 export const onlyText = (warnings: (string | null)[]) =>
   warnings.filter((warning): warning is string => Boolean(warning));
