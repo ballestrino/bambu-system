@@ -1061,7 +1061,7 @@
         "Each result shown, failures do not stop the rest",
         "tsc, lint and a browser check"
       ],
-      "status": "in_progress"
+      "status": "blocked"
     },
     {
       "id": 66,
@@ -1074,7 +1074,7 @@
         "Official budget opens in the side panel",
         "tsc, lint and a browser check at 1440 and 390 px"
       ],
-      "status": "pending"
+      "status": "in_progress"
     }
   ]
 }

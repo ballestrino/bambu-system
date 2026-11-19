@@ -15,6 +15,9 @@ export type AgentChatContextValue = {
   // visitIndexes: las visitas marcadas en la tarjeta de un lote.
   confirmProposal: (proposalId: string, visitIndexes?: number[]) => void;
   rejectProposal: (proposalId: string) => void;
+  // Varias juntas, de a una (la tarjeta de confirmar todas).
+  confirmProposals: (proposalIds: string[]) => void;
+  confirmingAll: boolean;
   // La propuesta de una llamada a tool: la del agente, o la que dejó guardar
   // un cálculo desde el editor.
   proposalForCall: (toolCallId: string) => AgentProposalDto | undefined;

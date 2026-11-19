@@ -58,7 +58,10 @@ export function AgentChat({
 }) {
   const view = useAgentChat({ chat, mode, getContext });
   const proposals = useAgentProposals(conversationId, hasProposalParts(view.messages));
-  const { confirm, reject } = useAgentProposalMutations({ conversationId, onConfirmed: onProposalConfirmed });
+  const { confirm, reject, confirmAll, confirmingAll } = useAgentProposalMutations({
+    conversationId,
+    onConfirmed: onProposalConfirmed,
+  });
   const editor = useBudgetEditor();
   const [savedBudgetSlug, setSavedBudgetSlug] = useState<string | null>(null);
   const errorMessage = readAgentError(view.error);
@@ -75,6 +78,8 @@ export function AgentChat({
             : null,
         confirmProposal: (proposalId, visitIndexes) => confirm.mutate({ proposalId, visitIndexes }),
         rejectProposal: (proposalId) => reject.mutate(proposalId),
+        confirmProposals: (proposalIds) => void confirmAll(proposalIds),
+        confirmingAll,
         proposalForCall: (toolCallId) => byCall.get(toolCallId),
         openBudget: editor.openBudget,
         openSavedBudget: setSavedBudgetSlug,

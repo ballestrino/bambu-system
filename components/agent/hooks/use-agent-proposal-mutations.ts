@@ -1,6 +1,7 @@
 "use client";
 
 import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useState } from "react";
 import { toast } from "sonner";
 
 import {
@@ -61,5 +62,19 @@ export const useAgentProposalMutations = ({
     onSettled: refreshProposals,
   });
 
-  return { confirm, reject };
+  // Confirmar varias (la tarjeta de confirmar todas): de a una, cada una con
+  // su acción, sus avisos y su toast; si una falla, sigue con las demás.
+  const [confirmingAll, setConfirmingAll] = useState(false);
+  const confirmAll = async (proposalIds: string[]) => {
+    setConfirmingAll(true);
+    try {
+      for (const proposalId of proposalIds) {
+        await confirm.mutateAsync({ proposalId }).catch(() => null);
+      }
+    } finally {
+      setConfirmingAll(false);
+    }
+  };
+
+  return { confirm, reject, confirmAll, confirmingAll };
 };
