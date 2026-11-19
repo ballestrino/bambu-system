@@ -30,7 +30,7 @@ import {
 } from "@/lib/agent/proposal-store";
 import { serializeProposal } from "@/lib/agent/proposals";
 import { getAgentSkill, type AgentSkillId } from "@/lib/agent/skills";
-import { buildAgentInstructions } from "@/lib/agent/system-prompt";
+import { buildAgentInstructionParts } from "@/lib/agent/system-prompt";
 import { summarizeUsage, type UsageEntry } from "@/lib/agent/usage-collector";
 import { persistUsageEntries } from "@/lib/agent/usage-store";
 import type { AgentMode } from "@/lib/ai/modes";
@@ -107,7 +107,7 @@ export const prepareAgentTurn = async (actor: AgentActor, request: AgentChatRequ
     grounding,
     budgetContext,
     teamContext: [teamBlock, memoryBlock].filter(Boolean).join("\n\n") || null,
-    instructions: buildAgentInstructions({
+    instructions: buildAgentInstructionParts({
       today: formatToday(),
       actorName: actor.name,
       skill: getAgentSkill(request.skill),

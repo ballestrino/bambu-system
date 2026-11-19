@@ -16,6 +16,8 @@ import type { Grounding } from "@/lib/agent/grounding";
 import type { AgentMessageMetadata, AgentUIMessage } from "@/lib/agent/messages";
 import { inlineHistoryImages } from "@/lib/agent/model-attachments";
 import { prepareHistoryForModel } from "@/lib/agent/model-history";
+import { buildCachedInstructions, markPreviousUserMessage } from "@/lib/agent/prompt-cache";
+import type { AgentInstructionParts } from "@/lib/agent/system-prompt";
 import { getAgentSkill, resolveSkillToolNames, type AgentSkillId } from "@/lib/agent/skills";
 import { createAgentTools } from "@/lib/agent/tools";
 import type { AgentUsageCollector } from "@/lib/agent/usage-collector";
@@ -40,7 +42,7 @@ export const runAgentTurn = async (input: {
   conversationId: string;
   mode: AgentMode;
   skill: AgentSkillId;
-  instructions: string;
+  instructions: AgentInstructionParts;
   messages: AgentUIMessage[];
   budgetContext: ResolvedBudgetContext;
   grounding: Grounding;
@@ -71,11 +73,12 @@ export const runAgentTurn = async (input: {
     { tools, ignoreIncompleteToolCalls: true }
   );
 
+  const instructions = buildCachedInstructions(input.instructions);
   const streamSegment = (messages: ModelMessage[]) =>
     streamText({
       ...settings,
-      instructions: input.instructions,
-      messages,
+      instructions,
+      messages: markPreviousUserMessage(messages),
       tools,
       // Todas registradas (el historial puede traer tools de otra habilidad),
       // solo las de la habilidad disponibles para este turno.
