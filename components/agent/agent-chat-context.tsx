@@ -25,6 +25,8 @@ export type AgentChatContextValue = {
   // Un presupuesto guardado que encontró el agente, en un Sheet encima del
   // hilo: Abrir no saca de la conversación.
   openSavedBudget: (slug: string) => void;
+  // Un presupuesto oficial, en el mismo panel.
+  openOfficialBudget: (id: string) => void;
   hasBudgetDraft: (toolCallId: string) => boolean;
 };
 

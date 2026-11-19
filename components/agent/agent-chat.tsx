@@ -6,6 +6,7 @@ import { useState } from "react";
 import { AgentChatProvider } from "@/components/agent/agent-chat-context";
 import { AgentComposer } from "@/components/agent/agent-composer";
 import { AgentBudgetSheet } from "@/components/agent/budget-editor/agent-budget-sheet";
+import { AgentOfficialBudgetSheet } from "@/components/agent/budget-editor/agent-official-budget-sheet";
 import { AgentSavedBudgetSheet } from "@/components/agent/budget-editor/agent-saved-budget-sheet";
 import { useBudgetEditor } from "@/components/agent/hooks/use-budget-editor";
 import { AgentEmptyState } from "@/components/agent/agent-empty-state";
@@ -64,6 +65,7 @@ export function AgentChat({
   });
   const editor = useBudgetEditor();
   const [savedBudgetSlug, setSavedBudgetSlug] = useState<string | null>(null);
+  const [officialBudgetId, setOfficialBudgetId] = useState<string | null>(null);
   const errorMessage = readAgentError(view.error);
   const byCall = new Map((proposals.data ?? []).map((item) => [item.toolCallId, item]));
 
@@ -83,6 +85,7 @@ export function AgentChat({
         proposalForCall: (toolCallId) => byCall.get(toolCallId),
         openBudget: editor.openBudget,
         openSavedBudget: setSavedBudgetSlug,
+        openOfficialBudget: setOfficialBudgetId,
         hasBudgetDraft: editor.hasDraft,
       }}
     >
@@ -123,6 +126,7 @@ export function AgentChat({
         waiting={view.busy}
       />
       <AgentSavedBudgetSheet slug={savedBudgetSlug} onClose={() => setSavedBudgetSlug(null)} />
+      <AgentOfficialBudgetSheet id={officialBudgetId} onClose={() => setOfficialBudgetId(null)} />
     </AgentChatProvider>
   );
 }

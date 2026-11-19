@@ -1,10 +1,9 @@
 import { BadgeCheck, SearchCheck } from "lucide-react";
-import Link from "next/link";
 
 import { AgentCard, CardNote } from "@/components/agent/cards/agent-card";
+import { AgentOpenBudgetButton } from "@/components/agent/cards/agent-open-budget-button";
 import { formatDate, formatHours, formatMoney, formatVisits } from "@/components/agent/format";
 import type { OfficialBudgetCardData, OfficialSearchCardData } from "@/components/agent/types";
-import { getOfficialBudgetUrl } from "@/lib/agent/proposals";
 
 const SEARCH_STATUS: Record<OfficialSearchCardData["status"], string> = {
   exact: "Precio exacto: se puede citar",
@@ -28,19 +27,19 @@ function PriceLine({
   label,
   prices,
   profit,
-  href,
+  officialId,
 }: {
   label: string;
   prices: Prices;
   profit?: number;
-  href?: string;
+  officialId?: string;
 }) {
   return (
     <li className="flex items-baseline justify-between gap-3 py-1 text-xs">
-      {href ? (
-        <Link href={href} className="min-w-0 truncate underline-offset-4 hover:underline">
+      {officialId ? (
+        <AgentOpenBudgetButton officialId={officialId} variant="text" className="min-w-0">
           {label}
-        </Link>
+        </AgentOpenBudgetButton>
       ) : (
         <span className="min-w-0 truncate">{label}</span>
       )}
@@ -81,7 +80,7 @@ export function AgentOfficialSearchCard({ data }: { data: OfficialSearchCardData
               label={`${match.name} v${match.version} · ${match.hasProducts ? "con" : "sin"} productos`}
               prices={match.prices}
               profit={"profit" in match ? match.profit : undefined}
-              href={getOfficialBudgetUrl(match.officialBudgetId)}
+              officialId={match.officialBudgetId}
             />
           ))}
         </ul>
@@ -98,9 +97,7 @@ export function AgentOfficialBudgetCard({ data }: { data: OfficialBudgetCardData
       title={`${data.name} · versión ${data.version}`}
       subtitle={`${data.serviceName} · publicada el ${formatDate(data.publishedAt)}`}
       aside={
-        <Link href={getOfficialBudgetUrl(data.id)} className="shrink-0 text-xs text-primary underline-offset-4 hover:underline">
-          Abrir
-        </Link>
+        <AgentOpenBudgetButton officialId={data.id} />
       }
     >
       {archived && <CardNote tone="warning">Archivado: sus precios no se pueden citar.</CardNote>}

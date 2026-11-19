@@ -6,7 +6,8 @@ import { useFormContext, useWatch } from "react-hook-form";
 
 import { formatMoney } from "@/components/agent/format";
 import { Button } from "@/components/ui/button";
-import type { ProposalResult } from "@/lib/agent/proposals";
+import type { OpenBudgetTarget } from "@/components/agent/hooks/use-budget-editor";
+import type { AgentProposalDto, ProposalResult } from "@/lib/agent/proposals";
 import { calculateBudgetTotals } from "@/lib/budget-calculations";
 import { cn } from "@/lib/utils";
 import type { BudgetFormValues } from "@/schemas/BudgetSchema";
@@ -16,6 +17,25 @@ export type BudgetEditorStatus =
   | { kind: "executing" }
   | { kind: "unknown" }
   | { kind: "saved"; result: ProposalResult | null };
+
+export const SOURCE_LABELS: Record<OpenBudgetTarget["source"], string> = {
+  calculation: "Cálculo del agente",
+  proposal: "Propuesta del agente: guardar la confirma con estos valores",
+};
+
+export const STATUS_LABELS: Record<BudgetEditorStatus["kind"], string> = {
+  editable: "sin guardar",
+  executing: "guardándose",
+  unknown: "resultado desconocido",
+  saved: "guardado en el generador",
+};
+
+// Una EXECUTING vieja se cortó con el servidor: no se sabe si se guardó.
+export const editorStatus = (proposal: AgentProposalDto | undefined): BudgetEditorStatus => {
+  if (proposal?.status === "CONFIRMED") return { kind: "saved", result: proposal.result };
+  if (proposal?.status === "EXECUTING") return { kind: proposal.unknownOutcome ? "unknown" : "executing" };
+  return { kind: "editable" };
+};
 
 const FOOTER_CLASS = "border-t px-4 pt-3 pb-[max(0.75rem,env(safe-area-inset-bottom))]";
 
