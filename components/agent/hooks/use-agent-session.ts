@@ -5,6 +5,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { generateId } from "ai";
 import { useEffect, useRef, useState } from "react";
 
+import { savePreferredMode, usePreferredMode } from "@/components/agent/agent-mode-preference";
 import { createAgentChat } from "@/components/agent/agent-transport";
 import { useAgentConversationMutations } from "@/components/agent/hooks/use-agent-conversation-mutations";
 import { useAgentConversations, useAgentSettings } from "@/components/agent/hooks/use-agent-queries";
@@ -108,12 +109,20 @@ export const useAgentSession = ({ scope, resumeLatest = true }: { scope: AgentCo
   const conversation: AgentConversationDetail | null =
     (id ? conversations.data?.find((item) => item.id === id) : undefined) ?? saved;
   const persisted = conversation !== null;
-  const mode = modeOverride ?? saved?.mode ?? settings.data?.defaultMode ?? DEFAULT_AGENT_MODE;
+  // Una conversación nueva arranca con el último modo elegido en este
+  // navegador, si sigue disponible (con su clave configurada).
+  const preferred = usePreferredMode();
+  const usablePreferred =
+    preferred && (!settings.data || settings.data.modes.some((option) => option.id === preferred && !option.missingKey))
+      ? preferred
+      : null;
+  const mode = modeOverride ?? saved?.mode ?? usablePreferred ?? settings.data?.defaultMode ?? DEFAULT_AGENT_MODE;
 
   // El modo aplica a los turnos siguientes. Si la conversación ya existe en
   // la base se guarda ya; si no, viaja con el primer mensaje.
   const changeMode = (next: AgentMode) => {
     setModeOverride(next);
+    savePreferredMode(next);
     if (id && persisted) setMode.mutate({ id, mode: next });
   };
 

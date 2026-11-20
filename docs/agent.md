@@ -918,7 +918,9 @@ modelo (agrupado por proveedor) y después los esfuerzos de ese modelo
 - Desde el 2026-10-09 el default es Haiku 5.5 Alto. Sin `ANTHROPIC_API_KEY`
   (o sin gateway) el default es Bajo, para que una conversación nueva no
   falle, y los modelos de Claude se ven deshabilitados con "Falta configurar
-  ANTHROPIC_API_KEY". `AI_DEFAULT_MODE` siempre manda.
+  ANTHROPIC_API_KEY". `AI_DEFAULT_MODE` manda salvo que el navegador
+  recuerde otro: desde la 68, una conversación nueva arranca con el último
+  modo elegido (`localStorage` `bambu.agent.mode`) si sigue disponible.
 - Al cambiar de modelo se elige su esfuerzo recomendado o el primero.
 - Bajo, Medio y Alto conservan el id y el enum: los mensajes y consumos
   anteriores al 2026-10-09 muestran ese nombre ("Luna 6 · Medio"); los nuevos
