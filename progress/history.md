@@ -1838,3 +1838,38 @@
 - PASS: tsc, ESLint de lo tocado, `pnpm harness`. Revisado con una página
   temporal (ya borrada): sin recuadro ni ícono, animación de 1,8 s.
 - Pusheado a `main` con autorización del usuario (2026-11-18).
+
+## 2026-11-20 - Costo del agente, tarjetas y panel lateral (62 a 66) y remitente (67)
+
+- Pedido del usuario: 8 mensajes con Sonnet 5.5 sumaban 3,3M tokens. Un
+  turno real costó US$ 0,134 en 6 pasos de ~36k tokens; el 73 % fue la
+  escritura de caché del primer paso. Medido contra la API: el prefijo de
+  cada llamada pesaba 34k tokens, de los que ~28k eran las definiciones de
+  las tools.
+- 62: caché en partes (`lib/agent/prompt-cache.ts`): instrucciones fijas
+  con su marca y la parte viva (fecha, contexto, propuestas) después; marca
+  en el mensaje anterior del usuario. Tools en paralelo en Claude y OpenAI.
+  Probado: con el contexto cambiado, el segundo pedido leyó 34.054 y
+  escribió 184 tokens. En la app (copia), el segundo turno leyó el 90 % de
+  caché con la propuesta A ya confirmada.
+- 63: esquemas de tools compactados al armarlas
+  (`lib/agent/tool-schema-compact.ts`, zod sigue validando) y General sin
+  `fillInvoiceForm` ni `findBillingClient`: 34.216 -> 27.457 tokens por
+  llamada (-20 %). Claude y OpenAI (strict por defecto) aceptan los esquemas.
+- 64: crear y editar solo avisan lo que tiene consecuencias.
+- 65: tarjeta "Confirmar los cambios propuestos" con 2+ pendientes: casillas,
+  confirma de a una. Smoke: dos propuestas, se desmarcó B y se confirmó A;
+  B siguió pendiente.
+- 66: panel lateral con los bloques de la página del presupuesto y las
+  secciones del editor (marca de cambio por sección); los oficiales de las
+  tarjetas se abren en el mismo panel. Smoke a 1366 y 375 px, sin errores.
+- 67: los correos de autenticación salen como "Bambú Gestión".
+- PASS: tsc, ESLint, check:agent-tools, check:agent-pricing,
+  check:agent-proposals, check:agent-budget-editor, check:ai-gateway,
+  check:official-budgets, check:agent-page. Fallan desde antes en main:
+  check:agent-visits (schemas/agent-tools.ts > 200 líneas) y
+  check:agent-sheet (busca un Header.tsx borrado).
+- Datos de prueba en la copia feature-39-billing: el presupuesto "Prueba
+  Claude A", la propuesta B pendiente y su conversación. `.env` quedó
+  apuntando a la copia (producción comentada en la línea 2).
+- Mergeado a `main` sin push.

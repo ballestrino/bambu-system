@@ -899,7 +899,7 @@
         "Choosing Ganancia in the price mode selector releases a fixed target price",
         "Focused checks for the calculation, prisma validate, tsc, lint and a browser smoke of the editor"
       ],
-      "status": "blocked"
+      "status": "in_progress"
     },
     {
       "id": 55,
@@ -1061,7 +1061,7 @@
         "Each result shown, failures do not stop the rest",
         "tsc, lint and a browser check"
       ],
-      "status": "blocked"
+      "status": "done"
     },
     {
       "id": 66,
@@ -1074,7 +1074,19 @@
         "Official budget opens in the side panel",
         "tsc, lint and a browser check at 1440 and 390 px"
       ],
-      "status": "in_progress"
+      "status": "done"
+    },
+    {
+      "id": 67,
+      "name": "auth_email_sender_name",
+      "title": "Auth emails sent as Bambú Gestión",
+      "area": "auth",
+      "description": "The two-factor code (and the password reset and email verification mails) arrived with the bare address as sender, so the inbox showed \"twofactorverificati…\". The from now carries the display name \"Bambú Gestión\".",
+      "acceptance": [
+        "The three auth mails send from \"Bambú Gestión <…@bambu-servicios.com>\"",
+        "tsc and lint"
+      ],
+      "status": "done"
     }
   ]
 }

@@ -22,7 +22,7 @@ const getBaseUrl = () => {
 
 export const sendTwoFactorEmail = async (email: string, token: string) => {
   await getResend().emails.send({
-    from: "twofactorverification@bambu-servicios.com",
+    from: "Bambú Gestión <twofactorverification@bambu-servicios.com>",
     to: email,
     subject: "Tu código de autenticación - Bambú System",
     html: `
@@ -43,7 +43,7 @@ export const sendPasswordResetEmail = async (email: string, token: string) => {
   const resetLink = `${getBaseUrl()}/auth/new-password?token=${token}`
 
   await getResend().emails.send({
-    from: "passwordreset@bambu-servicios.com",
+    from: "Bambú Gestión <passwordreset@bambu-servicios.com>",
     to: email,
     subject: "Restablecer tu contraseña - Bambú System",
     html: `
@@ -65,7 +65,7 @@ export const sendVerificationEmail = async (email: string, token: string) => {
   const confirmLink = `${getBaseUrl()}/auth/new-verification?token=${token}`
 
   await getResend().emails.send({
-    from: "verification@bambu-servicios.com",
+    from: "Bambú Gestión <verification@bambu-servicios.com>",
     to: email,
     subject: "Confirma tu correo electrónico - Bambú System",
     html: `
