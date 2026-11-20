@@ -1008,6 +1008,85 @@
         "tsc, lint and a browser check light, dark and 390 px"
       ],
       "status": "done"
+    },
+    {
+      "id": 62,
+      "name": "agent_prompt_cache",
+      "title": "Agent prompt cache in parts and parallel tools",
+      "area": "agent",
+      "description": "A real Sonnet 5.5 turn cost 36k tokens per step and 73% of its price was the cache write of step 1: one automatic breakpoint at the end meant any change in the prompt (live proposals, budget in context) rewrote tools, rules and history. The instructions now go in two system blocks: the fixed rules with an explicit cache breakpoint, then the live part (date, context, proposals). The previous user message carries another breakpoint so the history is read from cache even when the last reply changes. Tools can run in parallel (independent reads in one step).",
+      "acceptance": [
+        "Fixed rules cached apart from the live part",
+        "Previous history read from cache in the next turn",
+        "Parallel tool calls on for Claude and OpenAI",
+        "check:agent-tools, tsc, lint and one real turn with the usage per step"
+      ],
+      "status": "done"
+    },
+    {
+      "id": 63,
+      "name": "agent_tool_schemas_slim",
+      "title": "Lighter agent tool definitions",
+      "area": "agent",
+      "description": "The tool definitions were ~28k of the 34k tokens of every call (measured against the API with Haiku 5.5, skill General). The JSON zod generates is now compacted when the tools are built (no $schema, no MAX_SAFE_INTEGER bounds, anyOf [X, null] as type [X, \"null\"]) while zod still validates; the repeated \"; null si no cambia\" and the longest change descriptions are shorter, and General no longer sends fillInvoiceForm and findBillingClient, which only work with the Nueva factura form open. Result: 34,216 -> 27,457 input tokens per call (-20%). additionalProperties stays: OpenAI Responses is strict by default.",
+      "acceptance": [
+        "Prefix of a General call about 20% lighter, measured against the API",
+        "Compacted schemas accepted by Claude and OpenAI, zod still rejects invalid input",
+        "check:agent-tools, check:agent-pricing, check:agent-proposals, check:ai-gateway, tsc and lint"
+      ],
+      "status": "done"
+    },
+    {
+      "id": 64,
+      "name": "agent_card_warnings_trim",
+      "title": "Only meaningful warnings on create and edit budget cards",
+      "area": "agent",
+      "description": "The create and edit budget cards warned about things already known and not destructive: that creating does not change the base, that saving recreates option ids when no job is linked, that the products option is added and the rounding to the next $ 100. They are removed; what has consequences stays (official version published, address change, linked jobs losing the link, products option removed, stored price drift).",
+      "acceptance": [
+        "Create card without the obvious notes",
+        "Edit card keeps only warnings with consequences",
+        "check:agent-pricing, check:agent-budget-editor, tsc and lint"
+      ],
+      "status": "done"
+    },
+    {
+      "id": 65,
+      "name": "agent_confirm_all_card",
+      "title": "Confirm all pending proposals of a reply at once",
+      "area": "agent",
+      "description": "When a reply leaves two or more pending proposals, a card under them lists each one with a checkbox (all checked) and confirms the checked ones one after the other, reporting each result; unchecked ones stay pending.",
+      "acceptance": [
+        "Card only with 2+ pending proposals",
+        "Unchecked ones are not confirmed",
+        "Each result shown, failures do not stop the rest",
+        "tsc, lint and a browser check"
+      ],
+      "status": "done"
+    },
+    {
+      "id": 66,
+      "name": "agent_side_panel_design",
+      "title": "Agent side panel with the current budget detail and editor design, also for official budgets",
+      "area": "agent",
+      "description": "The side panel of the agent (calculations, proposals and saved budgets) still used the old detail cards and the old generator form. It now uses the blocks of the current budget page (stats, options with the price composition, service and contributions) and the sections of the current editor. Official budgets from the cards open in the same panel instead of leaving the chat.",
+      "acceptance": [
+        "Calculation, proposal and saved budget panels with the current design",
+        "Official budget opens in the side panel",
+        "tsc, lint and a browser check at 1440 and 390 px"
+      ],
+      "status": "done"
+    },
+    {
+      "id": 67,
+      "name": "auth_email_sender_name",
+      "title": "Auth emails sent as Bambú Gestión",
+      "area": "auth",
+      "description": "The two-factor code (and the password reset and email verification mails) arrived with the bare address as sender, so the inbox showed \"twofactorverificati…\". The from now carries the display name \"Bambú Gestión\".",
+      "acceptance": [
+        "The three auth mails send from \"Bambú Gestión <…@bambu-servicios.com>\"",
+        "tsc and lint"
+      ],
+      "status": "done"
     }
   ]
 }

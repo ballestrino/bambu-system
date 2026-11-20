@@ -3,6 +3,9 @@ import { readFileSync } from "node:fs";
 import { join } from "node:path";
 
 import { prepareHistoryForModel } from "../lib/agent/model-history";
+import { buildCachedInstructions, markPreviousUserMessage } from "../lib/agent/prompt-cache";
+import { buildAgentInstructionParts } from "../lib/agent/system-prompt";
+import { AGENT_SKILLS } from "../lib/agent/skills";
 import type { AgentUIMessage } from "../lib/agent/messages";
 import { buildAgentCallSettings } from "../lib/ai/call-settings";
 import { AGENT_MODEL_CHOICES, defaultModeForChoice, findModelChoice } from "../lib/ai/model-choices";
@@ -63,7 +66,7 @@ assert.deepEqual(
 );
 
 // --- Call settings: effort, summarized adaptive thinking that drops a stale
-// block instead of failing, no parallel tools, prompt caching and the
+// block instead of failing, parallel tools, prompt caching and the
 // pseudonymous user id. Opus and Sonnet 5.5 fall back on a refusal.
 const previousKey = process.env.ANTHROPIC_API_KEY;
 delete process.env.ANTHROPIC_API_KEY;
@@ -75,7 +78,7 @@ assert.equal(haiku.model.modelId, "claude-haiku-5-5");
 assert.deepEqual(haiku.providerOptions.anthropic, {
   thinking: { type: "adaptive", display: "summarized", blockBinding: { prefixMismatchBehavior: "drop_block" } },
   effort: "xhigh",
-  disableParallelToolUse: true,
+  disableParallelToolUse: false,
   cacheControl: { type: "ephemeral" },
   metadata: { userId: getAiSafetyIdentifier("agent", "user-1") },
 });
@@ -111,3 +114,23 @@ assert.match(
   readFileSync(join(process.cwd(), "lib/agent/run.ts"), "utf8"),
   /inlineHistoryImages\(prepareHistoryForModel\(input\.messages, spec\.modelId\)/
 );
+
+// --- Prompt cache: the fixed rules carry their own breakpoint and the live
+// part (date, context, proposals) goes after them; the previous user message
+// carries another so the history is read even if the last reply changed.
+const parts = buildAgentInstructionParts({ today: "jueves", actorName: null, skill: AGENT_SKILLS.general, memoryBlock: null, budgetContextText: "Presupuesto X" });
+assert.ok(!parts.fixed.includes("Hoy es") && !parts.fixed.includes("Presupuesto X"));
+assert.ok(parts.live.startsWith("Hoy es jueves.") && parts.live.includes("Presupuesto X"));
+const system = buildCachedInstructions(parts);
+assert.deepEqual(system.map((block) => [block.content === parts.fixed, block.providerOptions?.anthropic]), [
+  [true, { cacheControl: { type: "ephemeral" } }],
+  [false, undefined],
+]);
+const turns = [
+  { role: "user" as const, content: "uno" },
+  { role: "assistant" as const, content: "ok" },
+  { role: "user" as const, content: "dos" },
+];
+const marked = markPreviousUserMessage(turns);
+assert.deepEqual(marked.map((message) => message.providerOptions?.anthropic?.cacheControl), [{ type: "ephemeral" }, undefined, undefined]);
+assert.equal(markPreviousUserMessage(turns.slice(0, 1))[0], turns[0]);

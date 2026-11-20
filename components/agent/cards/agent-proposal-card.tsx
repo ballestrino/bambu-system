@@ -112,7 +112,7 @@ export function AgentProposalCard({ data, toolCallId }: { data: ProposalCardData
         </ul>
       )}
       {isVisitProposalKind(data.kind) && <CardNote>Horarios de Montevideo.</CardNote>}
-      {data.kind === "UPDATE_BUDGET" && (
+      {data.kind === "UPDATE_BUDGET" && summary.warnings.length > 0 && (
         <CardNote>
           Avisos calculados al proponer
           {live ? ` (${formatDateTime(live.createdAt)})` : ""}: los trabajos vinculados pueden haber cambiado.

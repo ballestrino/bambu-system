@@ -21,38 +21,37 @@ export const monthKeySchema = z
   .nullable()
   .describe("Mes AAAA-MM; null es el mes actual en Montevideo");
 
-const keep = "; null si no cambia";
 
 export const budgetChangesSchema = z.object({
-  visits: z.number().int().min(0).nullable().describe(`Visitas por período${keep}`),
+  visits: z.number().int().min(0).nullable().describe(`Visitas por período`),
   visit_type: z
     .enum(["days", "week", "month"])
     .nullable()
-    .describe(`days: puntuales; week: por semana (x4,32 al mes); month: por mes${keep}`),
-  hours_per_visit: z.number().min(0).nullable().describe(`Horas por visita${keep}`),
-  employees: z.number().int().min(1).nullable().describe(`Empleadas por visita${keep}`),
-  nominal_hour: z.number().min(0).nullable().describe(`Costo de la hora nominal${keep}`),
-  revenue_percent: z.number().min(0).nullable().describe(`Margen del servicio en %${keep}`),
-  products_price: z.number().min(0).nullable().describe(`Costo mensual de productos, 0 es sin productos${keep}`),
-  products_revenue_percent: z.number().min(0).nullable().describe(`Margen de productos en %${keep}`),
-  transportation_cost: z.number().min(0).nullable().describe(`Costo mensual de transporte${keep}`),
+    .describe(`days: puntuales; week: por semana (x4,32 al mes); month: por mes`),
+  hours_per_visit: z.number().min(0).nullable().describe(`Horas por visita`),
+  employees: z.number().int().min(1).nullable().describe(`Empleadas por visita`),
+  nominal_hour: z.number().min(0).nullable().describe(`Costo de la hora nominal`),
+  revenue_percent: z.number().min(0).nullable().describe(`Margen del servicio en %`),
+  products_price: z.number().min(0).nullable().describe(`Costo mensual de productos, 0 es sin productos`),
+  products_revenue_percent: z.number().min(0).nullable().describe(`Margen de productos en %`),
+  transportation_cost: z.number().min(0).nullable().describe(`Costo mensual de transporte`),
   extras: z
     .array(z.object({ name: z.string().trim().min(1).max(80), amount: z.number().min(0) }))
     .max(MAX_BUDGET_EXTRAS)
     .nullable()
     .describe(
-      `Extras del mes: costos puntuales con nombre (un camión, un permiso) que suman al costo del servicio y llevan su margen. Es la lista completa que queda: para agregar uno mandá los que ya tiene más el nuevo; [] los quita todos${keep}`
+      `Extras del mes con nombre (un camión, un permiso): suman al costo y llevan margen. Es la lista completa que queda: para sumar uno mandá los que tiene más el nuevo; [] los quita`
     ),
   bse_contribution: z
     .number()
     .min(0)
     .nullable()
-    .describe(`BSE (seguro de accidentes) en % del sueldo nominal; los presupuestos nuevos llevan ${BSE_DEFAULT_PERCENT}. Sube el costo y el precio${keep}`),
+    .describe(`BSE (seguro de accidentes) en % del sueldo nominal; los nuevos llevan ${BSE_DEFAULT_PERCENT}`),
   calculateBse: z
     .boolean()
     .nullable()
     .describe(
-      `true solo en un presupuesto sin BSE (bsePercent null): pone el ${BSE_DEFAULT_PERCENT} % y lo saca del margen del servicio, el precio queda exactamente igual. null si no`
+      `true solo sin BSE (bsePercent null): pone el ${BSE_DEFAULT_PERCENT} % y lo saca del margen; el precio queda igual`
     ),
   // El cálculo toma un IVA 0 como 22 (`|| 22`): aceptarlo mostraría importes
   // con IVA rotulados como sin IVA.
@@ -60,10 +59,10 @@ export const budgetChangesSchema = z.object({
     .number()
     .positive("El IVA tiene que ser mayor que 0: para cotizar sin IVA usá los importes sin IVA del cálculo")
     .nullable()
-    .describe(`IVA en %, mayor que 0; nunca 0 para "sin IVA": los importes sin IVA ya vienen en el cálculo${keep}`),
-  incidence_enabled: z.boolean().nullable().describe(`Solo si piden habilitar o quitar la incidencia${keep}`),
-  company_enabled: z.boolean().nullable().describe(`Solo si piden habilitar o quitar los aportes patronales${keep}`),
-  personal_enabled: z.boolean().nullable().describe(`Solo si piden habilitar o quitar los aportes personales${keep}`),
+    .describe(`IVA en %, mayor que 0 (los importes sin IVA ya vienen en el cálculo)`),
+  incidence_enabled: z.boolean().nullable().describe(`Solo si piden habilitar o quitar la incidencia`),
+  company_enabled: z.boolean().nullable().describe(`Solo si piden habilitar o quitar los aportes patronales`),
+  personal_enabled: z.boolean().nullable().describe(`Solo si piden habilitar o quitar los aportes personales`),
   estimateTransport: z.boolean().nullable().describe("true recalcula el transporte: visitas del mes x empleadas x $ 52"),
   estimateProducts: z
     .boolean()

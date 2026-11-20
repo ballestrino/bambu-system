@@ -66,7 +66,7 @@ assert.equal("temperature" in settings, false);
 assert.deepEqual(settings.providerOptions.openai, {
   store: false,
   safetyIdentifier: getAiSafetyIdentifier("agent", "user-1"),
-  parallelToolCalls: false,
+  parallelToolCalls: true,
 });
 // Compile time: the settings spread straight into an SDK call.
 const callOptions: Parameters<typeof generateText>[0] = { ...settings, prompt: "ping" };

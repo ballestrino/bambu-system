@@ -124,6 +124,11 @@ Status: active
 
 ## Last Closed Work
 
+- 2026-11-20: costo del agente (62 caché en partes y tools en paralelo, 63
+  tools 20 % más livianas), avisos (64), confirmar todas (65), panel lateral
+  con el diseño actual y oficiales (66) y remitente "Bambú Gestión" (67).
+  Mergeadas a `main` sin push. Ver history.
+
 - 2026-11-18: indicador de trabajo del agente (61): fila con el logo, frases
   que rotan según la habilidad y las tools, ícono animado por frase.
   Pusheada a `main` con autorización del usuario (2026-11-18). Ver

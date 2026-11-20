@@ -5,10 +5,19 @@ import { ArrowUpRight, X } from "lucide-react";
 import Link from "next/link";
 
 import { savedBudgetQuery } from "@/components/agent/queries";
-import { BudgetDetails } from "@/components/budgets/budget-details/BudgetDetails";
+import { AgentValuesDetail } from "@/components/agent/budget-editor/agent-detail-body";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetClose, SheetContent, SheetDescription, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { Skeleton } from "@/components/ui/skeleton";
+import type { BudgetFormValues } from "@/schemas/BudgetSchema";
+
+// La opción sin productos y la con productos, con el diseño de la página del
+// presupuesto. Uno que solo guardó la de productos muestra el servicio desde ella.
+function SavedBudgetDetail({ options }: { options: { hasProducts: boolean; values: BudgetFormValues }[] }) {
+  const products = options.find((option) => option.hasProducts)?.values ?? null;
+  const base = options.find((option) => !option.hasProducts)?.values ?? products;
+  return base ? <AgentValuesDetail base={base} products={products} /> : null;
+}
 
 function SavedBudgetBody({ slug }: { slug: string }) {
   const query = useQuery(savedBudgetQuery(slug));
@@ -46,19 +55,7 @@ function SavedBudgetBody({ slug }: { slug: string }) {
             </Button>
           </div>
         )}
-        {budget && (
-          // Las tarjetas traen alto máximo y scroll propios (para la página):
-          // acá scrollea el Sheet, como en el editor.
-          <div className="grid gap-4 [&_[data-slot=card]]:h-auto [&_[data-slot=card]]:max-h-none [&_[data-slot=card]]:overflow-visible">
-            {budget.options.map((option) => (
-              <BudgetDetails
-                key={String(option.hasProducts)}
-                option={{ ...option.values, has_products: option.hasProducts }}
-                title={option.hasProducts ? "Con productos" : "Sin productos"}
-              />
-            ))}
-          </div>
-        )}
+        {budget && <SavedBudgetDetail options={budget.options} />}
       </div>
     </>
   );

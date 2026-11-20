@@ -62,7 +62,9 @@ const sheet = read("components/agent/budget-editor/agent-budget-sheet.tsx");
   "zodResolver(agentBudgetEditorSchema, { error: agentBudgetEditorErrors })",
   "defaultValues: resolveEditorValues({ values: target.values, draft: target.draft, proposal })",
   "<FormProvider {...form}>",
-  "<CreateBudgetForm />",
+  // The current editor's sections (feature 66), opened where a field fails.
+  "<AgentBudgetEditSections open={openSteps} onToggle={toggleStep} original={target.values} />",
+  "if (step) openStep(step);",
   "<AgentBudgetDetail />",
   "if (!locked) editor.recordDraft(target.toolCallId, values, target.values);",
   'const saved = proposal?.status === "CONFIRMED" ? proposal.values : null;',
@@ -72,15 +74,15 @@ const sheet = read("components/agent/budget-editor/agent-budget-sheet.tsx");
   'disabled={locked}',
   "form.setError(failure.field, { message: failure.message });",
   "onSuccess: () => editor.dropDraft(target.toolCallId)",
-  'if (proposal?.status === "EXECUTING") return { kind: proposal.unknownOutcome ? "unknown" : "executing" };',
 ].forEach((text) => assert.ok(sheet.includes(text), `agent-budget-sheet.tsx: ${text}`));
-assert.match(read("components/agent/budget-editor/agent-budget-footer.tsx"), /disabled=\{busy \|\| waiting\}/);
+const footer = read("components/agent/budget-editor/agent-budget-footer.tsx");
+assert.match(footer, /disabled=\{busy \|\| waiting\}/);
+assert.ok(footer.includes('if (proposal?.status === "EXECUTING") return { kind: proposal.unknownOutcome ? "unknown" : "executing" };'));
 assert.match(read("components/agent/agent-chat.tsx"), /waiting=\{view\.busy\}/);
+// The detail uses the blocks of the current budget page (feature 66).
 const detail = read("components/agent/budget-editor/agent-budget-detail.tsx");
-assert.match(detail, /<BudgetDetails option=\{\{ \.\.\.values, has_products: false \}\}/);
-assert.match(detail, /hasProducts && <BudgetDetails option=\{\{ \.\.\.values, has_products: true \}\}/);
-// The page's cards bring their own max height and scroll: the sheet scrolls.
-assert.match(detail, /\[&_\[data-slot=card\]\]:max-h-none \[&_\[data-slot=card\]\]:overflow-visible/);
+assert.match(detail, /<AgentValuesDetail base=\{values\} products=\{Number\(values\.products_price\) > 0 \? values : null\} \/>/);
+assert.match(read("components/agent/budget-editor/agent-detail-body.tsx"), /<BudgetDetailOptions ivaView=\{ivaView\}/);
 // Closing gives the focus back to the button that opened the editor.
 assert.match(sheet, /onCloseAutoFocus=\{editor\.restoreFocus\}/);
 assert.match(read("components/agent/hooks/use-budget-editor.ts"), /opener\.current = document\.activeElement instanceof HTMLElement/);

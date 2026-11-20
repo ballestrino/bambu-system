@@ -23,7 +23,7 @@ export const PROPOSALS_HEADING = "Propuestas de esta conversación";
 
 const TOOL_POLICY = [
   "Herramientas:",
-  "- Las lecturas y los cálculos son libres: usalos antes de responder con datos del negocio.",
+  "- Las lecturas y los cálculos son libres: usalos antes de responder con datos del negocio. Las que no dependen una de otra (buscar el oficial y uno igual, abrir varios presupuestos) pedilas juntas en el mismo paso.",
   "- No inventes datos: si ninguna tool trae lo que te piden, decilo.",
   "- Guardar siempre es una propuesta: las tools propose* preparan crear, modificar, duplicar o publicar como oficial un presupuesto, crear, cambiar o eliminar visitas, recordar un dato o cambiar una regla del equipo, y el usuario la confirma o la rechaza en su tarjeta. Nada queda guardado hasta que la confirme. Lo único que podés eliminar es una visita (queda archivada, con proposeArchiveVisit); nada más se borra.",
   "- Proponé solo cuando piden guardar, crear, duplicar, publicar, cambiar o eliminar, o cuando respondés un pedido de presupuesto con uno que tuviste que calcular. Si no tenés la tool propose* que hace falta, decí que desde acá no se puede y que lo hagan en la pantalla.",
@@ -98,7 +98,13 @@ export type AgentInstructionsInput = {
   proposals?: ProposalPromptItem[];
 };
 
-export const buildAgentInstructions = ({
+const joinBlocks = (blocks: (string | null | undefined)[]) => blocks.filter(Boolean).join("\n\n");
+
+// Las instrucciones en dos partes, para el caché de Claude: la fija (reglas,
+// habilidad, equipo y memoria) cambia poco y se cachea aparte; la viva (fecha,
+// contexto y propuestas) cambia entre turnos y va después, así un cambio en
+// una propuesta no reescribe las reglas.
+export const buildAgentInstructionParts = ({
   today,
   actorName,
   skill,
@@ -107,10 +113,9 @@ export const buildAgentInstructions = ({
   memoryBlock,
   teamBlock = null,
   proposals = [],
-}: AgentInstructionsInput) =>
-  [
+}: AgentInstructionsInput) => ({
+  fixed: joinBlocks([
     `Sos ${AGENT_NAME}, el agente de ${BUSINESS_PROFILE.name}, una empresa uruguaya de servicios de limpieza. Si te preguntan quién sos o cómo te llamás, sos ${AGENT_NAME}. Ayudás a quien administra Bambú System${actorName ? ` (${actorName})` : ""} con presupuestos, visitas, las casillas de correo, mensajes para clientes, la facturación y los números del negocio.`,
-    `Hoy es ${today}.`,
     TONE,
     `Negocio:\n${formatBusinessProfile()}`,
     TOOL_POLICY,
@@ -124,6 +129,9 @@ export const buildAgentInstructions = ({
     skill.instructions,
     teamBlock,
     memoryBlock,
+  ]),
+  live: joinBlocks([
+    `Hoy es ${today}.`,
     billingContextText ??
       (budgetContextText
         ? `Presupuesto en contexto. El usuario lo está viendo: si pide cambios sin nombrar otro, son sobre este.\n${budgetContextText}`
@@ -131,6 +139,12 @@ export const buildAgentInstructions = ({
     proposals.length
       ? `${PROPOSALS_HEADING} (estado actual; las confirma o rechaza el usuario en su tarjeta, y si una sigue pendiente, recordala en vez de repetirla):\n${formatProposalsForPrompt(proposals)}`
       : null,
-  ]
-    .filter(Boolean)
-    .join("\n\n");
+  ]),
+});
+
+export type AgentInstructionParts = ReturnType<typeof buildAgentInstructionParts>;
+
+export const buildAgentInstructions = (input: AgentInstructionsInput) => {
+  const { fixed, live } = buildAgentInstructionParts(input);
+  return joinBlocks([fixed, live]);
+};

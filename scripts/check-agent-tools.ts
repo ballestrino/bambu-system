@@ -3,6 +3,7 @@ import assert from "node:assert/strict";
 import { Prisma } from "@prisma/client";
 
 import "./agent-source-checks";
+import "./agent-tool-schema-checks";
 import { TRANSPORTATION_PAY_PER_VISIT } from "../components/ops/compensation-utils";
 import {
   applyBudgetChanges,
@@ -14,6 +15,7 @@ import {
 import { BUSINESS_PROFILE, formatBusinessProfile } from "../lib/agent/business-profile";
 import { buildEmailDraftInstructions } from "../lib/agent/email-prompt";
 import { AGENT_SKILLS, AGENT_SKILL_IDS, resolveSkillToolNames } from "../lib/agent/skills";
+import { INVOICE_FORM_ONLY_TOOLS } from "../lib/agent/skills/general";
 import { PRICE_RULE, buildAgentInstructions } from "../lib/agent/system-prompt";
 import { AGENT_TOOL_NAMES, isAgentToolName } from "../lib/agent/tool-catalog";
 import { toPlainJson } from "../lib/agent/tool-result";
@@ -148,7 +150,7 @@ Object.values(AGENT_SKILLS).forEach((skill) => {
   assert.ok(skill.suggestions.length >= 3, skill.id);
   assert.equal(resolveSkillToolNames(skill)[0], "getBusinessProfile");
 });
-assert.deepEqual([...AGENT_SKILLS.general.tools].sort(), [...AGENT_TOOL_NAMES].sort());
+assert.deepEqual([...AGENT_SKILLS.general.tools, ...INVOICE_FORM_ONLY_TOOLS].sort(), [...AGENT_TOOL_NAMES].sort());
 assert.ok(resolveSkillToolNames(AGENT_SKILLS.emails).includes("draftEmail"));
 assert.ok(!resolveSkillToolNames(AGENT_SKILLS.consejos).includes("draftEmail"));
 assert.ok(!resolveSkillToolNames(AGENT_SKILLS.presupuestos).includes("queryOperations"));

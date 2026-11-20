@@ -37,9 +37,12 @@ const buildAnthropicOptions = (spec: ModelSpec, actorId: string) => {
       blockBinding: { prefixMismatchBehavior: "drop_block" },
     },
     ...(effort ? { effort } : {}),
-    disableParallelToolUse: true,
-    // OpenAI cachea solo; Claude necesita la marca. Con una sola arriba, cada
-    // paso del turno lee de caché lo que mandó el anterior.
+    // Lecturas independientes en un mismo paso: cada paso relee el prompt
+    // entero, así que un paso menos ahorra todo su contexto.
+    disableParallelToolUse: false,
+    // OpenAI cachea solo; Claude necesita la marca. Esta, arriba, deja que cada
+    // paso del turno lea lo que mandó el anterior; las otras dos van en
+    // lib/agent/prompt-cache.ts.
     cacheControl: { type: "ephemeral" },
     metadata: { userId: getAiSafetyIdentifier("agent", actorId) },
     ...(supportsServerFallback(spec.modelId) ? { fallbacks: "default" as const } : {}),
@@ -62,7 +65,7 @@ export const buildAgentCallSettings = (
     openai: {
       store: false,
       safetyIdentifier: getAiSafetyIdentifier("agent", actorId),
-      parallelToolCalls: false,
+      parallelToolCalls: true,
     } satisfies OpenAILanguageModelResponsesOptions,
     ...(getModelVendor(spec.modelId) === "anthropic"
       ? { anthropic: buildAnthropicOptions(spec, actorId) }

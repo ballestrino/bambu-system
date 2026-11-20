@@ -5,6 +5,7 @@ import { AgentMarkdown } from "@/components/agent/agent-markdown";
 import { AgentLogoTile } from "@/components/agent/agent-logo-tile";
 import { AgentMessageImages } from "@/components/agent/agent-message-images";
 import { AgentToolRun, type AgentToolUIPart } from "@/components/agent/agent-tool-part";
+import { AgentConfirmAllCard } from "@/components/agent/cards/agent-confirm-all-card";
 import type { TurnNotice } from "@/components/agent/hooks/use-agent-session";
 import type { AgentUIMessage } from "@/components/agent/types";
 import { Button } from "@/components/ui/button";
@@ -122,6 +123,7 @@ export function AgentMessage({
             <AgentToolRun key={block.key} parts={block.parts} />
           )
         )}
+        {!pending && <AgentConfirmAllCard message={message} />}
         {pending}
         <UsageLine message={message} notice={notice} onRetry={onRetry} />
       </div>

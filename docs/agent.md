@@ -87,7 +87,7 @@ este documento describe lo que ya existe y se actualiza con cada feature.
   primer mensaje (`needsModelTitle`, `lib/agent/conversation-title-rules.ts`).
   Un renombrado nunca se pisa, ni durante el turno ni al regenerar la primera
   respuesta.
-- Habilidades en `lib/agent/skills/**`: General (todas las tools),
+- Habilidades en `lib/agent/skills/**`: General (todas las tools salvo `fillInvoiceForm` y `findBillingClient`, que solo sirven con Nueva factura abierta),
   Presupuestos, Emails, Consejos, Facturación (la del panel de Facturación) y
   Nueva factura (la del panel de Nueva factura). Todas las tools quedan registradas y la
   habilidad elige las activas (`activeTools`), así el historial puede traer
@@ -166,11 +166,13 @@ Proponer y confirmar: ninguna tool escribe presupuestos durante el turno.
   y con opciones para publicar. Cualquier admin duplica cualquier presupuesto
   (son compartidos entre admins). El slug solo cambia si
   cambia el nombre.
-- Avisos de guardar cambios: siempre que se recrean las opciones con ids
-  nuevos, y cuántos trabajos vinculados a una opción pierden ese vínculo
-  (`SET NULL`; conservan su copia de precios); la versión oficial N+1 si hay
-  un oficial vigente; la dirección nueva; la opción con productos que se
-  agrega o se quita; y precios guardados que no salen del cálculo actual.
+- Avisos de guardar cambios, solo lo que tiene consecuencias (64): cuántos
+  trabajos vinculados a una opción pierden ese vínculo al recrearse las
+  opciones (`SET NULL`; conservan su copia de precios); la versión oficial
+  N+1 si hay un oficial vigente; la dirección nueva; la opción con productos
+  que se quita; y precios guardados que no salen del cálculo actual. Crear no
+  lleva avisos: que la base no cambia, los ids nuevos sin trabajos, la opción
+  con productos que se agrega y el redondeo a $ 100 ya se saben.
 - `confirmAgentProposal(id)` (`actions/agent/confirm-proposal.ts`): admin,
   propuesta de quien confirma, claim atómico `PENDING` sin vencer →
   `EXECUTING`, re-valida el payload con zod y las precondiciones contra una
@@ -979,7 +981,8 @@ Reglas:
   `resolveModelSpec(mode)` y se esparce `buildAgentCallSettings(spec, {
   actorId })` en `streamText` o `generateText`.
 - Toda llamada va con `store: false`, un `safetyIdentifier` seudónimo con el
-  namespace `agent` y `parallelToolCalls: false`.
+  namespace `agent` y `parallelToolCalls: true` (desde la 62: las lecturas
+  independientes van juntas en un paso, y cada paso relee el prompt entero).
 - Los módulos marcados como puros solo importan tipos del SDK, así los usan
   los checks y, si hace falta, el cliente.
 - Importar `providers.ts` no lee claves: el error aparece en la primera
@@ -1032,15 +1035,25 @@ AI_PRICE_ANTHROPIC_CLAUDE_SONNET_5=3,0.3,15,3.75
   y `blockBinding`), a la Messages API con `ANTHROPIC_API_KEY`.
 - Opciones (`buildAnthropicOptions`, `lib/ai/call-settings.ts`): pensamiento
   `adaptive` con `display: "summarized"` (se ve como el razonamiento de
-  OpenAI), el `effort` del modo, `disableParallelToolUse`, `cacheControl`
-  arriba (OpenAI cachea solo; Claude necesita la marca, y cada paso del turno
-  lee de caché lo del anterior), `metadata.userId` seudónimo y, en Opus y
+  OpenAI), el `effort` del modo, tools en paralelo
+  (`disableParallelToolUse: false`), `cacheControl` arriba (OpenAI cachea
+  solo; Claude necesita la marca, y cada paso del turno lee de caché lo del
+  anterior), `metadata.userId` seudónimo y, en Opus y
   Sonnet 5.5, `fallbacks: "default"`: un "refusal" de sus safeguards se
   reintenta en otro modelo dentro de la llamada (Haiku no tiene fallback).
 - Claude no apaga el razonamiento: `none` y `minimal` van como `low`. Opus y
   Sonnet 5.5 rechazan `tool_choice` forzado: el agente usa `auto`, y la salida
   estructurada de `draftEmail` va con `output_format` nativo (el SDK lo elige
   para estos modelos).
+- Caché en partes (62, `lib/agent/prompt-cache.ts`): las instrucciones van
+  en dos bloques de sistema (`buildAgentInstructionParts`). El fijo (reglas,
+  habilidad, equipo y memoria) lleva su propia marca, así tools y reglas se
+  leen de caché aunque cambien las propuestas o el contexto, que van en el
+  bloque vivo (fecha, contexto, propuestas). El mensaje anterior del usuario
+  lleva otra: el historial hasta ahí se lee aunque la última respuesta
+  cambie. Son tres de los cuatro puntos que permite la API. Antes, un turno
+  real de Sonnet 5.5 con 6 pasos de ~36k tokens pagó el 73 % en la escritura
+  de caché del primer paso.
 - Pensamiento ligado: Claude ata cada bloque al modelo y a la conversación
   exacta que lo produjo, y en cuentas creadas desde el 2026-08-31 reenviar un
   bloque sobre un historial cambiado da 400. El historial del agente no es

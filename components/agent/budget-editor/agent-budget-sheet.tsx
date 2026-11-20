@@ -7,10 +7,16 @@ import { FormProvider, useForm, useWatch, type Resolver } from "react-hook-form"
 
 import { BudgetFieldError } from "@/components/agent/actions/agent-writes.action";
 import { AgentBudgetDetail } from "@/components/agent/budget-editor/agent-budget-detail";
-import { AgentBudgetFooter, type BudgetEditorStatus } from "@/components/agent/budget-editor/agent-budget-footer";
+import {
+  AgentBudgetFooter,
+  editorStatus,
+  SOURCE_LABELS,
+  STATUS_LABELS,
+} from "@/components/agent/budget-editor/agent-budget-footer";
 import type { BudgetEditor, BudgetEditorTab, OpenBudgetTarget } from "@/components/agent/hooks/use-budget-editor";
 import { useAgentBudgetSave } from "@/components/agent/hooks/use-agent-budget-save";
-import { CreateBudgetForm } from "@/components/budgets/create-budget/CreateBudgetForm";
+import { AgentBudgetEditSections } from "@/components/agent/budget-editor/agent-budget-edit-sections";
+import { findStepWithError, type CreatorStepId } from "@/components/budgets/create-budget/creator-steps";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetClose, SheetContent, SheetDescription, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -18,25 +24,6 @@ import { isBudgetLocked, resolveEditorValues } from "@/lib/agent/budget-draft";
 import type { AgentProposalDto } from "@/lib/agent/proposals";
 import { agentBudgetEditorErrors, agentBudgetEditorSchema } from "@/schemas/agent-proposals";
 import type { BudgetFormValues } from "@/schemas/BudgetSchema";
-
-const SOURCE_LABELS: Record<OpenBudgetTarget["source"], string> = {
-  calculation: "Cálculo del agente",
-  proposal: "Propuesta del agente: guardar la confirma con estos valores",
-};
-
-const STATUS_LABELS: Record<BudgetEditorStatus["kind"], string> = {
-  editable: "sin guardar",
-  executing: "guardándose",
-  unknown: "resultado desconocido",
-  saved: "guardado en el generador",
-};
-
-// Una EXECUTING vieja se cortó con el servidor: no se sabe si se guardó.
-const editorStatus = (proposal: AgentProposalDto | undefined): BudgetEditorStatus => {
-  if (proposal?.status === "CONFIRMED") return { kind: "saved", result: proposal.result };
-  if (proposal?.status === "EXECUTING") return { kind: proposal.unknownOutcome ? "unknown" : "executing" };
-  return { kind: "editable" };
-};
 
 function EditorForm({
   target,
@@ -60,6 +47,10 @@ function EditorForm({
   const name = useWatch({ control: form.control, name: "name" });
   const save = useAgentBudgetSave(conversationId);
   const [error, setError] = useState<string | null>(null);
+  const [openSteps, setOpenSteps] = useState<CreatorStepId[]>(["equipo", "precio"]);
+  const openStep = (step: CreatorStepId) => setOpenSteps((current) => (current.includes(step) ? current : [...current, step]));
+  const toggleStep = (step: CreatorStepId) =>
+    setOpenSteps((current) => (current.includes(step) ? current.filter((item) => item !== step) : [...current, step]));
 
   // Cada cambio queda como borrador en una ref del editor, sin re-render.
   // Guardado o guardándose no hay borrador: no sería lo que se guarda.
@@ -96,6 +87,7 @@ function EditorForm({
           onError: (failure) => {
             if (failure instanceof BudgetFieldError) {
               form.setError(failure.field, { message: failure.message });
+              openStep("detalle");
               editor.setTab("edit");
             } else {
               setError(failure.message);
@@ -104,7 +96,11 @@ function EditorForm({
         }
       );
     },
-    () => editor.setTab("edit")
+    (errors) => {
+      const step = findStepWithError(errors);
+      if (step) openStep(step);
+      editor.setTab("edit");
+    }
   );
 
   return (
@@ -148,7 +144,7 @@ function EditorForm({
             </p>
           )}
           <form onSubmit={handleSave}>
-            <CreateBudgetForm />
+            <AgentBudgetEditSections open={openSteps} onToggle={toggleStep} original={target.values} />
           </form>
         </TabsContent>
       </Tabs>

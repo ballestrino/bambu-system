@@ -1,4 +1,4 @@
-import { applyAgentChanges, describeRounding } from "@/lib/agent/agent-pricing";
+import { applyAgentChanges } from "@/lib/agent/agent-pricing";
 import {
   budgetOptionToFormValues,
   describeBudgetInputs,
@@ -47,17 +47,12 @@ const withText = (values: BudgetFormValues, name: string, description: string | 
 });
 
 // "edited" son los valores del editor de la 43, guardados tal cual: sin
-// cambios que describir ni reglas de precio.
-const CREATE_NOTES = {
-  form: "Crea un presupuesto nuevo con estos valores: el formulario abierto no se guarda ni cambia.",
-  context: "Crea un presupuesto nuevo: el presupuesto en contexto no cambia.",
-  budget: "Crea un presupuesto nuevo: el presupuesto de base no cambia.",
-  defaults: null,
-  edited: null,
-} as const;
+// cambios que describir ni reglas de precio. Crear no lleva avisos (64): que
+// la base no cambia y el redondeo a $ 100 ya se saben, y nada se pierde.
+type CreateBaseSource = "form" | "context" | "budget" | "defaults" | "edited";
 
 export const buildCreateBudgetProposal = (input: {
-  base: { source: keyof typeof CREATE_NOTES; values: BudgetFormValues };
+  base: { source: CreateBaseSource; values: BudgetFormValues };
   name: string | null;
   description: string | null;
   changes: AgentBudgetChanges;
@@ -68,7 +63,7 @@ export const buildCreateBudgetProposal = (input: {
   const slug = slugifyBudgetName(name);
   if (!slug) return refuse("invalid_name", INVALID_NAME);
 
-  const { values, rounding, bseError } = applyAgentChanges(base, input.changes);
+  const { values, bseError } = applyAgentChanges(base, input.changes);
   if (bseError) return refuse("cannot_calculate_bse", bseError);
   const parsed = proposalBudgetValuesSchema.safeParse(withText(values, name, input.description));
   if (!parsed.success) return refuseInvalid(parsed.error.issues);
@@ -87,7 +82,7 @@ export const buildCreateBudgetProposal = (input: {
       before: null,
       after,
       stored: [],
-      warnings: onlyText([CREATE_NOTES[base.source], describeRounding(rounding)]),
+      warnings: [],
     },
   };
 };
@@ -102,7 +97,7 @@ export const buildUpdateBudgetProposal = (input: {
   const { budget } = input;
   const existing = budgetOptionToFormValues(budget);
   const name = input.name?.trim() || budget.name;
-  const { values, rounding, bseError } = applyAgentChanges({ source: "budget", values: existing }, input.changes);
+  const { values, bseError } = applyAgentChanges({ source: "budget", values: existing }, input.changes);
   if (bseError) return refuse("cannot_calculate_bse", bseError);
   const parsed = proposalBudgetValuesSchema.safeParse(withText(values, name, input.description));
   if (!parsed.success) return refuseInvalid(parsed.error.issues);
@@ -141,7 +136,6 @@ export const buildUpdateBudgetProposal = (input: {
         newSlug === budget.slug ? null : `Cambia la dirección del presupuesto a ${getBudgetUrl(newSlug)}.`,
         productsWarning(existing, parsed.data),
         drift,
-        describeRounding(rounding),
       ]),
     },
   };
