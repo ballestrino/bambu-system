@@ -124,6 +124,9 @@ Status: active
 
 ## Last Closed Work
 
+- 2026-11-20: el agente recuerda el último modo elegido en el navegador (68).
+  Probado por el usuario. Ver history.
+
 - 2026-11-20: costo del agente (62 caché en partes y tools en paralelo, 63
   tools 20 % más livianas), avisos (64), confirmar todas (65), panel lateral
   con el diseño actual y oficiales (66) y remitente "Bambú Gestión" (67).

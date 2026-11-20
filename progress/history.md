@@ -1873,3 +1873,12 @@
   Claude A", la propuesta B pendiente y su conversación. `.env` quedó
   apuntando a la copia (producción comentada en la línea 2).
 - Mergeado a `main` sin push.
+
+## 2026-11-20 - El agente recuerda el último modo (68)
+
+- Pedido del usuario: si siempre usa Sonnet, que le quede elegido. El último
+  modo elegido queda en `localStorage` (`bambu.agent.mode`,
+  `components/agent/agent-mode-preference.ts`) y las conversaciones nuevas
+  arrancan con él si sigue disponible; una guardada sigue con el suyo. Sin
+  almacenamiento, el modo por defecto del servidor.
+- PASS: tsc, ESLint, `pnpm harness`. Probado por el usuario en el navegador.

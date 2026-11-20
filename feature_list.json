@@ -1087,6 +1087,19 @@
         "tsc and lint"
       ],
       "status": "done"
+    },
+    {
+      "id": 68,
+      "name": "agent_mode_preference",
+      "title": "Remember the last agent mode in the browser",
+      "area": "agent",
+      "description": "New conversations started with the server default mode every time. The last mode chosen is now kept in localStorage (bambu.agent.mode) and new conversations start with it while it is available (its key configured); a saved conversation keeps its own mode. Without storage it falls back to the default.",
+      "acceptance": [
+        "Choosing Sonnet keeps it for the next new conversation",
+        "Saved conversations keep their mode",
+        "tsc, lint and a browser check"
+      ],
+      "status": "done"
     }
   ]
 }
