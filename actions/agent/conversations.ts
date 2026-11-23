@@ -3,6 +3,7 @@
 import { z } from "zod";
 
 import { getAgentConversation, getAgentConversations } from "@/data/agent/conversations";
+import { getPendingProposalCounts } from "@/data/agent/proposals";
 import { getConversationCostTotals } from "@/data/agent/usage";
 import { recordAgentAudit } from "@/lib/agent/audit";
 import { toDbAgentMode } from "@/lib/agent/conversation-mode";
@@ -22,19 +23,22 @@ const actionError = (error: unknown, fallback: string) =>
   error instanceof AdminAuthorizationError ? error.message : fallback;
 
 // El historial del Sheet y de la página: conversaciones del usuario con su
-// costo acumulado y cuántos registros de uso no tenían precio.
+// costo acumulado, cuántos registros de uso no tenían precio y cuántas
+// propuestas siguen pendientes.
 export const listAgentConversations = async (values: unknown) => {
   try {
     await requireAdminSession();
     const parsed = agentConversationListSchema.safeParse(values ?? {});
     if (!parsed.success) return { error: "Filtros inválidos" };
     const conversations = await getAgentConversations(parsed.data);
-    const costs = await getConversationCostTotals(conversations.map(({ id }) => id));
+    const ids = conversations.map(({ id }) => id);
+    const [costs, pending] = await Promise.all([getConversationCostTotals(ids), getPendingProposalCounts(ids)]);
     return {
       conversations: conversations.map((conversation) => ({
         ...conversation,
         costUsd: costs[conversation.id]?.costUsd ?? 0,
         unpricedEvents: costs[conversation.id]?.unpricedEvents ?? 0,
+        pendingProposals: pending[conversation.id] ?? 0,
       })),
     };
   } catch (error) {

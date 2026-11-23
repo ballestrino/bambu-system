@@ -4,6 +4,7 @@ import { generateId } from "ai";
 
 import "./agent-conversation-groups-checks";
 import "./agent-page-source-checks";
+import "./agent-page-column-checks";
 import { isAgentClientId } from "../lib/agent/client-id";
 import {
   ALL_AGENT_CONVERSATIONS,

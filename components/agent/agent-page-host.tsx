@@ -3,6 +3,7 @@
 import { useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 
+import { saveAgentFlag, useAgentFlag } from "@/components/agent/agent-browser-flags";
 import { AgentConversationList } from "@/components/agent/agent-conversation-list";
 import { AgentCostDialog } from "@/components/agent/agent-cost-dialog";
 import { agentPageFullScreen } from "@/components/agent/agent-page-full-screen";
@@ -34,12 +35,14 @@ import { cn } from "@/lib/utils";
 // historial y la conversación. Sin lugar va el 2b: el historial es la
 // pantalla de inicio y una conversación se abre a pantalla completa (en la app
 // instalada, sin tabs: agentPageFullScreen y data-agent-view). Se vuelve con
-// "‹ Agente" o deslizando desde el borde.
+// "‹ Agente" o deslizando desde el borde. En el 2a la columna se oculta
+// desde la cabecera y el navegador lo recuerda (conversationsHidden).
 export function AgentPageHost() {
   const queryClient = useQueryClient();
   const session = useAgentSession({ scope: ALL_AGENT_CONVERSATIONS });
   const page = useAgentPageView();
   const [costsOpen, setCostsOpen] = useState(false);
+  const conversationsHidden = useAgentFlag("conversationsHidden");
   const chatRef = useEdgeSwipeBack<HTMLElement>(page.showList, page.view === "chat");
   useAgentPageUrl(session);
   useKeyboardViewport();
@@ -94,12 +97,16 @@ export function AgentPageHost() {
           <div
             className={cn(
               opsSurface.panel,
-              "grid h-full grid-cols-1 overflow-hidden shadow-[0_1px_2px_rgb(24_37_29/0.04)] @4xl/panel:grid-cols-[300px_minmax(0,1fr)] app-tabs:rounded-none app-tabs:border-0 app-tabs:shadow-none"
+              "grid h-full grid-cols-1 overflow-hidden shadow-[0_1px_2px_rgb(24_37_29/0.04)] app-tabs:rounded-none app-tabs:border-0 app-tabs:shadow-none",
+              !conversationsHidden && "@4xl/panel:grid-cols-[300px_minmax(0,1fr)]"
             )}
           >
             <aside
               aria-label="Conversaciones"
-              className="hidden min-h-0 flex-col border-r border-ops-border bg-ops-canvas/60 @4xl/panel:flex"
+              className={cn(
+                "hidden min-h-0 flex-col border-r border-ops-border bg-ops-canvas/60",
+                !conversationsHidden && "@4xl/panel:flex"
+              )}
             >
               <h1 className="sr-only">Agente</h1>
               <AgentConversationList {...listProps} />
@@ -125,6 +132,8 @@ export function AgentPageHost() {
                 onBack={page.showList}
                 onNew={startNew}
                 onOpenCosts={openCosts}
+                conversationsHidden={conversationsHidden}
+                onToggleConversations={() => saveAgentFlag("conversationsHidden", !conversationsHidden)}
                 onAction={(action, trigger) =>
                   session.conversation && headerActions.run(session.conversation, action, trigger)
                 }

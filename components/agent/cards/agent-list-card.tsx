@@ -3,6 +3,7 @@ import Link from "next/link";
 
 import { AgentCard, CardNote } from "@/components/agent/cards/agent-card";
 import { AgentOpenBudgetButton } from "@/components/agent/cards/agent-open-budget-button";
+import { listFigure } from "@/components/agent/cards/list-figure";
 import { formatMoney } from "@/components/agent/format";
 import type { ListCardData } from "@/components/agent/types";
 import { MEMORY_URL } from "@/lib/agent/memory";
@@ -141,6 +142,7 @@ export function AgentListCard({ data }: { data: ListCardData }) {
   return (
     <AgentCard
       collapsed
+      figure={listFigure(data, kind.amount)}
       icon={List}
       title={kind.title}
       subtitle={`${data.total} ${data.total === 1 ? "resultado" : "resultados"}${data.day ?? data.month ? ` · ${data.day ?? data.month}` : ""}`}

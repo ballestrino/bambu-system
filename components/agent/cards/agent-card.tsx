@@ -10,7 +10,8 @@ import { cn } from "@/lib/utils";
 //
 // collapsed: la tarjeta arranca plegada, solo con el título y el subtítulo
 // (el conteo), y se despliega con un toque. Las listas van así para no llenar
-// el hilo (pedido del usuario, feature 33).
+// el hilo (pedido del usuario, feature 33). figure: el dato clave, a la
+// derecha de la línea plegada (un rango de precios, los sin leer).
 export function AgentCard({
   icon: Icon,
   title,
@@ -18,6 +19,7 @@ export function AgentCard({
   aside,
   footer,
   collapsed,
+  figure,
   className,
   children,
 }: {
@@ -27,6 +29,7 @@ export function AgentCard({
   aside?: React.ReactNode;
   footer?: React.ReactNode;
   collapsed?: boolean;
+  figure?: React.ReactNode;
   className?: string;
   children: React.ReactNode;
 }) {
@@ -59,6 +62,9 @@ export function AgentCard({
       <details className={cn("group/card", frame)}>
         <summary className="flex cursor-pointer list-none items-start gap-2.5 px-3.5 py-3 select-none [&::-webkit-details-marker]:hidden">
           {header}
+          {figure && (
+            <span className="mt-0.5 shrink-0 text-right text-[13px] font-semibold tabular-nums">{figure}</span>
+          )}
           <ChevronDown
             className="mt-1.5 size-4 shrink-0 text-ops-text-muted transition-transform group-open/card:rotate-180"
             aria-hidden

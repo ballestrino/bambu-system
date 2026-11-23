@@ -37,6 +37,16 @@ export function ConversationSubtitle({
   );
 }
 
+// Las propuestas que siguen esperando confirmación en la conversación.
+export function ConversationPendingPill({ count }: { count: number }) {
+  if (count < 1) return null;
+  return (
+    <span className="shrink-0 rounded-full bg-amber-50 px-2 py-px text-[11px] font-semibold text-amber-800 dark:bg-amber-500/15 dark:text-amber-200">
+      {count === 1 ? "1 pendiente" : `${count} pendientes`}
+    </span>
+  );
+}
+
 // Una conversación de la columna de la página (y del historial del Sheet):
 // título, hora y presupuesto. La abierta va resaltada y con su "…" a la
 // vista; en las demás aparece al pasar el mouse (con pantalla táctil, siempre).
@@ -80,11 +90,14 @@ export function AgentConversationRow({
             {formatConversationTime(conversationActivity(conversation), now)}
           </span>
         </span>
-        <ConversationSubtitle
-          conversation={conversation}
-          showBudget={showBudget}
-          className={cn("w-full text-xs", active ? "text-ops-bamboo-strong/80" : "text-ops-text-muted")}
-        />
+        <span className="flex w-full min-w-0 items-center gap-2">
+          <ConversationSubtitle
+            conversation={conversation}
+            showBudget={showBudget}
+            className={cn("min-w-0 flex-1 text-xs", active ? "text-ops-bamboo-strong/80" : "text-ops-text-muted")}
+          />
+          <ConversationPendingPill count={conversation.pendingProposals} />
+        </span>
       </button>
       <AgentConversationMenu
         pinned={Boolean(conversation.pinnedAt)}

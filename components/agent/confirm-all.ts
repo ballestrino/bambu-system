@@ -8,7 +8,7 @@ export type PendingProposalItem = {
   id: string;
   title: string;
   kind: AgentProposalKind;
-  // Un lote de visitas se confirma con todas: para elegir, su tarjeta.
+  // Un lote de visitas se confirma con las marcadas en su tarjeta.
   allVisits: boolean;
 };
 

@@ -25,8 +25,12 @@ export const useAgentProposalMutations = ({
   onConfirmed?: (result: ProposalResult | null) => void;
 }) => {
   const queryClient = useQueryClient();
+  // El historial también: cuenta las pendientes de cada conversación.
   const refreshProposals = () =>
-    queryClient.invalidateQueries({ queryKey: agentKeys.proposals(conversationId) });
+    Promise.all([
+      queryClient.invalidateQueries({ queryKey: agentKeys.proposals(conversationId) }),
+      queryClient.invalidateQueries({ queryKey: agentKeys.conversations() }),
+    ]);
   const showError = (error: Error) => toast.error(error.message);
 
   const confirm = useMutation({
@@ -65,11 +69,12 @@ export const useAgentProposalMutations = ({
   // Confirmar varias (la tarjeta de confirmar todas): de a una, cada una con
   // su acción, sus avisos y su toast; si una falla, sigue con las demás.
   const [confirmingAll, setConfirmingAll] = useState(false);
-  const confirmAll = async (proposalIds: string[]) => {
+  // Un lote de visitas va con las marcadas en su tarjeta.
+  const confirmAll = async (items: { proposalId: string; visitIndexes?: number[] }[]) => {
     setConfirmingAll(true);
     try {
-      for (const proposalId of proposalIds) {
-        await confirm.mutateAsync({ proposalId }).catch(() => null);
+      for (const item of items) {
+        await confirm.mutateAsync(item).catch(() => null);
       }
     } finally {
       setConfirmingAll(false);

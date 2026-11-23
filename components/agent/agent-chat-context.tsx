@@ -28,6 +28,14 @@ export type AgentChatContextValue = {
   // Un presupuesto oficial, en el mismo panel.
   openOfficialBudget: (id: string) => void;
   hasBudgetDraft: (toolCallId: string) => boolean;
+  // Las visitas desmarcadas de cada lote pendiente, por propuesta: la tarjeta
+  // y la barra de pendientes confirman con las mismas.
+  visitSelections: Record<string, number[]>;
+  setVisitUnchecked: (proposalId: string, unchecked: number[]) => void;
+  // "Pedir de nuevo": le escribe al agente en esta conversación. false si no
+  // se pudo (está respondiendo).
+  sendMessage: (text: string) => boolean;
+  busy: boolean;
 };
 
 const AgentChatContext = createContext<AgentChatContextValue | null>(null);

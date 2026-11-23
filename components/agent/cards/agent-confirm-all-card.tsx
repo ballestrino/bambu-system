@@ -86,7 +86,7 @@ export function AgentConfirmAllCard({ message }: { message: AgentUIMessage }) {
               <span className="min-w-0 flex-1 text-[13px] leading-snug">
                 <span className="block break-words font-medium text-ops-text">{item.title}</span>
                 {item.allVisits && (
-                  <span className="block text-xs text-ops-text-muted">Con todas sus visitas: para elegir, usá su tarjeta.</span>
+                  <span className="block text-xs text-ops-text-muted">Con las visitas marcadas en su tarjeta.</span>
                 )}
               </span>
               {sent ? <ProposalStatusBadge status={status} /> : null}

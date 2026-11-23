@@ -25,3 +25,17 @@ export const getAgentProposal = async (proposalId: string) => {
   });
   return row ? serializeProposal(row) : null;
 };
+
+// Cuántas propuestas siguen esperando en cada conversación (la etiqueta
+// "N pendientes" del historial): PENDING y sin vencer, como las cuenta la
+// barra de pendientes de la conversación.
+export const getPendingProposalCounts = async (conversationIds: string[], now = new Date()) => {
+  await requireAdminSession();
+  if (!conversationIds.length) return {};
+  const groups = await db.agentProposal.groupBy({
+    by: ["conversationId"],
+    where: { conversationId: { in: conversationIds }, status: "PENDING", expiresAt: { gt: now } },
+    _count: { _all: true },
+  });
+  return Object.fromEntries(groups.map((group) => [group.conversationId, group._count._all])) as Record<string, number>;
+};

@@ -3,7 +3,7 @@
 import { ChevronRight, FileText, MoreHorizontal, Pencil, Pin, PinOff, Sparkles, Trash2 } from "lucide-react";
 
 import { AgentConversationMenu, type ConversationActionHandler } from "@/components/agent/agent-conversation-menu";
-import { ConversationSubtitle } from "@/components/agent/agent-conversation-row";
+import { ConversationPendingPill, ConversationSubtitle } from "@/components/agent/agent-conversation-row";
 import { useSwipeReveal } from "@/components/agent/hooks/use-swipe-reveal";
 import type { AgentConversationItem } from "@/components/agent/types";
 import { conversationActivity, formatConversationTime } from "@/lib/agent/conversation-groups";
@@ -78,7 +78,10 @@ export function AgentConversationStackRow({
           </span>
           <span className="flex min-w-0 flex-1 flex-col gap-0.5">
             <span className="truncate text-[15px] font-medium">{conversation.title}</span>
-            <ConversationSubtitle conversation={conversation} showBudget className="text-[13px] text-ops-text-muted [&_svg]:hidden" />
+            <span className="flex min-w-0 items-center gap-2">
+              <ConversationSubtitle conversation={conversation} showBudget className="min-w-0 text-[13px] text-ops-text-muted [&_svg]:hidden" />
+              <ConversationPendingPill count={conversation.pendingProposals} />
+            </span>
           </span>
           <span className="shrink-0 text-xs text-ops-text-muted tabular-nums">
             {formatConversationTime(conversationActivity(conversation), now)}
