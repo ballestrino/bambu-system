@@ -28,6 +28,7 @@ export function AgentConversationMenu({
   onAction,
   children,
   extraItems,
+  footer,
   align = "end",
 }: {
   pinned: boolean | null;
@@ -35,6 +36,8 @@ export function AgentConversationMenu({
   // El botón que abre el menú.
   children: React.ReactElement;
   extraItems?: { label: string; icon: React.ReactNode; onSelect: () => void }[];
+  // Al pie, después de una línea: la cabecera pone "Plegar las propuestas".
+  footer?: React.ReactNode;
   align?: "start" | "end";
 }) {
   const triggerRef = useRef<HTMLElement | null>(null);
@@ -81,6 +84,12 @@ export function AgentConversationMenu({
               <Trash2 aria-hidden />
               Borrar
             </DropdownMenuItem>
+          </>
+        )}
+        {footer && (
+          <>
+            <DropdownMenuSeparator />
+            {footer}
           </>
         )}
       </DropdownMenuContent>

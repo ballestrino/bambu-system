@@ -12,9 +12,11 @@ import { useBudgetEditor } from "@/components/agent/hooks/use-budget-editor";
 import { AgentEmptyState } from "@/components/agent/agent-empty-state";
 import { AgentErrorBanner } from "@/components/agent/agent-error-banner";
 import { AgentMessageList } from "@/components/agent/agent-message-list";
+import { AgentPendingBar } from "@/components/agent/agent-pending-bar";
 import { useAgentChat } from "@/components/agent/hooks/use-agent-chat";
 import { useAgentProposalMutations } from "@/components/agent/hooks/use-agent-proposal-mutations";
 import { useAgentProposals } from "@/components/agent/hooks/use-agent-queries";
+import { selectedVisitIndexes } from "@/components/agent/hooks/use-visit-selection";
 import type { TurnNotice } from "@/components/agent/hooks/use-agent-session";
 import type { AgentUIMessage } from "@/components/agent/types";
 import { isSavableBudgetPartType } from "@/lib/agent/budget-draft";
@@ -66,13 +68,24 @@ export function AgentChat({
   const editor = useBudgetEditor();
   const [savedBudgetSlug, setSavedBudgetSlug] = useState<string | null>(null);
   const [officialBudgetId, setOfficialBudgetId] = useState<string | null>(null);
+  const [visitSelections, setVisitSelections] = useState<Record<string, number[]>>({});
   const errorMessage = readAgentError(view.error);
   const byCall = new Map((proposals.data ?? []).map((item) => [item.toolCallId, item]));
+  const byId = proposals.data ? new Map(proposals.data.map((item) => [item.id, item])) : null;
+  // Varias juntas (la barra y la tarjeta de confirmar todas): cada lote con
+  // las visitas que quedaron marcadas en su tarjeta.
+  const confirmProposals = (proposalIds: string[]) =>
+    void confirmAll(
+      proposalIds.map((proposalId) => ({
+        proposalId,
+        visitIndexes: selectedVisitIndexes(byId?.get(proposalId)?.summary.items?.length ?? 0, visitSelections[proposalId]),
+      }))
+    );
 
   return (
     <AgentChatProvider
       value={{
-        proposals: proposals.data ? new Map(proposals.data.map((item) => [item.id, item])) : null,
+        proposals: byId,
         busyProposalId: confirm.isPending
           ? confirm.variables.proposalId
           : reject.isPending
@@ -80,13 +93,18 @@ export function AgentChat({
             : null,
         confirmProposal: (proposalId, visitIndexes) => confirm.mutate({ proposalId, visitIndexes }),
         rejectProposal: (proposalId) => reject.mutate(proposalId),
-        confirmProposals: (proposalIds) => void confirmAll(proposalIds),
+        confirmProposals,
         confirmingAll,
         proposalForCall: (toolCallId) => byCall.get(toolCallId),
         openBudget: editor.openBudget,
         openSavedBudget: setSavedBudgetSlug,
         openOfficialBudget: setOfficialBudgetId,
         hasBudgetDraft: editor.hasDraft,
+        visitSelections,
+        setVisitUnchecked: (proposalId, unchecked) =>
+          setVisitSelections((current) => ({ ...current, [proposalId]: unchecked })),
+        sendMessage: (text) => view.send(text, skill),
+        busy: view.busy,
       }}
     >
       <div className="flex min-h-0 flex-1 flex-col">
@@ -108,7 +126,8 @@ export function AgentChat({
           data-agent-composer
           className="px-3 pt-2 pb-[max(0.75rem,env(safe-area-inset-bottom))] sm:px-6 sm:pb-5 @2xl/chat:px-8"
         >
-          <div className="mx-auto max-w-[720px]">
+          <div className="mx-auto max-w-[720px] space-y-2">
+            <AgentPendingBar messages={view.messages} />
             <AgentComposer
               busy={view.busy}
               tools={composerTools}

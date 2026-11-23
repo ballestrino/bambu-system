@@ -1100,6 +1100,24 @@
         "tsc, lint and a browser check"
       ],
       "status": "done"
+    },
+    {
+      "id": 69,
+      "name": "agent_cards_sidebar_collapse",
+      "title": "Agent proposal cards redesign, collapsible proposals and collapsible conversation column",
+      "area": "agent",
+      "description": "Design canvas \"Agente Bambú: tarjetas y sidebar\" (claude.ai/artifact/MSuuhvuSqj56yfC2Uv9Et7; boards Main, Tarjetas, Telefono and TelefonoPlegadas). Pending proposal cards say what will happen (\"Crear presupuesto\", \"Agendar visitas\") in the header and in the confirm button, with both prices side by side and the profit below. Any proposal can be folded at any time with a chevron; folded, a pending one is a single line with the name, the key figure, a warning marker (\"1 se cruza\", warning count) and its actions (Rechazar, Editar, confirm). A browser preference \"Plegar las propuestas\" (switch in the conversation \"…\" menu, kept in localStorage like the mode) decides how pending ones start; the chevron overrides it per card. Resolved proposals fold to a one-line receipt with a link to the result. Folded read cards show their key figure in the summary line. A bar above the composer counts the pending proposals of the conversation, jumps to each one and confirms them. On the agent page a fixed button at the left of the header hides and shows the conversation column, remembered in the browser; hidden, \"Nueva conversación\" appears next to it. Batch visit cards add \"Sacar la que se cruza\". Open decisions for the user: the default of the preference for someone who never touched it, and whether it also goes in Configuración. Not in the app today and to confirm before building: the pending count per conversation in the list (needs a count in the conversations read) and \"Pedir de nuevo\" on expired and failed proposals.",
+      "acceptance": [
+        "Pending, folded, resolved and failed proposal cards match the canvas at 1440 and 390 px, light and dark",
+        "A pending proposal folds and unfolds at any time and keeps Rechazar, Editar and confirm while folded",
+        "A folded proposal with warnings or a visit clash shows the marker and unfolds from it",
+        "The preference survives a reload and new proposals start as it says",
+        "The pending bar counts only live PENDING proposals, jumps to each card and confirms with the existing confirm-all flow",
+        "The conversation column hides and shows from the header on the agent page and the choice survives a reload; the phone layout does not change",
+        "Visit selection, confirm, reject and the budget editor keep working from folded and unfolded cards",
+        "check:agent-proposals, check:agent-page, tsc, lint and a browser check"
+      ],
+      "status": "done"
     }
   ]
 }

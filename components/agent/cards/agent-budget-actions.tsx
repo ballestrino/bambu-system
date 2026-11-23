@@ -18,15 +18,30 @@ const buttonClass = "h-11 flex-1 rounded-[10px] font-semibold sm:h-[34px] sm:fle
 // el generador (la de una propuesta ya dice su estado). Si ya hay propuesta,
 // el editor parte de sus valores: lo que se guardó (o se intentó guardar),
 // no lo que calculó el agente.
-export function AgentBudgetActions({ target, showSaved }: { target: BudgetEditorTarget; showSaved: boolean }) {
-  const { openBudget, proposalForCall, hasBudgetDraft } = useAgentChatContext();
+export const useBudgetOpener = (target: BudgetEditorTarget) => {
+  const { openBudget, proposalForCall } = useAgentChatContext();
   const proposal = proposalForCall(target.toolCallId);
-  const locked = isBudgetLocked(proposal?.status);
+  const open = (tab: "detail" | "edit") =>
+    openBudget(proposal?.values ? { ...target, values: proposal.values } : target, tab);
+  return { proposal, open, locked: isBudgetLocked(proposal?.status) };
+};
+
+// showEdit false: la tarjeta de propuesta lleva Editar en su pie (y en la
+// línea plegada), al lado de Confirmar.
+export function AgentBudgetActions({
+  target,
+  showSaved,
+  showEdit = true,
+}: {
+  target: BudgetEditorTarget;
+  showSaved: boolean;
+  showEdit?: boolean;
+}) {
+  const { hasBudgetDraft } = useAgentChatContext();
+  const { proposal, open, locked } = useBudgetOpener(target);
   const saved = proposal?.status === "CONFIRMED" ? proposal.result : null;
   // Con un borrador, "Confirmar" de la tarjeta guardaría la propuesta sin él.
   const confirmable = target.source === "proposal" && proposal?.status === "PENDING";
-  const open = (tab: "detail" | "edit") =>
-    openBudget(proposal?.values ? { ...target, values: proposal.values } : target, tab);
 
   return (
     <div className="space-y-2">
@@ -61,7 +76,7 @@ export function AgentBudgetActions({ target, showSaved }: { target: BudgetEditor
           <Eye aria-hidden />
           Ver detalle
         </Button>
-        {!locked && (
+        {!locked && showEdit && (
           <Button variant="outline" className={buttonClass} onClick={() => open("edit")}>
             <Pencil aria-hidden />
             Editar

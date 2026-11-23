@@ -124,6 +124,13 @@ Status: active
 
 ## Last Closed Work
 
+- 2026-11-23: tarjetas del agente plegables, barra de pendientes, "N
+  pendientes" en el historial, "Pedir de nuevo" y columna de conversaciones
+  que se oculta (69). Smoke en el Brave del usuario; mergeada y pusheada a
+  `main` con su autorización. Sin probar en pantalla: confirmar y rechazar
+  desde la línea plegada y la barra, "Sacar la que se cruza" y "Pedir de
+  nuevo" (no había propuestas así en la base). Ver history.
+
 - 2026-11-20: el agente recuerda el último modo elegido en el navegador (68).
   Probado por el usuario y pusheado a `main` (2026-11-20). Ver history.
 

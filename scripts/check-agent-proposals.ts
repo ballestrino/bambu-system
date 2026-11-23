@@ -20,6 +20,7 @@ import { proposeUpdateBudgetInputSchema } from "../schemas/agent-tools";
 import { defaultBudgetValues } from "../schemas/BudgetSchema";
 import { budget, fixtureBase, noChanges, roundTrip, storeOption } from "./agent-proposal-fixture";
 import "./agent-proposal-flow-checks";
+import "./agent-proposal-card-checks";
 
 // --- Update: the saved values are exactly what calculateBudget shows for the
 // same base and changes, categories survive, and the card shows before/after.

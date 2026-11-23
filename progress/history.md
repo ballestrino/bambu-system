@@ -1882,3 +1882,33 @@
   arrancan con él si sigue disponible; una guardada sigue con el suyo. Sin
   almacenamiento, el modo por defecto del servidor.
 - PASS: tsc, ESLint, `pnpm harness`. Probado por el usuario en el navegador.
+
+## 2026-11-23 - Tarjetas del agente plegables y columna que se oculta (69)
+
+- Diseño: canvas "Agente Bambú: tarjetas y sidebar"
+  (claude.ai/artifact/MSuuhvuSqj56yfC2Uv9Et7). Decisiones del usuario:
+  "Plegar las propuestas" arranca apagada y va solo en el "…" de la
+  conversación; entran "N pendientes" en el historial y "Pedir de nuevo".
+- Tarjeta de propuesta: arriba qué pasa ("Crear presupuesto") y el botón lo
+  repite; precios lado a lado y la ganancia debajo; se pliega con la flecha
+  (pendiente: una línea con cifra, aviso y acciones; resuelta: recibo con
+  link). Archivos `components/agent/cards/agent-proposal-*.tsx` y
+  `proposal-copy.ts` (puro). Preferencias del navegador en
+  `components/agent/agent-browser-flags.ts`.
+- Barra de pendientes sobre el composer (`agent-pending-bar.tsx`): cuenta
+  las PENDING vivas, salta a cada tarjeta y confirma con el flujo de
+  confirmar todas. Las visitas desmarcadas de un lote viven en `AgentChat`:
+  la barra y la tarjeta de confirmar todas usan las mismas. Lotes con "Sacar
+  la que se cruza".
+- Historial: `getPendingProposalCounts` en `listAgentConversations`.
+- Página: botón fijo a la izquierda de la cabecera que oculta la columna de
+  conversaciones (recordado en el navegador); oculta, "Nueva conversación".
+- Listas plegadas con su dato clave (rango de precios, sin leer).
+- PASS: tsc, ESLint, check:agent-proposals (+ agent-proposal-card-checks),
+  check:agent-page (+ agent-page-column-checks), check:agent-budget-editor,
+  `pnpm harness`, `next build`. Fallan desde antes en main: check:agent-sheet
+  y check:agent-visits.
+- Smoke en el Brave del usuario (copia feature-39-billing) a 1440 y 390 px,
+  claro y oscuro. Sin probar en pantalla: confirmar y rechazar desde la línea
+  plegada y la barra, "Sacar la que se cruza" y "Pedir de nuevo".
+- Mergeada y pusheada a `main` con autorización del usuario (2026-11-23).
