@@ -4,25 +4,6 @@ Status: active
 
 ## Active Feature
 
-- 71 `agent_price_comparison` (2026-11-25), rama
-  `feature/71-agent-price-comparison`, sin merge. Pedido del usuario: una
-  habilidad del agente para dar una tabla comparativa de precios, elegir
-  los campos (aportes, ganancia, % de ganancia, productos…) y copiarla para
-  pasarla a Claude y armar un PDF. La 54 pasó a `blocked` mientras tanto y
-  vuelve a `in_progress` al cerrar la 71.
-  - Hecho: tool `compareBudgets` (2 a 8 escenarios, cada uno un
-    calculateBudget con nombre), tarjeta `budget-comparison` con "Campos
-    (N)", "Sin productos / Con productos" (recordados en el navegador) y
-    "Copiar" en Markdown; `COMPARISON_RULE` en el prompt de General,
-    Presupuestos y Consejos. Detalle en `docs/agent.md` ("Tabla
-    comparativa").
-  - Verificado: tsc, ESLint, check:agent-tools (con
-    `agent-comparison-checks.ts` nuevo), check:agent-pricing, -proposals,
-    -budget-editor, -page, -cost-estimate. Tarjeta en el navegador con
-    datos calculados en una página temporal (ya borrada): casillas, cambio
-    de opción, preferencia tras recargar, Markdown copiado, 375 px y oscuro.
-  - Falta: un turno real del agente (la clave de Anthropic local da 401) y
-    la aprobación del usuario para mergear.
 - 70 `home_redesign_pending_visits`: mergeada a `main` y pusheada con
   autorización del usuario el 2026-11-25 (ver history). La 54 vuelve a
   `in_progress`.
@@ -145,6 +126,12 @@ Status: active
   equivalencias con los ids viejos está en `progress/history.md`.
 
 ## Last Closed Work
+
+- 2026-11-25: tabla comparativa de precios del agente (71): `compareBudgets`
+  con 2 a 8 escenarios, tarjeta con campos a elegir, sin/con productos
+  recordados en el navegador y "Copiar" en Markdown para armar un PDF.
+  Mergeada y pusheada a `main` con autorización del usuario. Sin turno real
+  del agente (la clave local da 401). Ver history.
 
 - 2026-11-23: tarjetas del agente plegables, barra de pendientes, "N
   pendientes" en el historial, "Pedir de nuevo" y columna de conversaciones

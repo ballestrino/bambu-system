@@ -899,7 +899,7 @@
         "Choosing Ganancia in the price mode selector releases a fixed target price",
         "Focused checks for the calculation, prisma validate, tsc, lint and a browser smoke of the editor"
       ],
-      "status": "blocked"
+      "status": "in_progress"
     },
     {
       "id": 55,
@@ -1151,7 +1151,7 @@
         "Funciona a 1440 y 390 px",
         "check:agent-tools, tsc, lint y una prueba en el navegador"
       ],
-      "status": "in_progress"
+      "status": "done"
     }
   ]
 }

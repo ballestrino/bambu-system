@@ -1945,3 +1945,28 @@
   con una visita y restaurada. Sin probar en pantalla: asignar, registrar
   como hechas y cancelar en lote.
 - Mergeada y pusheada a `main` con autorización del usuario (2026-11-25).
+
+## 2026-11-25 - Tabla comparativa de precios del agente (71)
+
+- Pedido del usuario: una habilidad del agente para dar una tabla
+  comparativa de precios, elegir qué campos ver (aportes, ganancia, % de
+  ganancia, productos…) y un botón para copiarla y pasársela a Claude para
+  hacer un PDF.
+- Tool `compareBudgets` (`lib/agent/tools/comparison.ts`, entrada en
+  `schemas/agent-comparison.ts`): de 2 a 8 escenarios, cada uno un
+  calculateBudget con nombre y las mismas reglas de precio; declara sus
+  importes en el grounding. Columnas puras en `lib/agent/budget-comparison.ts`.
+  Activa en General, Presupuestos y Consejos, con `COMPARISON_RULE` en el
+  prompt.
+- Tarjeta `budget-comparison`: escenarios en columnas, "Campos (N)",
+  "Sin productos / Con productos" (en localStorage,
+  `bambu.agent.comparison`), la mayor ganancia en verde y "Copiar" con el
+  Markdown de la tabla visible y el origen de cada escenario.
+- PASS: tsc, ESLint, `init.ps1`, check:agent-tools (con
+  `agent-comparison-checks.ts` nuevo), check:agent-pricing, -proposals,
+  -budget-editor, -page, -cost-estimate. Tarjeta probada en el navegador con
+  datos calculados en una página temporal (borrada) a escritorio y 375 px,
+  claro y oscuro. Sin turno real del agente: la clave local de Anthropic da
+  401.
+- Sin `next build` antes del push, por pedido del usuario.
+- Mergeada y pusheada a `main` con autorización del usuario (2026-11-25).
