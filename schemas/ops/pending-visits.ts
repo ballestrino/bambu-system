@@ -16,6 +16,7 @@ export const ResolvePendingVisitsSchema = z
   .object({
     action: z.enum(PENDING_RESOLUTIONS),
     employeeId: cuidSchema.optional(),
+    jobId: cuidSchema.optional(),
     occurrenceIds: z
       .array(cuidSchema)
       .min(1)

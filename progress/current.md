@@ -127,6 +127,14 @@ Status: active
 
 ## Last Closed Work
 
+- 2026-11-25: pendientes en el detalle del trabajo (72), verificada en la
+  ruta real con PostgreSQL local y dos trabajos ficticios. Ver history.
+- 2026-11-25: actualización de datos autorizada en producción. Los 34
+  trabajos activos no puntuales revisados pasaron de «Sin IVA» a «Con IVA».
+  Se verificó después de confirmar la transacción que los 34 quedaron con IVA
+  y que no quedaron trabajos activos o pausados no puntuales sin IVA. La
+  transacción comprobó que los demás trabajos conservaron su configuración.
+
 - 2026-11-25: tabla comparativa de precios del agente (71): `compareBudgets`
   con 2 a 8 escenarios, tarjeta con campos a elegir, sin/con productos
   recordados en el navegador y "Copiar" en Markdown para armar un PDF.

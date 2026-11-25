@@ -36,9 +36,11 @@ const Card = ({
 
 // "Para empezar": los grupos que suelen ser visitas generadas de mas.
 export const PendingQuickCards = ({
+  jobScoped,
   onFilter,
   summary,
 }: {
+  jobScoped: boolean;
   onFilter: (changes: Partial<PendingFilters>) => void;
   summary: PendingSummary;
 }) => {
@@ -47,7 +49,7 @@ export const PendingQuickCards = ({
   if (!summary.unassigned && !summary.ages.old && top.length < 2) return null;
 
   return (
-    <div className="grid gap-3 @3xl/pending:grid-cols-3">
+    <div className={cn("grid gap-3", jobScoped ? "@3xl/pending:grid-cols-2" : "@3xl/pending:grid-cols-3")}>
       {summary.unassigned ? (
         <Card icon={UserX} title={`${summary.unassigned} sin equipo asignado`} tone="warning">
           <p className="text-[13px] leading-normal text-ops-text-muted">

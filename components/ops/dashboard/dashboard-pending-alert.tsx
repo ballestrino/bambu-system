@@ -1,7 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { ArrowRight, CalendarClock, CheckCircle2, ClipboardCheck } from "lucide-react";
+import { useId } from "react";
+import { ArrowRight, CalendarClock, CheckCircle2, ChevronDown, ClipboardCheck } from "lucide-react";
 
 import {
   formatDayMonth,
@@ -32,9 +33,33 @@ const AGE_STYLES: Record<PendingAge, { dot: string; label: string }> = {
 const listNames = (names: string[]) =>
   names.length <= 1 ? names.join("") : `${names.slice(0, -1).join(", ")} y ${names[names.length - 1]}`;
 
-// Un solo aviso en lugar de la lista de pendientes: cuantas hay, que tan
-// viejas son y un link a la vista Pendientes de Visitas.
-export const DashboardPendingAlert = ({ pending }: { pending: PendingVisitsData }) => {
+type PendingReview = { controls: string; expanded: boolean; onToggle: () => void };
+
+const ReviewAction = ({ className, label, review }: { className?: string; label: string; review?: PendingReview }) => (
+  review ? (
+    <button
+      aria-controls={review.controls}
+      aria-expanded={review.expanded}
+      className={cn(primaryLink, "max-sm:w-full")}
+      onClick={review.onToggle}
+      type="button"
+    >
+      {review.expanded ? "Ocultar pendientes" : label}
+      <ChevronDown className={cn("size-4", review.expanded && "rotate-180")} />
+    </button>
+  ) : (
+    <Link className={cn(primaryLink, className)} href={PENDING_VIEW_HREF}>
+      {label}
+      <ArrowRight className="size-4" />
+    </Link>
+  )
+);
+
+export const DashboardPendingAlert = ({ pending, review }: {
+  pending: PendingVisitsData;
+  review?: PendingReview;
+}) => {
+  const headingId = useId();
   const { summary } = pending;
 
   if (pending.error && !pending.hasData) {
@@ -59,7 +84,7 @@ export const DashboardPendingAlert = ({ pending }: { pending: PendingVisitsData 
           <strong>Todo registrado.</strong>{" "}
           {tomorrow ? `Mañana hay ${plural(tomorrow, "visita programada", "visitas programadas")}.` : "Mañana no hay visitas programadas."}
         </p>
-        {tomorrow && pending.todayKey ? (
+        {!review && tomorrow && pending.todayKey ? (
           <Link className="inline-flex h-10 items-center text-[13px] font-semibold underline-offset-[3px] hover:underline" href={`/dashboard/calendar?vista=agenda&dia=${shiftDayKey(pending.todayKey, 1)}`}>
             Ver mañana
           </Link>
@@ -71,23 +96,20 @@ export const DashboardPendingAlert = ({ pending }: { pending: PendingVisitsData 
   if (tone === "today") {
     const names = [...new Set(pending.visits.map(getVisitTitle))];
     return (
-      <section aria-labelledby="pendientes-hoy" className="flex flex-wrap items-center gap-x-6 gap-y-3.5 rounded-[var(--ops-radius-panel)] border border-ops-bamboo/35 bg-ops-bamboo-soft px-5 py-4">
+      <section aria-labelledby={headingId} className="flex flex-wrap items-center gap-x-6 gap-y-3.5 rounded-[var(--ops-radius-panel)] border border-ops-bamboo/35 bg-ops-bamboo-soft px-5 py-4">
         <span className="flex size-10 shrink-0 items-center justify-center rounded-[11px] border border-ops-bamboo/35 bg-ops-surface text-ops-bamboo-strong">
           <ClipboardCheck className="size-[18px]" />
         </span>
         <div className="min-w-0 flex-[1_1_320px]">
-          <h2 className="text-base font-semibold text-ops-text" id="pendientes-hoy">
+          <h2 className="text-base font-semibold text-ops-text" id={headingId}>
             {summary.total === 1 ? "1 visita de hoy espera registro" : `${summary.total} visitas de hoy esperan registro`}
           </h2>
           <p className="mt-0.5 text-[13.5px] text-ops-text-muted">
-            {listNames(names.slice(0, 3))}
-            {names.length > 3 ? ` y ${plural(names.length - 3, "trabajo")} más` : ""}. Lo de días anteriores está al día.
+            {!review && `${listNames(names.slice(0, 3))}${names.length > 3 ? ` y ${plural(names.length - 3, "trabajo")} más` : ""}. `}
+            Lo de días anteriores está al día.
           </p>
         </div>
-        <Link className={primaryLink} href={PENDING_VIEW_HREF}>
-          Registrar
-          <ArrowRight className="size-4" />
-        </Link>
+        <ReviewAction label={review ? "Revisar pendientes" : "Registrar"} review={review} />
       </section>
     );
   }
@@ -98,14 +120,14 @@ export const DashboardPendingAlert = ({ pending }: { pending: PendingVisitsData 
   ].filter(Boolean);
 
   return (
-    <section aria-labelledby="pendientes-titulo" className="flex flex-wrap items-center gap-x-7 gap-y-4 rounded-[var(--ops-radius-panel)] border border-amber-300 bg-amber-50 px-5 py-[18px] dark:border-amber-500/40 dark:bg-amber-500/10">
+    <section aria-labelledby={headingId} className="flex flex-wrap items-center gap-x-7 gap-y-4 rounded-[var(--ops-radius-panel)] border border-amber-300 bg-amber-50 px-5 py-[18px] dark:border-amber-500/40 dark:bg-amber-500/10">
       <div className="flex min-w-0 flex-[1_1_480px] gap-3.5">
         <span className="flex size-11 shrink-0 items-center justify-center rounded-xl border border-amber-300 bg-amber-100 text-amber-800 dark:border-amber-500/40 dark:bg-amber-500/20 dark:text-amber-200">
           <CalendarClock className="size-5" />
         </span>
         <div className="flex min-w-0 flex-1 flex-col gap-2.5">
           <div>
-            <h2 className="text-[17px] font-semibold tracking-tight text-ops-text" id="pendientes-titulo">
+            <h2 className="text-[17px] font-semibold tracking-tight text-ops-text" id={headingId}>
               {plural(summary.total, "visita pendiente", "visitas pendientes")} de registrar
             </h2>
             <p className="mt-0.5 text-[13.5px] leading-snug text-amber-900/80 dark:text-amber-100/80">
@@ -131,10 +153,7 @@ export const DashboardPendingAlert = ({ pending }: { pending: PendingVisitsData 
           </ul>
         </div>
       </div>
-      <Link className={cn(primaryLink, "max-sm:w-full")} href={PENDING_VIEW_HREF}>
-        Revisar pendientes
-        <ArrowRight className="size-4" />
-      </Link>
+      <ReviewAction className="max-sm:w-full" label="Revisar pendientes" review={review} />
     </section>
   );
 };

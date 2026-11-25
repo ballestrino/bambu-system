@@ -51,11 +51,14 @@ const Intro = ({ summary }: { summary: PendingSummary }) => (
 // acciones de a una y en lote.
 export const PendingVisitsView = ({
   employees,
+  jobId,
   pending,
 }: {
   employees: { id: string; name: string }[];
+  jobId?: string;
   pending: PendingVisitsData;
 }) => {
+  const jobScoped = Boolean(jobId);
   const view = usePendingView(pending.visits, pending.todayKey);
   const { isResolving, resolve } = usePendingVisitMutations();
   const [dialog, setDialog] = useState<{ intent: DashboardVisitIntent; visit: OpsOccurrence } | null>(null);
@@ -70,7 +73,7 @@ export const PendingVisitsView = ({
       toast.error(`Elegí hasta ${MAX_PENDING_RESOLVE} visitas por vez`);
       return;
     }
-    void resolve({ action, employeeId, occurrenceIds: visits.map((visit) => visit.id) })
+    void resolve({ action, employeeId, jobId, occurrenceIds: visits.map((visit) => visit.id) })
       .then(() => {
         if (visits.length > 1) view.clear();
       })
@@ -96,7 +99,7 @@ export const PendingVisitsView = ({
 
   return (
     <div className="@container/pending flex flex-col gap-4">
-      <Intro summary={pending.summary} />
+      {!jobScoped ? <Intro summary={pending.summary} /> : null}
       {pending.isLoading || !pending.todayKey ? (
         <div className="flex flex-col gap-3">
           <Skeleton className="h-28 w-full" />
@@ -111,12 +114,22 @@ export const PendingVisitsView = ({
         />
       ) : (
         <>
-          <PendingQuickCards onFilter={view.setFilters} summary={pending.summary} />
-          <PendingToolbar employees={employees} filters={view.filters} onChange={view.setFilters} summary={pending.summary} />
+          <PendingQuickCards jobScoped={jobScoped} onFilter={view.setFilters} summary={pending.summary} />
+          <PendingToolbar
+            employees={employees}
+            filters={view.filters}
+            jobScoped={jobScoped}
+            onChange={view.setFilters}
+            summary={pending.summary}
+          />
           {view.filtered.length ? (
-            <PendingGroupList isBusy={isResolving} onAction={onRowAction} todayKey={pending.todayKey} view={view} />
+            <PendingGroupList isBusy={isResolving} jobScoped={jobScoped} onAction={onRowAction} todayKey={pending.todayKey} view={view} />
           ) : (
-            <OpsEmptyState description="Probá con otra antigüedad, otro trabajo u otra empleada." icon={SearchX} title="Ninguna pendiente con estos filtros" />
+            <OpsEmptyState
+              description={jobScoped ? "Probá con otra antigüedad u otro equipo." : "Probá con otra antigüedad, otro trabajo u otra empleada."}
+              icon={SearchX}
+              title="Ninguna pendiente con estos filtros"
+            />
           )}
           <PendingBulkBar
             employees={employees}
@@ -142,6 +155,7 @@ export const PendingVisitsView = ({
       {dialog ? (
         <JobOccurrenceDialog
           intent={dialog.intent}
+          jobId={jobId}
           key={`${dialog.visit.id}-${dialog.intent}`}
           occurrence={dialog.visit}
           onOpenChange={(open) => {

@@ -48,6 +48,11 @@ vista guardada no la pise.
   visita archivada sigue ocupando su inicio (`getMissingStarts`). Sirve para
   las generadas por error. El servidor rechaza el lote si
   alguna ya no está pendiente. Las de estado piden confirmación.
+- En el detalle de un trabajo, «Revisar pendientes» abre el mismo panel ahí
+  mismo, con el aviso de Inicio y las visitas de ese trabajo de todas las
+  fechas. Conserva los filtros de antigüedad y equipo, la selección por día
+  y las acciones individuales y en lote. El servidor verifica el trabajo al
+  recibir un lote desde el detalle.
 
 ## Escritorio o celular
 

@@ -18,16 +18,18 @@ const moreButton = "h-10 rounded-[9px] px-2 text-[13px] font-semibold text-ops-b
 // son y como vienen; las primeras filas y "Mostrar" para el resto.
 export const PendingGroupList = ({
   isBusy,
+  jobScoped,
   onAction,
   todayKey,
   view,
 }: {
   isBusy: boolean;
+  jobScoped: boolean;
   onAction: (visit: OpsOccurrence, action: PendingRowAction) => void;
   todayKey: string;
   view: PendingView;
 }) => (
-  <section aria-label="Pendientes agrupadas por trabajo" className="overflow-hidden rounded-[var(--ops-radius-panel)] border border-ops-border bg-ops-surface">
+  <section aria-label={jobScoped ? "Pendientes de este trabajo" : "Pendientes agrupadas por trabajo"} className="overflow-hidden rounded-[var(--ops-radius-panel)] border border-ops-border bg-ops-surface">
     <div className={cn(pendingGridClass, "bg-ops-surface-muted/60 py-0.5 pr-3 pl-1 text-xs font-semibold text-ops-text-muted @3xl/pending:pr-4")}>
       <label className="flex size-11 cursor-pointer items-center justify-center">
         <JobsCheckbox checked={view.allCheck} label="Seleccionar todas las pendientes que se ven" onCheckedChange={view.toggleAll} />
@@ -37,7 +39,7 @@ export const PendingGroupList = ({
       <span className="hidden @3xl/pending:block">Programado</span>
       <span className="hidden @3xl/pending:block">Equipo</span>
       <span className="hidden @3xl/pending:block">Antigüedad</span>
-      <span className="flex justify-end">
+      {!jobScoped ? <span className="flex justify-end">
         <button
           className="inline-flex h-9 items-center gap-1.5 rounded-[9px] px-2.5 text-[12.5px] font-semibold text-ops-text hover:bg-ops-surface"
           onClick={() => view.setAllOpen(!view.anyOpen)}
@@ -46,7 +48,7 @@ export const PendingGroupList = ({
           {view.anyOpen ? <ChevronsDownUp className="size-3.5" /> : <ChevronsUpDown className="size-3.5" />}
           {view.anyOpen ? "Contraer todo" : "Expandir todo"}
         </button>
-      </span>
+      </span> : null}
     </div>
 
     {view.visibleGroups.map((group, index) => {
@@ -75,9 +77,11 @@ export const PendingGroupList = ({
               {plural(group.visits.length, "pendiente")}
             </span>
             <span className="min-w-0 flex-[1_1_220px] text-[12.5px] text-ops-text-muted">{group.meta}</span>
-            <Link className="text-[13px] font-semibold text-ops-bamboo-strong underline-offset-[3px] hover:underline" href={`/dashboard/jobs/${group.jobId}`}>
-              Ver trabajo
-            </Link>
+            {!jobScoped ? (
+              <Link className="text-[13px] font-semibold text-ops-bamboo-strong underline-offset-[3px] hover:underline" href={`/dashboard/jobs/${group.jobId}`}>
+                Ver trabajo
+              </Link>
+            ) : null}
           </div>
           {open ? (
             <>

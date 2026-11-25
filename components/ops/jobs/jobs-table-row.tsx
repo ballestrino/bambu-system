@@ -11,6 +11,7 @@ import { JobStatusPill } from "@/components/ops/jobs/status-badges";
 import { profitabilityStatus } from "@/components/ops/profitability/profitability-status";
 import { OpsActionMenu, type OpsActionMenuItem } from "@/components/ops/shared";
 import type { OpsJobListItem } from "@/components/ops/types";
+import { getJobBudgetPrice } from "@/lib/ops/job-budget-pricing";
 import { cn } from "@/lib/utils";
 import type { SetJobsStatusInput } from "@/schemas/ops";
 
@@ -29,6 +30,27 @@ const ProfitabilityPill = ({ row }: { row: JobRow }) => {
       <Icon aria-hidden className="size-[13px]" />
       {status.label}
     </span>
+  );
+};
+
+const JobOptionPrice = ({ row }: { row: JobRow }) => {
+  const { job, price } = row;
+  const netPrice = job.budgetIncludesIva ? getJobBudgetPrice({ ...job, budgetIncludesIva: false }) : price;
+  const showsIva = price !== null && netPrice !== null && price > netPrice;
+
+  return (
+    <div className="flex flex-col items-start gap-px whitespace-nowrap tabular-nums @3xl/jobs:items-end">
+      <span className="text-xs font-semibold text-ops-text @3xl/jobs:text-[13px]">
+        {formatJobRowPrice(netPrice)}{showsIva && " + IVA"}
+      </span>
+      {showsIva ? (
+        <span className="text-[11.5px] text-ops-text-muted">
+          <span className="sr-only">Total con IVA: </span>{formatJobRowPrice(price)}
+        </span>
+      ) : price !== null && (
+        <span className="hidden text-[11.5px] text-ops-text-muted @3xl/jobs:block">Sin IVA</span>
+      )}
+    </div>
   );
 };
 
@@ -56,9 +78,6 @@ export const JobsTableRow = ({
       ? []
       : [{ icon: Archive, label: "Archivar", onSelect: () => handlers.onArchive([job.id]), variant: "destructive" as const }]),
   ];
-  const price = formatJobRowPrice(row.price);
-  const ivaLabel = job.budgetIncludesIva ? "IVA incluido" : "Sin IVA";
-
   return (
     <div
       aria-selected={isSelected}
@@ -86,7 +105,7 @@ export const JobsTableRow = ({
         <div className="mt-1 flex flex-wrap items-center gap-1.5 @3xl/jobs:hidden">
           <JobStatusPill status={job.status} />
           <ProfitabilityPill row={row} />
-          <span className="text-xs font-semibold text-ops-text tabular-nums">{price}</span>
+          <JobOptionPrice row={row} />
         </div>
       </div>
       <div className="hidden min-w-0 flex-col gap-0.5 @5xl/jobs:flex" role="cell">
@@ -99,9 +118,8 @@ export const JobsTableRow = ({
       >
         {job.sourceBudget?.name ?? "Sin vínculo"}
       </span>
-      <div className="hidden flex-col items-end gap-px pr-[18px] @3xl/jobs:flex" role="cell">
-        <span className="text-[13px] font-semibold whitespace-nowrap text-ops-text tabular-nums">{price}</span>
-        <span className="text-[11.5px] whitespace-nowrap text-ops-text-muted">{ivaLabel}</span>
+      <div className="hidden pr-[18px] @3xl/jobs:block" role="cell">
+        <JobOptionPrice row={row} />
       </div>
       <span className="hidden @3xl/jobs:block" role="cell"><ProfitabilityPill row={row} /></span>
       <span className="hidden @3xl/jobs:block" role="cell"><JobStatusPill status={job.status} /></span>
