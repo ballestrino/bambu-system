@@ -8,6 +8,7 @@ import { createBudgetRequestTools } from "@/lib/agent/tools/budget-requests";
 import { createBudgetTools } from "@/lib/agent/tools/budgets";
 import { createBusinessTools } from "@/lib/agent/tools/business";
 import { createCalculationTools } from "@/lib/agent/tools/calculations";
+import { createComparisonTools } from "@/lib/agent/tools/comparison";
 import type { AgentToolContext } from "@/lib/agent/tools/context";
 import { createEmailTools } from "@/lib/agent/tools/email";
 import { createFinanceTools } from "@/lib/agent/tools/finance";
@@ -33,6 +34,7 @@ export const createAgentTools = (ctx: AgentToolContext) => compactToolSchemas({
   ...createOfficialBudgetTools(ctx),
   ...createBudgetTools(ctx),
   ...createCalculationTools(ctx),
+  ...createComparisonTools(ctx),
   ...createFinanceTools(),
   ...createPayrollTools(),
   ...createOperationsTools(),

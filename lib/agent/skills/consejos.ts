@@ -20,6 +20,7 @@ export const consejosSkill: AgentSkill = {
     "queryOperations",
     "searchBudgets",
     "getBudget",
+    "compareBudgets",
     "searchMemory",
     "proposeMemory",
     "proposeInstructionChange",

@@ -2,6 +2,7 @@ import { AgentBillingDraftCard, AgentBillingSummaryCard } from "@/components/age
 import { AgentCreditNoteCard } from "@/components/agent/cards/agent-credit-note-card";
 import { AgentBudgetRequestsCard } from "@/components/agent/cards/agent-budget-requests-card";
 import { AgentBudgetTotalsCard } from "@/components/agent/cards/agent-budget-totals-card";
+import { AgentComparisonCard } from "@/components/agent/cards/agent-comparison-card";
 import { AgentEmailCard } from "@/components/agent/cards/agent-email-card";
 import { AgentEmailMessageCard } from "@/components/agent/cards/agent-email-message-card";
 import { AgentFinanceCard, AgentFinanceTrendCard } from "@/components/agent/cards/agent-finance-card";
@@ -21,6 +22,8 @@ export function AgentToolCard({ data, toolCallId }: { data: AgentToolData<AgentT
     case "budget":
     case "budget-totals":
       return <AgentBudgetTotalsCard data={data} toolCallId={toolCallId} />;
+    case "budget-comparison":
+      return <AgentComparisonCard data={data} />;
     case "proposal":
       return <AgentProposalCard data={data} toolCallId={toolCallId} />;
     case "email":

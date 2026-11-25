@@ -95,7 +95,8 @@ este documento describe lo que ya existe y se actualiza con cada feature.
 - Tools en `lib/agent/tools/**`, sin escrituras: `getBusinessProfile`,
   `searchOfficialBudgets`, `listOfficialBudgets`, `getOfficialBudget`,
   `searchBudgets`, `findMatchingBudgets` (reglas de precio), `getBudget`,
-  `calculateBudget`, `solveForTargetPrice`,
+  `calculateBudget`, `solveForTargetPrice`, `compareBudgets` (ver "Tabla
+  comparativa"),
   `getFinancialSnapshot`, `getFinancialTrend`, `getJobProfitability`,
   `getPayrollSummary`, `queryOperations` (visitas del mes o de un `day`),
   `listEmails`, `readEmail` y `groupBudgetRequests` (ver "Correo"),
@@ -677,6 +678,36 @@ Feature 33, pedido del usuario para que el hilo no se llene:
 - El prompt pide no repetir en el texto lo que muestra una tarjeta y decir la
   ganancia al usuario (nunca a un cliente).
 - Check en `check:agent-sheet` (`scripts/agent-compact-cards-checks.ts`).
+
+## Tabla comparativa
+
+Feature 71, pedido del usuario: comparar precios en una tabla y elegir qué
+ver.
+
+- `compareBudgets` (`lib/agent/tools/comparison.ts`, tipo cálculo): de 2 a
+  8 escenarios, cada uno un `calculateBudget` con nombre (`label`, base por
+  `budgetSlug`, contexto o `fromDefaults`, y `changes` o `null` para la base
+  tal cual), con las mismas reglas de precio. No guarda nada. Declara en el
+  `grounding` los importes de cada cálculo (oculto al modelo).
+- Cada columna (`lib/agent/budget-comparison.ts`, puro): servicio, horas,
+  mano de obra, aportes, transporte, extras, productos, margen y, sin y con
+  productos, costo, precio sin y con IVA, precio hora, ganancia y % de
+  ganancia (sobre el precio sin IVA; el margen es sobre el costo). Un
+  escenario sin productos usa sus precios sin productos en la vista con
+  productos y lo dice.
+- Tarjeta `budget-comparison` (`components/agent/cards/agent-comparison-card.tsx`):
+  escenarios en columnas y campos en filas, con scroll horizontal y la
+  primera columna fija. "Campos (N)" marca y desmarca cada campo (el último
+  no se desmarca) y "Sin productos / Con productos" cambia los precios; la
+  elección vale para todas las tablas y se recuerda en el navegador
+  (`bambu.agent.comparison`). La mayor ganancia va en verde.
+- "Copiar" deja en el portapapeles Markdown (`comparison-copy.ts`): título,
+  fecha, la tabla tal como se ve y de dónde sale cada escenario. Es para
+  pegarlo en Claude u otra IA y pedir un PDF.
+- `COMPARISON_RULE` entra al prompt con la tool (General, Presupuestos y
+  Consejos): una sola llamada con todos los escenarios y no repetir la tabla
+  en el texto, solo cuál conviene.
+- Check en `check:agent-tools` (`scripts/agent-comparison-checks.ts`).
 
 ## Memoria
 

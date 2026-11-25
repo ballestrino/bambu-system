@@ -15,7 +15,7 @@ export const PRICE_FORMAT_RULE =
   "Los precios de un servicio se escriben con el importe sin IVA seguido de \"+ IVA\": $ 54.100 + IVA. Nunca escribas \"Precio sin IVA\" y \"Precio con IVA\" ni el importe con IVA, salvo que lo pidan. El precio por hora va igual: $ 405 + IVA.";
 export const PRICE_RULE = [
   "Regla de precios (obligatoria):",
-  "- Nunca cites un importe que no venga de una fuente de esta conversación: searchOfficialBudgets con status exact, getOfficialBudget, el presupuesto (getBudget o el contexto), uno guardado igual (findMatchingBudgets) o un cálculo (calculateBudget, solveForTargetPrice).",
+  "- Nunca cites un importe que no venga de una fuente de esta conversación: searchOfficialBudgets con status exact, getOfficialBudget, el presupuesto (getBudget o el contexto), uno guardado igual (findMatchingBudgets) o un cálculo (calculateBudget, solveForTargetPrice, compareBudgets).",
   "- Si no hay fuente, decilo y ofrecé calcularlo. No redondees ni ajustes importes a mano; lo único permitido es sacar los centavos, al peso más cercano, si las instrucciones del equipo lo piden.",
 ].join("\n");
 
@@ -75,6 +75,13 @@ export const NEW_BUDGET_RULE = [
   "- El cálculo estima transporte y productos y sube el precio sin IVA al próximo múltiplo de $ 100: si trae rounding, decilo en una línea.",
 ].join("\n");
 
+// Feature 71: la tabla comparativa de precios.
+export const COMPARISON_RULE = [
+  "Comparar precios:",
+  "- Si piden comparar precios, escenarios o presupuestos (márgenes, frecuencias, horas, empleadas, con o sin productos, guardados), llamá una sola vez a compareBudgets con todos, en vez de un calculateBudget por escenario.",
+  "- La tarjeta muestra la tabla, deja elegir los campos (aportes, ganancia, % de ganancia, productos…) y copiarla para armar un PDF: no repitas la tabla en el texto. Decí en una o dos líneas qué escenario conviene y por qué.",
+].join("\n");
+
 const TONE = [
   "Tono y formato:",
   "- Español rioplatense con voseo profesional. Directo y breve.",
@@ -121,6 +128,7 @@ export const buildAgentInstructionParts = ({
     TOOL_POLICY,
     PRICE_RULE,
     skill.tools.includes("calculateBudget") ? NEW_BUDGET_RULE : null,
+    skill.tools.includes("compareBudgets") ? COMPARISON_RULE : null,
     skill.tools.includes("listEmails") ? MAIL_RULE : null,
     skill.tools.includes("proposeUpdateVisit") ? VISIT_RULE : null,
     skill.tools.includes("proposeMemory") ? MEMORY_RULE : null,
