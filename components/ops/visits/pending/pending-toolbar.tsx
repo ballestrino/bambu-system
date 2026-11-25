@@ -13,11 +13,13 @@ const segment = "inline-flex h-9 shrink-0 items-center gap-1.5 rounded-lg px-3 t
 export const PendingToolbar = ({
   employees,
   filters,
+  jobScoped,
   onChange,
   summary,
 }: {
   employees: { id: string; name: string }[];
   filters: PendingFilters;
+  jobScoped: boolean;
   onChange: (changes: Partial<PendingFilters>) => void;
   summary: PendingSummary;
 }) => {
@@ -46,17 +48,19 @@ export const PendingToolbar = ({
           );
         })}
       </div>
-      <label className="relative flex min-w-[180px] flex-[1_1_200px] items-center">
-        <span className="sr-only">Buscar trabajo</span>
-        <Search className="pointer-events-none absolute left-3 size-4 text-ops-text-muted" />
-        <input
-          className={cn(opsFilterControlClass, "border pl-9 text-[13.5px]")}
-          onChange={(event) => onChange({ search: event.target.value })}
-          placeholder="Buscar trabajo"
-          type="search"
-          value={filters.search}
-        />
-      </label>
+      {!jobScoped ? (
+        <label className="relative flex min-w-[180px] flex-[1_1_200px] items-center">
+          <span className="sr-only">Buscar trabajo</span>
+          <Search className="pointer-events-none absolute left-3 size-4 text-ops-text-muted" />
+          <input
+            className={cn(opsFilterControlClass, "border pl-9 text-[13.5px]")}
+            onChange={(event) => onChange({ search: event.target.value })}
+            placeholder="Buscar trabajo"
+            type="search"
+            value={filters.search}
+          />
+        </label>
+      ) : null}
       <label className="relative flex min-w-[170px] flex-[0_1_220px]">
         <span className="sr-only">Equipo</span>
         <select

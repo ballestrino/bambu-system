@@ -1152,6 +1152,20 @@
         "check:agent-tools, tsc, lint y una prueba en el navegador"
       ],
       "status": "done"
+    },
+    {
+      "id": 72,
+      "name": "job_pending_visits",
+      "title": "Visitas pendientes dentro del detalle del trabajo",
+      "area": "ops",
+      "description": "En el detalle de un trabajo, mostrar el aviso de pendientes de Inicio y abrir ahí mismo los filtros, la selección y las acciones de Calendario, limitados al trabajo actual.",
+      "acceptance": [
+        "El aviso cuenta solo las pendientes del trabajo, independientemente del mes y de su equipo base",
+        "Se puede filtrar, seleccionar por día o en lote y resolver pendientes sin salir del detalle",
+        "La resolución de lote rechaza visitas de otro trabajo y actualiza las vistas que las muestran",
+        "check:pending-visits, check:visits-view, tsc, lint y prueba en escritorio y celular"
+      ],
+      "status": "done"
     }
   ]
 }

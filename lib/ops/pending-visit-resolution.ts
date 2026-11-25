@@ -12,12 +12,12 @@ const countLabel = (count: number, one: string, many: string) => (count === 1 ? 
 // pendientes (programadas, de hoy o de antes y sin horario real) y, para
 // registrarlas como hechas, que tengan equipo. Si una falla no se toca ninguna.
 export const resolvePendingVisitsInDb = async (
-  { action, employeeId, occurrenceIds }: ResolvePendingVisitsInput,
+  { action, employeeId, jobId, occurrenceIds }: ResolvePendingVisitsInput,
   updatedById: string
 ) => {
   const todayKey = getVisitDayKey(new Date());
   const occurrences = await db.jobOccurrence.findMany({
-    where: { id: { in: occurrenceIds } },
+    where: { id: { in: occurrenceIds }, jobId },
     select: {
       actualEndAt: true,
       actualStartAt: true,
@@ -32,7 +32,11 @@ export const resolvePendingVisitsInDb = async (
   });
 
   if (occurrences.length !== occurrenceIds.length) {
-    return { error: "Alguna visita ya no existe: refrescá la lista" } as const;
+    return {
+      error: jobId
+        ? "Alguna visita no pertenece a este trabajo o ya no existe: refrescá la lista"
+        : "Alguna visita ya no existe: refrescá la lista",
+    } as const;
   }
 
   const stale = occurrences.filter(

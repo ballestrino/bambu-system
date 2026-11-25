@@ -14,8 +14,7 @@ import { JobAssignmentsPanel } from "@/components/ops/jobs/job-assignments-panel
 import { JobAssignmentDialog } from "@/components/ops/jobs/job-assignment-dialog";
 import { JobFormDialog } from "@/components/ops/jobs/job-form-dialog";
 import { JobLatestOccurrencePanel } from "@/components/ops/jobs/job-latest-occurrence-panel";
-import { getPendingRegistrationVisits } from "@/components/ops/jobs/pending-visits-utils";
-import { PendingVisitsPanel } from "@/components/ops/jobs/pending-visits-panel";
+import { JobPendingVisits } from "@/components/ops/jobs/job-pending-visits";
 import { JobScheduleRulesPanel } from "@/components/ops/jobs/job-schedule-rules-panel";
 import { JobScheduleRuleDialog } from "@/components/ops/jobs/job-schedule-rule-dialog";
 import { JobSummaryCard } from "@/components/ops/jobs/job-summary-card";
@@ -30,15 +29,21 @@ import { useJobOccurrences } from "@/components/ops/hooks/useJobOccurrences";
 import { useJobScheduleRuleMutations } from "@/components/ops/hooks/useJobScheduleRuleMutations";
 import { useJobScheduleRules } from "@/components/ops/hooks/useJobScheduleRules";
 import { useJobs } from "@/components/ops/hooks/useJobs";
+import { usePendingVisitsData } from "@/components/ops/hooks/usePendingVisits";
+import { useTodayKey } from "@/components/ops/hooks/useTodayKey";
 import { OpsDetailHero, OpsDetailStat, OpsNextAction, OpsPageShell, useOpsSelectedMonth } from "@/components/ops/shared";
 import { Card, CardContent } from "@/components/ui/card";
+import { getVisitDayKey } from "@/lib/ops/visit-day";
 
 export const JobDetailPage = ({ jobId }: { jobId: string }) => {
   const { month } = useOpsSelectedMonth();
   const { job, isLoading, error } = useJob(jobId);
   const { jobs } = useJobs({ includeArchived: false });
   const { scheduleRules } = useJobScheduleRules({ jobId });
-  const { occurrences } = useJobOccurrences({ jobId }, jobId);
+  const occurrencesQuery = useJobOccurrences({ jobId }, jobId);
+  const { occurrences } = occurrencesQuery;
+  const todayKey = useTodayKey(getVisitDayKey);
+  const pending = usePendingVisitsData(occurrencesQuery, todayKey);
   const { assignments } = useJobEmployeeAssignments({ jobId }, jobId);
   const { archiveScheduleRuleAsync } = useJobScheduleRuleMutations(jobId);
   const { archiveAssignmentAsync } = useJobEmployeeAssignmentMutations(jobId);
@@ -63,7 +68,6 @@ export const JobDetailPage = ({ jobId }: { jobId: string }) => {
     (occurrence) => occurrence.status === "SCHEDULED"
   );
   const completedOccurrences = occurrences.filter((occurrence) => occurrence.status === "DONE");
-  const pendingRegistrationOccurrences = getPendingRegistrationVisits(occurrences);
   const location = job.serviceLocation || job.serviceAddress || "Sin ubicacion cargada";
 
   return (
@@ -78,10 +82,12 @@ export const JobDetailPage = ({ jobId }: { jobId: string }) => {
         title={job.name}
       >
         <OpsDetailStat icon={UsersRound} label="Equipo activo" value={activeAssignments.length} helper="asignaciones vigentes" />
-        <OpsDetailStat icon={CalendarClock} label="Agenda pendiente" value={pendingOccurrences.length} helper={`${scheduleRules.length} regla(s)`} />
+        <OpsDetailStat icon={CalendarClock} label="Visitas programadas" value={pendingOccurrences.length} helper={`${scheduleRules.length} regla(s)`} />
         <OpsDetailStat icon={CalendarCheck2} label="Visitas hechas" value={completedOccurrences.length} helper="con estado realizado" />
         <OpsDetailStat icon={MapPin} label="Ubicacion" value={location === "Sin ubicacion cargada" ? "Pendiente" : "Cargada"} helper={location} />
       </OpsDetailHero>
+
+      <JobPendingVisits jobId={jobId} key={jobId} pending={pending} />
 
       <JobProfitabilityPanel jobId={jobId} month={month} />
 
@@ -92,19 +98,14 @@ export const JobDetailPage = ({ jobId }: { jobId: string }) => {
           icon={UsersRound}
           title="Asignar equipo al trabajo"
         />
-      ) : !scheduleRules.length && !occurrences.length ? (
+      ) : pending.hasData && !scheduleRules.length && !occurrences.length ? (
         <OpsNextAction
           action={<JobScheduleRuleDialog jobId={jobId} />}
           description="Con el equipo listo, el siguiente paso natural es crear la recurrencia o cargar la primera visita manual."
           icon={CalendarClock}
           title="Planificar las visitas"
         />
-      ) : pendingRegistrationOccurrences.length ? (
-        <PendingVisitsPanel
-          occurrences={pendingRegistrationOccurrences}
-          scheduleRules={scheduleRules}
-        />
-      ) : (
+      ) : pending.hasData && !pending.isLoading && !pending.summary.total ? (
         <OpsNextAction
           action={<PaymentDialog jobId={job.id} jobs={jobs} />}
           description="La operación ya tiene base operativa. Revisá saldo esperado y registrá el cobro cuando corresponda."
@@ -112,7 +113,7 @@ export const JobDetailPage = ({ jobId }: { jobId: string }) => {
           title="Revisar cobros del trabajo"
           tone="money"
         />
-      )}
+      ) : null}
 
       <JobSummaryCard job={job} />
 

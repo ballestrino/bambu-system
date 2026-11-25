@@ -1970,3 +1970,22 @@
   401.
 - Sin `next build` antes del push, por pedido del usuario.
 - Mergeada y pusheada a `main` con autorización del usuario (2026-11-25).
+
+## 2026-11-25 - Desglose de IVA en la opción de Trabajos
+
+- La opción con IVA muestra el neto con «+ IVA» y el total en gris debajo.
+  El formato se usa en la columna de escritorio y en la fila compacta.
+- Playwright comprobó el formato con IVA, sin IVA y sin opción a 1440,
+  850 y 390 px con datos simulados. TypeScript y ESLint sin errores.
+
+## 2026-11-25 - Pendientes dentro del detalle del trabajo (72)
+
+- «Revisar pendientes» abre en el detalle el mismo panel de Calendario,
+  con el aviso de Inicio, los filtros y las acciones de ese trabajo.
+  Aparece también si falta equipo base y abarca todos los meses.
+- TypeScript, ESLint, Prisma y los checks de pendientes, vista de visitas,
+  diálogo y día pasaron. Smoke autenticado a 1440 y 390 px con PostgreSQL
+  local: filtrar, registrar de a una, asignar y registrar en lote, omitir,
+  cancelar y eliminar. Se probó carga, error, reintento y estado al día.
+- Se verificó el resultado en Calendario y en la base. Un lote con una
+  visita de otro trabajo fue rechazado y no modificó ninguna de las dos.
