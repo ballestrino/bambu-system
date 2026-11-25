@@ -4,6 +4,9 @@ Status: active
 
 ## Active Feature
 
+- 70 `home_redesign_pending_visits`: mergeada a `main` y pusheada con
+  autorización del usuario el 2026-11-25 (ver history). La 54 vuelve a
+  `in_progress`.
 - 54 `budget_bse` (2026-11-12): mergeada a `main` y pusheada con autorización
   del usuario el 2026-11-12. Sigue en progreso hasta el smoke en la app
   (estuvo en `blocked` mientras se hicieron la 55 y de la 57 a la 60).

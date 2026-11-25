@@ -10,12 +10,44 @@ Página `/dashboard/calendar` (feature 26, diseño de claude-design
 | Agenda | Tira de 7 días con cuentas y punto de atención, "Mes" en popover, lista del día agrupada por hora y panel fijo con el detalle, el registro y la asignación | Tarjetas por empleada ("Sin asignar" primero), botón "+" flotante |
 | Día por empleada | Mini mes, "Requiere atención", grilla 07–20 con una columna por empleada, línea de "ahora" y detalle superpuesto; registrar abre un modal | No se ofrece: muestra la Agenda |
 | Cronograma | `components/ops/schedules/`: filas por empleada con pin, horas, carga (sobre 30 h) y cruces; arrastrar, Generar semana, Buscar huecos, Disponibilidad, filtro L–D, Exportar (PDF del equipo y por empleada) y "Comparar fijadas" (hasta 2 pines) | Días fijos a la izquierda y una columna de 173 px por empleada elegida en "Empleadas en el cronograma" |
+| Pendientes | `components/ops/visits/pending/` (feature 70): las pendientes de registro de todas las fechas, con la cuenta en el selector de vista. Tarjetas "para empezar" (sin equipo, más de 30 días, los trabajos que más acumulan), antigüedad, búsqueda y equipo, lista agrupada por trabajo con casillas y barra de lote | La misma vista, apilada; sin tira de días ni filtros de la Agenda |
 
 La vista se guarda en `bambu:ops:visits:view`. Los valores de antes del
 rediseño se traducen: `calendar`, `list` y `cards` pasan a Agenda, y
 `schedule` pasa a Cronograma. Lista y Tarjetas se quitaron por decisión del
 usuario (2026-10-09). El historial de una empleada sigue en Empleados ›
 Visitas.
+
+Links desde Inicio (`use-visits-deep-link.ts`): `?vista=` abre una vista
+(`pendientes`, `agenda`, `cron`, `dia`), `?dia=YYYY-MM-DD` un día y
+`?visita=<id>` su detalle. Se leen una vez al montar y se sacan de la URL; la
+vista también se escribe en `bambu:ops:visits:view` para que la lectura de la
+vista guardada no la pise.
+
+## Pendientes de registro
+
+- Pendiente = programada, de hoy o de antes (día de Montevideo) y sin
+  horario real completo (`lib/ops/pending-visits.ts`). La consulta es la de
+  Inicio: programadas hasta mañana, sin visitas de trabajos archivados
+  (`usePendingVisits`).
+- Antigüedad: hoy, 1 a 7 días, 8 a 30 y más de 30. Grupos y filtros en
+  `lib/ops/pending-visit-groups.ts`.
+- Cada trabajo abierto tiene "Elegir por día": un chip por día de la semana
+  con su cuenta que elige o suelta todas esas visitas (por ejemplo todos los
+  miércoles de Godoy, para borrar una generación mala). Cuenta también las
+  que quedan debajo de "Mostrar" (`getPendingWeekdays`).
+- "Contraer todo" / "Expandir todo" en la cabecera de la lista abre o cierra
+  todos los trabajos, también los que están debajo de "Ver los restantes".
+- De a una: Registrar (con equipo) o Asignar abren `JobOccurrenceDialog`; el
+  menú marca omitida, cancela o elimina (eliminar pide confirmación).
+- En lote (`resolvePendingVisits`, hasta 500, todas o ninguna): asignar una
+  empleada (reemplaza el equipo), registrar como hechas con el horario
+  programado como real (solo si todas tienen equipo; suman al pago),
+  omitirlas o cancelarlas (sin horario real) o eliminarlas: se archivan, como
+  "Eliminar visita", y el cronograma no las vuelve a generar porque una
+  visita archivada sigue ocupando su inicio (`getMissingStarts`). Sirve para
+  las generadas por error. El servidor rechaza el lote si
+  alguna ya no está pendiente. Las de estado piden confirmación.
 
 ## Escritorio o celular
 
@@ -57,3 +89,5 @@ modales del escritorio no se abren de más (`visits-page.tsx`).
 
 `pnpm check:visit-day` (lógica pura) y `pnpm check:visits-view` (vistas,
 estados y armado de la página). El Cronograma conserva `check:schedule*`.
+`pnpm check:pending-visits` cubre pendientes, sus grupos y lo que Inicio
+dice de hoy y de la semana.

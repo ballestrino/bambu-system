@@ -3,6 +3,8 @@
 import { ScheduleBoard } from "@/components/ops/schedules/schedule-board";
 import { useElementWidth } from "@/components/ops/visits/hooks/use-element-width";
 import { useVisitsController } from "@/components/ops/visits/hooks/use-visits-controller";
+import { useVisitsDeepLink } from "@/components/ops/visits/hooks/use-visits-deep-link";
+import { PendingVisitsView } from "@/components/ops/visits/pending/pending-visits-view";
 import { VisitAgendaView } from "@/components/ops/visits/visit-agenda-view";
 import { VisitDayView } from "@/components/ops/visits/visit-day-view";
 import { VisitDialogs } from "@/components/ops/visits/visit-dialogs";
@@ -18,6 +20,7 @@ const DESKTOP_MIN_WIDTH = 896;
 // monta el que corresponde, asi sus hojas y modales no se abren de mas.
 export const VisitsPage = () => {
   const ctrl = useVisitsController();
+  useVisitsDeepLink(ctrl.desk);
   const { ref, width } = useElementWidth<HTMLDivElement>();
   const { content, desk } = ctrl;
   const wide = width === null ? null : width >= DESKTOP_MIN_WIDTH;
@@ -28,7 +31,9 @@ export const VisitsPage = () => {
       {wide !== false ? (
         <div className="hidden flex-col gap-4 @4xl/visits:flex">
           <VisitsHeader countLabel={countLabel} ctrl={ctrl} />
-          {desk.view === "cron" ? (
+          {desk.view === "pendientes" ? (
+            <PendingVisitsView employees={ctrl.data.employees} pending={ctrl.pending} />
+          ) : desk.view === "cron" ? (
             <ScheduleBoard initialDayKey={desk.dayKey} todayKey={desk.todayKey} />
           ) : desk.view === "dia" ? (
             <VisitDayView ctrl={ctrl} />

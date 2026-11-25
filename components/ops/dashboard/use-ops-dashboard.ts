@@ -3,29 +3,25 @@
 import { useMemo } from "react";
 import type { PaymentStatus } from "@prisma/client";
 
+import { summarizeHomeWeek } from "@/lib/ops/home-week";
+import { getScheduleWeek } from "@/lib/ops/schedule-week";
+import { summarizeVisitDays } from "@/lib/ops/visit-day";
 import { getDashboardFinancials } from "@/components/ops/dashboard/dashboard-financials";
 import { useEmployees } from "@/components/ops/hooks/useEmployees";
 import { useEmployeePayments } from "@/components/ops/hooks/useEmployeePayments";
 import { useJobClientPayments } from "@/components/ops/hooks/useJobClientPayments";
 import { useJobOccurrences } from "@/components/ops/hooks/useJobOccurrences";
 import { useJobProfitability } from "@/components/ops/hooks/useJobProfitability";
-import { useJobScheduleRules } from "@/components/ops/hooks/useJobScheduleRules";
 import { useJobs } from "@/components/ops/hooks/useJobs";
 import { useOperationalCosts } from "@/components/ops/hooks/useOperationalCosts";
 import { useOpsCostSettings } from "@/components/ops/hooks/useOpsCostSettings";
-import {
-  getPendingRegistrationVisits,
-  getPendingVisitsRange,
-} from "@/components/ops/jobs/pending-visits-utils";
+import { usePendingVisits } from "@/components/ops/hooks/usePendingVisits";
 import { useOpsSelectedMonth } from "@/components/ops/shared";
-import type { JobOccurrenceFilters } from "@/schemas/ops";
 
+// Inicio: pendientes de registro (todas las fechas), la semana actual para la
+// agenda y el equipo, y los importes del mes elegido.
 export const useOpsDashboard = () => {
   const { month, monthKey, monthRange } = useOpsSelectedMonth();
-  const occurrenceFilters = useMemo<JobOccurrenceFilters>(() => {
-    const { endDate } = getPendingVisitsRange();
-    return { endDate, includeArchived: false, statuses: ["SCHEDULED"] };
-  }, []);
   const financialDateFilters = useMemo<{
     endDate: Date;
     startDate: Date;
@@ -38,15 +34,12 @@ export const useOpsDashboard = () => {
     }),
     [monthRange.end, monthRange.start]
   );
+  const weekRange = useMemo(() => getScheduleWeek(new Date()), []);
 
-  const visits = useJobOccurrences(occurrenceFilters, "dashboard-visits");
-  const monthlyVisits = useJobOccurrences(
-    {
-      endDate: financialDateFilters.endDate,
-      includeArchived: false,
-      startDate: financialDateFilters.startDate,
-    },
-    `dashboard-month-visits-${monthKey}`
+  const pending = usePendingVisits();
+  const week = useJobOccurrences(
+    { endDate: weekRange.end, includeArchived: false, startDate: weekRange.start },
+    `dashboard-week-${weekRange.startKey}`
   );
   const employees = useEmployees({ includeArchived: false, isActive: true });
   const jobs = useJobs({ includeArchived: false });
@@ -63,13 +56,19 @@ export const useOpsDashboard = () => {
     `dashboard-recorded-costs-${monthKey}`
   );
   const settings = useOpsCostSettings();
-  const scheduleRules = useJobScheduleRules({ isActive: true });
   const profitability = useJobProfitability({ mode: "MONTH", month });
 
-  const pendingVisitCount = useMemo(
-    () => getPendingRegistrationVisits(visits.occurrences).length,
-    [visits.occurrences]
+  const todayKey = pending.todayKey;
+  const weekSummary = useMemo(
+    () =>
+      summarizeHomeWeek({
+        employees: employees.employees.map(({ id, name }) => ({ id, name })),
+        todayKey: todayKey ?? "",
+        visits: week.occurrences,
+      }),
+    [employees.employees, todayKey, week.occurrences]
   );
+  const weekTotals = useMemo(() => summarizeVisitDays(week.occurrences), [week.occurrences]);
   const financials = useMemo(
     () =>
       getDashboardFinancials({
@@ -82,10 +81,7 @@ export const useOpsDashboard = () => {
     [clientPayments.payments, costs.costs, employeePayments.payments, jobs.jobs, settings.settings?.bpsEstimatePercent]
   );
 
-  const refreshVisits = () =>
-    Promise.all([visits.refetch(), scheduleRules.refetch()]);
-  const refreshOperations = () =>
-    Promise.all([visits.refetch(), monthlyVisits.refetch(), employees.refetch()]);
+  const refreshWeek = () => Promise.all([week.refetch(), employees.refetch()]);
   const refreshFinancials = () =>
     Promise.all([
       costs.refetch(),
@@ -95,12 +91,7 @@ export const useOpsDashboard = () => {
       settings.refetch(),
     ]);
   const refreshDashboard = () =>
-    Promise.all([
-      refreshOperations(),
-      refreshFinancials(),
-      scheduleRules.refetch(),
-      profitability.refetch(),
-    ]);
+    Promise.all([pending.refetch(), refreshWeek(), refreshFinancials(), profitability.refetch()]);
 
   return {
     employees,
@@ -113,19 +104,21 @@ export const useOpsDashboard = () => {
       clientPayments.isLoading || settings.isLoading,
     isRefreshing:
       costs.isFetching || employeePayments.isFetching || employees.isFetching ||
-      jobs.isFetching || monthlyVisits.isFetching || clientPayments.isFetching ||
-      scheduleRules.isFetching || settings.isFetching || visits.isFetching ||
-      profitability.isFetching,
-    monthlyVisits,
-    operationsError: visits.error ?? monthlyVisits.error ?? employees.error,
-    pendingVisitCount,
+      jobs.isFetching || week.isFetching || clientPayments.isFetching ||
+      settings.isFetching || pending.isFetching || profitability.isFetching,
+    isWeekLoading: week.isLoading || employees.isLoading || !todayKey,
+    month,
+    pending,
     profitability,
     refreshDashboard,
     refreshFinancials,
-    refreshOperations,
-    refreshVisits,
-    scheduleRules,
-    visits,
-    visitsError: visits.error ?? scheduleRules.error,
+    refreshWeek,
+    todayKey,
+    week,
+    weekError: week.error ?? employees.error,
+    weekSummary,
+    weekTotals,
   };
 };
+
+export type OpsDashboard = ReturnType<typeof useOpsDashboard>;

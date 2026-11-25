@@ -19,22 +19,27 @@ export const VisitsMobileHeader = ({
   onOpenMonth: () => void;
 }) => {
   const active = countActiveFilters(ctrl);
+  const isPending = ctrl.desk.view === "pendientes";
 
   return (
     <div className="flex items-center gap-2 pr-1 pl-1">
       <div className="flex min-w-0 flex-1 flex-col">
         <h1 className="text-2xl font-bold tracking-tight text-ops-text">Visitas</h1>
-        <button
-          className="inline-flex items-center gap-0.5 self-start text-sm font-medium whitespace-nowrap text-ops-bamboo-strong"
-          onClick={onOpenMonth}
-          type="button"
-        >
-          {formatDayLabel(ctrl.desk.dayKey)}
-          <ChevronDown className="size-[15px]" />
-        </button>
+        {isPending ? (
+          <span className="text-sm font-medium text-ops-text-muted">Pendientes de registro</span>
+        ) : (
+          <button
+            className="inline-flex items-center gap-0.5 self-start text-sm font-medium whitespace-nowrap text-ops-bamboo-strong"
+            onClick={onOpenMonth}
+            type="button"
+          >
+            {formatDayLabel(ctrl.desk.dayKey)}
+            <ChevronDown className="size-[15px]" />
+          </button>
+        )}
       </div>
-      <VisitsViewToggle compact onChange={ctrl.desk.setView} value={ctrl.desk.view} />
-      <button
+      <VisitsViewToggle compact onChange={ctrl.desk.setView} pendingCount={ctrl.pending.summary.total} value={ctrl.desk.view} />
+      {isPending ? null : <button
         aria-label="Filtros"
         className="relative flex size-11 items-center justify-center rounded-full border border-ops-border bg-ops-surface"
         onClick={onOpenFilters}
@@ -46,7 +51,7 @@ export const VisitsMobileHeader = ({
             {active}
           </span>
         ) : null}
-      </button>
+      </button>}
     </div>
   );
 };
