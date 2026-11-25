@@ -19,6 +19,7 @@ export const AGENT_TOOL_CATALOG = {
   getBudget: { label: "Abre un presupuesto", kind: "read" },
   calculateBudget: { label: "Calcula un presupuesto", kind: "calc" },
   solveForTargetPrice: { label: "Calcula el margen para un precio", kind: "calc" },
+  compareBudgets: { label: "Compara precios en una tabla", kind: "calc" },
   getFinancialSnapshot: { label: "Resumen financiero del mes", kind: "read" },
   getFinancialTrend: { label: "Tendencia financiera", kind: "read" },
   getJobProfitability: { label: "Rentabilidad de trabajos", kind: "read" },

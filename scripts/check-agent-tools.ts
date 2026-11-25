@@ -32,6 +32,7 @@ import { defaultBudgetValues, type BudgetFormValues } from "../schemas/BudgetSch
 import "./agent-grounding-checks";
 import "./agent-input-checks";
 import "./agent-mailbox-checks";
+import "./agent-comparison-checks";
 
 const round = (value: number) => Math.round(value * 100) / 100;
 

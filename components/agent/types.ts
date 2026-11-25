@@ -23,6 +23,8 @@ export type BudgetTotalsCardData =
   | AgentToolData<"solveForTargetPrice">
   | AgentToolData<"getBudget">;
 
+export type ComparisonCardData = AgentToolData<"compareBudgets">;
+
 export type ProposalCardData = AgentToolData<"proposeCreateBudget">;
 
 export type EmailCardData = AgentToolData<"draftEmail">;

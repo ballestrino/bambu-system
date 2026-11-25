@@ -127,6 +127,12 @@ Status: active
 
 ## Last Closed Work
 
+- 2026-11-25: tabla comparativa de precios del agente (71): `compareBudgets`
+  con 2 a 8 escenarios, tarjeta con campos a elegir, sin/con productos
+  recordados en el navegador y "Copiar" en Markdown para armar un PDF.
+  Mergeada y pusheada a `main` con autorización del usuario. Sin turno real
+  del agente (la clave local da 401). Ver history.
+
 - 2026-11-23: tarjetas del agente plegables, barra de pendientes, "N
   pendientes" en el historial, "Pedir de nuevo" y columna de conversaciones
   que se oculta (69). Smoke en el Brave del usuario; mergeada y pusheada a
