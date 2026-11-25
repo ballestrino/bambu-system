@@ -899,7 +899,7 @@
         "Choosing Ganancia in the price mode selector releases a fixed target price",
         "Focused checks for the calculation, prisma validate, tsc, lint and a browser smoke of the editor"
       ],
-      "status": "in_progress"
+      "status": "blocked"
     },
     {
       "id": 55,
@@ -1135,6 +1135,23 @@
         "check:pending-visits, check:visits-view, tsc, lint and a browser check"
       ],
       "status": "done"
+    },
+    {
+      "id": 71,
+      "name": "agent_price_comparison",
+      "title": "Agent price comparison table with selectable fields and copy for PDF",
+      "area": "agent",
+      "description": "Pedido del usuario (2026-11-25): una habilidad del agente para dar una tabla comparativa de precios. Tool compareBudgets: calcula de 1 a 8 escenarios (presupuestos guardados, el del contexto, el formulario o uno nuevo, cada uno con cambios como calculateBudget) con las mismas fórmulas y reglas de precio, y devuelve una tarjeta con la tabla: escenarios en columnas y campos en filas. Quien mira elige qué campos ver (horas, mano de obra, aportes, transporte, extras, productos, costo, margen, precio sin y con IVA, precio hora, ganancia y % de ganancia) y si los precios son sin o con productos; la elección se recuerda en el navegador. Un botón copia la tabla visible en Markdown, con título, fecha y el detalle de cada escenario, para pasarla a otra IA y armar un PDF. No escribe nada.",
+      "acceptance": [
+        "compareBudgets calcula cada escenario igual que calculateBudget y declara sus importes en el grounding",
+        "La tarjeta muestra los escenarios lado a lado y oculta o muestra cada campo con su casilla",
+        "Sin productos / Con productos cambia los precios y la ganancia",
+        "La elección de campos sobrevive a una recarga",
+        "Copiar deja en el portapapeles un Markdown con la tabla visible y el detalle de cada escenario",
+        "Funciona a 1440 y 390 px",
+        "check:agent-tools, tsc, lint y una prueba en el navegador"
+      ],
+      "status": "in_progress"
     }
   ]
 }

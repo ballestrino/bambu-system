@@ -4,6 +4,25 @@ Status: active
 
 ## Active Feature
 
+- 71 `agent_price_comparison` (2026-11-25), rama
+  `feature/71-agent-price-comparison`, sin merge. Pedido del usuario: una
+  habilidad del agente para dar una tabla comparativa de precios, elegir
+  los campos (aportes, ganancia, % de ganancia, productos…) y copiarla para
+  pasarla a Claude y armar un PDF. La 54 pasó a `blocked` mientras tanto y
+  vuelve a `in_progress` al cerrar la 71.
+  - Hecho: tool `compareBudgets` (2 a 8 escenarios, cada uno un
+    calculateBudget con nombre), tarjeta `budget-comparison` con "Campos
+    (N)", "Sin productos / Con productos" (recordados en el navegador) y
+    "Copiar" en Markdown; `COMPARISON_RULE` en el prompt de General,
+    Presupuestos y Consejos. Detalle en `docs/agent.md` ("Tabla
+    comparativa").
+  - Verificado: tsc, ESLint, check:agent-tools (con
+    `agent-comparison-checks.ts` nuevo), check:agent-pricing, -proposals,
+    -budget-editor, -page, -cost-estimate. Tarjeta en el navegador con
+    datos calculados en una página temporal (ya borrada): casillas, cambio
+    de opción, preferencia tras recargar, Markdown copiado, 375 px y oscuro.
+  - Falta: un turno real del agente (la clave de Anthropic local da 401) y
+    la aprobación del usuario para mergear.
 - 70 `home_redesign_pending_visits`: mergeada a `main` y pusheada con
   autorización del usuario el 2026-11-25 (ver history). La 54 vuelve a
   `in_progress`.
