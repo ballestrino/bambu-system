@@ -167,10 +167,12 @@ assert(employeeOptions[1]?.id === "archived", "Archived employee is not removabl
 // Every caller says what the dialog is for; the old flag is gone.
 const callers = [
   "components/ops/dashboard/dashboard-quick-actions.tsx",
+  "components/ops/dashboard/ops-dashboard-page.tsx",
   "components/ops/jobs/job-occurrences-page.tsx",
   "components/ops/jobs/job-occurrences-panel.tsx",
   "components/ops/jobs/pending-visits-panel.tsx",
   "components/ops/schedules/schedule-board.tsx",
+  "components/ops/visits/pending/pending-visits-view.tsx",
   "components/ops/visits/visit-dialogs.tsx",
 ];
 

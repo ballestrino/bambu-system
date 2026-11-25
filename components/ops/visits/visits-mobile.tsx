@@ -6,6 +6,7 @@ import { Plus } from "lucide-react";
 import { plural } from "@/lib/ops/visit-day";
 import { useMobileSchedule } from "@/components/ops/visits/hooks/use-mobile-schedule";
 import type { VisitsController } from "@/components/ops/visits/hooks/use-visits-controller";
+import { PendingVisitsView } from "@/components/ops/visits/pending/pending-visits-view";
 import { VisitWeekPills } from "@/components/ops/visits/visit-day-strip";
 import { VisitEmployeePickerSheet } from "@/components/ops/visits/visit-employee-picker-sheet";
 import { VisitFilterFields } from "@/components/ops/visits/visit-filter-fields";
@@ -27,6 +28,7 @@ export const VisitsMobile = ({ ctrl, enabled }: { ctrl: VisitsController; enable
   const schedule = useMobileSchedule(ctrl);
   const { data, desk } = ctrl;
   const isSchedule = desk.view === "cron";
+  const isPending = desk.view === "pendientes";
   const closeSheet = (open: boolean) => {
     if (!open) setSheet(null);
   };
@@ -34,8 +36,12 @@ export const VisitsMobile = ({ ctrl, enabled }: { ctrl: VisitsController; enable
   return (
     <div className="flex flex-col gap-2 pb-4">
       <VisitsMobileHeader ctrl={ctrl} onOpenFilters={() => setSheet("filtros")} onOpenMonth={() => setSheet("mes")} />
-      <VisitWeekPills dayKey={desk.dayKey} month={desk.month} onPick={desk.goToDay} todayKey={desk.todayKey} totals={data.totals} />
-      {isSchedule ? (
+      {isPending ? null : (
+        <VisitWeekPills dayKey={desk.dayKey} month={desk.month} onPick={desk.goToDay} todayKey={desk.todayKey} totals={data.totals} />
+      )}
+      {isPending ? (
+        <PendingVisitsView employees={data.employees} pending={ctrl.pending} />
+      ) : isSchedule ? (
         <VisitMobileSchedule ctrl={ctrl} onOpenPicker={() => setSheet("empleadas")} schedule={schedule} />
       ) : (
         <>

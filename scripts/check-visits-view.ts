@@ -16,15 +16,16 @@ assert.equal(toVisitsView("calendar"), "agenda");
 assert.equal(toVisitsView("list"), "agenda");
 assert.equal(toVisitsView("cards"), "agenda");
 assert.equal(toVisitsView("schedule"), "cron");
+assert.equal(toVisitsView("pendientes"), "pendientes");
 assert.equal(toVisitsView(undefined), "agenda");
 assert.equal(toVisitsView("tarjetas"), "agenda");
 
 const toggle = read("components/ops/visits/visits-view-toggle.tsx");
 const labels = [...toggle.matchAll(/label: "([^"]+)", value: "([^"]+)"/g)].map(([, label, value]) => `${value}:${label}`);
 assert.deepEqual(labels, [
-  "agenda:Agenda", "dia:Día por empleada", "cron:Cronograma",
-  "agenda:Agenda", "cron:Cronograma",
-], "Desktop has three views and the phone two");
+  "agenda:Agenda", "dia:Día por empleada", "cron:Cronograma", "pendientes:Pendientes",
+  "agenda:Agenda", "cron:Cronograma", "pendientes:Pendientes",
+], "Desktop has four views and the phone three (feature 70 adds Pendientes)");
 
 // --- The day: loading first, then a failed month (paused query without data)
 // as a retryable error, and only then an empty day.

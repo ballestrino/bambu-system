@@ -38,8 +38,8 @@ export const VisitsHeader = ({ ctrl, countLabel }: { countLabel: string; ctrl: V
         <h1 className="text-[28px] leading-[1.15] font-semibold tracking-tight text-ops-text">Visitas</h1>
       </div>
       <div className="flex flex-wrap items-center gap-2">
-        <VisitsViewToggle onChange={desk.setView} value={desk.view} />
-        {desk.view === "cron" ? null : (
+        <VisitsViewToggle onChange={desk.setView} pendingCount={ctrl.pending.summary.total} value={desk.view} />
+        {desk.view === "cron" || desk.view === "pendientes" ? null : (
           <Popover onOpenChange={setFiltersOpen} open={filtersOpen}>
             <PopoverTrigger asChild>
               <button className={cn(outlineButton, filtersOpen && "border-ops-bamboo bg-ops-bamboo-soft")} type="button">

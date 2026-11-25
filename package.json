@@ -32,6 +32,7 @@
     "check:occurrence-dialog": "tsx scripts/check-occurrence-dialog.ts",
     "check:occurrence-generation": "tsx scripts/check-occurrence-generation.ts",
     "check:ops-locale": "tsx scripts/check-ops-locale.ts",
+    "check:pending-visits": "tsx scripts/check-pending-visits.ts",
     "check:profitability": "tsx scripts/check-profitability.ts",
     "check:official-budgets": "tsx scripts/check-official-budgets.ts",
     "check:official-budget-workspace": "tsx scripts/check-official-budget-workspace.ts",

@@ -10,7 +10,7 @@ import {
 import { useTodayKey } from "@/components/ops/hooks/useTodayKey";
 import { useOpsPersistedState, useOpsSelectedMonth } from "@/components/ops/shared";
 
-export type VisitsView = "agenda" | "dia" | "cron";
+export type VisitsView = "agenda" | "dia" | "cron" | "pendientes";
 export type VisitPanel = "asignar" | "detalle" | "registrar";
 export type VisitSelection = { id: string; panel: VisitPanel };
 
@@ -22,6 +22,7 @@ const VIEW_ALIASES: Record<string, VisitsView> = {
   cron: "cron",
   dia: "dia",
   list: "agenda",
+  pendientes: "pendientes",
   schedule: "cron",
 };
 
@@ -30,15 +31,14 @@ export const toVisitsView = (value: unknown): VisitsView =>
 
 const defaultViewState = { view: "agenda" as string };
 
+export const VISITS_VIEW_STORAGE_KEY = "bambu:ops:visits:view";
+
 // Estado de la pantalla: vista, dia elegido dentro del mes global, visita
 // abierta y filtros. El dia cruza de mes moviendo el selector global.
 export const useVisitsDesk = () => {
   const { month, setMonth } = useOpsSelectedMonth();
   const todayKey = useTodayKey();
-  const [viewState, setViewState] = useOpsPersistedState(
-    "bambu:ops:visits:view",
-    defaultViewState
-  );
+  const [viewState, setViewState] = useOpsPersistedState(VISITS_VIEW_STORAGE_KEY, defaultViewState);
   const [pickedDay, setPickedDay] = useState<string | null>(null);
   const [selection, setSelection] = useState<VisitSelection | null>(null);
   const [filters, setFilters] = useState<CalendarFilters>(DEFAULT_CALENDAR_FILTERS);

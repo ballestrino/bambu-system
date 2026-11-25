@@ -5,6 +5,7 @@ import { useMemo, useState } from "react";
 import { getVisitCandidates, type VisitCandidate } from "@/lib/ops/visit-availability";
 import { getVisitEmployees, getVisitsOfDay, isAttentionVisit } from "@/lib/ops/visit-day";
 import { hasActiveCalendarFilters } from "@/components/ops/calendar/calendar-filter-utils";
+import { usePendingVisits } from "@/components/ops/hooks/usePendingVisits";
 import type { OccurrenceDefaults } from "@/components/ops/jobs/job-occurrence-dialog-utils";
 import type { OpsOccurrence } from "@/components/ops/types";
 import type { VisitDayContent } from "@/components/ops/visits/visit-agenda-list";
@@ -19,6 +20,8 @@ export const useVisitsController = () => {
   const desk = useVisitsDesk();
   const data = useVisitsData(desk.filters);
   const actions = useVisitActions();
+  // Pendientes de registro de todas las fechas: la vista Pendientes y su cuenta.
+  const pending = usePendingVisits();
   const [editing, setEditing] = useState<OpsOccurrence | null>(null);
   const [creating, setCreating] = useState<OccurrenceDefaults | null>(null);
 
@@ -82,6 +85,7 @@ export const useVisitsController = () => {
     hasFilters: hasActiveCalendarFilters(desk.filters),
     isUpdating: actions.isUpdating,
     // Nueva visita en el dia elegido, de 09:00 a 13:00 como en el cronograma.
+    pending,
     newVisit: (employeeId?: string) =>
       setCreating({
         employeeIds: employeeId ? [employeeId] : [],
