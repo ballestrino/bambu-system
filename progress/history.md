@@ -1912,3 +1912,36 @@
   claro y oscuro. Sin probar en pantalla: confirmar y rechazar desde la línea
   plegada y la barra, "Sacar la que se cruza" y "Pedir de nuevo".
 - Mergeada y pusheada a `main` con autorización del usuario (2026-11-23).
+
+## 2026-11-25 - Inicio con aviso de pendientes y vista Pendientes en Visitas (70)
+
+- Pedido del usuario: 274 visitas pendientes de registro (muchas mal
+  generadas por el cronograma) llenaban Inicio. Diseño: canvas "Inicio Bambú
+  — rediseño" (claude.ai/artifact/2yjdHg9g2vdP7cNHLnuAx9; Main, Pendientes,
+  Alerta-Estados y Movil).
+- Inicio (`components/ops/dashboard/`): un aviso en lugar de la lista
+  (total, antigüedad en cuatro tramos y link a `?vista=pendientes`; cuatro
+  estados: vencidas, solo de hoy, al día, error), números de hoy, semana,
+  cobrado y resultado del mes, agenda de la semana actual con línea de
+  "Ahora" y la acción que pide cada visita, Requiere atención (sin asignar,
+  cruces, rentabilidad, empleadas sin visitas) y Equipo hoy. Se quitaron
+  `dashboard-visits-panel`, `dashboard-metric-grid` y
+  `dashboard-profitability-alerts`.
+- Visitas › Pendientes (`components/ops/visits/pending/`): cuarta vista con
+  la cuenta en el selector; tarjetas para empezar, antigüedad, búsqueda y
+  equipo, lista agrupada por trabajo con "Elegir por día", "Contraer todo",
+  acciones de a una (registrar, asignar, omitir, cancelar, eliminar) y en
+  lote con `resolvePendingVisits` (asignar, registrar como hechas con el
+  horario programado, omitir, cancelar, eliminar = archivar para que el
+  cronograma no la regenere; todas o ninguna, hasta 500). Links de Inicio a
+  Visitas con `?vista=`, `?dia=` y `?visita=`.
+- Lógica pura en `lib/ops/pending-visits.ts`, `pending-visit-groups.ts` y
+  `home-week.ts`; servidor en `lib/ops/pending-visit-resolution.ts`.
+  Detalle en `docs/visits.md`.
+- PASS: tsc, `pnpm lint`, `init.ps1`, `next build`, check:pending-visits
+  (nuevo), check:visits-view, check:visit-day, check:occurrence-dialog,
+  check:ops-locale. Smoke en el Brave del usuario (copia feature-39-billing)
+  a 1440 y 390 px, claro y oscuro; "Marcar omitidas" y "Eliminar" probados
+  con una visita y restaurada. Sin probar en pantalla: asignar, registrar
+  como hechas y cancelar en lote.
+- Mergeada y pusheada a `main` con autorización del usuario (2026-11-25).
