@@ -80,6 +80,8 @@ model User {
   archivedInvoices                 Invoice[]                  @relation("InvoiceArchivedBy")
   invoiceDeliveries                InvoiceDelivery[]          @relation("InvoiceDeliveryCreatedBy")
   createdBillingReceiverJobs       BillingReceiverJob[]       @relation("BillingReceiverJobCreatedBy")
+  webFormReplies                   WebFormReply[]             @relation("WebFormReplySentBy")
+  handledWebForms                  WebFormSubmission[]        @relation("WebFormHandledBy")
 }
 
 model Account {
@@ -219,7 +221,7 @@ model BudgetOption {
   products_price      Float
   products_iva        Float
   // Costos puntuales con nombre: [{ name, amount }]. Suman al costo del servicio.
-  extras              Json      @default("[]")
+  extras              Json  @default("[]")
 
   // Revenues
   products_revenue_percent Float
@@ -1435,36 +1437,36 @@ model InvoiceBatch {
 // desde su panel); APP lo emite Bambú. La fuente de verdad de lo emitido es
 // Biller: la copia guarda lo necesario para el resumen y para repetirlo.
 model Invoice {
-  id               String        @id @default(cuid())
+  id               String            @id @default(cuid())
   origin           InvoiceOrigin
   status           InvoiceStatus
   // Código DGI: 101 e-Ticket, 111 e-Factura, 102/112 notas de crédito…
   cfeType          Int
   // Primer día del mes en UTC de issueDate (o del mes del borrador).
   period           DateTime
-  issueDate        DateTime?     @db.Date
-  dueDate          DateTime?     @db.Date
-  currency         String        @default("UYU")
+  issueDate        DateTime?         @db.Date
+  dueDate          DateTime?         @db.Date
+  currency         String            @default("UYU")
   // Lo que informa Biller como total del comprobante.
-  total            Decimal       @db.Decimal(14, 2)
+  total            Decimal           @db.Decimal(14, 2)
   // El cliente con la forma que pide emitir: { tipo_documento, documento,
   // razon_social, nombre_fantasia, sucursal: { direccion, ciudad, … } }.
   receiver         Json?
   receiverDocument String?
   // Ítems tal cual se mandan a Biller; null hasta leer el detalle.
   items            Json?
-  adenda           String?       @db.Text
+  adenda           String?           @db.Text
   // Título interno (feature 51): nombra a un consumidor final en Bambú y es
   // la clave de su trabajo. No va a Biller; la sincronización no lo toca.
-  label            String?       @db.VarChar(60)
+  label            String?           @db.VarChar(60)
   purchaseOrder    String?
   // numero_interno: Biller lo rechaza repetido.
-  internalNumber   String?       @unique
+  internalNumber   String?           @unique
   paymentForm      Int?
   // Días de crédito de una factura nueva del borrador (feature 45); las
   // repetidas los toman de la factura de origen.
   dueDays          Int?
-  billerId         Int?          @unique
+  billerId         Int?              @unique
   billerSucursal   Int?
   series           String?
   number           Int?
@@ -1473,30 +1475,30 @@ model Invoice {
   // [{ id, cfeType, series, number, issueDate }] y los ids de Biller a los que
   // apunta (una nota de crédito apunta a la factura que corrige).
   references       Json?
-  referenceIds     Int[]         @default([])
+  referenceIds     Int[]             @default([])
   // razon_referencia de una nota de crédito que emitió Bambú (feature 43).
   referenceReason  String?
   billerCreatedAt  DateTime?
   syncedAt         DateTime?
-  selected         Boolean       @default(true)
+  selected         Boolean           @default(true)
   sourceInvoiceId  String?
-  sourceInvoice    Invoice?      @relation("InvoiceRepeat", fields: [sourceInvoiceId], references: [id], onDelete: SetNull)
-  repeats          Invoice[]     @relation("InvoiceRepeat")
+  sourceInvoice    Invoice?          @relation("InvoiceRepeat", fields: [sourceInvoiceId], references: [id], onDelete: SetNull)
+  repeats          Invoice[]         @relation("InvoiceRepeat")
   batchId          String?
-  batch            InvoiceBatch? @relation(fields: [batchId], references: [id], onDelete: Cascade)
-  error            String?       @db.Text
+  batch            InvoiceBatch?     @relation(fields: [batchId], references: [id], onDelete: Cascade)
+  error            String?           @db.Text
   createdById      String?
-  createdBy        User?         @relation("InvoiceCreatedBy", fields: [createdById], references: [id], onDelete: SetNull)
+  createdBy        User?             @relation("InvoiceCreatedBy", fields: [createdById], references: [id], onDelete: SetNull)
   // Archivada (feature 47): sale de las listas y sigue en Biller y en el
   // resumen del mes. Solo una emitida; la sincronización no la toca.
   archivedAt       DateTime?
   archivedById     String?
-  archivedBy       User?         @relation("InvoiceArchivedBy", fields: [archivedById], references: [id], onDelete: SetNull)
+  archivedBy       User?             @relation("InvoiceArchivedBy", fields: [archivedById], references: [id], onDelete: SetNull)
   // A dónde se mandó (feature 53): correos enviados desde Bambú y lo que una
   // persona anotó (correo o WhatsApp). Solo Bambú: la sincronización no lo toca.
   deliveries       InvoiceDelivery[]
-  createdAt        DateTime      @default(now())
-  updatedAt        DateTime      @updatedAt
+  createdAt        DateTime          @default(now())
+  updatedAt        DateTime          @updatedAt
 
   // Una factura del mes pasado se repite una sola vez por mes.
   @@unique([sourceInvoiceId, period])
@@ -1561,4 +1563,84 @@ model BillingReceiverJob {
 
   @@index([jobId])
   @@index([createdById])
+}
+
+// Formularios de la web pública (feature 74, docs/web-forms.md). La web los
+// manda a /api/web-forms con un secreto compartido y el equipo los responde
+// desde /dashboard/web-forms por el SMTP de contacto@.
+enum WebFormKind {
+  CONTACT
+  JOB_APPLICATION
+}
+
+enum WebFormStatus {
+  NEW
+  REPLIED
+  ARCHIVED
+}
+
+model WebFormSubmission {
+  id          String             @id @default(cuid())
+  // Id que genera la web por envío: si reintenta, no se duplica.
+  externalId  String             @unique @db.VarChar(64)
+  kind        WebFormKind
+  status      WebFormStatus      @default(NEW)
+  name        String             @db.VarChar(120)
+  email       String             @db.VarChar(254)
+  phone       String             @db.VarChar(40)
+  service     String?            @db.VarChar(120)
+  location    String?            @db.VarChar(160)
+  message     String             @db.Text
+  fromTrebol  Boolean            @default(false)
+  // La primera vez que un admin lo abre.
+  readAt      DateTime?
+  // Quién lo pasó a respondido o archivado (también al responder).
+  handledById String?
+  handledBy   User?              @relation("WebFormHandledBy", fields: [handledById], references: [id], onDelete: SetNull)
+  handledAt   DateTime?
+  attachment  WebFormAttachment?
+  replies     WebFormReply[]
+  createdAt   DateTime           @default(now())
+  updatedAt   DateTime           @updatedAt
+
+  @@index([status, createdAt])
+  @@index([email])
+  @@index([handledById])
+}
+
+// El CV de "Trabajá con nosotros": PDF o Word de hasta 4 MB, en la base como
+// las imágenes del agente.
+model WebFormAttachment {
+  id           String            @id @default(cuid())
+  submissionId String            @unique
+  submission   WebFormSubmission @relation(fields: [submissionId], references: [id], onDelete: Cascade)
+  filename     String            @db.VarChar(200)
+  mimeType     String            @db.VarChar(120)
+  sizeBytes    Int
+  data         Bytes
+  createdAt    DateTime          @default(now())
+}
+
+// Una respuesta por correo. Se crea antes de mandar (requestId único: doble
+// clic o reintento no mandan dos veces) y sentAt se llena cuando el SMTP la
+// acepta; si falla, la fila se borra. Sin sentAt y vieja: no se sabe si salió.
+model WebFormReply {
+  id           String            @id @default(cuid())
+  submissionId String
+  submission   WebFormSubmission @relation(fields: [submissionId], references: [id], onDelete: Cascade)
+  requestId    String            @unique @db.VarChar(64)
+  fromAddress  String            @db.VarChar(254)
+  toAddress    String            @db.VarChar(254)
+  subject      String            @db.VarChar(200)
+  body         String            @db.Text
+  // Message-ID del SMTP y si la copia quedó en Enviados (IMAP).
+  messageId    String?           @db.VarChar(255)
+  savedToSent  Boolean           @default(false)
+  sentById     String?
+  sentBy       User?             @relation("WebFormReplySentBy", fields: [sentById], references: [id], onDelete: SetNull)
+  sentAt       DateTime?
+  createdAt    DateTime          @default(now())
+
+  @@index([submissionId, createdAt])
+  @@index([sentById])
 }

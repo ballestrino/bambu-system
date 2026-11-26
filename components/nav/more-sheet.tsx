@@ -18,6 +18,7 @@ import {
   SheetTitle,
   SheetTrigger,
 } from "@/components/ui/sheet";
+import { WebFormsNavBadge } from "@/components/web-forms/web-forms-nav-badge";
 import { cn } from "@/lib/utils";
 import type { ExtendedUser } from "@/next-auth";
 
@@ -74,6 +75,7 @@ export function MoreSheet({ children, user }: MoreSheetProps) {
                   >
                     <item.icon className="size-4 shrink-0" />
                     {item.title}
+                    {item.badge === "webForms" && <WebFormsNavBadge />}
                   </Link>
                 ))}
               </div>

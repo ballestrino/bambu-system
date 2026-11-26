@@ -2,6 +2,7 @@ import {
   BadgeDollarSign,
   Calculator,
   CalendarDays,
+  Inbox,
   LayoutDashboard,
   List,
   Sparkles,
@@ -17,6 +18,8 @@ export type DashboardNavItem = {
   url: string;
   icon: LucideIcon;
   match: (pathname: string) => boolean;
+  // Número a la derecha (los formularios web nuevos).
+  badge?: "webForms";
 };
 
 const budgetNavItems = [
@@ -66,6 +69,18 @@ export const dashboardNavGroups: { label: string; items: DashboardNavItem[] }[] 
   {
     label: "Precios",
     items: budgetNavItems,
+  },
+  {
+    label: "Web",
+    items: [
+      {
+        title: "Formularios",
+        url: "/dashboard/web-forms",
+        icon: Inbox,
+        badge: "webForms",
+        match: (pathname: string) => pathname.startsWith("/dashboard/web-forms"),
+      },
+    ],
   },
 ];
 

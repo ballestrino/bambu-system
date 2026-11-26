@@ -7,6 +7,7 @@
 export const publicRoutes = [
   "/public",
   "/api/cron/billing-sync", // Vercel cron; the route enforces its own CRON_SECRET.
+  "/api/web-forms", // The public website's forms; the route enforces WEB_FORMS_SECRET.
   // Email links: an email change and the reset from Configuración are asked
   // for while logged in, so these must open with or without a session.
   "/auth/new-password",

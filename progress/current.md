@@ -4,6 +4,24 @@ Status: active
 
 ## Active Feature
 
+- 74 `web_forms_inbox` (2026-11-26), `blocked` hasta la salida a producción:
+  formularios de bambu-servicios.com en `/dashboard/web-forms` y respuesta
+  por el SMTP de contacto@ (`docs/web-forms.md`). Rama
+  `feature/74-web-forms-inbox` (worktree `.claude/worktrees/web-forms`) y,
+  en el repo de la web, `feature/forms-to-system` (worktree
+  `bambu-servicios/.claude/worktrees/web-forms`). Sin commitear.
+  - Migración aditiva `20261126120000_web_forms`, sin aplicar en Neon.
+  - Verificado con Postgres en Docker (pgvector:pg16) y un SMTP falso local:
+    curl a la ruta (401 sin secreto, 201, repetido 200, archivo falso y sin
+    CV 400, CV sin sesión redirige), la web real en el 3074 mandando un
+    contacto y una postulación con CV de 2 MB (antes la web cortaba en 1 MB
+    y no mandaba el mensaje de la postulación), responder (correo con firma
+    y cita, estado Respondido, aviso de "sin copia en Enviados" con el IMAP
+    apagado), descargar el CV, archivar, y la vista a 1440 y 375 px.
+    `check:web-forms`, tsc y ESLint de lo tocado en los dos repos.
+  - Falta (decisión del usuario): aplicar la migración en producción,
+    `WEB_FORMS_SECRET` en los dos proyectos de Vercel, deploy, y una prueba
+    real de SMTP/IMAP de Hostinger respondiendo a un correo propio.
 - 70 `home_redesign_pending_visits`: mergeada a `main` y pusheada con
   autorización del usuario el 2026-11-25 (ver history). La 54 vuelve a
   `in_progress`.

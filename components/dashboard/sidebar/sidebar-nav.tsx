@@ -16,6 +16,7 @@ import {
   SidebarMenuItem,
   SidebarSeparator,
 } from "@/components/ui/sidebar";
+import { WebFormsNavBadge } from "@/components/web-forms/web-forms-nav-badge";
 
 const LABEL_CLASS =
   "px-3 text-[11px] font-semibold uppercase tracking-wider text-ops-text-muted";
@@ -53,6 +54,9 @@ export function SidebarNav({ onNavigate }: { onNavigate: () => void }) {
                       <Link href={item.url}>
                         <item.icon />
                         <span className="group-data-[collapsible=icon]:hidden">{item.title}</span>
+                        {item.badge === "webForms" && (
+                          <WebFormsNavBadge className="group-data-[collapsible=icon]:absolute group-data-[collapsible=icon]:-top-1 group-data-[collapsible=icon]:-right-1" />
+                        )}
                       </Link>
                     </SidebarMenuButton>
                   </SidebarMenuItem>

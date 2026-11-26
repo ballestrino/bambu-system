@@ -1166,6 +1166,23 @@
         "check:pending-visits, check:visits-view, tsc, lint y prueba en escritorio y celular"
       ],
       "status": "done"
+    },
+    {
+      "id": 74,
+      "name": "web_forms_inbox",
+      "title": "Formularios de la web pública en Bambú Gestión, con respuesta por correo",
+      "area": "web-forms",
+      "description": "Pedido del usuario (2026-11-26): recibir los formularios de bambu-servicios.com (pedido de servicio y Trabajá con nosotros) en una vista de admin y responderlos desde ahí con el correo que ya está configurado. La web los manda a POST /api/web-forms con WEB_FORMS_SECRET (y sigue mandando el aviso a contacto@, con el enlace); la pantalla /dashboard/web-forms los lista por estado, muestra el CV y responde por el SMTP de contacto@ en Hostinger, dejando la copia en Enviados. Ver docs/web-forms.md. La parte de la web está en el repositorio bambu-servicios, rama feature/forms-to-system.",
+      "acceptance": [
+        "La web manda cada formulario al sistema; si el sistema no responde, el correo a contacto@ sale igual",
+        "Reintentar el mismo envío no duplica; sin el secreto la ruta responde 401",
+        "El CV se acepta solo si es PDF o Word de hasta 4 MB y se descarga solo con sesión de admin",
+        "Nuevos, Respondidos y Archivados con su cuenta, filtro por tipo, búsqueda y número de nuevos en la barra",
+        "Responder manda desde contacto@, guarda la copia en Enviados, registra quién respondió y no manda dos veces con doble clic",
+        "Funciona a 1440 y 390 px",
+        "check:web-forms, tsc, lint, build y una prueba de punta a punta (web → sistema → respuesta)"
+      ],
+      "status": "blocked"
     }
   ]
 }

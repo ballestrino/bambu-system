@@ -30,6 +30,10 @@ occurrences, client payments, operational costs, settings, and AI chat.
   `app/api/agent/transcribe/` (dictation) are upload routes: a Server Action
   accepts 1 MB by default and cannot serve bytes. Both require an admin
   session and keep their logic in `lib/agent/` and `lib/ai/`.
+- `app/api/web-forms/` receives the public website's forms (an external
+  integration, authorized by `WEB_FORMS_SECRET`, public in `routes.ts`);
+  `app/api/web-forms/[id]/attachment/` serves the CV to admins. Logic in
+  `lib/web-forms/` (see `docs/web-forms.md`).
 
 ## Data Flow
 
