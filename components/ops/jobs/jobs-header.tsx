@@ -1,5 +1,8 @@
 "use client";
 
+import Link from "next/link";
+import { CalendarRange } from "lucide-react";
+
 import { ExportJobsButton } from "@/components/ops/jobs/export-jobs-button";
 import { JobFormDialog } from "@/components/ops/jobs/job-form-dialog";
 import { jobsOutlineButtonClass, jobsPrimaryButtonClass } from "@/components/ops/jobs/jobs-styles";
@@ -25,6 +28,10 @@ export const JobsHeader = ({
       </span>
     </div>
     <div className="flex flex-wrap items-center gap-2">
+      <Link className={`${jobsOutlineButtonClass} inline-flex items-center border`} href="/dashboard/jobs/rules">
+        <CalendarRange className="size-4" />
+        Reglas de calendario
+      </Link>
       <ExportJobsButton className={jobsOutlineButtonClass} filters={filters} jobIds={jobIds} />
       <JobFormDialog triggerClassName={jobsPrimaryButtonClass} />
     </div>

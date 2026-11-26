@@ -12,3 +12,4 @@ export * from "@/actions/ops/time-entries";
 export * from "@/actions/ops/occurrence-generation";
 export * from "@/actions/ops/jobs-status";
 export * from "@/actions/ops/pending-visits";
+export * from "@/actions/ops/schedule-rule-board";
