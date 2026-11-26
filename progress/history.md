@@ -1989,3 +1989,28 @@
   cancelar y eliminar. Se probó carga, error, reintento y estado al día.
 - Se verificó el resultado en Calendario y en la base. Un lote con una
   visita de otro trabajo fue rechazado y no modificó ninguna de las dos.
+
+## 2026-11-26 - Reglas de calendario de todos los servicios (73)
+
+- Diseño en Claude Design ("Reglas de calendario Bambu", escritorio y cinco
+  pantallas de celular), aprobado por el usuario para implementar.
+- `/dashboard/jobs/rules`, con botón en Trabajos: matriz trabajo × día (y
+  Mensual), avisos de cruces, vencidos y sin horario, filtros y búsqueda;
+  panel o hoja lateral para crear, editar ("El cambio corre desde" rehace
+  las visitas sin tocar) y limpiar visitas hacia adelante o hacia atrás con
+  tira de 16 semanas, ajuste opcional de la regla y Deshacer. Celular:
+  lista, semana, hoja de nuevo horario, horario y limpiar. Sin migración.
+- Decisiones propias a revisar con el usuario: el corte es por semana; se
+  borran (archivan) solo programadas sin horario real ni horas; al crear se
+  generan visitas hasta fin del mes siguiente; el panel va al costado desde
+  1320 px de página y si no, en hoja lateral.
+- Verificado: `check:schedule-rules-board` (nuevo), `check:pending-visits`,
+  `check:visits-view`, tsc, ESLint, `init.ps1`, `pnpm build`. Smoke
+  autenticado con Postgres 16 + pgvector en Docker (descartado al terminar)
+  y `scripts/smoke-schedule-rules-seed.ts`: limpiar hacia atrás (5
+  pendientes) y hacia adelante con ajuste (27), Deshacer (45 restauradas y
+  la fecha final vuelta a vacía), crear con generación (10 visitas), mover
+  una regla de lunes a martes (pasadas intactas, futuras rehechas en
+  martes), eliminar el horario y Deshacer; a 1440, 1700 y 375 px, sin
+  errores de consola ni desborde. Mergeada a `main` y pusheada con
+  autorización del usuario (2026-11-26). Sin prueba con datos reales.

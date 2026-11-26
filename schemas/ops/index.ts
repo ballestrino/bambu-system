@@ -15,3 +15,4 @@ export * from "@/schemas/ops/visit-feed";
 export * from "@/schemas/ops/profitability";
 export * from "@/schemas/ops/occurrence-generation";
 export * from "@/schemas/ops/pending-visits";
+export * from "@/schemas/ops/schedule-rule-board";

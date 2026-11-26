@@ -1168,6 +1168,22 @@
       "status": "done"
     },
     {
+      "id": 73,
+      "name": "schedule_rules_board",
+      "title": "Vista de reglas de calendario de todos los servicios",
+      "area": "ops",
+      "description": "Diseño de Claude Design \"Reglas de calendario Bambu\" (claude.ai/artifact/QVYrqQJes38ys2NKFV24KV; escritorio Main y celular Celular-*). Página /dashboard/jobs/rules: matriz con una fila por trabajo y una columna por día (más Mensual), con cada horario como bloque. Tocar un día vacío crea un horario y tocar uno lo edita. Filtros Todos / Sin horario / Con avisos y búsqueda; avisos de horarios que se cruzan, vencidos y trabajos sin horario. Panel con el resumen del trabajo, el formulario (frecuencia, intervalo, días, entra/sale, desde/hasta; al editar, desde qué fecha corre el cambio, que reemplaza las visitas sin tocar desde esa fecha; al crear, generar sus visitas) y Limpiar visitas: 16 semanas con las visitas de la regla, sentido hacia adelante o hacia atrás y semana de corte; archiva las programadas sin horario real ni horas, conserva el resto, opcionalmente termina la regla o mueve su inicio, y permite deshacer. En el celular: lista, semana del servicio, hoja de nuevo horario, horario y limpiar visitas.",
+      "acceptance": [
+        "La matriz muestra todos los trabajos en curso con sus reglas activas y los avisos",
+        "Crear, editar y archivar una regla desde la vista",
+        "Editar con \"El cambio corre desde\" reemplaza solo visitas sin tocar desde esa fecha",
+        "Limpiar visitas hacia adelante y hacia atrás archiva solo programadas sin horario real ni horas, todas o ninguna, y Deshacer las restaura junto con las fechas de la regla",
+        "Funciona a 1440 y 390 px",
+        "check:schedule-rules-board, tsc, lint y prueba en el navegador"
+      ],
+      "status": "done"
+    },
+    {
       "id": 74,
       "name": "web_forms_inbox",
       "title": "Formularios de la web pública en Bambú Gestión, con respuesta por correo",

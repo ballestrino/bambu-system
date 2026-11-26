@@ -47,7 +47,8 @@
     "check:visits-view": "tsx scripts/check-visits-view.ts",
     "start": "next start",
     "lint": "eslint",
-    "harness": "node scripts/harness-validate.mjs"
+    "harness": "node scripts/harness-validate.mjs",
+    "check:schedule-rules-board": "tsx scripts/check-schedule-rules-board.ts"
   },
   "dependencies": {
     "@ai-sdk/anthropic": "4.0.75",

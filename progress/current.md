@@ -9,7 +9,9 @@ Status: active
   por el SMTP de contacto@ (`docs/web-forms.md`). Rama
   `feature/74-web-forms-inbox` (worktree `.claude/worktrees/web-forms`) y,
   en el repo de la web, `feature/forms-to-system` (worktree
-  `bambu-servicios/.claude/worktrees/web-forms`). Sin commitear.
+  `bambu-servicios/.claude/worktrees/web-forms`). Mergeada a `main` sin
+  push el 2026-11-26 con autorización del usuario; la de la web, commiteada
+  en su rama y sin merge. La 74 porque la 73 la tomó `schedule_rules_board`.
   - Migración aditiva `20261126120000_web_forms`, sin aplicar en Neon.
   - Verificado con Postgres en Docker (pgvector:pg16) y un SMTP falso local:
     curl a la ruta (401 sin secreto, 201, repetido 200, archivo falso y sin
@@ -22,6 +24,8 @@ Status: active
   - Falta (decisión del usuario): aplicar la migración en producción,
     `WEB_FORMS_SECRET` en los dos proyectos de Vercel, deploy, y una prueba
     real de SMTP/IMAP de Hostinger respondiendo a un correo propio.
+- 73 `schedule_rules_board` (2026-11-26): mergeada a `main` y pusheada con
+  autorización del usuario. Ver history. La 54 vuelve a `in_progress`.
 - 70 `home_redesign_pending_visits`: mergeada a `main` y pusheada con
   autorización del usuario el 2026-11-25 (ver history). La 54 vuelve a
   `in_progress`.
@@ -145,6 +149,8 @@ Status: active
 
 ## Last Closed Work
 
+- 2026-11-26: vista de reglas de calendario de todos los servicios (73),
+  verificada con PostgreSQL local en Docker y datos ficticios. Ver history.
 - 2026-11-25: pendientes en el detalle del trabajo (72), verificada en la
   ruta real con PostgreSQL local y dos trabajos ficticios. Ver history.
 - 2026-11-25: actualización de datos autorizada en producción. Los 34
