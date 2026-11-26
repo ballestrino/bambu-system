@@ -12,7 +12,13 @@ Status: active
   `bambu-servicios/.claude/worktrees/web-forms`). Mergeada a `main` sin
   push el 2026-11-26 con autorización del usuario; la de la web, commiteada
   en su rama y sin merge. La 74 porque la 73 la tomó `schedule_rules_board`.
-  - Migración aditiva `20261126120000_web_forms`, sin aplicar en Neon.
+  - Migración aditiva `20261126120000_web_forms` aplicada en producción
+    (rama de Neon `production`, `br-sparkling-night-acqea90i`) el
+    2026-11-26 con autorización del usuario: una transacción y registrada
+    en `_prisma_migrations` con la checksum del archivo en CRLF, como las
+    anteriores. Verificado: 3 tablas, 2 enums, 11 índices, 4 claves
+    foráneas; 4 usuarios y 68 trabajos sin cambios. No está en la rama
+    `feature-39-billing` (la del `.env` local).
   - Verificado con Postgres en Docker (pgvector:pg16) y un SMTP falso local:
     curl a la ruta (401 sin secreto, 201, repetido 200, archivo falso y sin
     CV 400, CV sin sesión redirige), la web real en el 3074 mandando un
@@ -21,8 +27,8 @@ Status: active
     y cita, estado Respondido, aviso de "sin copia en Enviados" con el IMAP
     apagado), descargar el CV, archivar, y la vista a 1440 y 375 px.
     `check:web-forms`, tsc y ESLint de lo tocado en los dos repos.
-  - Falta (decisión del usuario): aplicar la migración en producción,
-    `WEB_FORMS_SECRET` en los dos proyectos de Vercel, deploy, y una prueba
+  - Falta (decisión del usuario): `WEB_FORMS_SECRET` en los dos proyectos
+    de Vercel, deploy (push de los dos repos), y una prueba
     real de SMTP/IMAP de Hostinger respondiendo a un correo propio.
 - 73 `schedule_rules_board` (2026-11-26): mergeada a `main` y pusheada con
   autorización del usuario. Ver history. La 54 vuelve a `in_progress`.
