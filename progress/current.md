@@ -4,6 +4,8 @@ Status: active
 
 ## Active Feature
 
+- 73 `schedule_rules_board` (2026-11-26): mergeada a `main` y pusheada con
+  autorización del usuario. Ver history. La 54 vuelve a `in_progress`.
 - 70 `home_redesign_pending_visits`: mergeada a `main` y pusheada con
   autorización del usuario el 2026-11-25 (ver history). La 54 vuelve a
   `in_progress`.
@@ -127,6 +129,8 @@ Status: active
 
 ## Last Closed Work
 
+- 2026-11-26: vista de reglas de calendario de todos los servicios (73),
+  verificada con PostgreSQL local en Docker y datos ficticios. Ver history.
 - 2026-11-25: pendientes en el detalle del trabajo (72), verificada en la
   ruta real con PostgreSQL local y dos trabajos ficticios. Ver history.
 - 2026-11-25: actualización de datos autorizada en producción. Los 34

@@ -96,3 +96,33 @@ modales del escritorio no se abren de más (`visits-page.tsx`).
 estados y armado de la página). El Cronograma conserva `check:schedule*`.
 `pnpm check:pending-visits` cubre pendientes, sus grupos y lo que Inicio
 dice de hoy y de la semana.
+
+## Reglas de calendario
+
+Página `/dashboard/jobs/rules` (feature 73, diseño de Claude Design "Reglas
+de calendario Bambu"), con el botón "Reglas de calendario" en Trabajos.
+Código en `components/ops/schedule-rules/`.
+
+- Matriz: una fila por trabajo en curso (no archivado ni completado, en curso
+  o con reglas activas), una columna por día y una "Mensual". Cada regla
+  activa es un bloque; un día vacío crea un horario y un bloque lo abre.
+- Avisos (`schedule-rules-model.ts`): sin horario, dos reglas vigentes que se
+  cruzan el mismo día y horario vencido. Filtros Todos / Sin horario / Con
+  avisos y búsqueda por nombre o dirección.
+- Panel: al costado desde 1320 px de ancho de la página; más angosto, hoja
+  lateral no modal (la matriz y el "Deshacer" siguen tocables). Menos de
+  896 px: diseño de celular (lista, semana del servicio, hoja de nuevo
+  horario, horario y limpiar).
+- Crear puede generar las visitas hasta fin del mes siguiente. Editar con
+  "El cambio corre desde" rehace las visitas sin tocar desde esa fecha (o
+  hoy) hasta la semana de la última visita que ya tenía
+  (`lib/ops/schedule-rule-apply.ts`); no genera más allá.
+- Limpiar visitas (`lib/ops/schedule-rule-cleanup.ts`): hacia adelante desde
+  el lunes de la semana de corte o hacia atrás hasta su domingo. Archiva, en
+  una transacción, solo las programadas sin horario real ni horas; las
+  cuentas usan todas las visitas de la regla, también las que no entran en
+  la tira de 16 semanas. Opcional: terminar la regla el día anterior o
+  moverle el inicio al día siguiente. "Deshacer" las desarchiva y devuelve
+  las fechas. "Eliminar el horario" limpia desde hoy y desactiva la regla.
+- `pnpm check:schedule-rules-board`. Datos de prueba para un Postgres local:
+  `scripts/smoke-schedule-rules-seed.ts`.
