@@ -18,7 +18,14 @@ Status: active
     en `_prisma_migrations` con la checksum del archivo en CRLF, como las
     anteriores. Verificado: 3 tablas, 2 enums, 11 índices, 4 claves
     foráneas; 4 usuarios y 68 trabajos sin cambios. No está en la rama
-    `feature-39-billing` (la del `.env` local).
+    `feature-39-billing`.
+  - Importados a producción (2026-11-26, pedido del usuario) los 5 avisos
+    "Petición de servicio Web" de la bandeja de entrada de contacto@ (17 al
+    25/11) como Nuevos, con su fecha original y `externalId` `mail-<hash del
+    Message-ID>` (repetir no duplica; verificado). IMAP en solo lectura.
+    Quedaron afuera, por decisión del usuario, las carpetas Solicitudes de
+    presupuesto (ya respondidas) y Trabaja con nosotros (1063 postulaciones
+    y 70 pedidos de trabajo por el formulario de servicio).
   - Verificado con Postgres en Docker (pgvector:pg16) y un SMTP falso local:
     curl a la ruta (401 sin secreto, 201, repetido 200, archivo falso y sin
     CV 400, CV sin sesión redirige), la web real en el 3074 mandando un
