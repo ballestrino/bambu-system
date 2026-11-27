@@ -20,6 +20,8 @@ export type AgentToolContext = {
   billingMonth: string | null;
   // El formulario de Nueva factura, si el turno viene de ahí (feature 46).
   invoiceForm: InvoiceFormContext | null;
+  // El formulario web que se mira en Formularios (feature 75), o null.
+  webFormId: string | null;
   grounding: Grounding;
   usage: AgentUsageCollector;
   // Las instrucciones del equipo y la memoria del turno: draftEmail redacta

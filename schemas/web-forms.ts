@@ -1,5 +1,7 @@
 import { z } from "zod";
 
+import { replyDocSchema, replyDocToText } from "@/lib/web-forms/reply-doc";
+
 // Formularios de la web pública (feature 74). La web manda multipart con estos
 // campos; el CV va aparte (ver lib/web-forms/file-type.ts).
 const trimmed = (max: number, message: string) => z.string().trim().min(1, message).max(max, message);
@@ -54,13 +56,29 @@ export const replyWebFormSchema = z.object({
   id: webFormIdSchema,
   requestId: z.string().regex(/^[A-Za-z0-9_-]{8,64}$/, "Pedido inválido"),
   subject: z.string().trim().min(1, "Escribí un asunto").max(200, "El asunto puede tener hasta 200 caracteres"),
-  body: z
-    .string()
-    .trim()
-    .min(2, "Escribí la respuesta")
-    .max(10000, "La respuesta puede tener hasta 10.000 caracteres"),
+  // El mensaje con formato (lib/web-forms/reply-doc.ts); el largo se mide en
+  // su texto.
+  content: replyDocSchema.superRefine((doc, ctx) => {
+    const length = replyDocToText(doc).trim().length;
+    if (length < 2) ctx.addIssue({ code: "custom", message: "Escribí la respuesta" });
+    if (length > 10000) ctx.addIssue({ code: "custom", message: "La respuesta puede tener hasta 10.000 caracteres" });
+  }),
   // Cita el mensaje original al final del correo.
   quoteOriginal: z.boolean().default(true),
+  // Agrega "Saludos," antes de los datos de la empresa.
+  includeClosing: z.boolean().default(true),
 });
 
 export type ReplyWebFormInput = z.input<typeof replyWebFormSchema>;
+
+export const setWebFormKindSchema = z.object({
+  id: webFormIdSchema,
+  kind: z.enum(["CONTACT", "JOB_APPLICATION"]),
+});
+
+export type SetWebFormKindInput = z.infer<typeof setWebFormKindSchema>;
+
+// Qué avisos de la Bandeja de entrada de contacto@ se mueven a su carpeta.
+export const sortWebFormMailSchema = z.object({ kind: z.enum(["CONTACT", "JOB_APPLICATION"]) });
+
+export type SortWebFormMailInput = z.infer<typeof sortWebFormMailSchema>;

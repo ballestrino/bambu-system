@@ -53,6 +53,8 @@ const formatInlineEmailHtml = (content: string) =>
         .replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2">$1</a>')
         .replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>")
         .replace(/__(.*?)__/g, "<strong>$1</strong>")
+        // *cursiva* (después de la negrita, que ya sacó los dobles).
+        .replace(/\*([^*\s][^*]*?)\*/g, "<em>$1</em>")
         .replace(/`([^`]+)`/g, "<code>$1</code>");
 
 const formatEmailBlockHtml = (block: string) => {

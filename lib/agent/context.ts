@@ -19,6 +19,7 @@ import {
 } from "@/lib/billing/new-invoice-agent-context";
 import { db } from "@/lib/db";
 import { formatBudgetForAI } from "@/lib/format-budget";
+import { formatWebFormContext } from "@/lib/web-forms/agent-context";
 import type { AgentBudgetContextInput } from "@/schemas/agent";
 import { defaultBudgetValues, type BudgetFormValues } from "@/schemas/BudgetSchema";
 
@@ -34,13 +35,15 @@ const FALLBACK_INDICATOR = 3;
 // turno. Formulario: los valores sin guardar que manda el cliente. Los
 // importes del contexto se pueden citar, igual que los de una tool.
 export type ResolvedBudgetContext = {
-  kind: "saved" | "form" | "billing" | null;
+  kind: "saved" | "form" | "billing" | "web-form" | null;
   budgetId: string | null;
   formValues: BudgetFormValues | null;
   // El mes que se mira en Facturación (AAAA-MM): las tools de facturación lo
   // usan cuando el pedido no dice otro.
   billingMonth: string | null;
   invoiceForm: InvoiceFormContext | null;
+  // El formulario web en contexto (fillWebFormReply escribe su respuesta).
+  webFormId: string | null;
   text: string | null;
   amounts: number[];
 };
@@ -51,6 +54,7 @@ const NO_CONTEXT: ResolvedBudgetContext = {
   formValues: null,
   billingMonth: null,
   invoiceForm: null,
+  webFormId: null,
   text: null,
   amounts: [],
 };
@@ -81,6 +85,16 @@ export const resolveBudgetContext = async (
       invoiceForm: { current: form, today },
       text: formatNewInvoiceContext(form, today, formatMonthLabel(input.month)),
       amounts: getNewInvoiceFormAmounts(form),
+    };
+  }
+
+  // Formularios web (feature 75): el que se mira, leído en cada turno.
+  if (input.kind === "web-form") {
+    return {
+      ...NO_CONTEXT,
+      kind: "web-form",
+      webFormId: input.submissionId,
+      text: await formatWebFormContext(input.submissionId),
     };
   }
 

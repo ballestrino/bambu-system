@@ -48,6 +48,13 @@ este documento describe lo que ya existe y se actualiza con cada feature.
 - Memoria (feature 34): el agente propone recordar un dato o una preferencia,
   un admin lo confirma en la tarjeta y entra al prompt de todos los turnos.
   Se edita, se vence y se elimina en `/dashboard/memory` (ver "Memoria").
+- Formularios web (feature 75): el mismo panel flotante de Facturación en
+  `/dashboard/web-forms`, con la habilidad General, el historial de todas
+  las conversaciones y el formulario elegido como contexto
+  (`{ kind: "web-form", submissionId }`, `contextKind` `web-form`). Elegir
+  otro formulario arranca otra conversación. `fillWebFormReply` escribe la
+  respuesta en el campo Mensaje (solo con un formulario en contexto; valida
+  importes como `draftEmail`; ver `docs/web-forms.md`).
 - Facturación (feature 42): la habilidad Facturación en el panel de
   `/dashboard/billing`, con su historial, lee el resumen y las facturas del
   mes y arma o cambia el borrador con `draftInvoices`. Nunca emite: lo

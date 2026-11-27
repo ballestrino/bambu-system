@@ -12,6 +12,7 @@ import { AgentOfficialBudgetCard, AgentOfficialSearchCard } from "@/components/a
 import { AgentPayrollCard } from "@/components/agent/cards/agent-payroll-card";
 import { AgentProfitabilityCard } from "@/components/agent/cards/agent-profitability-card";
 import { AgentProposalCard } from "@/components/agent/cards/agent-proposal-card";
+import { AgentWebFormReplyCard } from "@/components/agent/cards/agent-web-form-reply-card";
 import type { AgentToolData, AgentToolName, ListCardData } from "@/components/agent/types";
 
 // La tarjeta de una salida de tool según su discriminador `card`. Los datos
@@ -52,6 +53,8 @@ export function AgentToolCard({ data, toolCallId }: { data: AgentToolData<AgentT
       return <AgentCreditNoteCard data={data} />;
     case "invoice-form":
       return <AgentInvoiceFormCard data={data} />;
+    case "web-form-reply":
+      return <AgentWebFormReplyCard data={data} />;
     case "list":
       return <AgentListCard data={data as ListCardData} />;
     default:

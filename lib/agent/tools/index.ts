@@ -4,6 +4,7 @@ import { createBillingTools } from "@/lib/agent/tools/billing";
 import { createBillingCorrectionTools } from "@/lib/agent/tools/billing-corrections";
 import { createBillingDraftTools } from "@/lib/agent/tools/billing-draft";
 import { createInvoiceFormTools } from "@/lib/agent/tools/billing-invoice-form";
+import { createWebFormReplyTools } from "@/lib/agent/tools/web-form-reply";
 import { createBudgetRequestTools } from "@/lib/agent/tools/budget-requests";
 import { createBudgetTools } from "@/lib/agent/tools/budgets";
 import { createBusinessTools } from "@/lib/agent/tools/business";
@@ -50,6 +51,7 @@ export const createAgentTools = (ctx: AgentToolContext) => compactToolSchemas({
   ...createBillingDraftTools(ctx),
   ...createBillingCorrectionTools(ctx),
   ...createInvoiceFormTools(ctx),
+  ...createWebFormReplyTools(ctx),
 });
 
 export type AgentTools = ReturnType<typeof createAgentTools>;

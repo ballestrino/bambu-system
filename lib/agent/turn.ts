@@ -61,6 +61,7 @@ export const prepareAgentTurn = async (actor: AgentActor, request: AgentChatRequ
   });
   if (attachmentError) return { ok: false, error: attachmentError, status: 409 } as const;
   const budgetContext = await resolveBudgetContext(request.context);
+  const pageContext = budgetContext.kind === "billing" || budgetContext.kind === "web-form";
 
   const conversation = await claimAgentConversation({
     id: request.id,
@@ -111,8 +112,9 @@ export const prepareAgentTurn = async (actor: AgentActor, request: AgentChatRequ
       today: formatToday(),
       actorName: actor.name,
       skill: getAgentSkill(request.skill),
-      budgetContextText: budgetContext.kind === "billing" ? null : budgetContext.text,
-      billingContextText: budgetContext.kind === "billing" ? budgetContext.text : null,
+      // Facturación y Formularios web reemplazan el bloque del presupuesto.
+      budgetContextText: pageContext ? null : budgetContext.text,
+      billingContextText: pageContext ? budgetContext.text : null,
       memoryBlock,
       teamBlock,
       proposals,

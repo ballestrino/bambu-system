@@ -1199,6 +1199,24 @@
         "check:web-forms, tsc, lint, build y una prueba de punta a punta (web → sistema → respuesta)"
       ],
       "status": "blocked"
+    },
+    {
+      "id": 75,
+      "name": "web_forms_workspace",
+      "title": "Formularios web: pestañas, respuesta con formato, ordenar con Haiku y el buzón, y agente lateral",
+      "area": "web-forms",
+      "description": "Pedido del usuario (2026-11-27), sobre la 74: casilla \"Incluir saludo al final\" recordada en el navegador; el mensaje con negrita, cursiva y tamaño; dos pestañas (Pedidos de servicio y Currículums); \"Detectar currículums\" con Haiku y botones para mover los avisos de la Bandeja de entrada de contacto@ a las carpetas Solicitudes de presupuesto y Trabaja con nosotros (IMAP); asunto \"Petición de servicio de limpieza <servicio> - Bambú Servicios Integrales\"; el agente en un panel lateral estilo Facturación pero con todas las tools y todo el historial, el formulario como contexto y una conversación nueva por formulario; lista con scroll propio y el detalle pegado arriba. Ver docs/web-forms.md.",
+      "acceptance": [
+        "Incluir saludo al final se recuerda en el navegador y saca solo el \"Saludos,\"",
+        "El mensaje sale con negrita, cursiva y tamaño, con el texto escapado",
+        "Pestañas Pedidos de servicio y Currículums con sus nuevos",
+        "Detectar currículums pasa a Currículums los pedidos que son postulaciones; se puede corregir a mano",
+        "Mover lleva los avisos de la Bandeja de entrada a su carpeta según el tipo del formulario",
+        "El agente lateral tiene todas las tools, el historial completo y el formulario como contexto; elegir otro formulario arranca otra conversación",
+        "La lista tiene scroll propio y el detalle queda pegado arriba en escritorio; funciona a 1440 y 375 px",
+        "check:web-forms, tsc, lint, prueba en el navegador y una prueba real de Haiku e IMAP"
+      ],
+      "status": "blocked"
     }
   ]
 }

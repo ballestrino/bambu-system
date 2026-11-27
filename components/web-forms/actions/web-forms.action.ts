@@ -5,8 +5,15 @@ import {
   replyWebForm,
   setWebFormStatus,
 } from "@/actions/web-forms/web-forms";
+import { detectCurriculums, moveWebFormMail, setWebFormKind } from "@/actions/web-forms/web-forms-sorting";
 import ValidationError from "@/instances/validation-error";
-import type { ListWebFormsInput, ReplyWebFormInput, SetWebFormStatusInput } from "@/schemas/web-forms";
+import type {
+  ListWebFormsInput,
+  ReplyWebFormInput,
+  SetWebFormKindInput,
+  SetWebFormStatusInput,
+  SortWebFormMailInput,
+} from "@/schemas/web-forms";
 
 // Formularios web con TanStack Query: un { error } se lanza como
 // ValidationError para que la query o la mutación lo muestren.
@@ -27,3 +34,9 @@ export const setWebFormStatusAction = async (input: SetWebFormStatusInput) =>
   unwrap(await setWebFormStatus(input)).success;
 
 export const replyWebFormAction = async (input: ReplyWebFormInput) => unwrap(await replyWebForm(input));
+
+export const setWebFormKindAction = async (input: SetWebFormKindInput) => unwrap(await setWebFormKind(input)).success;
+
+export const detectCurriculumsAction = async () => unwrap(await detectCurriculums());
+
+export const moveWebFormMailAction = async (input: SortWebFormMailInput) => unwrap(await moveWebFormMail(input));

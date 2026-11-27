@@ -1,19 +1,33 @@
 "use client";
 
-import { Archive, ArchiveRestore, CheckCheck, Undo2 } from "lucide-react";
+import { Archive, ArchiveRestore, ArrowLeftRight, CheckCheck, Undo2 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { useWebFormMutations } from "@/components/web-forms/hooks/use-web-forms";
+import type { WebFormKindValue } from "@/lib/web-forms/reply-text";
 
 type Status = "NEW" | "REPLIED" | "ARCHIVED";
 
 // "Marcar respondido" sirve cuando se contestó por teléfono o WhatsApp.
 // Desarchivar vuelve a Respondidos si ya tenía respuesta, si no a Nuevos.
-export function WebFormStatusActions({ id, status, hasReplies }: { id: string; status: Status; hasReplies: boolean }) {
-  const { setStatus } = useWebFormMutations();
+// Pasar de pestaña corrige un pedido que era un currículum (o al revés, si
+// Detectar currículums se equivocó).
+export function WebFormStatusActions({
+  id,
+  kind,
+  status,
+  hasReplies,
+}: {
+  id: string;
+  kind: WebFormKindValue;
+  status: Status;
+  hasReplies: boolean;
+}) {
+  const { setStatus, setKind } = useWebFormMutations();
   const change = (next: Status) => setStatus.mutate({ id, status: next });
-  const busy = setStatus.isPending;
+  const busy = setStatus.isPending || setKind.isPending;
   const buttonClass = "min-h-11 sm:min-h-9";
+  const otherKind: WebFormKindValue = kind === "CONTACT" ? "JOB_APPLICATION" : "CONTACT";
 
   return (
     <div className="flex shrink-0 flex-wrap gap-2">
@@ -36,6 +50,10 @@ export function WebFormStatusActions({ id, status, hasReplies }: { id: string; s
           <Archive className="size-4" aria-hidden /> Archivar
         </Button>
       )}
+      <Button variant="ghost" className={buttonClass} disabled={busy} onClick={() => setKind.mutate({ id, kind: otherKind })}>
+        <ArrowLeftRight className="size-4" aria-hidden />
+        {otherKind === "JOB_APPLICATION" ? "Es un currículum" : "Es un pedido de servicio"}
+      </Button>
     </div>
   );
 }

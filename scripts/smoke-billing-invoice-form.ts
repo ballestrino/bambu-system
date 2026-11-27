@@ -46,7 +46,7 @@ const run = async () => {
 
     const ctx: AgentToolContext = {
       actorId: "smoke", conversationId: "smoke", mode: "alto", budgetId: null, formValues: null, billingMonth: "2026-11",
-      invoiceForm: context.invoiceForm, grounding: createGrounding(), usage: createUsageCollector(), teamContext: null,
+      invoiceForm: context.invoiceForm, webFormId: null, grounding: createGrounding(), usage: createUsageCollector(), teamContext: null,
     };
     const tools = createInvoiceFormTools(ctx);
 

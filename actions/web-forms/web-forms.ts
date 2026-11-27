@@ -62,7 +62,7 @@ const STATUS_MESSAGES = {
   ARCHIVED: "Archivado",
 } as const;
 
-export const setWebFormStatus = async (input: unknown) => {
+export const setWebFormStatus = async (input: unknown): Promise<{ success: string } | { error: string }> => {
   try {
     const session = await requireAdminSession();
     const parsed = setWebFormStatusSchema.safeParse(input);
@@ -81,7 +81,13 @@ export const replyWebForm = async (input: unknown) => {
   try {
     const session = await requireAdminSession();
     const parsed = replyWebFormSchema.safeParse(input);
-    if (!parsed.success) return { error: parsed.error.issues[0]?.message ?? "Respuesta inválida" };
+    if (!parsed.success) {
+      const issue = parsed.error.issues[0];
+      // Los mensajes propios (vacío, largo) son "custom"; el resto del
+      // documento es un formato que el servidor no reconoce.
+      const badFormat = issue?.path[0] === "content" && issue.code !== "custom";
+      return { error: badFormat ? "No se pudo leer el formato del mensaje. Probá sacarle el formato." : issue?.message ?? "Respuesta inválida" };
+    }
     return await sendWebFormReply(parsed.data, session.user.id);
   } catch (error) {
     return toError(error, "No se pudo mandar la respuesta");

@@ -5,6 +5,7 @@ import { FileText, MoreHorizontal, Sparkles } from "lucide-react";
 import { AgentConversationMenu, type ConversationActionHandler } from "@/components/agent/agent-conversation-menu";
 import type { AgentConversationItem } from "@/components/agent/types";
 import { conversationActivity, formatConversationTime } from "@/lib/agent/conversation-groups";
+import { pageContextLabel } from "@/lib/agent/conversation-scope";
 import { formatAgentModeLabel } from "@/lib/ai/modes";
 import { formatUsd } from "@/lib/ai/pricing";
 import { cn } from "@/lib/utils";
@@ -32,7 +33,7 @@ export function ConversationSubtitle({
   return (
     <span className={cn("flex min-w-0 items-center gap-1", className)}>
       <Icon className="size-3 shrink-0" aria-hidden />
-      <span className="min-w-0 truncate">{conversation.budget?.name ?? "Sin presupuesto"}</span>
+      <span className="min-w-0 truncate">{conversation.budget?.name ?? pageContextLabel(null, conversation.contextKind)}</span>
     </span>
   );
 }

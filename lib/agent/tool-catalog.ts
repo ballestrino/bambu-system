@@ -49,6 +49,7 @@ export const AGENT_TOOL_CATALOG = {
   suggestReceiverJobs: { label: "Sugiere el trabajo de cada cliente", kind: "read" },
   findBillingClient: { label: "Busca un cliente en las facturas", kind: "read" },
   fillInvoiceForm: { label: "Completa la factura", kind: "draft" },
+  fillWebFormReply: { label: "Escribe la respuesta del formulario", kind: "draft" },
 } as const satisfies Record<string, { label: string; kind: AgentToolKind }>;
 
 export type AgentToolName = keyof typeof AGENT_TOOL_CATALOG;

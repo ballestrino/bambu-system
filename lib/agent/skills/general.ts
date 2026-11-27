@@ -2,10 +2,12 @@ import type { AgentSkill } from "@/lib/agent/skills/types";
 import { AGENT_TOOL_NAMES } from "@/lib/agent/tool-catalog";
 
 // Sin chip seleccionado: todas las tools salvo las de Nueva factura, que solo
-// sirven con su formulario abierto (sus definiciones van en cada paso), y una
-// sugerencia de cada habilidad.
+// sirven con su formulario abierto (sus definiciones van en cada paso), y la
+// de Formularios web, que se suma cuando el turno trae un formulario
+// (run.ts). Una sugerencia de cada habilidad.
 export const INVOICE_FORM_ONLY_TOOLS = ["fillInvoiceForm", "findBillingClient"] as const;
-const invoiceFormOnly = new Set<string>(INVOICE_FORM_ONLY_TOOLS);
+export const WEB_FORM_ONLY_TOOLS = ["fillWebFormReply"] as const;
+const invoiceFormOnly = new Set<string>([...INVOICE_FORM_ONLY_TOOLS, ...WEB_FORM_ONLY_TOOLS]);
 
 export const generalSkill: AgentSkill = {
   id: "general",

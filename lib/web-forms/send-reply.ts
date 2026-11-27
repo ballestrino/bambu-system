@@ -5,9 +5,17 @@ import { Prisma } from "@prisma/client";
 import { db } from "@/lib/db";
 import { resolveSmtpAccount, WEB_FORMS_SENDER_NAME } from "@/lib/mailbox/smtp-account";
 import { sendSmtpMail } from "@/lib/mailbox/smtp-send";
+import { replyDocToText, type ReplyDoc } from "@/lib/web-forms/reply-doc";
 import { buildReplyHtml, buildReplyText } from "@/lib/web-forms/reply-text";
 
-type ReplyInput = { id: string; requestId: string; subject: string; body: string; quoteOriginal: boolean };
+type ReplyInput = {
+  id: string;
+  requestId: string;
+  subject: string;
+  content: ReplyDoc;
+  quoteOriginal: boolean;
+  includeClosing: boolean;
+};
 
 export type ReplyOutcome = { success: string; savedToSent?: boolean } | { error: string };
 
@@ -45,6 +53,8 @@ export const sendWebFormReply = async (input: ReplyInput, actorId: string): Prom
   });
   if (!submission) return { error: "Ese formulario ya no existe" };
 
+  // En la base queda el texto (historial y agente); el formato va en el correo.
+  const body = replyDocToText(input.content).trim();
   let replyId: string;
   try {
     const reserved = await db.webFormReply.create({
@@ -54,7 +64,7 @@ export const sendWebFormReply = async (input: ReplyInput, actorId: string): Prom
         fromAddress: smtp.account.fromAddress,
         toAddress: submission.email,
         subject: input.subject,
-        body: input.body,
+        body,
         sentById: actorId,
       },
       select: { id: true },
@@ -77,8 +87,8 @@ export const sendWebFormReply = async (input: ReplyInput, actorId: string): Prom
       fromName: WEB_FORMS_SENDER_NAME,
       to: submission.email,
       subject: input.subject,
-      text: buildReplyText(input.body, quote),
-      html: buildReplyHtml(input.body, quote),
+      text: buildReplyText(body, quote, input.includeClosing),
+      html: buildReplyHtml(input.content, quote, input.includeClosing),
     });
   } catch (error) {
     console.error("Error al responder un formulario web:", error);
