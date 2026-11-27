@@ -4,6 +4,46 @@ Status: active
 
 ## Active Feature
 
+- 75 `web_forms_workspace` (2026-11-27), `blocked` hasta probarla con datos
+  reales: ajustes a Formularios pedidos por el usuario (`docs/web-forms.md`,
+  "Pantalla", "Ordenar" y "Agente"). Rama `feature/75-web-forms-workspace`,
+  sin commit todavía. Sin migración.
+  - Hecho: casilla "Incluir saludo al final" (localStorage), mensaje con
+    formato (Tiptap; el servidor valida el documento y arma el HTML),
+    asunto con el servicio pedido, pestañas Pedidos de servicio /
+    Currículums, "Es un currículum" a mano, "Detectar currículums" (Haiku),
+    mover avisos del IMAP de contacto@ a Solicitudes de presupuesto / Trabaja
+    con nosotros, agente lateral (panel de Facturación extraído a
+    `components/agent/agent-floating-panel.tsx`) con habilidad General,
+    historial completo, contexto `web-form` y conversación nueva por
+    formulario; lista con scroll propio y detalle pegado arriba.
+  - 2026-11-27 (2): listas con viñetas y numeradas en el mensaje, pegar
+    con formato lo copiado del agente ("Copiar como email" con cursiva) y
+    Markdown, y `fillWebFormReply` para que el agente deje la respuesta en
+    el campo Mensaje. Probado con `next start` en el 3005 contra Postgres
+    en Docker y SMTP falso: botones de lista, pegado de HTML y de Markdown,
+    envío con listas en el HTML. Corregido en la prueba: los botones le
+    sacaban el foco al editor y los attrs de la lista numerada no viajaban
+    en la Server Action (ahora va JSON plano). Sin probar: el agente
+    llamando a fillWebFormReply (la clave local da 401).
+  - Dependencias nuevas: `@tiptap/react`, `@tiptap/pm`,
+    `@tiptap/starter-kit`, `@tiptap/extension-text-style`.
+  - Verificado: tsc, ESLint de lo tocado, `check:web-forms` (ampliado),
+    `check:agent-page`, `check:agent-tools`, `check:billing`,
+    `check:agent-proposals`, `check:agent-memory`,
+    `check:agent-instructions`, `check:agent-attachments`, `init.ps1` y
+    `pnpm build`. Smoke en
+    Postgres 16 + pgvector en Docker con `scripts/smoke-web-forms-seed.ts`
+    y un SMTP falso local: respuesta con negrita, cursiva, tamaño y texto
+    escapado en el HTML; casillas; pestañas y "Es un currículum" (la pestaña
+    sigue al formulario y el asunto cambia); panel del agente (turno con
+    contexto `web-form` y 37 tools, conversación nueva al cambiar de
+    formulario, historial completo); errores claros de Detectar (sin clave)
+    y Mover (IMAP apuntado a localhost); 1440 y 375 px.
+  - Falta: Haiku de verdad (la clave local da 401) y mover en el IMAP real
+    de Hostinger (no se tocó el buzón real). `check:agent-sheet` falla
+    también en `main` (falta `components/budgets/create-budget/Header.tsx`),
+    fuera de alcance.
 - 74 `web_forms_inbox` (2026-11-26), `blocked` hasta la salida a producción:
   formularios de bambu-servicios.com en `/dashboard/web-forms` y respuesta
   por el SMTP de contacto@ (`docs/web-forms.md`). Rama

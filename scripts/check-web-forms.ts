@@ -5,12 +5,17 @@ import { resolveSmtpAccount } from "../lib/mailbox/smtp-account";
 import { checkCvFile, detectCvType, sanitizeCvFilename, WEB_FORM_MAX_FILE_BYTES } from "../lib/web-forms/file-type";
 import { getWebFormsSecret, isWebFormsRequestAuthorized } from "../lib/web-forms/inbound-secret";
 import { toWhatsAppNumber } from "../lib/web-forms/labels";
+import { buildCvClassificationPrompt, pickCvIds } from "../lib/web-forms/cv-classification";
+import { findFolderPath, noticeKindFromSubject, planMailSort, WEB_FORM_MAIL_FOLDERS } from "../lib/web-forms/mail-sorting";
+import { replyDocSchema, replyDocToHtml, replyDocToText, textToReplyDoc } from "../lib/web-forms/reply-doc";
+import { agentBudgetContextSchema } from "../schemas/agent";
+import "./web-forms-format-checks";
 import { buildReplyHtml, buildReplyText, defaultReplyBody, defaultReplySubject } from "../lib/web-forms/reply-text";
 import { publicRoutes } from "../routes";
 import { replyWebFormSchema, webFormInboundSchema } from "../schemas/web-forms";
 
-// Formularios web (feature 74): entrada de la web, CV, secreto, SMTP y texto
-// de la respuesta. Sin base ni red.
+// Formularios web (features 74 y 75): entrada de la web, CV, secreto, SMTP,
+// respuesta con formato, Detectar currículums y mover avisos. Sin base ni red.
 
 // --- El secreto: sin variable o corto no autoriza nada; compara exacto.
 const secret = "x".repeat(40);
@@ -90,10 +95,89 @@ assert.ok(text.includes("Bambú Servicios Integrales"));
 assert.ok(text.includes("> <script>x</script>"));
 assert.ok(text.includes("11:52"), "la fecha va en hora de Montevideo");
 assert.ok(!buildReplyText("Hola", null).includes(">"));
-const html = buildReplyHtml("Hola <b>Ana</b>", quote);
+assert.ok(text.includes("Saludos,\nBambú"));
+assert.ok(!buildReplyText("Hola", null, false).includes("Saludos,"));
+assert.ok(buildReplyText("Hola", null, false).includes("Bambú Servicios Integrales"));
+const html = buildReplyHtml(textToReplyDoc("Hola <b>Ana</b>"), quote);
 assert.ok(!html.includes("<script>") && !html.includes("<b>Ana"));
 assert.ok(html.includes("&lt;script&gt;"));
-assert.equal(replyWebFormSchema.safeParse({ id: "cmwxo9eze00000hd09zzlc2ig", requestId: "r".repeat(36), subject: "x", body: " " }).success, false);
+const replyInput = { id: "cmwxo9eze00000hd09zzlc2ig", requestId: "r".repeat(36), subject: "x" };
+assert.equal(replyWebFormSchema.safeParse({ ...replyInput, content: textToReplyDoc(" ") }).success, false);
+assert.equal(replyWebFormSchema.safeParse({ ...replyInput, content: textToReplyDoc("Hola Ana") }).success, true);
+
+// --- Asunto con el servicio pedido.
+assert.equal(defaultReplySubject("CONTACT", "Limpieza Doméstica"), "Petición de servicio de limpieza doméstica - Bambú Servicios Integrales");
+assert.equal(defaultReplySubject("CONTACT", "Otro"), "Petición de servicio de limpieza - Bambú Servicios Integrales");
+assert.equal(defaultReplySubject("CONTACT", null), "Petición de servicio de limpieza - Bambú Servicios Integrales");
+
+// --- Formato: negrita, cursiva y solo los tamaños permitidos; texto escapado.
+const formatted = {
+  type: "doc",
+  content: [
+    { type: "paragraph", content: [] },
+    {
+      type: "paragraph",
+      content: [
+        { type: "text", text: "Precio", marks: [{ type: "bold" }, { type: "italic" }] },
+        { type: "hardBreak" },
+        { type: "text", text: "<x>", marks: [{ type: "textStyle", attrs: { fontSize: "18px" } }] },
+        { type: "text", text: "raro", marks: [{ type: "textStyle", attrs: { fontSize: "99px;color:red" } }] },
+      ],
+    },
+    { type: "paragraph", content: [] },
+  ],
+};
+const doc = replyDocSchema.parse(formatted);
+assert.equal(replyDocToText(doc), "\nPrecio\n<x>raro\n");
+const docHtml = replyDocToHtml(doc);
+assert.equal(
+  docHtml,
+  '<p style="margin:0"><strong><em>Precio</em></strong><br><span style="font-size:18px">&lt;x&gt;</span>raro</p>'
+);
+assert.equal(replyDocSchema.safeParse({ type: "doc", content: [{ type: "heading", content: [] }] }).success, false);
+assert.equal(replyDocToText(textToReplyDoc("Hola Ana,\n\n")), "Hola Ana,\n\n");
+
+// --- Detectar currículums: solo referencias que existen, sin repetidos.
+const candidates = [
+  { id: "a", name: "Ana", service: "Limpieza Doméstica", location: null, message: "Quiero presupuesto" },
+  { id: "b", name: "Bea", service: "Otro", location: null, message: "Busco trabajo de limpiadora" },
+];
+assert.ok(buildCvClassificationPrompt(candidates).includes("P2. Bea"));
+assert.deepEqual(
+  pickCvIds(candidates, { curriculums: [{ ref: "p2", reason: "busca trabajo" }, { ref: "P2", reason: "" }, { ref: "P9", reason: "" }] }),
+  ["b"]
+);
+assert.deepEqual(pickCvIds(candidates, null), []);
+
+// --- Mover avisos: carpeta por nombre (prefijo y tildes), tipo del formulario.
+const boxes = [
+  { path: "INBOX", name: "INBOX" },
+  { path: "INBOX.Trabaja con nosotros", name: "Trabaja con nosotros" },
+  { path: "INBOX.Solicitudes de presupuesto", name: "solicitudes de  presupuesto" },
+];
+assert.equal(findFolderPath(boxes, WEB_FORM_MAIL_FOLDERS.JOB_APPLICATION), "INBOX.Trabaja con nosotros");
+assert.equal(findFolderPath(boxes, WEB_FORM_MAIL_FOLDERS.CONTACT), "INBOX.Solicitudes de presupuesto");
+assert.equal(findFolderPath(boxes, "Otra"), null);
+const day = new Date("2026-11-20T12:00:00Z");
+const notices = [
+  { uid: 1, subject: "Petición de servicio Web", replyTo: "ana@x.com", date: day },
+  { uid: 2, subject: "Peticion de servicio web", replyTo: "Bea@x.com", date: day },
+  { uid: 3, subject: "Trabaja con nosotros", replyTo: "caro@x.com", date: day },
+  { uid: 4, subject: "Petición de servicio Web", replyTo: "nadie@x.com", date: day },
+  { uid: 5, subject: "Factura de noviembre", replyTo: "ana@x.com", date: day },
+  { uid: 6, subject: "Petición de servicio Web", replyTo: "ana@x.com", date: new Date("2026-10-01T12:00:00Z") },
+];
+const known = [
+  { email: "ana@x.com", createdAt: new Date("2026-11-20T12:00:05Z"), kind: "CONTACT" as const },
+  { email: "bea@x.com", createdAt: new Date("2026-11-20T11:59:00Z"), kind: "JOB_APPLICATION" as const },
+];
+assert.deepEqual(planMailSort(notices, known, "CONTACT"), { uids: [1], unmatched: 2 });
+assert.deepEqual(planMailSort(notices, known, "JOB_APPLICATION"), { uids: [2, 3], unmatched: 2 });
+assert.equal(noticeKindFromSubject("Trabaja con nosotros"), "JOB_APPLICATION");
+
+// --- El agente recibe el formulario como contexto; mover solo está acá.
+assert.ok(agentBudgetContextSchema.safeParse({ kind: "web-form", submissionId: "cmwxo9eze00000hd09zzlc2ig" }).success);
+assert.ok(readFileSync("lib/web-forms/sort-mail.ts", "utf8").includes("messageMove"));
 
 // --- WhatsApp con números de Uruguay.
 assert.equal(toWhatsAppNumber("099 123 456"), "59899123456");

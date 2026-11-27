@@ -4,7 +4,10 @@ import { keepPreviousData, useMutation, useQuery, useQueryClient } from "@tansta
 import { toast } from "sonner";
 
 import {
+  detectCurriculumsAction,
   listWebFormsAction,
+  moveWebFormMailAction,
+  setWebFormKindAction,
   newWebFormsCountAction,
   replyWebFormAction,
   setWebFormStatusAction,
@@ -68,6 +71,23 @@ export const useWebFormMutations = () => {
       onSuccess: (result) => (result.savedToSent === false ? toast.warning(result.success) : toast.success(result.success)),
       onError,
       onSettled,
+    }),
+    setKind: useMutation({
+      mutationFn: setWebFormKindAction,
+      onSuccess: (message: string) => toast.success(message),
+      onError,
+      onSettled,
+    }),
+    detectCurriculums: useMutation({
+      mutationFn: detectCurriculumsAction,
+      onSuccess: (result) => toast.success(result.success),
+      onError,
+      onSettled,
+    }),
+    moveMail: useMutation({
+      mutationFn: moveWebFormMailAction,
+      onSuccess: (result) => (result.unmatched ? toast.warning(result.success) : toast.success(result.success)),
+      onError,
     }),
   };
 };

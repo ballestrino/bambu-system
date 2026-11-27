@@ -83,7 +83,7 @@ export function WebFormDetailPanel({ id, onClose }: { id: string | null; onClose
               </p>
             )}
           </div>
-          <WebFormStatusActions id={form.id} status={form.status} hasReplies={form.replies.some((reply) => reply.sentAt)} />
+          <WebFormStatusActions id={form.id} kind={form.kind} status={form.status} hasReplies={form.replies.some((reply) => reply.sentAt)} />
         </header>
 
         <div className="flex flex-wrap gap-2">
@@ -128,7 +128,7 @@ export function WebFormDetailPanel({ id, onClose }: { id: string | null; onClose
       </div>
 
       <WebFormReplies replies={form.replies} />
-      <WebFormComposer key={form.id} form={form} />
+      <WebFormComposer key={`${form.id}-${form.kind}`} form={form} />
     </article>
   );
 }

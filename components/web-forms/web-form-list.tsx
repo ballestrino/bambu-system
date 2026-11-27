@@ -14,11 +14,17 @@ import { cn } from "@/lib/utils";
 type ListData = Awaited<ReturnType<typeof listWebFormsAction>>;
 type Row = ListData["rows"][number];
 
-const EMPTY_TEXT: Record<WebFormFilters["status"], string> = {
-  NEW: "No hay formularios nuevos. Los que lleguen desde la web aparecen acá.",
-  REPLIED: "Todavía no respondiste ninguno.",
-  ARCHIVED: "No hay formularios archivados.",
-  ALL: "Todavía no llegó ningún formulario desde la web.",
+const KIND_NOUN: Record<WebFormFilters["kind"], { plural: string; none: string }> = {
+  CONTACT: { plural: "pedidos de servicio", none: "ningún pedido de servicio" },
+  JOB_APPLICATION: { plural: "currículums", none: "ningún currículum" },
+};
+
+const emptyText = ({ status, kind }: WebFormFilters) => {
+  const noun = KIND_NOUN[kind];
+  if (status === "NEW") return `No hay ${noun.plural} nuevos. Los que lleguen desde la web aparecen acá.`;
+  if (status === "REPLIED") return `Todavía no respondiste ${noun.none}.`;
+  if (status === "ARCHIVED") return `No hay ${noun.plural} archivados.`;
+  return `Todavía no llegó ${noun.none} desde la web.`;
 };
 
 function WebFormRow({ row, selected, onSelect }: { row: Row; selected: boolean; onSelect: () => void }) {
@@ -103,12 +109,14 @@ export function WebFormList({
   if (rows.length === 0) {
     return (
       <p className="rounded-xl border border-dashed border-ops-border px-4 py-10 text-center text-sm text-ops-text-muted">
-        {filters.search || filters.kind !== "ALL" ? "Ningún formulario coincide con el filtro." : EMPTY_TEXT[filters.status]}
+        {filters.search ? "Ningún formulario coincide con la búsqueda." : emptyText(filters)}
       </p>
     );
   }
+  // En escritorio la lista tiene su propio scroll, del alto de la pantalla: no
+  // empuja la página hacia abajo y el detalle queda a la vista.
   return (
-    <ul className="divide-y divide-ops-border overflow-hidden rounded-xl border border-ops-border bg-ops-surface">
+    <ul className="divide-y divide-ops-border overflow-hidden rounded-xl border border-ops-border bg-ops-surface lg:max-h-[calc(100dvh-2rem)] lg:overflow-y-auto">
       {rows.map((row) => (
         <WebFormRow key={row.id} row={row} selected={row.id === selectedId} onSelect={() => onSelect(row.id)} />
       ))}

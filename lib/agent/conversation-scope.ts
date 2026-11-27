@@ -51,5 +51,13 @@ type LinkedBudget = { id: string; name: string } | null | undefined;
 export const pageBudgetContext = (budget: LinkedBudget): AgentBudgetContextInput | undefined =>
   budget ? { kind: "saved", budgetId: budget.id } : undefined;
 
+// Las de Formularios web (feature 75) se crean con este contextKind.
+export const WEB_FORM_CONTEXT_KIND = "web-form";
+
+const CONTEXT_KIND_LABELS: Record<string, string> = {
+  [BILLING_CONTEXT_KIND]: "Facturación",
+  [WEB_FORM_CONTEXT_KIND]: "Formulario web",
+};
+
 export const pageContextLabel = (budget: LinkedBudget, contextKind?: string | null) =>
-  budget ? `Presupuesto: ${budget.name}` : contextKind === BILLING_CONTEXT_KIND ? "Facturación" : "Sin presupuesto";
+  budget ? `Presupuesto: ${budget.name}` : (contextKind && CONTEXT_KIND_LABELS[contextKind]) || "Sin presupuesto";

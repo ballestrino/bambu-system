@@ -19,6 +19,7 @@ import { prepareHistoryForModel } from "@/lib/agent/model-history";
 import { buildCachedInstructions, markPreviousUserMessage } from "@/lib/agent/prompt-cache";
 import type { AgentInstructionParts } from "@/lib/agent/system-prompt";
 import { getAgentSkill, resolveSkillToolNames, type AgentSkillId } from "@/lib/agent/skills";
+import { WEB_FORM_ONLY_TOOLS } from "@/lib/agent/skills/general";
 import { createAgentTools } from "@/lib/agent/tools";
 import type { AgentUsageCollector } from "@/lib/agent/usage-collector";
 import { buildAgentCallSettings } from "@/lib/ai/call-settings";
@@ -61,6 +62,7 @@ export const runAgentTurn = async (input: {
     formValues: input.budgetContext.formValues,
     billingMonth: input.budgetContext.billingMonth,
     invoiceForm: input.budgetContext.invoiceForm,
+    webFormId: input.budgetContext.webFormId,
     grounding: input.grounding,
     usage: input.usage,
     teamContext: input.teamContext,
@@ -74,6 +76,11 @@ export const runAgentTurn = async (input: {
   );
 
   const instructions = buildCachedInstructions(input.instructions);
+  // fillWebFormReply solo con un formulario web en contexto (feature 75).
+  const activeTools = [
+    ...resolveSkillToolNames(getAgentSkill(input.skill)),
+    ...(input.budgetContext.webFormId ? WEB_FORM_ONLY_TOOLS : []),
+  ];
   const streamSegment = (messages: ModelMessage[]) =>
     streamText({
       ...settings,
@@ -82,7 +89,7 @@ export const runAgentTurn = async (input: {
       tools,
       // Todas registradas (el historial puede traer tools de otra habilidad),
       // solo las de la habilidad disponibles para este turno.
-      activeTools: resolveSkillToolNames(getAgentSkill(input.skill)),
+      activeTools,
       toolChoice: "auto",
       stopWhen: isStepCount(MAX_STEPS),
       maxOutputTokens: MAX_OUTPUT_TOKENS,

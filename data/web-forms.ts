@@ -44,7 +44,7 @@ const listSelect = {
 export const listWebForms = async (filters: ListFilters) => {
   await requireAdminSession();
   const where = filterWhere(filters);
-  const [rows, grouped] = await Promise.all([
+  const [rows, grouped, newGrouped] = await Promise.all([
     db.webFormSubmission.findMany({
       where: filters.status === "ALL" ? where : { ...where, status: filters.status },
       orderBy: [{ createdAt: "desc" }, { id: "desc" }],
@@ -52,14 +52,19 @@ export const listWebForms = async (filters: ListFilters) => {
       select: listSelect,
     }),
     db.webFormSubmission.groupBy({ by: ["status"], where, _count: { _all: true } }),
+    // Los nuevos de cada pestaña (Pedidos de servicio, Currículums), sin filtros.
+    db.webFormSubmission.groupBy({ by: ["kind"], where: { status: "NEW" }, _count: { _all: true } }),
   ]);
   const counts = { NEW: 0, REPLIED: 0, ARCHIVED: 0, ALL: 0 };
   for (const group of grouped) {
     counts[group.status] = group._count._all;
     counts.ALL += group._count._all;
   }
+  const newByKind = { CONTACT: 0, JOB_APPLICATION: 0 };
+  for (const group of newGrouped) newByKind[group.kind] = group._count._all;
   return {
     counts,
+    newByKind,
     rows: rows.map(({ _count, attachment, ...row }) => ({
       ...row,
       cvFilename: attachment?.filename ?? null,
