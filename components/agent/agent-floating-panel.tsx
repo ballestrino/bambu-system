@@ -5,6 +5,7 @@ import * as DialogPrimitive from "@radix-ui/react-dialog";
 import { Sparkles } from "lucide-react";
 import { useEffect, useRef, useState, type ReactNode } from "react";
 
+import type { AgentQuickPrompt } from "@/components/agent/agent-empty-state";
 import { AgentCostDialog } from "@/components/agent/agent-cost-dialog";
 import { AgentHistoryDialog } from "@/components/agent/agent-history-dialog";
 import { AgentSessionBody } from "@/components/agent/agent-session-body";
@@ -39,6 +40,8 @@ export type AgentFloatingPanelProps = {
   // Lo que sigue la conversación aunque el panel esté cerrado (el stream no
   // se corta al cerrarlo): Nueva factura aplica ahí los campos que completa.
   renderListener?: (chat: Chat<AgentUIMessage>) => ReactNode;
+  // Atajos en una conversación vacía: un botón que le manda el texto.
+  quickPrompts?: AgentQuickPrompt[];
 };
 
 // El agente en un panel flotante: en escritorio arriba a la derecha, sin
@@ -55,6 +58,7 @@ export function AgentFloatingPanel({
   buttonLabel = "Agente",
   onOpenChange,
   renderListener,
+  quickPrompts,
 }: AgentFloatingPanelProps) {
   const isMobile = useIsMobile();
   const [open, setOpen] = useState(false);
@@ -92,6 +96,7 @@ export function AgentFloatingPanel({
         getContext={getContext}
         onProposalConfirmed={() => undefined}
         skill={skill}
+        quickPrompts={quickPrompts}
       />
       <AgentHistoryDialog
         open={dialog === "history"}

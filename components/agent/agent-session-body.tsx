@@ -3,6 +3,7 @@
 import { AlertCircle } from "lucide-react";
 
 import { AgentChat } from "@/components/agent/agent-chat";
+import type { AgentQuickPrompt } from "@/components/agent/agent-empty-state";
 import { AgentConversationCost } from "@/components/agent/agent-cost-badge";
 import { AgentModeSelect } from "@/components/agent/agent-mode-select";
 import type { AgentSession } from "@/components/agent/hooks/use-agent-session";
@@ -34,12 +35,14 @@ export function AgentSessionBody({
   getContext,
   onProposalConfirmed,
   skill,
+  quickPrompts,
 }: {
   session: AgentSession;
   contextLabel: string;
   getContext: () => AgentBudgetContextInput | undefined;
   onProposalConfirmed: (result: ProposalResult | null) => void;
   skill?: AgentSkillId;
+  quickPrompts?: AgentQuickPrompt[];
 }) {
   const { state } = session;
   if (state.status === "error") {
@@ -70,6 +73,7 @@ export function AgentSessionBody({
       getContext={getContext}
       onProposalConfirmed={onProposalConfirmed}
       skill={skill}
+      quickPrompts={quickPrompts}
       composerTools={
         <AgentModeSelect
           mode={session.mode}

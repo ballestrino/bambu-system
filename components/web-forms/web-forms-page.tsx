@@ -5,6 +5,7 @@ import { useState } from "react";
 import { toast } from "sonner";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 
+import type { AgentQuickPrompt } from "@/components/agent/agent-empty-state";
 import { AgentFloatingPanel } from "@/components/agent/agent-floating-panel";
 import type { AgentUIMessage } from "@/components/agent/types";
 import { OpsPageHeader, OpsPageShell } from "@/components/ops/shared/ops-page-shell";
@@ -27,6 +28,15 @@ function ReplyFillListener({ chat, onFill }: { chat: Chat<AgentUIMessage>; onFil
   useWebFormReplyFills(chat, onFill);
   return null;
 }
+
+// Atajos del agente con un formulario elegido.
+const REPLY_PROMPTS: AgentQuickPrompt[] = [
+  {
+    label: "Arma la respuesta",
+    prompt: "Arma la respuesta para este cliente, y si ya hay opciones oficiales usalas para dar el precio",
+  },
+  { label: "Pedir datos", prompt: "Arma un mensaje para pedirle los datos necesarios al cliente" },
+];
 
 const KIND_TABS: { id: WebFormKindTab; label: string }[] = [
   { id: "CONTACT", label: "Pedidos de servicio" },
@@ -93,6 +103,7 @@ export function WebFormsPage() {
               resumeLatest={false}
               contextLabel={agentLabel}
               freshKey={selectedId}
+              quickPrompts={selectedId ? REPLY_PROMPTS : undefined}
               getContext={() => (selectedId ? { kind: "web-form", submissionId: selectedId } : undefined)}
               renderListener={(chat) => <ReplyFillListener key={chat.id} chat={chat} onFill={onReplyFill} />}
             />

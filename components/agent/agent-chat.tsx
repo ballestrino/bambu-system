@@ -9,7 +9,7 @@ import { AgentBudgetSheet } from "@/components/agent/budget-editor/agent-budget-
 import { AgentOfficialBudgetSheet } from "@/components/agent/budget-editor/agent-official-budget-sheet";
 import { AgentSavedBudgetSheet } from "@/components/agent/budget-editor/agent-saved-budget-sheet";
 import { useBudgetEditor } from "@/components/agent/hooks/use-budget-editor";
-import { AgentEmptyState } from "@/components/agent/agent-empty-state";
+import { AgentEmptyState, type AgentQuickPrompt } from "@/components/agent/agent-empty-state";
 import { AgentErrorBanner } from "@/components/agent/agent-error-banner";
 import { AgentMessageList } from "@/components/agent/agent-message-list";
 import { AgentPendingBar } from "@/components/agent/agent-pending-bar";
@@ -47,6 +47,7 @@ export function AgentChat({
   onProposalConfirmed,
   composerTools,
   skill = DEFAULT_AGENT_SKILL,
+  quickPrompts,
 }: {
   conversationId: string;
   chat: Chat<AgentUIMessage>;
@@ -58,6 +59,8 @@ export function AgentChat({
   // Lo que va junto al "+" del composer: el modo.
   composerTools?: React.ReactNode;
   skill?: AgentSkillId;
+  // Atajos del estado vacío (Formularios web).
+  quickPrompts?: AgentQuickPrompt[];
 }) {
   const view = useAgentChat({ chat, mode, getContext });
   const proposals = useAgentProposals(conversationId, hasProposalParts(view.messages));
@@ -113,7 +116,14 @@ export function AgentChat({
           status={view.status}
           notices={notices}
           onRetry={view.canRetry ? view.retry : undefined}
-          emptyState={<AgentEmptyState contextLabel={contextLabel} />}
+          emptyState={
+            <AgentEmptyState
+              contextLabel={contextLabel}
+              quickPrompts={quickPrompts}
+              onPick={(text) => view.send(text, skill)}
+              disabled={view.busy}
+            />
+          }
         />
         {errorMessage && (
           <AgentErrorBanner
